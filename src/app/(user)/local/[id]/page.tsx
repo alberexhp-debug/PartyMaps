@@ -15,7 +15,7 @@ import {
 } from '@/lib/utils'
 import {
   ChevronLeft, Bell, BellOff, MapPin, Clock, Music, Ticket,
-  Star, MessageSquare, Lightbulb, Share2, Navigation
+  Star, MessageSquare, Lightbulb, Share2, Navigation, PenLine, X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +30,8 @@ export default function LocalPerfilPage() {
   const [loading, setLoading] = useState(true)
   const [imagenActiva, setImagenActiva] = useState(0)
   const [tab, setTab] = useState<'info' | 'reviews'>('info')
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [miReview, setMiReview] = useState<Review | null>(null)
 
   useEffect(() => {
     const cargar = async () => {
@@ -44,8 +46,12 @@ export default function LocalPerfilPage() {
       if (reviewsData) setReviews(reviewsData)
 
       if (usuario) {
-        const { data: sub } = await supabase.from('suscripciones').select('id').match({ usuario_id: usuario.id, local_id: id }).single()
+        const [{ data: sub }, { data: myReview }] = await Promise.all([
+          supabase.from('suscripciones').select('id').match({ usuario_id: usuario.id, local_id: id }).single(),
+          supabase.from('reviews').select('*').match({ usuario_id: usuario.id, local_id: id }).is('checkin_id', null).single(),
+        ])
         setSuscrito(!!sub)
+        if (myReview) setMiReview(myReview)
       }
 
       setLoading(false)
@@ -88,6 +94,84 @@ export default function LocalPerfilPage() {
       <Button onClick={() => router.back()}>Volver</Button>
     </div>
   )
+
+  function ReviewModal({ localId, localNombre, userId, onClose, onGuardada }: {
+    localId: string; localNombre: string; userId: string
+    onClose: () => void; onGuardada: (r: Review) => void
+  }) {
+    const [puntuacion, setPuntuacion] = useState(0)
+    const [comentario, setComentario] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    const guardar = async () => {
+      if (puntuacion === 0) { toast.error('Selecciona una puntuación'); return }
+      setLoading(true)
+      const { data, error } = await supabase.from('reviews').insert({
+        usuario_id: userId,
+        local_id: localId,
+        puntuacion,
+        comentario: comentario.trim() || null,
+        estado: 'activa',
+      }).select('*, usuarios(nombre, foto_perfil_url)').single()
+      if (error) {
+        if (error.code === '23505') toast.error('Ya tienes una review en este local')
+        else toast.error('Error al publicar la review')
+      } else {
+        onGuardada(data as Review)
+      }
+      setLoading(false)
+    }
+
+    return (
+      <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
+        <div className="w-full bg-[#1A1A2E] rounded-t-3xl p-6 space-y-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white">Tu opinión sobre {localNombre}</h2>
+            <button onClick={onClose} className="p-2 text-[#505065] hover:text-white">
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-[#A0A0B8]">Puntuación *</p>
+            <div className="flex gap-3 justify-center py-2">
+              {[1,2,3,4,5].map(n => (
+                <button key={n} onClick={() => setPuntuacion(n)} className="transition-transform active:scale-95">
+                  <Star
+                    size={36}
+                    className={n <= puntuacion ? 'text-yellow-400 fill-yellow-400' : 'text-[#2A2A3E]'}
+                  />
+                </button>
+              ))}
+            </div>
+            {puntuacion > 0 && (
+              <p className="text-center text-sm text-[#A0A0B8]">
+                {['', 'Muy malo', 'Malo', 'Normal', 'Bueno', 'Excelente'][puntuacion]}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#A0A0B8]">Comentario (opcional)</label>
+            <textarea
+              value={comentario}
+              onChange={e => setComentario(e.target.value)}
+              placeholder="Cuéntanos tu experiencia..."
+              rows={4}
+              maxLength={500}
+              className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#505065]"
+            />
+            <p className="text-xs text-[#505065] text-right">{comentario.length}/500</p>
+          </div>
+
+          <Button fullWidth loading={loading} onClick={guardar}>
+            <Star size={16} />
+            Publicar review
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const colorTemp = getColorTemperatura(local.temperatura)
   const eventoActivo = (local as LocalConAforo & { eventos?: Array<{ id: string; nombre: string; estado: string; imagen_url?: string }> }).eventos?.find((e: { estado: string }) => e.estado === 'publicado')
@@ -296,6 +380,32 @@ export default function LocalPerfilPage() {
 
         {tab === 'reviews' && (
           <div className="space-y-4">
+            {/* Botón escribir review */}
+            {usuario && !miReview && (
+              <button
+                onClick={() => setShowReviewModal(true)}
+                className="w-full flex items-center gap-3 p-4 bg-[#1A1A2E] border border-dashed border-[#E94560]/40 rounded-2xl hover:border-[#E94560] transition-colors"
+              >
+                <PenLine size={18} className="text-[#E94560]" />
+                <span className="text-sm font-medium text-[#A0A0B8]">Escribe tu opinión sobre {local.nombre}</span>
+              </button>
+            )}
+            {usuario && miReview && (
+              <div className="p-3 bg-[#E94560]/10 border border-[#E94560]/30 rounded-xl flex items-center gap-2">
+                <Star size={14} className="text-[#E94560] fill-current" />
+                <span className="text-sm text-[#E94560]">Ya dejaste una review ({miReview.puntuacion} ★)</span>
+              </div>
+            )}
+            {!usuario && (
+              <button
+                onClick={() => router.push('/login')}
+                className="w-full flex items-center gap-3 p-4 bg-[#1A1A2E] border border-dashed border-[#2A2A3E] rounded-2xl"
+              >
+                <PenLine size={18} className="text-[#505065]" />
+                <span className="text-sm text-[#505065]">Inicia sesión para dejar una review</span>
+              </button>
+            )}
+
             {reviews.length === 0 ? (
               <div className="flex flex-col items-center py-12 gap-3">
                 <MessageSquare size={40} className="text-[#505065]" />
@@ -357,6 +467,22 @@ export default function LocalPerfilPage() {
           </div>
         )}
       </div>
+
+      {/* Modal review */}
+      {showReviewModal && local && usuario && (
+        <ReviewModal
+          localId={local.id}
+          localNombre={local.nombre}
+          userId={usuario.id}
+          onClose={() => setShowReviewModal(false)}
+          onGuardada={(nueva) => {
+            setMiReview(nueva)
+            setReviews(r => [nueva, ...r])
+            setShowReviewModal(false)
+            toast.success('¡Review publicada!')
+          }}
+        />
+      )}
 
       {/* Footer fijo: comprar entrada */}
       <div className="fixed bottom-20 left-0 right-0 px-4 z-20">

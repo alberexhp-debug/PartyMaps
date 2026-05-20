@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { formatearPrecio, getTemperaturaAforo, getColorTemperatura, getLabelTemperatura } from '@/lib/utils'
 import {
   Ticket, Users, TrendingUp, Bell, Star, Zap,
-  Calendar, ChevronRight, BarChart3, AlertCircle
+  Calendar, ChevronRight, BarChart3, AlertCircle, Gauge, Check
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
@@ -25,9 +25,12 @@ interface KPIs {
 
 export default function LocalPanelDashboard() {
   const router = useRouter()
-  const { local } = useLocalPanelStore()
+  const { local, trabajador } = useLocalPanelStore()
   const [kpis, setKpis] = useState<KPIs | null>(null)
   const [loading, setLoading] = useState(true)
+  const [aforoSlider, setAforoSlider] = useState<number | null>(null)
+  const [guardandoAforo, setGuardandoAforo] = useState(false)
+  const [aforoGuardado, setAforoGuardado] = useState(false)
 
   useEffect(() => {
     if (!local) return
@@ -74,6 +77,19 @@ export default function LocalPanelDashboard() {
       historico_aforo: historico,
     })
     setLoading(false)
+  }
+
+  async function guardarAforo() {
+    if (aforoSlider === null || !local || !trabajador) return
+    setGuardandoAforo(true)
+    await fetch('/api/locales/aforo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ local_id: local.id, porcentaje: aforoSlider, worker_id: trabajador.usuario_id }),
+    })
+    setGuardandoAforo(false)
+    setAforoGuardado(true)
+    setTimeout(() => setAforoGuardado(false), 3000)
   }
 
   if (!local) return null
@@ -186,6 +202,48 @@ export default function LocalPanelDashboard() {
           </ResponsiveContainer>
         </div>
       )}
+
+      {/* Aforo manual */}
+      <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-4">
+        <h2 className="font-bold text-white flex items-center gap-2">
+          <Gauge size={16} className="text-[#E94560]" />
+          Ajuste manual de aforo
+        </h2>
+        <p className="text-xs text-[#505065]">
+          Corrige el aforo estimado durante 2 horas. La estimación automática se reanudará después.
+        </p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-[#A0A0B8]">Nivel actual</span>
+            <span className="text-lg font-black" style={{ color: colorTemp }}>
+              {aforoSlider !== null ? aforoSlider : Math.round(kpis?.aforo_actual || 0)}%
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={aforoSlider !== null ? aforoSlider : Math.round(kpis?.aforo_actual || 0)}
+            onChange={e => setAforoSlider(Number(e.target.value))}
+            className="w-full accent-[#E94560]"
+          />
+          <div className="flex justify-between text-xs text-[#505065]">
+            <span>Vacío</span>
+            <span>Medio</span>
+            <span>Lleno</span>
+          </div>
+        </div>
+        <Button
+          size="sm"
+          fullWidth
+          loading={guardandoAforo}
+          disabled={aforoSlider === null}
+          onClick={guardarAforo}
+        >
+          {aforoGuardado ? <><Check size={14} /> Guardado</> : <><Gauge size={14} /> Aplicar corrección</>}
+        </Button>
+      </div>
 
       {/* Acciones rápidas */}
       <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-2">
