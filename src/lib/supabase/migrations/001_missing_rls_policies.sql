@@ -26,6 +26,30 @@ CREATE POLICY "Dueños y gestores gestionan equipo" ON usuario_local
     )
   );
 
+-- ── CONCURSOS: panel local gestiona todos los estados ────────────────────────
+-- La política existente solo permite ver activo/programado; el panel
+-- necesita ver cerrado/finalizado/cancelado también, e insertar/actualizar.
+
+CREATE POLICY "Panel local gestiona sus concursos" ON concursos
+  FOR ALL USING (
+    local_id IN (
+      SELECT local_id FROM usuario_local
+      WHERE email = auth.email() AND activo = true
+    )
+  );
+
+-- Panel local ve todas las participaciones de sus concursos (incluyendo pendientes)
+CREATE POLICY "Panel local gestiona participaciones de sus concursos" ON participaciones_concurso
+  FOR ALL USING (
+    concurso_id IN (
+      SELECT id FROM concursos
+      WHERE local_id IN (
+        SELECT local_id FROM usuario_local
+        WHERE email = auth.email() AND activo = true
+      )
+    )
+  );
+
 -- ── RETOS ─────────────────────────────────────────────────────────────────────
 
 CREATE POLICY "Retos activos son públicos" ON retos
