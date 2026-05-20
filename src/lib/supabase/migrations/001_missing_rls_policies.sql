@@ -150,3 +150,23 @@ CREATE POLICY "Admins ven todos los concursos" ON concursos
 -- Entradas: admins ven todas
 CREATE POLICY "Admins ven todas las entradas" ON entradas
   FOR SELECT USING (is_admin());
+
+-- ── SCANNER: Panel local necesita leer y actualizar entradas de su local ──────
+-- Los trabajadores del local panel no están en la tabla usuarios,
+-- por lo que la política de usuarios no les aplica.
+
+CREATE POLICY "Panel local verifica entradas de su local" ON entradas
+  FOR SELECT USING (
+    local_id IN (
+      SELECT local_id FROM usuario_local
+      WHERE email = auth.email() AND activo = true
+    )
+  );
+
+CREATE POLICY "Panel local marca entradas como usadas" ON entradas
+  FOR UPDATE USING (
+    local_id IN (
+      SELECT local_id FROM usuario_local
+      WHERE email = auth.email() AND activo = true
+    )
+  );
