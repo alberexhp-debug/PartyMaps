@@ -8,6 +8,14 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
+    // Resolve auth user → usuarios.id (the FK target in entradas)
+    const { data: usuarioRow } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('auth_id', user.id)
+      .single()
+    if (!usuarioRow) return NextResponse.json({ error: 'Perfil de usuario no encontrado' }, { status: 404 })
+
     const body = await req.json()
     const { local_id, evento_id, consumicion_id, cantidad = 1 } = body
 
@@ -40,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     // Create tickets
     const entradas = Array.from({ length: cantidad }, () => ({
-      usuario_id: user.id,
+      usuario_id: usuarioRow.id,
       local_id,
       evento_id: evento_id || null,
       consumicion_id: consumicion_id || null,
