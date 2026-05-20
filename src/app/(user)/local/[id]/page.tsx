@@ -15,7 +15,8 @@ import {
 } from '@/lib/utils'
 import {
   ChevronLeft, Bell, BellOff, MapPin, Clock, Music, Ticket,
-  Star, MessageSquare, Lightbulb, Share2, Navigation, PenLine, X
+  Star, MessageSquare, Lightbulb, Share2, Navigation, PenLine, X,
+  LogIn, LogOut, Trophy, Target, Send
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -29,9 +30,14 @@ export default function LocalPerfilPage() {
   const [suscrito, setSuscrito] = useState(false)
   const [loading, setLoading] = useState(true)
   const [imagenActiva, setImagenActiva] = useState(0)
-  const [tab, setTab] = useState<'info' | 'reviews'>('info')
+  const [tab, setTab] = useState<'info' | 'reviews' | 'modulos'>('info')
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [miReview, setMiReview] = useState<Review | null>(null)
+  const [checkinActivo, setCheckinActivo] = useState<string | null>(null)
+  const [haciendoCheckin, setHaciendoCheckin] = useState(false)
+  const [showSugerencia, setShowSugerencia] = useState(false)
+  const [concursoActivo, setConcursoActivo] = useState<{ id: string; descripcion: string; premio: string; tipo_contenido: string } | null>(null)
+  const [retosActivos, setRetosActivos] = useState<{ id: string; nombre: string; descripcion: string; premio?: string }[]>([])
 
   useEffect(() => {
     const cargar = async () => {
@@ -46,13 +52,25 @@ export default function LocalPerfilPage() {
       if (reviewsData) setReviews(reviewsData)
 
       if (usuario) {
-        const [{ data: sub }, { data: myReview }] = await Promise.all([
+        const [{ data: sub }, { data: myReview }, { data: checkin }] = await Promise.all([
           supabase.from('suscripciones').select('id').match({ usuario_id: usuario.id, local_id: id }).single(),
           supabase.from('reviews').select('*').match({ usuario_id: usuario.id, local_id: id }).is('checkin_id', null).single(),
+          supabase.from('checkins').select('id').match({ usuario_id: usuario.id, local_id: id }).is('salida_at', null).single(),
         ])
         setSuscrito(!!sub)
         if (myReview) setMiReview(myReview)
+        if (checkin) setCheckinActivo(checkin.id)
       }
+
+      // Cargar concurso y retos activos
+      const [{ data: concurso }, { data: retos }] = await Promise.all([
+        supabase.from('concursos').select('id, descripcion, premio, tipo_contenido')
+          .eq('local_id', id).eq('estado', 'activo').single(),
+        supabase.from('retos').select('id, nombre, descripcion, premio')
+          .eq('local_id', id).eq('estado', 'activo'),
+      ])
+      if (concurso) setConcursoActivo(concurso)
+      if (retos) setRetosActivos(retos)
 
       setLoading(false)
     }
@@ -82,6 +100,57 @@ export default function LocalPerfilPage() {
     }
   }
 
+  const hacerCheckin = async () => {
+    if (!usuario) { router.push('/login'); return }
+    if (!local) return
+    setHaciendoCheckin(true)
+
+    const obtenerPos = (): Promise<GeolocationPosition> =>
+      new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+      )
+
+    try {
+      const pos = await obtenerPos()
+      const { latitude: lat, longitude: lng } = pos.coords
+
+      // Haversine distance en metros
+      const R = 6371000
+      const dLat = (local.latitud - lat) * Math.PI / 180
+      const dLon = (local.longitud - lng) * Math.PI / 180
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat * Math.PI/180) * Math.cos(local.latitud * Math.PI/180) * Math.sin(dLon/2)**2
+      const distancia = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+
+      if (distancia > (local.radio_verificacion_metros || 150)) {
+        toast.error(`Debes estar dentro del local (estás a ${Math.round(distancia)}m)`)
+        setHaciendoCheckin(false)
+        return
+      }
+
+      const { data } = await supabase.from('checkins').insert({
+        usuario_id: usuario.id,
+        local_id: local.id,
+        latitud: lat,
+        longitud: lng,
+      }).select('id').single()
+
+      if (data) {
+        setCheckinActivo(data.id)
+        toast.success('¡Check-in realizado! Que disfrutes la noche 🎉')
+      }
+    } catch {
+      toast.error('No se pudo obtener tu ubicación. Activa el GPS e inténtalo de nuevo.')
+    }
+    setHaciendoCheckin(false)
+  }
+
+  const hacerCheckout = async () => {
+    if (!checkinActivo) return
+    await supabase.from('checkins').update({ salida_at: new Date().toISOString() }).eq('id', checkinActivo)
+    setCheckinActivo(null)
+    toast.info('Check-out registrado. ¡Hasta la próxima!')
+  }
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-[#0D0D1A]">
       <Spinner size="lg" />
@@ -94,6 +163,51 @@ export default function LocalPerfilPage() {
       <Button onClick={() => router.back()}>Volver</Button>
     </div>
   )
+
+  function SugerenciaModal({ localId, userId, onClose, onEnviada }: {
+    localId: string; userId: string; onClose: () => void; onEnviada: () => void
+  }) {
+    const [texto, setTexto] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    const enviar = async () => {
+      if (!texto.trim()) { toast.error('Escribe algo primero'); return }
+      setLoading(true)
+      const { error } = await supabase.from('sugerencias').insert({
+        usuario_id: userId,
+        local_id: localId,
+        contenido: texto.trim(),
+        estado: 'nueva',
+      })
+      if (error) toast.error('Error al enviar la sugerencia')
+      else onEnviada()
+      setLoading(false)
+    }
+
+    return (
+      <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
+        <div className="w-full bg-[#1A1A2E] rounded-t-3xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white">Sugerencia al local</h2>
+            <button onClick={onClose} className="p-2 text-[#505065] hover:text-white"><X size={20} /></button>
+          </div>
+          <p className="text-sm text-[#505065]">Tu sugerencia será anónima para otros usuarios. Solo la verá el equipo del local.</p>
+          <textarea
+            value={texto}
+            onChange={e => setTexto(e.target.value)}
+            placeholder="Ej: Podrían mejorar el volumen en la zona VIP..."
+            rows={4}
+            maxLength={400}
+            className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#505065]"
+          />
+          <p className="text-xs text-[#505065] text-right">{texto.length}/400</p>
+          <Button fullWidth loading={loading} onClick={enviar}>
+            <Send size={15} /> Enviar sugerencia
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   function ReviewModal({ localId, localNombre, userId, onClose, onGuardada }: {
     localId: string; localNombre: string; userId: string
@@ -313,18 +427,53 @@ export default function LocalPerfilPage() {
           </div>
         )}
 
-        {/* Tabs info / reviews */}
+        {/* Check-in banner */}
+        {usuario && (
+          <div className={cn(
+            'flex items-center gap-3 p-3 rounded-2xl border',
+            checkinActivo ? 'bg-green-500/10 border-green-500/30' : 'bg-[#1A1A2E] border-[#2A2A3E]'
+          )}>
+            <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0',
+              checkinActivo ? 'bg-green-500/20' : 'bg-[#2A2A3E]')}>
+              {checkinActivo ? <LogIn size={18} className="text-green-400" /> : <LogIn size={18} className="text-[#505065]" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-white">
+                {checkinActivo ? '¡Estás aquí!' : 'Check-in'}
+              </p>
+              <p className="text-xs text-[#505065]">
+                {checkinActivo ? 'Tu presencia está registrada' : 'Verifica que estás en el local'}
+              </p>
+            </div>
+            {checkinActivo ? (
+              <button onClick={hacerCheckout}
+                className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-xs text-[#A0A0B8] hover:text-white">
+                <LogOut size={13} /> Salir
+              </button>
+            ) : (
+              <Button size="sm" loading={haciendoCheckin} onClick={hacerCheckin}>
+                Check-in
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Tabs info / reviews / módulos */}
         <div className="flex gap-1 p-1 bg-[#1A1A2E] rounded-xl">
-          {(['info', 'reviews'] as const).map(t => (
+          {[
+            { key: 'info', label: 'Info' },
+            { key: 'reviews', label: `Reviews (${reviews.length})` },
+            ...((concursoActivo || retosActivos.length > 0) ? [{ key: 'modulos', label: '🎯 Esta noche' }] : []),
+          ].map(({ key, label }) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={key}
+              onClick={() => setTab(key as 'info' | 'reviews' | 'modulos')}
               className={cn(
                 'flex-1 py-2 rounded-lg text-sm font-medium transition-colors',
-                tab === t ? 'bg-[#E94560] text-white' : 'text-[#505065]'
+                tab === key ? 'bg-[#E94560] text-white' : 'text-[#505065]'
               )}
             >
-              {t === 'info' ? 'Información' : `Reviews (${reviews.length})`}
+              {label}
             </button>
           ))}
         </div>
@@ -468,6 +617,75 @@ export default function LocalPerfilPage() {
         )}
       </div>
 
+        {tab === 'modulos' && (
+          <div className="space-y-4">
+            {concursoActivo && (
+              <div className="bg-[#4F8EF7]/10 border border-[#4F8EF7]/30 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Trophy size={18} className="text-[#4F8EF7]" />
+                  <p className="font-bold text-white">Concurso activo</p>
+                </div>
+                <p className="text-sm text-[#A0A0B8]">{concursoActivo.descripcion}</p>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-[#4F8EF7] font-semibold">🎁 Premio:</span>
+                  <span className="text-white">{concursoActivo.premio}</span>
+                </div>
+                <Button
+                  size="sm"
+                  fullWidth
+                  onClick={() => {
+                    if (!usuario) { router.push('/login'); return }
+                    if (!checkinActivo) { toast.error('Haz check-in primero para participar'); return }
+                    router.push(`/concurso/${concursoActivo.id}`)
+                  }}
+                >
+                  <Trophy size={14} /> Participar en el concurso
+                </Button>
+              </div>
+            )}
+
+            {retosActivos.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-white flex items-center gap-2">
+                  <Target size={15} className="text-[#F39C12]" /> Retos activos
+                </p>
+                {retosActivos.map(r => (
+                  <div key={r.id} className="bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl p-3 space-y-2">
+                    <p className="font-semibold text-white text-sm">{r.nombre}</p>
+                    <p className="text-xs text-[#A0A0B8]">{r.descripcion}</p>
+                    {r.premio && <p className="text-xs text-[#F39C12]">🎁 {r.premio}</p>}
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        if (!usuario) { router.push('/login'); return }
+                        if (!checkinActivo) { toast.error('Haz check-in primero para participar'); return }
+                        router.push(`/reto/${r.id}`)
+                      }}
+                    >
+                      Participar en el reto
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Sugerencia al local */}
+            <div className="p-4 bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl space-y-2">
+              <p className="text-sm font-semibold text-white flex items-center gap-2">
+                <MessageSquare size={15} className="text-[#A0A0B8]" /> ¿Algo que mejorar?
+              </p>
+              <p className="text-xs text-[#505065]">Manda una sugerencia anónima al local</p>
+              <Button size="sm" variant="secondary" fullWidth onClick={() => {
+                if (!usuario) { router.push('/login'); return }
+                setShowSugerencia(true)
+              }}>
+                <Send size={13} /> Enviar sugerencia
+              </Button>
+            </div>
+          </div>
+        )}
+
       {/* Modal review */}
       {showReviewModal && local && usuario && (
         <ReviewModal
@@ -481,6 +699,16 @@ export default function LocalPerfilPage() {
             setShowReviewModal(false)
             toast.success('¡Review publicada!')
           }}
+        />
+      )}
+
+      {/* Modal sugerencia */}
+      {showSugerencia && local && usuario && (
+        <SugerenciaModal
+          localId={local.id}
+          userId={usuario.id}
+          onClose={() => setShowSugerencia(false)}
+          onEnviada={() => { setShowSugerencia(false); toast.success('Sugerencia enviada') }}
         />
       )}
 

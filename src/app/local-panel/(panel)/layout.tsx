@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import {
   LayoutDashboard, Store, Calendar, QrCode, Bell,
-  Star, BarChart3, Users, CreditCard, LogOut
+  Star, BarChart3, Users, CreditCard, LogOut, Trophy, Target, MessageSquare
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +14,9 @@ const NAV_ITEMS = [
   { href: '/local-panel/mi-local', icon: Store, label: 'Mi local' },
   { href: '/local-panel/eventos', icon: Calendar, label: 'Eventos' },
   { href: '/local-panel/scanner', icon: QrCode, label: 'Scanner' },
+  { href: '/local-panel/concursos', icon: Trophy, label: 'Concursos' },
+  { href: '/local-panel/retos', icon: Target, label: 'Retos' },
+  { href: '/local-panel/sugerencias', icon: MessageSquare, label: 'Sugerencias' },
   { href: '/local-panel/notificaciones', icon: Bell, label: 'Notificaciones' },
   { href: '/local-panel/reviews', icon: Star, label: 'Reseñas' },
   { href: '/local-panel/analytics', icon: BarChart3, label: 'Analytics' },
@@ -96,7 +99,7 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
         {children}
       </main>
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav — first 5 items */}
       <nav className="fixed bottom-0 left-0 right-0 z-20 bg-[#1A1A2E] border-t border-[#2A2A3E] md:hidden">
         <div className="flex items-center justify-around h-14">
           {NAV_ITEMS.slice(0, 5).map(({ href, icon: Icon, label }) => {

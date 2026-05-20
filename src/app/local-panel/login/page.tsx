@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import Link from 'next/link'
 
 export default function LocalPanelLoginPage() {
   const router = useRouter()
@@ -90,10 +91,16 @@ export default function LocalPanelLoginPage() {
         </Button>
       </div>
 
-      <p className="mt-8 text-xs text-[#505065] text-center">
-        ¿Problemas para acceder? Contacta con soporte en{' '}
-        <span className="text-[#4F8EF7]">soporte@fourvenues.com</span>
-      </p>
+      <div className="mt-6 text-center space-y-2">
+        <p className="text-sm text-[#505065]">
+          ¿Tu local aún no está en Fourvenues?{' '}
+          <Link href="/local-panel/registro" className="text-[#E94560] font-medium">Regístralo gratis</Link>
+        </p>
+        <p className="text-xs text-[#505065]">
+          ¿Problemas para acceder?{' '}
+          <span className="text-[#4F8EF7]">soporte@fourvenues.com</span>
+        </p>
+      </div>
     </div>
   )
 }

@@ -262,6 +262,7 @@ export interface Reto {
   premio?: string
   hora_cierre?: string
   estado: 'activo' | 'cerrado' | 'cancelado'
+  ganador_participacion_id?: string
   created_at: string
 }
 
