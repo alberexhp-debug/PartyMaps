@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/aforo",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 2 * * *"
     }
   ]
 }
