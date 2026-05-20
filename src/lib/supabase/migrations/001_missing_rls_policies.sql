@@ -79,3 +79,50 @@ CREATE POLICY "Usuarios gestionan sus votos en concursos" ON votos_concurso
   FOR ALL USING (
     usuario_id IN (SELECT id FROM usuarios WHERE auth_id = auth.uid())
   );
+
+-- ── ADMIN: acceso completo a todas las tablas ─────────────────────────────────
+-- Los admins se identifican por auth.uid() en la tabla administradores.
+
+-- Helper: función para verificar si el usuario actual es admin activo
+-- (evita repetir la subquery en cada política)
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql STABLE SECURITY DEFINER
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM administradores WHERE auth_id = auth.uid() AND activo = true
+  )
+$$;
+
+-- Locales: admins ven todos (sin filtro de estado) y pueden actualizar cualquiera
+CREATE POLICY "Admins ven todos los locales" ON locales
+  FOR SELECT USING (is_admin());
+
+CREATE POLICY "Admins actualizan cualquier local" ON locales
+  FOR UPDATE USING (is_admin());
+
+-- Usuarios: admins ven todos y pueden actualizar (suspender/reactivar)
+CREATE POLICY "Admins ven todos los usuarios" ON usuarios
+  FOR SELECT USING (is_admin());
+
+CREATE POLICY "Admins actualizan cualquier usuario" ON usuarios
+  FOR UPDATE USING (is_admin());
+
+-- Reviews: admins ven todas (incluyendo censuradas) y pueden moderar
+CREATE POLICY "Admins ven todas las reviews" ON reviews
+  FOR SELECT USING (is_admin());
+
+CREATE POLICY "Admins moderan reviews" ON reviews
+  FOR UPDATE USING (is_admin());
+
+-- Retos: admins pueden verlos todos
+CREATE POLICY "Admins ven todos los retos" ON retos
+  FOR SELECT USING (is_admin());
+
+-- Concursos: admins ven todos
+CREATE POLICY "Admins ven todos los concursos" ON concursos
+  FOR SELECT USING (is_admin());
+
+-- Entradas: admins ven todas
+CREATE POLICY "Admins ven todas las entradas" ON entradas
+  FOR SELECT USING (is_admin());
