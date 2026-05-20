@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       email: acc.email,
       rol: acc.rol,
       activo: true,
-      totp_secret: process.env.ADMIN_TOTP_SECRET ?? 'JBSWY3DPEHPK3PXP',
+      totp_secret: process.env.ADMIN_TOTP_SECRET ?? 'K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7',
       totp_activado: true,
     }, { onConflict: 'email' })
     if (error) errors.push(`Administrador ${acc.email}: ${error.message}`)
@@ -226,8 +226,8 @@ export async function POST(req: NextRequest) {
         super_admin: 'superadmin@fourvenues.com  /  FV_SuperAdmin2025!',
         admin:       'admin@fourvenues.com       /  FV_Admin2025!',
         soporte:     'soporte@fourvenues.com     /  FV_Soporte2025!',
-        totp_nota:   'Código TOTP: usa app autenticador con secret = JBSWY3DPEHPK3PXP',
-        totp_url:    'otpauth://totp/Fourvenues%20Admin?secret=JBSWY3DPEHPK3PXP&issuer=Fourvenues',
+        totp_nota:   'Código TOTP: usa app autenticador con secret = K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7',
+        totp_url:    'otpauth://totp/Fourvenues%20Admin?secret=K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7&issuer=Fourvenues',
       },
       '── PANEL LOCAL (/local-panel/login) ──': {
         dueno:          'dueno@testlocal.com      /  FV_Dueno2025!',
