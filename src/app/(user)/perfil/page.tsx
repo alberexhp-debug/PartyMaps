@@ -7,19 +7,13 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import {
   calcularSignoZodiaco, calcularEdad, getFraseZodiaco,
-  formatearFecha
+  formatearFecha, EMOJI_SIGNO
 } from '@/lib/utils'
 import {
   User, Star, Bell, Shield, LogOut, ChevronRight,
   Ticket, Users, Edit3, Camera
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const EMOJI_SIGNO: Record<string, string> = {
-  Aries: '♈', Tauro: '♉', 'Géminis': '♊', 'Cáncer': '♋', Leo: '♌',
-  Virgo: '♍', Libra: '♎', Escorpio: '♏', Sagitario: '♐', Capricornio: '♑',
-  Acuario: '♒', Piscis: '♓',
-}
 
 export default function PerfilPage() {
   const router = useRouter()

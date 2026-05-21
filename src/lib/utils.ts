@@ -150,3 +150,52 @@ export function getFraseZodiaco(signo: SignoZodiaco, fecha: string): string {
   const dia = new Date(fecha).getDate()
   return frases[dia % frases.length]
 }
+
+export const EMOJI_SIGNO: Record<SignoZodiaco, string> = {
+  Aries: '♈', Tauro: '♉', 'Géminis': '♊', 'Cáncer': '♋',
+  Leo: '♌', Virgo: '♍', Libra: '♎', Escorpio: '♏',
+  Sagitario: '♐', Capricornio: '♑', Acuario: '♒', Piscis: '♓',
+}
+
+const REGEX_TELEFONO = /(?:(?:\+?\d{1,3}[\s\-.]?)?(?:\(?\d{2,4}\)?[\s\-.]?)?\d{2,4}[\s\-.]?\d{2,4}[\s\-.]?\d{0,4})/g
+const REGEX_EMAIL = /[a-zA-Z0-9._%+\-]+\s?[@(arroba)]\s?[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/gi
+const REGEX_INSTAGRAM = /(?:@|insta(?:gram)?[:\s]*@?)([a-zA-Z0-9._]{2,30})/gi
+
+export function detectarContactoEnTexto(texto: string): { tieneContacto: boolean; tipo?: string } {
+  const limpio = texto.replace(/\s+/g, ' ')
+  const sospechosoDigitos = /(\d[\s\-.]?){7,}/.test(limpio)
+  if (sospechosoDigitos) return { tieneContacto: true, tipo: 'teléfono' }
+  if (REGEX_TELEFONO.test(limpio) && limpio.replace(/\D/g, '').length >= 7) {
+    return { tieneContacto: true, tipo: 'teléfono' }
+  }
+  if (REGEX_EMAIL.test(limpio)) return { tieneContacto: true, tipo: 'email' }
+  const matchInsta = limpio.match(REGEX_INSTAGRAM)
+  if (matchInsta && matchInsta.length > 0) return { tieneContacto: true, tipo: 'usuario externo' }
+  return { tieneContacto: false }
+}
+
+export function calcularDistanciaMetros(
+  lat1: number, lon1: number, lat2: number, lon2: number
+): number {
+  const R = 6371000
+  const toRad = (x: number) => (x * Math.PI) / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
+}
+
+export function puedeCrearPlan(usuario: { reputacion_puntuacion?: number; reputacion_num_valoraciones: number; estado_cuenta: string }): { puede: boolean; motivo?: string } {
+  if (usuario.estado_cuenta !== 'activa') {
+    return { puede: false, motivo: 'Tu cuenta no está activa. Contacta con soporte.' }
+  }
+  if (
+    usuario.reputacion_num_valoraciones > 5 &&
+    typeof usuario.reputacion_puntuacion === 'number' &&
+    usuario.reputacion_puntuacion < 2.0
+  ) {
+    return { puede: false, motivo: 'Tu reputación actual no permite crear planes. Únete a otros para subirla.' }
+  }
+  return { puede: true }
+}

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
+import { PhotoUpload } from '@/components/ui/PhotoUpload'
 import { Concurso, ParticipacionConcurso } from '@/types'
 import { ArrowLeft, Trophy, Heart, Upload, Users, Crown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -26,6 +27,7 @@ export default function ConcursoPage() {
   const [participando, setParticipando] = useState(false)
   const [votando, setVotando] = useState<string | null>(null)
   const [misVotos, setMisVotos] = useState<Set<string>>(new Set())
+  const [checkinValido, setCheckinValido] = useState(false)
 
   useEffect(() => {
     if (!usuario) { router.push('/login'); return }
@@ -45,14 +47,23 @@ export default function ConcursoPage() {
     const miP = data.participaciones_concurso.find((p: ParticipacionConcurso) => p.usuario_id === usuario?.id)
     if (miP) setMiParticipacion(miP)
 
-    // cargar mis votos
+    // cargar mis votos y checkin
     if (usuario) {
-      const { data: votos } = await supabase
-        .from('votos_concurso')
-        .select('participacion_id')
-        .eq('usuario_id', usuario.id)
-        .eq('concurso_id', id)
+      const [{ data: votos }, { data: checkin }] = await Promise.all([
+        supabase
+          .from('votos_concurso')
+          .select('participacion_id')
+          .eq('usuario_id', usuario.id)
+          .eq('concurso_id', id),
+        supabase
+          .from('checkins')
+          .select('id')
+          .match({ usuario_id: usuario.id, local_id: data.local_id })
+          .is('salida_at', null)
+          .maybeSingle(),
+      ])
       if (votos) setMisVotos(new Set(votos.map((v: { participacion_id: string }) => v.participacion_id)))
+      setCheckinValido(!!checkin)
     }
 
     setLoading(false)
@@ -60,6 +71,8 @@ export default function ConcursoPage() {
 
   async function participar() {
     if (!usuario || !concurso) return
+    if (!checkinValido) { toast.error('Debes estar en el local (haz check-in) para participar'); return }
+    if (!urlContenido) { toast.error('Sube una foto para tu participación'); return }
     setParticipando(true)
     const { data, error } = await supabase.from('participaciones_concurso').insert({
       concurso_id: id,
@@ -81,6 +94,7 @@ export default function ConcursoPage() {
 
   async function votar(participacionId: string) {
     if (!usuario) return
+    if (!checkinValido) { toast.error('Debes estar en el local para votar'); return }
     if (misVotos.has(participacionId)) {
       // quitar voto
       await supabase.from('votos_concurso').delete()
@@ -167,17 +181,28 @@ export default function ConcursoPage() {
         {concurso.estado === 'activo' && !miParticipacion && (
           <div className="bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl p-4 space-y-3">
             <p className="font-semibold text-white text-sm">Tu participación</p>
-            {(concurso.tipo_contenido === 'foto' || concurso.tipo_contenido === 'ambos') && (
-              <input
-                value={urlContenido}
-                onChange={e => setUrlContenido(e.target.value)}
-                placeholder="URL de tu foto (Imgur, Google Photos...)"
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#505065]"
-              />
+            {!checkinValido ? (
+              <div className="text-xs text-[#F39C12] bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl p-3">
+                Debes hacer check-in en el local para participar.
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-center">
+                  <PhotoUpload
+                    bucket="concursos"
+                    path={`${concurso.id}/${usuario?.id}`}
+                    onUpload={setUrlContenido}
+                    onError={(e) => toast.error(e)}
+                    variant="square"
+                    label="Tu foto"
+                    maxSizeMB={8}
+                  />
+                </div>
+                <Button fullWidth loading={participando} onClick={participar} disabled={!urlContenido}>
+                  <Upload size={15} /> Enviar participación
+                </Button>
+              </>
             )}
-            <Button fullWidth loading={participando} onClick={participar}>
-              <Upload size={15} /> Enviar participación
-            </Button>
           </div>
         )}
 

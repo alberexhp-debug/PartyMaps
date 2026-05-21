@@ -5,8 +5,14 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { NotificacionEnviada } from '@/types'
-import { Bell, Send, Users, Eye, Clock } from 'lucide-react'
+import { Bell, Send, Users, Eye, Clock, Zap } from 'lucide-react'
 import { formatearFecha } from '@/lib/utils'
+
+const LIMITES_TIER: Record<string, number> = {
+  basico: 2,
+  pro: 999,
+  destacado: 999,
+}
 
 export default function NotificacionesPage() {
   const toast = useToast()
@@ -17,20 +23,32 @@ export default function NotificacionesPage() {
   const [enviando, setEnviando] = useState(false)
   const [historial, setHistorial] = useState<NotificacionEnviada[]>([])
   const [numSuscriptores, setNumSuscriptores] = useState(0)
+  const [enviadasSemana, setEnviadasSemana] = useState(0)
 
   const ROLES_PERMITIDOS = ['dueno', 'gestor']
   const puedeEnviar = trabajador && ROLES_PERMITIDOS.includes(trabajador.rol)
+  const limiteSemanal = LIMITES_TIER[local?.tier || 'basico'] ?? 2
+  const restantes = Math.max(0, limiteSemanal - enviadasSemana)
+  const haAlcanzadoLimite = restantes === 0 && local?.tier === 'basico'
 
   useEffect(() => {
     if (!local) return
+    const lunes = new Date()
+    lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7))
+    lunes.setHours(0, 0, 0, 0)
+
     Promise.all([
       supabase.from('notificaciones_enviadas').select('*').eq('local_id', local.id)
         .order('enviada_at', { ascending: false }).limit(20),
       supabase.from('suscripciones').select('id', { count: 'exact' })
         .eq('local_id', local.id).eq('silenciada', false),
-    ]).then(([notifRes, subRes]) => {
+      supabase.from('notificaciones_enviadas').select('id', { count: 'exact' })
+        .eq('local_id', local.id).eq('tipo', 'manual')
+        .gte('enviada_at', lunes.toISOString()),
+    ]).then(([notifRes, subRes, semanaRes]) => {
       if (notifRes.data) setHistorial(notifRes.data)
       setNumSuscriptores(subRes.count || 0)
+      setEnviadasSemana(semanaRes.count || 0)
     })
   }, [local])
 
@@ -38,6 +56,10 @@ export default function NotificacionesPage() {
     if (!titulo.trim() || !cuerpo.trim()) { toast.error('Título y mensaje son obligatorios'); return }
     if (!puedeEnviar) { toast.error('No tienes permisos para enviar notificaciones'); return }
     if (numSuscriptores === 0) { toast.info('No tienes suscriptores activos'); return }
+    if (haAlcanzadoLimite) {
+      toast.error(`Has alcanzado el límite de ${limiteSemanal} notificaciones/semana del tier básico. Sube a Pro para envíos ilimitados.`)
+      return
+    }
 
     setEnviando(true)
 
@@ -58,6 +80,7 @@ export default function NotificacionesPage() {
     setTitulo('')
     setCuerpo('')
     setEnlace('')
+    setEnviadasSemana(c => c + 1)
 
     // Reload historial
     const { data } = await supabase.from('notificaciones_enviadas').select('*')
@@ -81,6 +104,25 @@ export default function NotificacionesPage() {
       {!puedeEnviar && (
         <div className="flex items-center gap-2 p-3 bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl text-sm text-[#F39C12]">
           Solo el dueño o gestor puede enviar notificaciones
+        </div>
+      )}
+
+      {/* Contador semanal */}
+      {local.tier === 'basico' && (
+        <div className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${
+          haAlcanzadoLimite
+            ? 'bg-[#E94560]/10 border-[#E94560]/30 text-[#E94560]'
+            : 'bg-[#1A1A2E] border-[#2A2A3E] text-[#A0A0B8]'
+        }`}>
+          <div className="flex items-center gap-2 text-sm">
+            <Zap size={14} />
+            <span>
+              <strong className="text-white">{enviadasSemana}/{limiteSemanal}</strong> envíos manuales esta semana (tier Básico)
+            </span>
+          </div>
+          {haAlcanzadoLimite && (
+            <span className="text-xs">Sube a Pro para envíos ilimitados</span>
+          )}
         </div>
       )}
 
@@ -126,11 +168,11 @@ export default function NotificacionesPage() {
         <Button
           fullWidth
           loading={enviando}
-          disabled={!puedeEnviar || !titulo.trim() || !cuerpo.trim()}
+          disabled={!puedeEnviar || !titulo.trim() || !cuerpo.trim() || haAlcanzadoLimite}
           onClick={enviar}
         >
           <Send size={16} />
-          Enviar a {numSuscriptores} personas
+          {haAlcanzadoLimite ? 'Límite semanal alcanzado' : `Enviar a ${numSuscriptores} personas`}
         </Button>
       </div>
 

@@ -16,7 +16,7 @@ import {
 import {
   ChevronLeft, Bell, BellOff, MapPin, Clock, Music, Ticket,
   Star, MessageSquare, Lightbulb, Share2, Navigation, PenLine, X,
-  LogIn, LogOut, Trophy, Target, Send
+  LogIn, LogOut, Trophy, Target, Send, Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -171,17 +171,25 @@ export default function LocalPerfilPage() {
     const [loading, setLoading] = useState(false)
 
     const enviar = async () => {
-      if (!texto.trim()) { toast.error('Escribe algo primero'); return }
+      if (texto.trim().length < 5) { toast.error('La sugerencia es demasiado corta'); return }
       setLoading(true)
-      const { error } = await supabase.from('sugerencias').insert({
-        usuario_id: userId,
-        local_id: localId,
-        contenido: texto.trim(),
-        estado: 'nueva',
-      })
-      if (error) toast.error('Error al enviar la sugerencia')
-      else onEnviada()
-      setLoading(false)
+      try {
+        const res = await fetch('/api/sugerencias', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ local_id: localId, contenido: texto.trim() }),
+        })
+        const json = await res.json()
+        if (!res.ok) {
+          toast.error(json.error || 'Error al enviar la sugerencia')
+        } else {
+          onEnviada()
+        }
+      } catch {
+        toast.error('Error de conexión')
+      } finally {
+        setLoading(false)
+      }
     }
 
     return (
@@ -220,9 +228,26 @@ export default function LocalPerfilPage() {
     const guardar = async () => {
       if (puntuacion === 0) { toast.error('Selecciona una puntuación'); return }
       setLoading(true)
+
+      // Verificar que tiene un checkin previo en el local (review verificada)
+      const { data: checkinPrevio } = await supabase
+        .from('checkins')
+        .select('id')
+        .match({ usuario_id: userId, local_id: localId })
+        .order('entrada_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (!checkinPrevio) {
+        toast.error('Solo puedes dejar review si has hecho check-in en el local')
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase.from('reviews').insert({
         usuario_id: userId,
         local_id: localId,
+        checkin_id: checkinPrevio.id,
         puntuacion,
         comentario: comentario.trim() || null,
         estado: 'activa',
@@ -463,7 +488,7 @@ export default function LocalPerfilPage() {
           {[
             { key: 'info', label: 'Info' },
             { key: 'reviews', label: `Reviews (${reviews.length})` },
-            ...((concursoActivo || retosActivos.length > 0) ? [{ key: 'modulos', label: '🎯 Esta noche' }] : []),
+            ...((concursoActivo || retosActivos.length > 0 || local.modulos_activos?.includes('perfil_noche')) ? [{ key: 'modulos', label: '🎯 Esta noche' }] : []),
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -619,6 +644,28 @@ export default function LocalPerfilPage() {
 
         {tab === 'modulos' && (
           <div className="space-y-4">
+            {local.modulos_activos?.includes('perfil_noche') && (
+              <div className="bg-gradient-to-br from-yellow-500/10 to-[#E94560]/10 border border-yellow-500/30 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={18} className="text-yellow-400" />
+                  <p className="font-bold text-white">Tu perfil de noche</p>
+                </div>
+                <p className="text-sm text-[#A0A0B8]">
+                  Una carta única generada para ti, lista para compartir en redes.
+                </p>
+                <Button
+                  size="sm"
+                  fullWidth
+                  onClick={() => {
+                    if (!usuario) { router.push('/login'); return }
+                    if (!checkinActivo) { toast.error('Haz check-in primero para generar tu carta'); return }
+                    router.push(`/perfil-noche/${local.id}`)
+                  }}
+                >
+                  <Sparkles size={14} /> Ver mi carta
+                </Button>
+              </div>
+            )}
             {concursoActivo && (
               <div className="bg-[#4F8EF7]/10 border border-[#4F8EF7]/30 rounded-2xl p-4 space-y-3">
                 <div className="flex items-center gap-2">

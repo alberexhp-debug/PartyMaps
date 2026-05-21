@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { PlanPublico, Local } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { formatearHora } from '@/lib/utils'
+import { formatearHora, puedeCrearPlan } from '@/lib/utils'
 import {
   Users, Plus, MapPin, Clock, ChevronRight, Search,
   UserCheck, Lock, Unlock
@@ -79,6 +79,8 @@ function PlanesContent() {
           <h1 className="text-xl font-bold text-white">Planes públicos</h1>
           <Button size="sm" onClick={() => {
             if (!usuario) { router.push('/login'); return }
+            const check = puedeCrearPlan(usuario)
+            if (!check.puede) { toast.error(check.motivo || 'No puedes crear planes ahora'); return }
             setShowCrear(true)
           }}>
             <Plus size={16} />

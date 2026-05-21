@@ -1,4 +1,5 @@
 import { UserBottomNav } from '@/components/user/UserBottomNav'
+import { PWAInstallPrompt } from '@/components/user/PWAInstallPrompt'
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -6,6 +7,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       <main className="flex-1 pb-20">
         {children}
       </main>
+      <PWAInstallPrompt />
       <UserBottomNav />
     </div>
   )

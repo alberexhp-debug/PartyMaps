@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { PlanPublico, ParticipantePlan, MensajeChat, Local, Usuario } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { formatearHora, tiempoRelativo } from '@/lib/utils'
+import { formatearHora, tiempoRelativo, detectarContactoEnTexto } from '@/lib/utils'
 import {
   ArrowLeft, Send, Users, MapPin, Clock, Check, X,
   MessageCircle, UserCheck, Crown, AlertCircle
@@ -102,6 +102,11 @@ export default function PlanDetallePage() {
     const canChat = plan?.creador_id === usuario.id ||
       participantes.some(p => p.usuario_id === usuario.id && p.estado === 'aceptada')
     if (!canChat) { toast.error('Solo los miembros aceptados pueden chatear'); return }
+    const deteccion = detectarContactoEnTexto(mensaje)
+    if (deteccion.tieneContacto) {
+      toast.error(`Por seguridad no puedes compartir ${deteccion.tipo} en el chat del plan`)
+      return
+    }
     setEnviando(true)
     await supabase.from('mensajes_chat_plan').insert({
       plan_id: id,
