@@ -103,7 +103,7 @@ export function tiempoRelativo(fecha: string): string {
 }
 
 export function generarQRData(entradaId: string): string {
-  return `FV2:${entradaId}:${Date.now()}`
+  return `PM2:${entradaId}:${Date.now()}`
 }
 
 export function generarCodigoInvitacion(): string {

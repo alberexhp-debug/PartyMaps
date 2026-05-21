@@ -93,12 +93,12 @@ export default function LocalPanelLoginPage() {
 
       <div className="mt-6 text-center space-y-2">
         <p className="text-sm text-[#505065]">
-          ¿Tu local aún no está en Fourvenues?{' '}
+          ¿Tu local aún no está en PartyMaps?{' '}
           <Link href="/local-panel/registro" className="text-[#E94560] font-medium">Regístralo gratis</Link>
         </p>
         <p className="text-xs text-[#505065]">
           ¿Problemas para acceder?{' '}
-          <span className="text-[#4F8EF7]">soporte@fourvenues.com</span>
+          <span className="text-[#4F8EF7]">soporte@partymaps.com</span>
         </p>
       </div>
     </div>

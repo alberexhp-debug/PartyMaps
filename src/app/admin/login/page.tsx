@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
           <Shield size={28} className="text-white" />
         </div>
         <h1 className="text-2xl font-black text-white">Panel de administración</h1>
-        <p className="text-[#505065] text-sm mt-1">Acceso restringido al equipo de Fourvenues</p>
+        <p className="text-[#505065] text-sm mt-1">Acceso restringido al equipo de PartyMaps</p>
       </div>
 
       <div className="w-full max-w-sm space-y-4">

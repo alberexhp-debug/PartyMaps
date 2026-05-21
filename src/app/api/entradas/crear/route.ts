@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       precio_local: precioBase,
       comision_plataforma: comision,
       precio_total: precioTotal,
-      qr_code: `FV2:${crypto.randomUUID()}`,
+      qr_code: `PM2:${crypto.randomUUID()}`,
       estado: 'activa',
     }))
 

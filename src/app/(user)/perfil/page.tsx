@@ -167,7 +167,7 @@ export default function PerfilPage() {
           {loggingOut ? 'Cerrando sesión...' : 'Cerrar sesión'}
         </button>
 
-        <p className="text-center text-[10px] text-[#505065]">Fourvenues 2.0 · v0.1.0</p>
+        <p className="text-center text-[10px] text-[#505065]">PartyMaps 2.0 · v0.1.0</p>
       </div>
     </div>
   )

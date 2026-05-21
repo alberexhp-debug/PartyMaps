@@ -50,7 +50,7 @@ export default function RegistroPage() {
     }
     if (step === 'nacimiento') {
       if (!form.fecha_nacimiento) errs.fecha_nacimiento = 'Introduce tu fecha de nacimiento'
-      else if (calcularEdad(form.fecha_nacimiento) < 18) errs.fecha_nacimiento = 'Debes tener 18 años o más para usar Fourvenues'
+      else if (calcularEdad(form.fecha_nacimiento) < 18) errs.fecha_nacimiento = 'Debes tener 18 años o más para usar PartyMaps'
     }
     if (step === 'terminos') {
       if (!form.aceptar_terminos) errs.terminos = 'Debes aceptar los términos para continuar'
@@ -110,7 +110,7 @@ export default function RegistroPage() {
     if (error) {
       toast.error('Error al crear la cuenta. Inténtalo de nuevo.')
     } else {
-      toast.success('¡Cuenta creada! Bienvenido/a a Fourvenues')
+      toast.success('¡Cuenta creada! Bienvenido/a a PartyMaps')
       router.push('/explorar')
     }
     setLoading(false)
@@ -247,7 +247,7 @@ export default function RegistroPage() {
             />
             {errores.fecha_nacimiento?.includes('18') && (
               <div className="bg-[#E94560]/10 border border-[#E94560]/30 rounded-xl p-4 text-sm text-[#E94560]">
-                Fourvenues es solo para mayores de 18 años.
+                PartyMaps es solo para mayores de 18 años.
               </div>
             )}
           </div>

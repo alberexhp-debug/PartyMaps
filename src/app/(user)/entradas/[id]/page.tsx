@@ -224,7 +224,7 @@ export default function EntradaDetallePage() {
             <span className="text-white">{formatearPrecio(entrada.precio_local)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-[#A0A0B8]">Servicio Fourvenues</span>
+            <span className="text-[#A0A0B8]">Servicio PartyMaps</span>
             <span className="text-white">{formatearPrecio(entrada.comision_plataforma)}</span>
           </div>
           <div className="pt-2 border-t border-[#2A2A3E] flex justify-between font-bold">

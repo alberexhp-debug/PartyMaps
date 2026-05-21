@@ -225,9 +225,9 @@ export default function ScannerPage() {
 }
 
 async function verificarQR(qrData: string, localId: string, modoConsumicion: boolean): Promise<ResultadoEscaneoQR> {
-  // Format: FV2:<entrada_id>
-  if (!qrData.startsWith('FV2:')) {
-    return { tipo: 'qr_invalido', mensaje: 'QR no reconocido. No es de Fourvenues.' }
+  // Format: PM2:<entrada_id>
+  if (!qrData.startsWith('PM2:')) {
+    return { tipo: 'qr_invalido', mensaje: 'QR no reconocido. No es de PartyMaps.' }
   }
 
   const entradaId = qrData.split(':')[1]

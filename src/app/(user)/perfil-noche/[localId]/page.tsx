@@ -65,14 +65,14 @@ export default function PerfilNochePage() {
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'Mi noche en Fourvenues',
+          title: 'Mi noche en PartyMaps',
           text: `Estoy en ${local?.nombre} esta noche.`,
         })
       } else {
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `fourvenues-${local?.nombre}.png`
+        a.download = `partymaps-${local?.nombre}.png`
         a.click()
         URL.revokeObjectURL(url)
         toast.success('Imagen descargada')
@@ -171,7 +171,7 @@ export default function PerfilNochePage() {
                 <p className="text-[10px] uppercase tracking-widest text-white/40">Live in</p>
                 <p className="text-xs text-white/80 font-semibold">{local.ciudad}</p>
               </div>
-              <p className="text-[10px] text-white/40">fourvenues.com</p>
+              <p className="text-[10px] text-white/40">partymaps.com</p>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fourvenues-v1'
+const CACHE_NAME = 'partymaps-v1'
 const STATIC_ASSETS = [
   '/',
   '/explorar',
@@ -7,7 +7,7 @@ const STATIC_ASSETS = [
   '/suscritos',
   '/perfil',
 ]
-const QR_CACHE_NAME = 'fourvenues-qr-v1'
+const QR_CACHE_NAME = 'partymaps-qr-v1'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -57,7 +57,7 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   const data = event.data?.json() || {}
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Fourvenues', {
+    self.registration.showNotification(data.title || 'PartyMaps', {
       body: data.body || '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',

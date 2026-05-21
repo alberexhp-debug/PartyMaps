@@ -61,7 +61,7 @@ export default function FacturacionPage() {
   }, [local])
 
   const solicitarCambio = (tier: string) => {
-    toast.info(`Solicitud de cambio a ${tier} enviada. El equipo de Fourvenues se pondrá en contacto.`)
+    toast.info(`Solicitud de cambio a ${tier} enviada. El equipo de PartyMaps se pondrá en contacto.`)
   }
 
   if (!local) return null

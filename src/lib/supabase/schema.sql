@@ -1,5 +1,5 @@
 -- =============================================
--- FOURVENUES 2.0 — ESQUEMA COMPLETO DE BD
+-- PARTYMAPS 2.0 — ESQUEMA COMPLETO DE BD
 -- =============================================
 
 -- Extensiones necesarias
@@ -475,7 +475,7 @@ CREATE TABLE IF NOT EXISTS administradores (
 );
 
 INSERT INTO administradores (nombre, email, rol, totp_activado)
-VALUES ('Super Admin', 'admin@fourvenues.com', 'super_admin', false)
+VALUES ('Super Admin', 'admin@partymaps.com', 'super_admin', false)
 ON CONFLICT (email) DO NOTHING;
 
 -- =============================================

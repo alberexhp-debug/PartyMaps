@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
 
   // ── 1. CUENTAS ADMIN PANEL ────────────────────────────────────────────────
   const adminAccounts = [
-    { email: 'superadmin@fourvenues.com', password: 'FV_SuperAdmin2025!', rol: 'super_admin', nombre: 'Super Admin' },
-    { email: 'admin@fourvenues.com',      password: 'FV_Admin2025!',      rol: 'admin',       nombre: 'Admin Test' },
-    { email: 'soporte@fourvenues.com',    password: 'FV_Soporte2025!',    rol: 'soporte',     nombre: 'Soporte Test' },
+    { email: 'superadmin@partymaps.com', password: 'PM_SuperAdmin2025!', rol: 'super_admin', nombre: 'Super Admin' },
+    { email: 'admin@partymaps.com',      password: 'PM_Admin2025!',      rol: 'admin',       nombre: 'Admin Test' },
+    { email: 'soporte@partymaps.com',    password: 'PM_Soporte2025!',    rol: 'soporte',     nombre: 'Soporte Test' },
   ]
 
   for (const acc of adminAccounts) {
@@ -59,15 +59,15 @@ export async function POST(req: NextRequest) {
   // ── 2. LOCAL DE TEST ───────────────────────────────────────────────────────
   let localId: string | null = null
   const { data: localExistente } = await admin
-    .from('locales').select('id').eq('nombre', 'Club Test Fourvenues').single()
+    .from('locales').select('id').eq('nombre', 'Club Test PartyMaps').single()
 
   if (localExistente) {
     localId = localExistente.id
     log.push(`Local ya existe: ${localId}`)
   } else {
     const { data: newLocal, error: localErr } = await admin.from('locales').insert({
-      nombre: 'Club Test Fourvenues',
-      descripcion: 'Local de prueba para testear la plataforma Fourvenues. Discoteca electrónica en el centro de Madrid.',
+      nombre: 'Club Test PartyMaps',
+      descripcion: 'Local de prueba para testear la plataforma PartyMaps. Discoteca electrónica en el centro de Madrid.',
       tipo_local: 'discoteca',
       musica: ['techno', 'house', 'electronica'],
       direccion: 'Calle Gran Vía, 45, 28013 Madrid',
@@ -108,10 +108,10 @@ export async function POST(req: NextRequest) {
   // ── 3. CUENTAS PANEL LOCAL ────────────────────────────────────────────────
   if (localId) {
     const localAccounts = [
-      { email: 'dueno@testlocal.com',     password: 'FV_Dueno2025!',    rol: 'dueno',           nombre: 'Dueño Test' },
-      { email: 'gestor@testlocal.com',    password: 'FV_Gestor2025!',   rol: 'gestor',          nombre: 'Gestor Test' },
-      { email: 'operador@testlocal.com',  password: 'FV_Operador2025!', rol: 'operador_noche',  nombre: 'Operador Noche' },
-      { email: 'puerta@testlocal.com',    password: 'FV_Puerta2025!',   rol: 'puerta',          nombre: 'Puerta Test' },
+      { email: 'dueno@testlocal.com',     password: 'PM_Dueno2025!',    rol: 'dueno',           nombre: 'Dueño Test' },
+      { email: 'gestor@testlocal.com',    password: 'PM_Gestor2025!',   rol: 'gestor',          nombre: 'Gestor Test' },
+      { email: 'operador@testlocal.com',  password: 'PM_Operador2025!', rol: 'operador_noche',  nombre: 'Operador Noche' },
+      { email: 'puerta@testlocal.com',    password: 'PM_Puerta2025!',   rol: 'puerta',          nombre: 'Puerta Test' },
     ]
 
     for (const acc of localAccounts) {
@@ -225,18 +225,18 @@ export async function POST(req: NextRequest) {
     errors,
     credenciales: {
       '── PANEL ADMIN (/admin/login) ──': {
-        super_admin: 'superadmin@fourvenues.com  /  FV_SuperAdmin2025!',
-        admin:       'admin@fourvenues.com       /  FV_Admin2025!',
-        soporte:     'soporte@fourvenues.com     /  FV_Soporte2025!',
+        super_admin: 'superadmin@partymaps.com  /  PM_SuperAdmin2025!',
+        admin:       'admin@partymaps.com       /  PM_Admin2025!',
+        soporte:     'soporte@partymaps.com     /  PM_Soporte2025!',
         totp_nota:   'Código TOTP: usa app autenticador con secret = K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7',
-        totp_url:    'otpauth://totp/Fourvenues%20Admin?secret=K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7&issuer=Fourvenues',
+        totp_url:    'otpauth://totp/PartyMaps%20Admin?secret=K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7&issuer=PartyMaps',
       },
       '── PANEL LOCAL (/local-panel/login) ──': {
-        dueno:          'dueno@testlocal.com      /  FV_Dueno2025!',
-        gestor:         'gestor@testlocal.com     /  FV_Gestor2025!',
-        operador_noche: 'operador@testlocal.com   /  FV_Operador2025!',
-        puerta:         'puerta@testlocal.com     /  FV_Puerta2025!',
-        local:          'Club Test Fourvenues (Madrid, tier Pro)',
+        dueno:          'dueno@testlocal.com      /  PM_Dueno2025!',
+        gestor:         'gestor@testlocal.com     /  PM_Gestor2025!',
+        operador_noche: 'operador@testlocal.com   /  PM_Operador2025!',
+        puerta:         'puerta@testlocal.com     /  PM_Puerta2025!',
+        local:          'Club Test PartyMaps (Madrid, tier Pro)',
       },
       '── PWA USUARIO (/login) ──': {
         nota: 'Login por SMS OTP — usa tu número real o configura un número de prueba en Supabase: Dashboard > Auth > Phone > Test phone numbers',

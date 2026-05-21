@@ -1,6 +1,6 @@
 {
-  "name": "Fourvenues",
-  "short_name": "Fourvenues",
+  "name": "PartyMaps",
+  "short_name": "PartyMaps",
   "description": "Descubre locales, compra entradas y planifica tu noche",
   "start_url": "/",
   "display": "standalone",

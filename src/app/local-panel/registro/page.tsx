@@ -150,7 +150,7 @@ export default function LocalPanelRegistroPage() {
         <div>
           <h1 className="text-2xl font-black text-white mb-2">¡Solicitud enviada!</h1>
           <p className="text-[#A0A0B8] max-w-xs">
-            Tu local está pendiente de verificación. El equipo de Fourvenues revisará la información y activará tu cuenta en 24-48h.
+            Tu local está pendiente de verificación. El equipo de PartyMaps revisará la información y activará tu cuenta en 24-48h.
           </p>
         </div>
         <div className="bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl p-4 text-sm text-[#A0A0B8] text-left w-full max-w-xs space-y-1">

@@ -3,13 +3,13 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'Fourvenues — Ocio nocturno en Madrid',
+  title: 'PartyMaps — Ocio nocturno en Madrid',
   description: 'Descubre qué local merece la pena esta noche. Mapa en tiempo real, entradas, planes y más.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Fourvenues',
+    title: 'PartyMaps',
   },
   icons: {
     icon: '/icon-192.png',
