@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { enviarPushASuscriptoresDeLocal } from '@/lib/push'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // Promoción de última hora (Doc4 §6.3).
@@ -67,16 +68,26 @@ export async function POST(req: NextRequest) {
     .eq('local_id', local_id)
     .eq('silenciada', false)
 
+  const titulo = `Noche de última hora en ${local.nombre}`
+  const cuerpo = `Entradas a ${precio.toFixed(2)}€ solo hasta las ${horaTexto}.`
+
   await supabase.from('notificaciones_enviadas').insert({
     local_id,
-    titulo: `Noche de última hora en ${local.nombre}`,
-    cuerpo: `Entradas a ${precio.toFixed(2)}€ solo hasta las ${horaTexto}.`,
+    titulo,
+    cuerpo,
     num_destinatarios: numSuscriptores || 0,
     num_aperturas: 0,
     tipo: 'sistema',
   })
 
-  return NextResponse.json({ ok: true, expira: expira.toISOString() })
+  // Envío push real (no bloquea la respuesta si algo falla)
+  const stats = await enviarPushASuscriptoresDeLocal(local_id, {
+    title: titulo,
+    body: cuerpo,
+    url: `/local/${local_id}`,
+  }).catch(() => ({ enviadas: 0, falladas: 0, eliminadas: 0 }))
+
+  return NextResponse.json({ ok: true, expira: expira.toISOString(), push: stats })
 }
 
 export async function DELETE(req: NextRequest) {

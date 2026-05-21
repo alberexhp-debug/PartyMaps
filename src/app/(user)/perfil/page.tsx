@@ -10,10 +10,11 @@ import {
   formatearFecha, EMOJI_SIGNO
 } from '@/lib/utils'
 import {
-  User, Star, Bell, Shield, LogOut, ChevronRight,
-  Ticket, Users, Edit3, Camera
+  User, Star, Bell, BellOff, Shield, LogOut, ChevronRight,
+  Ticket, Users, Edit3, Camera, AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 
 export default function PerfilPage() {
   const router = useRouter()
@@ -22,6 +23,7 @@ export default function PerfilPage() {
   const [loggingOut, setLoggingOut] = useState(false)
   const [editandoNombre, setEditandoNombre] = useState(false)
   const [nuevoNombre, setNuevoNombre] = useState(usuario?.nombre || '')
+  const push = usePushSubscription()
 
   if (!usuario) {
     router.push('/login')
@@ -150,9 +152,56 @@ export default function PerfilPage() {
           ))}
         </div>
 
+        {/* Notificaciones push */}
+        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              {push.estado === 'activado'
+                ? <Bell size={18} className="text-[#4F8EF7]" />
+                : <BellOff size={18} className="text-[#505065]" />}
+              <div>
+                <p className="text-sm font-semibold text-white">Notificaciones push</p>
+                <p className="text-xs text-[#505065]">
+                  {push.estado === 'activado' && 'Recibirás avisos de tus locales suscritos'}
+                  {push.estado === 'desactivado' && 'Actívalas para no perderte ninguna noche'}
+                  {push.estado === 'denegado' && 'Permiso bloqueado en este navegador'}
+                  {push.estado === 'no-soportado' && 'Tu navegador no admite Web Push'}
+                </p>
+              </div>
+            </div>
+            {push.estado === 'activado' && (
+              <button
+                onClick={() => push.desactivar().then(() => toast.info('Notificaciones desactivadas'))}
+                disabled={push.trabajando}
+                className="text-xs text-red-400 font-semibold disabled:opacity-50"
+              >
+                Desactivar
+              </button>
+            )}
+            {push.estado === 'desactivado' && (
+              <Button
+                size="sm"
+                loading={push.trabajando}
+                onClick={async () => {
+                  const ok = await push.activar()
+                  if (ok) toast.success('¡Notificaciones activadas!')
+                  else toast.error('No se pudieron activar')
+                }}
+              >
+                Activar
+              </Button>
+            )}
+          </div>
+          {push.estado === 'denegado' && (
+            <div className="flex items-start gap-2 text-xs text-[#F39C12] bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl p-2.5">
+              <AlertCircle size={14} className="shrink-0 mt-0.5" />
+              <span>Ve a los ajustes del navegador → Notificaciones y permite PartyMaps para activarlas.</span>
+            </div>
+          )}
+        </div>
+
         {/* Opciones */}
         <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] overflow-hidden divide-y divide-[#2A2A3E]">
-          <OpcionPerfil icon={Bell} label="Notificaciones" onClick={() => {}} />
           <OpcionPerfil icon={Shield} label="Privacidad y seguridad" onClick={() => {}} />
           <OpcionPerfil icon={Star} label="Mis reseñas" onClick={() => {}} />
         </div>

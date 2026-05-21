@@ -62,31 +62,30 @@ export default function NotificacionesPage() {
     }
 
     setEnviando(true)
-
-    // Register in DB (actual FCM push would go through an API route)
-    const { error } = await supabase.from('notificaciones_enviadas').insert({
-      local_id: local!.id,
-      titulo: titulo.trim(),
-      cuerpo: cuerpo.trim(),
-      enlace: enlace.trim() || null,
-      num_destinatarios: numSuscriptores,
-      num_aperturas: 0,
-      tipo: 'manual',
+    const res = await fetch('/api/notificaciones-local', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        local_id: local!.id,
+        titulo: titulo.trim(),
+        cuerpo: cuerpo.trim(),
+        enlace: enlace.trim() || null,
+      }),
     })
+    const data = await res.json()
+    setEnviando(false)
+    if (!res.ok) { toast.error(data.error || 'Error al enviar la notificación'); return }
 
-    if (error) { toast.error('Error al registrar la notificación'); setEnviando(false); return }
-
-    toast.success(`Notificación enviada a ${numSuscriptores} suscriptores`)
+    const enviadasPush = data?.push?.enviadas ?? 0
+    toast.success(`Notificación registrada (${enviadasPush} push entregados de ${numSuscriptores} suscriptores)`)
     setTitulo('')
     setCuerpo('')
     setEnlace('')
     setEnviadasSemana(c => c + 1)
 
-    // Reload historial
-    const { data } = await supabase.from('notificaciones_enviadas').select('*')
+    const { data: hist } = await supabase.from('notificaciones_enviadas').select('*')
       .eq('local_id', local!.id).order('enviada_at', { ascending: false }).limit(20)
-    if (data) setHistorial(data)
-    setEnviando(false)
+    if (hist) setHistorial(hist)
   }
 
   if (!local) return null
