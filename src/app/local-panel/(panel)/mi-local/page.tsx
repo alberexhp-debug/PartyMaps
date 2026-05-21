@@ -5,10 +5,11 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
-import { Local, TipoLocal, TipoMusica, ConsumicionBienvenida } from '@/types'
+import { Local, TipoLocal, TipoMusica, ConsumicionBienvenida, PrecioDinamicoConfig } from '@/types'
 import { getLabelTipoLocal, formatearPrecio } from '@/lib/utils'
 import { Plus, Trash2, Save, Image as ImageIcon, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEditor'
 
 const TIPOS_LOCAL: TipoLocal[] = ['discoteca', 'bar_copas', 'rooftop', 'sala_conciertos', 'bar_cocteleria', 'otro']
 const TIPOS_MUSICA: TipoMusica[] = ['techno', 'house', 'reggaeton', 'pop', 'hip_hop', 'indie', 'electronica', 'flamenco', 'otro']
@@ -41,6 +42,7 @@ export default function MiLocalPage() {
         ciudad: form.ciudad,
         precio_entrada_min: form.precio_entrada_min,
         precio_entrada_max: form.precio_entrada_max,
+        precio_dinamico: form.precio_dinamico ?? null,
         horario: form.horario,
         consumiciones_bienvenida: form.consumiciones_bienvenida,
       })
@@ -171,6 +173,14 @@ export default function MiLocalPage() {
               />
             </div>
           </div>
+
+          <PrecioDinamicoEditor
+            value={form.precio_dinamico}
+            onChange={(v: PrecioDinamicoConfig) => setForm(f => ({ ...f, precio_dinamico: v }))}
+            precioMin={form.precio_entrada_min || 0}
+            precioMax={form.precio_entrada_max}
+            ayuda="Aplica a noches sin evento. Para eventos concretos puedes configurarlo en el detalle del evento."
+          />
         </div>
       )}
 

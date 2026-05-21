@@ -6,6 +6,7 @@ import { Local, EstadoLocal, TierLocal } from '@/types'
 import { getLabelTipoLocal, formatearFecha } from '@/lib/utils'
 import { Search, Check, X, Star, AlertCircle, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { registrarAuditoria } from '@/lib/auditoria'
 
 export default function AdminLocalesPage() {
   const toast = useToast()
@@ -27,17 +28,33 @@ export default function AdminLocalesPage() {
 
   const cambiarEstado = async (id: string, estado: EstadoLocal) => {
     setAccionando(id)
+    const previo = locales.find(l => l.id === id)
     await supabase.from('locales').update({ estado }).eq('id', id)
+    await registrarAuditoria({
+      tipo_accion: `local_${estado}`,
+      entidad_tipo: 'local',
+      entidad_id: id,
+      datos_anteriores: previo ? { estado: previo.estado } : null,
+      datos_nuevos: { estado },
+    })
     toast.success(`Local ${estado.replace('_', ' ')}`)
     cargar()
     setAccionando(null)
   }
 
   const cambiarTier = async (id: string, tier: TierLocal) => {
+    const previo = locales.find(l => l.id === id)
     await supabase.from('locales').update({
       tier,
       tier_fecha_inicio: new Date().toISOString(),
     }).eq('id', id)
+    await registrarAuditoria({
+      tipo_accion: 'local_cambio_tier',
+      entidad_tipo: 'local',
+      entidad_id: id,
+      datos_anteriores: previo ? { tier: previo.tier } : null,
+      datos_nuevos: { tier },
+    })
     toast.success(`Tier actualizado a ${tier}`)
     cargar()
   }

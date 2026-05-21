@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useAdminStore } from '@/lib/stores/useAdminStore'
 import {
   LayoutDashboard, Store, Users, Shield, Star,
-  Settings, LogOut, BarChart3, TrendingUp
+  Settings, LogOut, FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: '/admin/usuarios', icon: Users, label: 'Usuarios' },
   { href: '/admin/moderacion', icon: Shield, label: 'Moderación' },
   { href: '/admin/tiers', icon: Star, label: 'Tiers' },
+  { href: '/admin/auditoria', icon: FileText, label: 'Auditoría' },
   { href: '/admin/configuracion', icon: Settings, label: 'Config' },
 ]
 

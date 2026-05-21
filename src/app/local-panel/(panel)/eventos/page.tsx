@@ -7,15 +7,18 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Evento, EstadoEvento } from '@/types'
 import { formatearFecha, formatearHora, formatearPrecio } from '@/lib/utils'
-import { Plus, Calendar, Ticket, Users, Eye, Edit2, Trash2, AlertCircle } from 'lucide-react'
+import { Plus, Calendar, Ticket, Users, Eye, Edit2, Trash2, AlertCircle, Copy, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/components/ui/Toast'
 
 export default function EventosPage() {
   const router = useRouter()
+  const toast = useToast()
   const { local } = useLocalPanelStore()
   const [eventos, setEventos] = useState<Evento[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState<EstadoEvento | 'todos'>('todos')
+  const [exportando, setExportando] = useState(false)
 
   useEffect(() => {
     if (!local) return
@@ -38,6 +41,56 @@ export default function EventosPage() {
     cargar()
   }
 
+  async function duplicar(evento: Evento) {
+    if (!local) return
+    const {
+      id, created_at, updated_at, entradas_vendidas,
+      estado, ...resto
+    } = evento
+    void id; void created_at; void updated_at; void entradas_vendidas; void estado
+    const { error } = await supabase.from('eventos').insert({
+      ...resto,
+      local_id: local.id,
+      nombre: `${evento.nombre} (copia)`,
+      estado: 'borrador',
+      entradas_vendidas: 0,
+    })
+    if (error) { toast.error('Error al duplicar'); return }
+    toast.success('Evento duplicado en estado borrador')
+    cargar()
+  }
+
+  async function exportarCSV() {
+    if (!local) return
+    setExportando(true)
+    const { data: ventas } = await supabase
+      .from('entradas')
+      .select('created_at, precio_local, comision_plataforma, precio_total, estado, evento_id, consumicion_canjeada')
+      .eq('local_id', local.id)
+      .order('created_at', { ascending: false })
+    setExportando(false)
+    if (!ventas?.length) { toast.info('No hay ventas para exportar'); return }
+
+    const cabecera = ['fecha', 'precio_local_eur', 'comision_plataforma_eur', 'precio_total_eur', 'estado', 'evento_id', 'consumicion_canjeada']
+    const filas = ventas.map(v => [
+      v.created_at,
+      v.precio_local?.toFixed(2) ?? '0.00',
+      v.comision_plataforma?.toFixed(2) ?? '0.00',
+      v.precio_total?.toFixed(2) ?? '0.00',
+      v.estado,
+      v.evento_id ?? '',
+      v.consumicion_canjeada ? 'si' : 'no',
+    ])
+    const csv = [cabecera, ...filas].map(r => r.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ventas-${local.nombre.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const filtrados = filtro === 'todos' ? eventos : eventos.filter(e => e.estado === filtro)
 
   const estadoBadge = (estado: EstadoEvento) => {
@@ -52,11 +105,16 @@ export default function EventosPage() {
 
   return (
     <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-black text-white">Eventos</h1>
-        <Button size="sm" onClick={() => router.push('/local-panel/eventos/nuevo')}>
-          <Plus size={14} /> Crear evento
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="secondary" onClick={exportarCSV} loading={exportando}>
+            <Download size={14} /> CSV
+          </Button>
+          <Button size="sm" onClick={() => router.push('/local-panel/eventos/nuevo')}>
+            <Plus size={14} /> Crear evento
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -159,6 +217,13 @@ export default function EventosPage() {
                   className="flex-1 flex items-center justify-center gap-1.5 h-9 border border-[#2A2A3E] rounded-xl text-sm text-[#A0A0B8] hover:border-[#E94560]/50 hover:text-white transition-colors"
                 >
                   <Edit2 size={13} /> Editar
+                </button>
+                <button
+                  onClick={() => duplicar(evento)}
+                  title="Duplicar como borrador"
+                  className="flex items-center justify-center gap-1.5 h-9 px-3 border border-[#2A2A3E] rounded-xl text-sm text-[#A0A0B8] hover:border-[#4F8EF7]/50 hover:text-white transition-colors"
+                >
+                  <Copy size={13} />
                 </button>
                 {evento.estado !== 'cancelado' && (
                   <button

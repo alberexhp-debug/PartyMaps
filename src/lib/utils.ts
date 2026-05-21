@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { SignoZodiaco, TemperaturaAforo, TipoLocal } from '@/types'
+import { PrecioDinamicoConfig, SignoZodiaco, TemperaturaAforo, TipoLocal } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -113,6 +113,33 @@ export function generarCodigoInvitacion(): string {
 export function calcularComision(precioLocal: number, tier: 'basico' | 'pro' | 'destacado'): number {
   const rates = { basico: 0.07, pro: 0.06, destacado: 0.05 }
   return Math.round(precioLocal * rates[tier] * 100) / 100
+}
+
+// Precio dinámico (Doc4 §6.2). Devuelve precio actual y, si la curva es por
+// tramos, también el próximo cambio para mostrarlo al usuario en la app.
+export function calcularPrecioDinamico(
+  precioMin: number,
+  precioMax: number | null | undefined,
+  config: PrecioDinamicoConfig | null | undefined,
+  pctVendido: number,
+): { precio: number; siguiente?: { pct: number; precio: number } } {
+  if (!config?.activo || precioMax == null || precioMax <= precioMin) {
+    return { precio: precioMin }
+  }
+  const pct = Math.max(0, Math.min(100, pctVendido))
+  if (config.curva === 'lineal') {
+    const precio = precioMin + (precioMax - precioMin) * (pct / 100)
+    return { precio: Math.round(precio * 100) / 100 }
+  }
+  const tramos = (config.tramos ?? []).slice().sort((a, b) => a.pct - b.pct)
+  if (tramos.length === 0) return { precio: precioMin }
+  let precio = precioMin
+  let siguiente: { pct: number; precio: number } | undefined
+  for (const t of tramos) {
+    if (pct >= t.pct) precio = t.precio
+    else { siguiente = { pct: t.pct, precio: t.precio }; break }
+  }
+  return { precio, siguiente }
 }
 
 export function truncarTexto(texto: string, maxChars: number): string {

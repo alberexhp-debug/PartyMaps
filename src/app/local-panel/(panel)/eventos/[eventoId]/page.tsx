@@ -6,9 +6,10 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
-import { Evento, EstadoEvento } from '@/types'
+import { Evento, EstadoEvento, PrecioDinamicoConfig } from '@/types'
 import { ArrowLeft, Save, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEditor'
 
 const ESTADOS: EstadoEvento[] = ['borrador', 'publicado', 'cancelado', 'finalizado']
 const ESTADO_COLOR: Record<EstadoEvento, string> = {
@@ -113,13 +114,22 @@ export default function EventoEditPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-[#A0A0B8]">Precio base (€)</label>
           <input type="number" min="0" step="0.5"
             value={form.precio_base || 0}
             onChange={e => setForm(f => ({ ...f, precio_base: parseFloat(e.target.value) }))}
             className="w-full px-3 py-2.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-[#A0A0B8]">Precio máx (€)</label>
+          <input type="number" min="0" step="0.5"
+            value={form.precio_maximo ?? ''}
+            onChange={e => setForm(f => ({ ...f, precio_maximo: e.target.value === '' ? undefined : parseFloat(e.target.value) }))}
+            className="w-full px-3 py-2.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            placeholder="Sin tope"
           />
         </div>
         <div className="space-y-1.5">
@@ -131,6 +141,14 @@ export default function EventoEditPage() {
           />
         </div>
       </div>
+
+      <PrecioDinamicoEditor
+        value={form.precio_dinamico}
+        onChange={(v: PrecioDinamicoConfig) => setForm(f => ({ ...f, precio_dinamico: v }))}
+        precioMin={form.precio_base || 0}
+        precioMax={form.precio_maximo}
+        ayuda="Si está activo, el precio sube según las entradas vendidas de este evento. El early bird tiene prioridad mientras esté vigente."
+      />
 
       {/* Early bird */}
       <div className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-4 space-y-3">

@@ -9,6 +9,7 @@ import { StarDisplay, StarRating } from '@/components/ui/StarRating'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useToast } from '@/components/ui/Toast'
+import { useVerificarPresencia } from '@/lib/hooks/useVerificarPresencia'
 import {
   getLabelTipoLocal, getColorTemperatura, getLabelTemperatura,
   formatearPrecio, getTemperaturaAforo, tiempoRelativo
@@ -34,6 +35,18 @@ export default function LocalPerfilPage() {
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [miReview, setMiReview] = useState<Review | null>(null)
   const [checkinActivo, setCheckinActivo] = useState<string | null>(null)
+  // Re-verificación cada 20 min: si el usuario sale del radio, cerramos el checkin automáticamente
+  // y bloqueamos la participación en módulos hasta que vuelva.
+  useVerificarPresencia({
+    checkinId: checkinActivo,
+    localLat: local?.latitud ?? 0,
+    localLng: local?.longitud ?? 0,
+    radioMetros: local?.radio_verificacion_metros ?? 150,
+    onSalida: () => {
+      setCheckinActivo(null)
+      toast.info('Has salido del radio del local. Vuelve a hacer check-in para participar en los módulos.')
+    },
+  })
   const [haciendoCheckin, setHaciendoCheckin] = useState(false)
   const [showSugerencia, setShowSugerencia] = useState(false)
   const [concursoActivo, setConcursoActivo] = useState<{ id: string; descripcion: string; premio: string; tipo_contenido: string } | null>(null)
@@ -412,7 +425,9 @@ export default function LocalPerfilPage() {
             <span className="text-xs text-[#505065]">Estimación actualizada hace &lt;10 min</span>
             <span className="text-xs text-[#505065]">Pico: 2:00 AM</span>
           </div>
-          {local.aforo_correccion_manual && (
+          {local.aforo_correccion_manual != null
+            && local.aforo_correccion_manual_expires
+            && new Date(local.aforo_correccion_manual_expires) > new Date() && (
             <p className="text-xs text-[#4F8EF7] mt-2">ℹ Información actualizada por el local</p>
           )}
         </div>

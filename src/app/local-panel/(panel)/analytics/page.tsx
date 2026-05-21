@@ -2,28 +2,34 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
-import { formatearPrecio } from '@/lib/utils'
-import { TrendingUp, Users, Ticket, Star, BarChart3, Calendar } from 'lucide-react'
+import { formatearPrecio, calcularEdad } from '@/lib/utils'
+import { TrendingUp, Users, Ticket, Star, Calendar, UserCircle } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, LineChart, Line, PieChart, Pie, Cell
+  CartesianGrid, LineChart, Line,
 } from 'recharts'
 import { cn } from '@/lib/utils'
 
 interface Analytics {
   ingresos_semana: { dia: string; ingresos: number; entradas: number }[]
   top_eventos: { nombre: string; entradas: number }[]
-  distribucion_musica: { tipo: string; count: number }[]
+  distribucion_edad: { rango: string; count: number }[]
   resumen: {
     total_ingresos: number
     total_entradas: number
     media_rating: number
     total_suscriptores: number
-    tasa_conversion: number
+    clientes_unicos: number
   }
 }
 
-const COLORES = ['#E94560', '#4F8EF7', '#F39C12', '#27AE60', '#9B59B6']
+const RANGOS_EDAD = [
+  { rango: '18-21', min: 18, max: 21 },
+  { rango: '22-25', min: 22, max: 25 },
+  { rango: '26-30', min: 26, max: 30 },
+  { rango: '31-35', min: 31, max: 35 },
+  { rango: '36+',   min: 36, max: 999 },
+]
 
 export default function AnalyticsPage() {
   const { local } = useLocalPanelStore()
@@ -43,7 +49,7 @@ export default function AnalyticsPage() {
     const desde = new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString()
 
     const [entradasRes, reviewsRes, subRes, eventosRes] = await Promise.all([
-      supabase.from('entradas').select('created_at, precio_total, precio_local')
+      supabase.from('entradas').select('created_at, precio_total, precio_local, usuario_id')
         .eq('local_id', local.id).gte('created_at', desde).eq('estado', 'activa'),
       supabase.from('reviews').select('puntuacion').eq('local_id', local.id).eq('censurada', false),
       supabase.from('suscripciones').select('id', { count: 'exact' }).eq('local_id', local.id),
@@ -69,16 +75,33 @@ export default function AnalyticsPage() {
       }
     })
 
+    // Distribución de edad — clientes únicos con entrada en el periodo
+    const usuarioIds = Array.from(new Set(entradas.map(e => e.usuario_id).filter(Boolean)))
+    const distEdad = RANGOS_EDAD.map(r => ({ rango: r.rango, count: 0 }))
+    if (usuarioIds.length > 0) {
+      const { data: usuarios } = await supabase
+        .from('usuarios').select('fecha_nacimiento').in('id', usuarioIds)
+      usuarios?.forEach(u => {
+        if (!u.fecha_nacimiento) return
+        const edad = calcularEdad(u.fecha_nacimiento)
+        const rango = RANGOS_EDAD.find(r => edad >= r.min && edad <= r.max)
+        if (rango) {
+          const slot = distEdad.find(d => d.rango === rango.rango)
+          if (slot) slot.count += 1
+        }
+      })
+    }
+
     setData({
       ingresos_semana: Object.entries(grouped).map(([dia, v]) => ({ dia, ...v })),
       top_eventos: (eventosRes.data || []).map(e => ({ nombre: e.nombre, entradas: e.entradas_vendidas })),
-      distribucion_musica: local.musica.map((m, i) => ({ tipo: m, count: Math.floor(Math.random() * 100 + 20) })),
+      distribucion_edad: distEdad,
       resumen: {
         total_ingresos: entradas.reduce((s, e) => s + (e.precio_total || 0), 0),
         total_entradas: entradas.length,
         media_rating: reviews.length > 0 ? reviews.reduce((s, r) => s + r.puntuacion, 0) / reviews.length : 0,
         total_suscriptores: subRes.count || 0,
-        tasa_conversion: 0,
+        clientes_unicos: usuarioIds.length,
       },
     })
     setLoading(false)
@@ -163,6 +186,28 @@ export default function AnalyticsPage() {
               </LineChart>
             </ResponsiveContainer>
           </div>
+
+          {/* Distribución de edad de clientes */}
+          {data.resumen.clientes_unicos > 0 && (
+            <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-bold text-white flex items-center gap-2">
+                  <UserCircle size={16} className="text-[#27AE60]" />
+                  Edad de tus clientes
+                </h2>
+                <span className="text-xs text-[#505065]">{data.resumen.clientes_unicos} únicos</span>
+              </div>
+              <ResponsiveContainer width="100%" height={140}>
+                <BarChart data={data.distribucion_edad}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3E" />
+                  <XAxis dataKey="rango" tick={{ fill: '#505065', fontSize: 10 }} />
+                  <YAxis tick={{ fill: '#505065', fontSize: 10 }} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: '#1A1A2E', border: '1px solid #2A2A3E', borderRadius: 8 }} />
+                  <Bar dataKey="count" fill="#27AE60" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
 
           {/* Top eventos */}
           {data.top_eventos.length > 0 && (

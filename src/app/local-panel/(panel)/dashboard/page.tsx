@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { Button } from '@/components/ui/Button'
+import { useToast } from '@/components/ui/Toast'
 import { formatearPrecio, getTemperaturaAforo, getColorTemperatura, getLabelTemperatura } from '@/lib/utils'
 import {
   Ticket, Users, TrendingUp, Bell, Star, Zap,
-  Calendar, ChevronRight, BarChart3, AlertCircle, Gauge, Check
+  Calendar, ChevronRight, BarChart3, AlertCircle, Gauge, Check, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
@@ -25,12 +26,16 @@ interface KPIs {
 
 export default function LocalPanelDashboard() {
   const router = useRouter()
-  const { local, trabajador } = useLocalPanelStore()
+  const toast = useToast()
+  const { local, trabajador, setLocal } = useLocalPanelStore()
   const [kpis, setKpis] = useState<KPIs | null>(null)
   const [loading, setLoading] = useState(true)
   const [aforoSlider, setAforoSlider] = useState<number | null>(null)
   const [guardandoAforo, setGuardandoAforo] = useState(false)
   const [aforoGuardado, setAforoGuardado] = useState(false)
+  const [promoPrecio, setPromoPrecio] = useState<number>(local?.precio_entrada_min || 0)
+  const [promoHoras, setPromoHoras] = useState<number>(2)
+  const [activandoPromo, setActivandoPromo] = useState(false)
 
   useEffect(() => {
     if (!local) return
@@ -90,6 +95,38 @@ export default function LocalPanelDashboard() {
     setGuardandoAforo(false)
     setAforoGuardado(true)
     setTimeout(() => setAforoGuardado(false), 3000)
+  }
+
+  const promoActiva = local?.promo_ultima_hora_hasta
+    && new Date(local.promo_ultima_hora_hasta) > new Date()
+
+  async function activarPromo() {
+    if (!local) return
+    setActivandoPromo(true)
+    const res = await fetch('/api/locales/promo-ultima-hora', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ local_id: local.id, precio: promoPrecio, horas: promoHoras }),
+    })
+    const data = await res.json()
+    setActivandoPromo(false)
+    if (!res.ok) { toast.error(data.error || 'Error al activar la promo'); return }
+    setLocal({ ...local, precio_promocional: promoPrecio, promo_ultima_hora_hasta: data.expira })
+    toast.success('Promo activada y notificación enviada a suscriptores')
+  }
+
+  async function cancelarPromo() {
+    if (!local) return
+    setActivandoPromo(true)
+    const res = await fetch('/api/locales/promo-ultima-hora', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ local_id: local.id }),
+    })
+    setActivandoPromo(false)
+    if (!res.ok) { toast.error('Error al cancelar'); return }
+    setLocal({ ...local, precio_promocional: undefined, promo_ultima_hora_hasta: undefined })
+    toast.success('Promo cancelada')
   }
 
   if (!local) return null
@@ -210,7 +247,7 @@ export default function LocalPanelDashboard() {
           Ajuste manual de aforo
         </h2>
         <p className="text-xs text-[#505065]">
-          Corrige el aforo estimado durante 2 horas. La estimación automática se reanudará después.
+          Corrige el aforo estimado. Tu valor sobreescribirá la estimación automática y expirará a las 6:00 AM.
         </p>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -243,6 +280,63 @@ export default function LocalPanelDashboard() {
         >
           {aforoGuardado ? <><Check size={14} /> Guardado</> : <><Gauge size={14} /> Aplicar corrección</>}
         </Button>
+      </div>
+
+      {/* Promoción de última hora */}
+      <div className={cn(
+        'bg-[#1A1A2E] rounded-2xl border p-4 space-y-3',
+        promoActiva ? 'border-[#F39C12]/50' : 'border-[#2A2A3E]'
+      )}>
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-white flex items-center gap-2">
+            <Zap size={16} className="text-[#F39C12]" />
+            Promo de última hora
+          </h2>
+          {promoActiva && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[#F39C12]/20 text-[#F39C12]">
+              Activa hasta {new Date(local!.promo_ultima_hora_hasta!).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
+        {promoActiva ? (
+          <>
+            <p className="text-sm text-[#A0A0B8]">
+              Precio promocional aplicado: <strong className="text-white">{formatearPrecio(local!.precio_promocional!)}</strong>.
+              Tras la expiración, vuelve al precio según la curva dinámica.
+            </p>
+            <Button size="sm" variant="secondary" fullWidth onClick={cancelarPromo} loading={activandoPromo}>
+              <X size={14} /> Cancelar promo
+            </Button>
+          </>
+        ) : (
+          <>
+            <p className="text-xs text-[#505065]">
+              Baja temporalmente el precio para atraer más gente. Envía notificación automática a tus suscriptores (no cuenta en tu límite semanal).
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs text-[#505065]">Precio promo (€)</label>
+                <input type="number" min={local?.precio_entrada_min || 0} step="0.5"
+                  value={promoPrecio}
+                  onChange={e => setPromoPrecio(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-[#505065]">Duración: {promoHoras}h (máx 4h)</label>
+                <input type="range" min={1} max={4} step={1}
+                  value={promoHoras}
+                  onChange={e => setPromoHoras(parseInt(e.target.value))}
+                  className="w-full accent-[#F39C12]"
+                />
+              </div>
+            </div>
+            <Button size="sm" fullWidth onClick={activarPromo} loading={activandoPromo}
+              disabled={promoPrecio < (local?.precio_entrada_min || 0)}>
+              <Zap size={14} /> Activar promo
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Acciones rápidas */}

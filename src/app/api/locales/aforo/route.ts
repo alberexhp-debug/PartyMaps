@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
-// Manual occupancy override from local panel
+// Corrección manual del aforo desde el panel local.
+// Doc4 §5.3: expira automáticamente a las 6:00 AM del día siguiente.
+function calcularExpiracion6AM(): string {
+  const ahora = new Date()
+  const expira = new Date(ahora)
+  expira.setHours(6, 0, 0, 0)
+  // Si ya son más de las 6 AM, expira mañana a las 6 AM
+  if (ahora.getHours() >= 6) {
+    expira.setDate(expira.getDate() + 1)
+  }
+  return expira.toISOString()
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
-  const { local_id, porcentaje, duracion_minutos = 30 } = await req.json()
+  const { local_id, porcentaje } = await req.json()
   if (!local_id || porcentaje === undefined) return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 })
   if (porcentaje < 0 || porcentaje > 100) return NextResponse.json({ error: 'Porcentaje inválido' }, { status: 400 })
 
-  // Verify the user works at this local
   const { data: trabajador } = await supabase
     .from('usuario_local')
     .select('id, rol')
@@ -22,13 +33,14 @@ export async function POST(req: NextRequest) {
 
   if (!trabajador) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
 
-  const expires = new Date(Date.now() + duracion_minutos * 60 * 1000).toISOString()
+  const expires = calcularExpiracion6AM()
+  const valor = Math.round(porcentaje)
 
   const { error } = await supabase
     .from('locales')
     .update({
-      aforo_estimado_porcentaje: Math.round(porcentaje),
-      aforo_correccion_manual: Math.round(porcentaje),
+      aforo_estimado_porcentaje: valor,
+      aforo_correccion_manual: valor,
       aforo_correccion_manual_expires: expires,
     })
     .eq('id', local_id)

@@ -18,6 +18,18 @@ export type EstadoSolicitudPlan = 'pendiente' | 'aceptada' | 'rechazada' | 'expi
 export type EstadoEntrada = 'activa' | 'usada' | 'cancelada' | 'expirada'
 export type TipoModulo = 'concurso' | 'perfil_noche' | 'retos'
 export type EstadoEvento = 'borrador' | 'publicado' | 'cancelado' | 'finalizado'
+export type CurvaPrecio = 'lineal' | 'tramos'
+
+export interface TramoPrecio {
+  pct: number
+  precio: number
+}
+
+export interface PrecioDinamicoConfig {
+  activo: boolean
+  curva: CurvaPrecio
+  tramos?: TramoPrecio[]
+}
 
 // --- ENTIDADES ---
 
@@ -75,6 +87,9 @@ export interface Local {
   aforo_estimado_porcentaje?: number
   aforo_correccion_manual?: number
   aforo_correccion_manual_expires?: string
+  precio_dinamico?: PrecioDinamicoConfig
+  precio_promocional?: number
+  promo_ultima_hora_hasta?: string
   created_at: string
   updated_at: string
 }
@@ -123,6 +138,7 @@ export interface Evento {
   precio_early_bird?: number
   early_bird_hasta?: string
   early_bird_cupo?: number
+  precio_dinamico?: PrecioDinamicoConfig
   estado: EstadoEvento
   entradas_vendidas: number
   modulos_activos: TipoModulo[]

@@ -132,5 +132,27 @@ export async function GET(req: NextRequest) {
     stats.locales_reseteo_notif = localesReseteados || 0
   }
 
+  // 8. Limpiar correcciones manuales de aforo expiradas (Doc4 §5.3)
+  const { count: aforosLimpiados } = await supabase
+    .from('locales')
+    .update({
+      aforo_correccion_manual: null,
+      aforo_correccion_manual_expires: null,
+    }, { count: 'exact' })
+    .not('aforo_correccion_manual_expires', 'is', null)
+    .lt('aforo_correccion_manual_expires', nowIso)
+  stats.aforos_manual_expirados = aforosLimpiados || 0
+
+  // 9. Limpiar promos de última hora expiradas (Doc4 §6.3)
+  const { count: promosLimpiadas } = await supabase
+    .from('locales')
+    .update({
+      precio_promocional: null,
+      promo_ultima_hora_hasta: null,
+    }, { count: 'exact' })
+    .not('promo_ultima_hora_hasta', 'is', null)
+    .lt('promo_ultima_hora_hasta', nowIso)
+  stats.promos_ultima_hora_expiradas = promosLimpiadas || 0
+
   return NextResponse.json({ ok: true, stats, timestamp: nowIso })
 }
