@@ -1,15 +1,27 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { Local, TierLocal } from '@/types'
-import { getLabelTipoLocal, formatearFecha } from '@/lib/utils'
-import { Star, ChevronDown } from 'lucide-react'
+import { getLabelTipoLocal, formatearFecha, formatearPrecio } from '@/lib/utils'
+import { Star, ChevronDown, Settings, Tag } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { registrarAuditoria } from '@/lib/auditoria'
+
+const CLAVES_PRECIOS = [
+  { clave: 'comision_porcentaje', label: 'Comisión por entrada', sufijo: '%' },
+  { clave: 'precio_tier_pro', label: 'Tier Pro', sufijo: '€/mes' },
+  { clave: 'precio_tier_destacado', label: 'Tier Destacado', sufijo: '€/mes' },
+  { clave: 'precio_boost_48h', label: 'Boost 48h', sufijo: '€' },
+  { clave: 'precio_boost_72h', label: 'Boost 72h', sufijo: '€' },
+  { clave: 'precio_notif_patrocinada_1000', label: 'Notif. patrocinada', sufijo: '€/1000' },
+] as const
 
 export default function AdminTiersPage() {
   const toast = useToast()
   const [locales, setLocales] = useState<Local[]>([])
+  const [precios, setPrecios] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [filtroTier, setFiltroTier] = useState<TierLocal | 'todos'>('todos')
 
@@ -18,17 +30,30 @@ export default function AdminTiersPage() {
   async function cargar() {
     let q = supabase.from('locales').select('*').eq('estado', 'activo').order('tier')
     if (filtroTier !== 'todos') q = q.eq('tier', filtroTier)
-    const { data } = await q
-    if (data) setLocales(data)
+    const [{ data: ll }, { data: cc }] = await Promise.all([
+      q,
+      supabase.from('configuracion_sistema').select('clave, valor')
+        .in('clave', CLAVES_PRECIOS.map(c => c.clave)),
+    ])
+    if (ll) setLocales(ll)
+    if (cc) setPrecios(Object.fromEntries(cc.map(r => [r.clave, r.valor])))
     setLoading(false)
   }
 
   const cambiarTier = async (id: string, tier: TierLocal) => {
+    const previo = locales.find(l => l.id === id)
     await supabase.from('locales').update({
       tier,
       tier_fecha_inicio: new Date().toISOString(),
       tier_fecha_fin: tier === 'basico' ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     }).eq('id', id)
+    await registrarAuditoria({
+      tipo_accion: 'local_cambio_tier',
+      entidad_tipo: 'local',
+      entidad_id: id,
+      datos_anteriores: previo ? { tier: previo.tier } : null,
+      datos_nuevos: { tier },
+    })
     toast.success(`Tier actualizado a ${tier}`)
     cargar()
   }
@@ -40,6 +65,30 @@ export default function AdminTiersPage() {
       <div className="flex items-center gap-3">
         <Star size={20} className="text-[#F39C12]" />
         <h1 className="text-2xl font-black text-white">Gestión de tiers</h1>
+      </div>
+
+      {/* Precios y comisiones actuales */}
+      <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-white flex items-center gap-2">
+            <Tag size={14} className="text-[#F39C12]" /> Precios y comisiones
+          </h2>
+          <Link href="/admin/configuracion"
+            className="text-xs text-[#4F8EF7] hover:text-white flex items-center gap-1">
+            <Settings size={11} /> Editar
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {CLAVES_PRECIOS.map(p => (
+            <div key={p.clave} className="bg-[#0D0D1A] rounded-xl p-3">
+              <p className="text-xs text-[#505065]">{p.label}</p>
+              <p className="text-lg font-black text-white">
+                {precios[p.clave] ?? '—'}
+                <span className="text-xs text-[#505065] font-medium ml-1">{p.sufijo}</span>
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="flex gap-2 flex-wrap">

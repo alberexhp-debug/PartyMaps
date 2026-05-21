@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { ConfiguracionSistema } from '@/types'
 import { Settings, Save } from 'lucide-react'
+import { registrarAuditoria } from '@/lib/auditoria'
 
 export default function ConfiguracionPage() {
   const toast = useToast()
@@ -14,7 +15,7 @@ export default function ConfiguracionPage() {
   const [guardando, setGuardando] = useState(false)
 
   useEffect(() => {
-    supabase.from('configuracion_sistema').select('*').then(({ data }) => {
+    supabase.from('configuracion_sistema').select('*').order('clave').then(({ data }) => {
       if (data) {
         setConfig(data)
         setValores(Object.fromEntries(data.map(c => [c.clave, c.valor])))
@@ -25,10 +26,27 @@ export default function ConfiguracionPage() {
 
   const guardar = async () => {
     setGuardando(true)
-    for (const [clave, valor] of Object.entries(valores)) {
-      await supabase.from('configuracion_sistema').update({ valor, updated_at: new Date().toISOString() }).eq('clave', clave)
+    const cambios: Array<{ clave: string; antes: string; despues: string }> = []
+    for (const c of config) {
+      const nuevoValor = valores[c.clave]
+      if (nuevoValor != null && nuevoValor !== c.valor) {
+        await supabase.from('configuracion_sistema')
+          .update({ valor: nuevoValor, updated_at: new Date().toISOString() })
+          .eq('clave', c.clave)
+        cambios.push({ clave: c.clave, antes: c.valor, despues: nuevoValor })
+      }
     }
-    toast.success('Configuración guardada')
+    if (cambios.length > 0) {
+      await registrarAuditoria({
+        tipo_accion: 'configuracion_actualizada',
+        entidad_tipo: 'configuracion_sistema',
+        datos_anteriores: Object.fromEntries(cambios.map(c => [c.clave, c.antes])),
+        datos_nuevos: Object.fromEntries(cambios.map(c => [c.clave, c.despues])),
+      })
+      toast.success(`${cambios.length} ${cambios.length === 1 ? 'valor actualizado' : 'valores actualizados'}`)
+    } else {
+      toast.info('Sin cambios')
+    }
     setGuardando(false)
   }
 

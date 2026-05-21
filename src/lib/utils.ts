@@ -110,9 +110,13 @@ export function generarCodigoInvitacion(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
 }
 
-export function calcularComision(precioLocal: number, tier: 'basico' | 'pro' | 'destacado'): number {
-  const rates = { basico: 0.07, pro: 0.06, destacado: 0.05 }
-  return Math.round(precioLocal * rates[tier] * 100) / 100
+// Comisión PartyMaps: 8% sobre el precio que pone el dueño. Se SUMA al precio
+// que paga el usuario, no se descuenta del local. Si en algún momento queremos
+// diferenciar por tier, este es el único punto a tocar.
+export const COMISION_PORCENTAJE = 8
+
+export function calcularComision(precioLocal: number, _tier?: 'basico' | 'pro' | 'destacado'): number {
+  return Math.round(precioLocal * (COMISION_PORCENTAJE / 100) * 100) / 100
 }
 
 // Precio dinámico (Doc4 §6.2). Devuelve precio actual y, si la curva es por
