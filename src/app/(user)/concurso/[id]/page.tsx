@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { PhotoUpload } from '@/components/ui/PhotoUpload'
 import { Concurso, ParticipacionConcurso } from '@/types'
-import { ArrowLeft, Trophy, Heart, Upload, Users, Crown } from 'lucide-react'
+import { ArrowLeft, Trophy, Heart, Upload, Users, Crown, Flag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type ConcursoConParticipaciones = Concurso & {
@@ -120,6 +120,23 @@ export default function ConcursoPage() {
       }
       setVotando(null)
     }
+  }
+
+  async function reportarParticipacion(participacionId: string) {
+    if (!usuario) { toast.error('Inicia sesión para reportar'); return }
+    const motivo = window.prompt('Motivo (inapropiado / spam / falso / otro):', 'inapropiado')?.trim().toLowerCase()
+    if (!motivo || !['inapropiado', 'spam', 'falso', 'otro'].includes(motivo)) return
+    const res = await fetch('/api/reportes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo_contenido: 'participacion_concurso',
+        contenido_id: participacionId,
+        motivo,
+      }),
+    })
+    if (res.ok) toast.success('Reporte enviado. Gracias por avisar.')
+    else toast.error('No se pudo enviar el reporte')
   }
 
   if (loading || !concurso) return (
@@ -249,15 +266,26 @@ export default function ConcursoPage() {
                     </div>
                     <p className="text-sm font-medium text-white">{p.usuarios?.nombre || 'Usuario'}</p>
                   </div>
-                  <button
-                    onClick={() => votar(p.id)}
-                    disabled={votando === p.id || p.usuario_id === usuario?.id}
-                    className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors',
-                      misVotos.has(p.id) ? 'bg-[#E94560] text-white' : 'bg-[#2A2A3E] text-[#A0A0B8] hover:text-white')}
-                  >
-                    <Heart size={14} className={misVotos.has(p.id) ? 'fill-current' : ''} />
-                    {p.num_votos}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {p.usuario_id !== usuario?.id && (
+                      <button
+                        onClick={() => reportarParticipacion(p.id)}
+                        title="Reportar"
+                        className="p-1.5 text-[#505065] hover:text-[#E94560] rounded-lg"
+                      >
+                        <Flag size={13} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => votar(p.id)}
+                      disabled={votando === p.id || p.usuario_id === usuario?.id}
+                      className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors',
+                        misVotos.has(p.id) ? 'bg-[#E94560] text-white' : 'bg-[#2A2A3E] text-[#A0A0B8] hover:text-white')}
+                    >
+                      <Heart size={14} className={misVotos.has(p.id) ? 'fill-current' : ''} />
+                      {p.num_votos}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

@@ -11,7 +11,7 @@ import {
 } from '@/lib/utils'
 import {
   User, Star, Bell, BellOff, Shield, LogOut, ChevronRight,
-  Ticket, Users, Edit3, Camera, AlertCircle,
+  Ticket, Users, Edit3, Camera, AlertCircle, Lightbulb,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
@@ -202,6 +202,7 @@ export default function PerfilPage() {
 
         {/* Opciones */}
         <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] overflow-hidden divide-y divide-[#2A2A3E]">
+          <OpcionPerfil icon={Lightbulb} label="Mis sugerencias enviadas" onClick={() => router.push('/perfil/sugerencias')} />
           <OpcionPerfil icon={Shield} label="Privacidad y seguridad" onClick={() => {}} />
           <OpcionPerfil icon={Star} label="Mis reseñas" onClick={() => {}} />
         </div>

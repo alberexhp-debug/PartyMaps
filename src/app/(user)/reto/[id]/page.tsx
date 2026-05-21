@@ -59,6 +59,15 @@ export default function RetoPage() {
     if (reto.tipo_contenido === 'texto' && !form.texto.trim()) {
       toast.error('Escribe tu respuesta'); return
     }
+    // Filtro de palabras prohibidas para retos de texto (Doc6 §4.4)
+    if (reto.tipo_contenido === 'texto' && form.texto.trim()) {
+      const { contienePalabraProhibida } = await import('@/lib/utils')
+      const palabra = contienePalabraProhibida(form.texto)
+      if (palabra) {
+        toast.error('Tu respuesta contiene lenguaje no permitido. Por favor, reformúlala.')
+        return
+      }
+    }
     setEnviando(true)
     const { data, error } = await supabase.from('participaciones_reto').insert({
       reto_id: id,

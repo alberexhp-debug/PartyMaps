@@ -26,9 +26,15 @@ export default function AdminLocalesPage() {
     setLoading(false)
   }
 
-  const cambiarEstado = async (id: string, estado: EstadoLocal) => {
+  const cambiarEstado = async (id: string, estado: EstadoLocal, motivoOpcional?: string) => {
     setAccionando(id)
     const previo = locales.find(l => l.id === id)
+    // Si se suspende o rechaza, pedimos motivo si no lo hemos recibido por argumento
+    let motivo = motivoOpcional
+    if (!motivo && estado === 'suspendido') {
+      motivo = window.prompt('Motivo (visible para el equipo en el log, no se envía al local automáticamente):') ?? undefined
+      if (motivo === '') motivo = undefined
+    }
     await supabase.from('locales').update({ estado }).eq('id', id)
     await registrarAuditoria({
       tipo_accion: `local_${estado}`,
@@ -36,6 +42,7 @@ export default function AdminLocalesPage() {
       entidad_id: id,
       datos_anteriores: previo ? { estado: previo.estado } : null,
       datos_nuevos: { estado },
+      motivo,
     })
     toast.success(`Local ${estado.replace('_', ' ')}`)
     cargar()

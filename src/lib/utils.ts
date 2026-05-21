@@ -151,6 +151,24 @@ export function truncarTexto(texto: string, maxChars: number): string {
   return texto.substring(0, maxChars).trimEnd() + '…'
 }
 
+// Filtro de palabras prohibidas para retos de texto (Doc6 §4.4).
+// Lista por defecto extensible desde configuracion_sistema.palabras_prohibidas (CSV).
+const PALABRAS_PROHIBIDAS_DEFAULT = [
+  'puta', 'gilipollas', 'cabron', 'cabrón', 'maricon', 'maricón', 'mierda',
+  'follar', 'pollazo', 'nazi', 'racista', 'violar',
+]
+
+export function contienePalabraProhibida(texto: string, extras: string[] = []): string | null {
+  const normalizado = texto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  for (const p of [...PALABRAS_PROHIBIDAS_DEFAULT, ...extras]) {
+    const palabra = p.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    if (!palabra) continue
+    const regex = new RegExp(`\\b${palabra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`)
+    if (regex.test(normalizado)) return p
+  }
+  return null
+}
+
 export function validarTelefono(telefono: string): boolean {
   return /^\+?[0-9]{9,15}$/.test(telefono.replace(/\s/g, ''))
 }
