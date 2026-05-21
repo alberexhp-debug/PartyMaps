@@ -28,8 +28,10 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     const { error: err } = await supabase.auth.signInWithOtp({ phone: telCompleto })
-    if (err) toast.error('Error al enviar el SMS')
-    else { toast.success('Código enviado'); setStep('sms') }
+    if (err) {
+      console.error('[signInWithOtp]', err)
+      toast.error(err.message || 'Error al enviar el SMS')
+    } else { toast.success('Código enviado'); setStep('sms') }
     setLoading(false)
   }
 

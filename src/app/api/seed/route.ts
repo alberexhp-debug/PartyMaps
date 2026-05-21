@@ -117,14 +117,16 @@ export async function POST(req: NextRequest) {
     for (const acc of localAccounts) {
       const user = await crearAuthUser(acc.email, acc.password)
       if (!user) continue
+      // usuario_id queda null: los trabajadores no están en la tabla `usuarios` (esa es solo PWA).
+      // La autenticación del panel local se hace por email vs auth.email() en las RLS.
       const { error } = await admin.from('usuario_local').upsert({
-        usuario_id: user.id,
+        usuario_id: null,
         local_id: localId,
         rol: acc.rol,
         email: acc.email,
         nombre: acc.nombre,
         activo: true,
-      }, { onConflict: 'usuario_id,local_id' })
+      }, { onConflict: 'email,local_id' })
       if (error) errors.push(`Worker ${acc.email}: ${error.message}`)
       else log.push(`Worker creado: ${acc.email} (${acc.rol})`)
     }
