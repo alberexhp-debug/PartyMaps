@@ -1,4 +1,5 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
+import { withSentryConfig } from "@sentry/nextjs"
 
 const nextConfig: NextConfig = {
   images: {
@@ -12,6 +13,23 @@ const nextConfig: NextConfig = {
     ],
   },
   turbopack: {},
-};
+}
 
-export default nextConfig;
+// Sentry: solo se aplica si hay DSN configurado. En local sin DSN, next.config.ts
+// se exporta tal cual.
+const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
+const sentryOrg = process.env.SENTRY_ORG
+const sentryProject = process.env.SENTRY_PROJECT
+
+export default dsn && sentryOrg && sentryProject
+  ? withSentryConfig(nextConfig, {
+      org: sentryOrg,
+      project: sentryProject,
+      silent: !process.env.CI,
+      widenClientFileUpload: true,
+      reactComponentAnnotation: { enabled: true },
+      disableLogger: true,
+      automaticVercelMonitors: true,
+      sourcemaps: { disable: false },
+    })
+  : nextConfig
