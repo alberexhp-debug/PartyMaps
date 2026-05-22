@@ -55,7 +55,7 @@ export default function LocalPanelLoginPage() {
       {/* Logo */}
       <div className="mb-8 text-center">
         <div className="w-16 h-16 bg-[#E94560] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#E94560]/30">
-          <span className="text-2xl font-black text-white">FV</span>
+          <span className="text-2xl font-black text-white">PM</span>
         </div>
         <h1 className="text-2xl font-black text-white">Panel del local</h1>
         <p className="text-[#505065] text-sm mt-1">Gestiona tu local desde aquí</p>

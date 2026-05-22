@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Solo accesible con CRON_SECRET para evitar ejecución accidental
+// Solo accesible con CRON_SECRET para evitar ejecución accidental.
+// Idempotente: se puede ejecutar varias veces sin duplicar datos.
 export async function POST(req: NextRequest) {
   const auth = req.headers.get('authorization')
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -17,19 +18,38 @@ export async function POST(req: NextRequest) {
   const log: string[] = []
   const errors: string[] = []
 
-  async function crearAuthUser(email: string, password: string) {
-    // Buscar si ya existe
+  async function crearAuthUserPorEmail(email: string, password: string) {
     const { data: lista } = await admin.auth.admin.listUsers({ perPage: 1000 })
     const existente = lista?.users.find(u => u.email === email)
-    if (existente) { log.push(`Auth user ya existe: ${email}`); return existente }
-
+    if (existente) {
+      // Asegurar que la contraseña está al valor de seed por si se cambió.
+      await admin.auth.admin.updateUserById(existente.id, { password, email_confirm: true })
+      log.push(`Auth (email) ya existe: ${email}`)
+      return existente
+    }
     const { data, error } = await admin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
+      email, password, email_confirm: true,
     })
     if (error) { errors.push(`Auth ${email}: ${error.message}`); return null }
-    log.push(`Auth user creado: ${email}`)
+    log.push(`Auth (email) creado: ${email}`)
+    return data.user
+  }
+
+  async function crearAuthUserPorTelefono(telefono: string, password: string) {
+    const { data: lista } = await admin.auth.admin.listUsers({ perPage: 1000 })
+    // El teléfono que devuelve Supabase no tiene el "+" delante.
+    const phoneNorm = telefono.replace(/^\+/, '')
+    const existente = lista?.users.find(u => u.phone === phoneNorm)
+    if (existente) {
+      await admin.auth.admin.updateUserById(existente.id, { password, phone_confirm: true })
+      log.push(`Auth (tel) ya existe: ${telefono}`)
+      return existente
+    }
+    const { data, error } = await admin.auth.admin.createUser({
+      phone: telefono, password, phone_confirm: true,
+    })
+    if (error) { errors.push(`Auth tel ${telefono}: ${error.message}`); return null }
+    log.push(`Auth (tel) creado: ${telefono}`)
     return data.user
   }
 
@@ -41,7 +61,7 @@ export async function POST(req: NextRequest) {
   ]
 
   for (const acc of adminAccounts) {
-    const user = await crearAuthUser(acc.email, acc.password)
+    const user = await crearAuthUserPorEmail(acc.email, acc.password)
     if (!user) continue
     const { error } = await admin.from('administradores').upsert({
       auth_id: user.id,
@@ -53,17 +73,17 @@ export async function POST(req: NextRequest) {
       totp_activado: true,
     }, { onConflict: 'email' })
     if (error) errors.push(`Administrador ${acc.email}: ${error.message}`)
-    else log.push(`Administrador creado: ${acc.email} (${acc.rol})`)
+    else log.push(`Administrador OK: ${acc.email} (${acc.rol})`)
   }
 
-  // ── 2. LOCAL DE TEST ───────────────────────────────────────────────────────
-  let localId: string | null = null
+  // ── 2. LOCAL DE TEST GENÉRICO ─────────────────────────────────────────────
+  let localTestId: string | null = null
   const { data: localExistente } = await admin
-    .from('locales').select('id').eq('nombre', 'Club Test PartyMaps').single()
+    .from('locales').select('id').eq('nombre', 'Club Test PartyMaps').maybeSingle()
 
   if (localExistente) {
-    localId = localExistente.id
-    log.push(`Local ya existe: ${localId}`)
+    localTestId = localExistente.id
+    log.push(`Local "Club Test PartyMaps" ya existe: ${localTestId}`)
   } else {
     const { data: newLocal, error: localErr } = await admin.from('locales').insert({
       nombre: 'Club Test PartyMaps',
@@ -102,11 +122,11 @@ export async function POST(req: NextRequest) {
     }).select('id').single()
 
     if (localErr || !newLocal) { errors.push(`Local: ${localErr?.message}`); }
-    else { localId = newLocal.id; log.push(`Local creado: ${localId}`) }
+    else { localTestId = newLocal.id; log.push(`Local "Club Test PartyMaps" creado: ${localTestId}`) }
   }
 
-  // ── 3. CUENTAS PANEL LOCAL ────────────────────────────────────────────────
-  if (localId) {
+  // ── 3. CUENTAS PANEL LOCAL — Club Test PartyMaps (las originales) ─────────
+  if (localTestId) {
     const localAccounts = [
       { email: 'dueno@testlocal.com',     password: 'PM_Dueno2025!',    rol: 'dueno',           nombre: 'Dueño Test' },
       { email: 'gestor@testlocal.com',    password: 'PM_Gestor2025!',   rol: 'gestor',          nombre: 'Gestor Test' },
@@ -115,25 +135,23 @@ export async function POST(req: NextRequest) {
     ]
 
     for (const acc of localAccounts) {
-      const user = await crearAuthUser(acc.email, acc.password)
+      const user = await crearAuthUserPorEmail(acc.email, acc.password)
       if (!user) continue
-      // usuario_id queda null: los trabajadores no están en la tabla `usuarios` (esa es solo PWA).
-      // La autenticación del panel local se hace por email vs auth.email() en las RLS.
       const { error } = await admin.from('usuario_local').upsert({
         usuario_id: null,
-        local_id: localId,
+        local_id: localTestId,
         rol: acc.rol,
         email: acc.email,
         nombre: acc.nombre,
         activo: true,
       }, { onConflict: 'email,local_id' })
       if (error) errors.push(`Worker ${acc.email}: ${error.message}`)
-      else log.push(`Worker creado: ${acc.email} (${acc.rol})`)
+      else log.push(`Worker OK: ${acc.email} (${acc.rol})`)
     }
 
     // ── 4. EVENTO DE TEST ────────────────────────────────────────────────────
     const { data: eventoExistente } = await admin
-      .from('eventos').select('id').eq('local_id', localId).eq('nombre', 'Noche Test — Techno Friday').single()
+      .from('eventos').select('id').eq('local_id', localTestId).eq('nombre', 'Noche Test — Techno Friday').maybeSingle()
 
     let eventoId: string | null = eventoExistente?.id ?? null
 
@@ -145,7 +163,7 @@ export async function POST(req: NextRequest) {
       fechaFin.setHours(fechaFin.getHours() + 7)
 
       const { data: ev, error: evErr } = await admin.from('eventos').insert({
-        local_id: localId,
+        local_id: localTestId,
         nombre: 'Noche Test — Techno Friday',
         descripcion: 'Sesión de techno y house con los mejores DJs de la escena madrileña. Early bird disponible.',
         fecha_inicio: fechaInicio.toISOString(),
@@ -167,24 +185,28 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 5. HISTORIAL AFORO (gráfica del dashboard) ───────────────────────────
-    const ahoraMs = Date.now()
+    //     Schema real: fecha (DATE) + hora (INTEGER 0-23) + aforo_estimado FLOAT
+    const hoy = new Date()
+    const fechaHoy = hoy.toISOString().slice(0, 10)
     const aforoData = Array.from({ length: 24 }, (_, i) => ({
-      local_id: localId!,
-      porcentaje: Math.min(100, Math.max(5,
+      local_id: localTestId!,
+      fecha: fechaHoy,
+      hora: i,
+      aforo_estimado: Math.min(100, Math.max(5,
         Math.round(15 + Math.sin((i / 24) * Math.PI * 2 - 1) * 35 + Math.random() * 10)
       )),
-      registrado_at: new Date(ahoraMs - (23 - i) * 60 * 60 * 1000).toISOString(),
     }))
-    await admin.from('historial_aforo').insert(aforoData)
-    log.push('Historial aforo insertado (24 puntos)')
+    const { error: histErr } = await admin.from('historial_aforo').upsert(aforoData)
+    if (histErr) errors.push(`Historial aforo: ${histErr.message}`)
+    else log.push('Historial aforo upsert (24 puntos)')
 
     // ── 6. CONCURSO ACTIVO ───────────────────────────────────────────────────
     const { data: concursoExistente } = await admin
-      .from('concursos').select('id').eq('local_id', localId).eq('estado', 'activo').single()
+      .from('concursos').select('id').eq('local_id', localTestId).eq('estado', 'activo').maybeSingle()
 
     if (!concursoExistente) {
       const { error: concErr } = await admin.from('concursos').insert({
-        local_id: localId,
+        local_id: localTestId,
         evento_id: eventoId,
         descripcion: 'Sube la mejor foto del ambiente de esta noche y gana el premio sorpresa. La foto con más votos del público gana.',
         tipo_contenido: 'foto',
@@ -200,11 +222,11 @@ export async function POST(req: NextRequest) {
 
     // ── 7. RETO ACTIVO ───────────────────────────────────────────────────────
     const { data: retoExistente } = await admin
-      .from('retos').select('id').eq('local_id', localId).eq('estado', 'activo').single()
+      .from('retos').select('id').eq('local_id', localTestId).eq('estado', 'activo').maybeSingle()
 
     if (!retoExistente) {
       const { error: retoErr } = await admin.from('retos').insert({
-        local_id: localId,
+        local_id: localTestId,
         nombre: 'El selfie más épico de la noche',
         descripcion: 'Hazte el selfie más original que puedas dentro del club. El más votado gana una consumición gratis.',
         tipo_contenido: 'foto',
@@ -216,6 +238,104 @@ export async function POST(req: NextRequest) {
       if (retoErr) errors.push(`Reto: ${retoErr.message}`)
       else log.push('Reto activo creado')
     }
+  }
+
+  // ── 8. LOCALES FAMOSOS DE MADRID — trabajadores por local ─────────────────
+  //     Migración 007 ya creó estos locales. Aquí solo añadimos su equipo.
+  const venuesFamosos: { nombre: string; slug: string }[] = [
+    { nombre: 'Kapital',        slug: 'kapital' },
+    { nombre: 'Teatro Barceló', slug: 'teatro-barcelo' },
+    { nombre: 'Mondo Disko',    slug: 'mondo-disko' },
+  ]
+
+  const rolesPorLocal: { rol: 'dueno' | 'gestor' | 'operador_noche' | 'puerta'; prefijo: string; nombreBase: string; passLabel: string }[] = [
+    { rol: 'dueno',          prefijo: 'dueno',    nombreBase: 'Dueño',          passLabel: 'Dueno' },
+    { rol: 'gestor',         prefijo: 'gestor',   nombreBase: 'Gestor',         passLabel: 'Gestor' },
+    { rol: 'operador_noche', prefijo: 'operador', nombreBase: 'Operador noche', passLabel: 'Operador' },
+    { rol: 'puerta',         prefijo: 'puerta',   nombreBase: 'Puerta',         passLabel: 'Puerta' },
+  ]
+
+  for (const venue of venuesFamosos) {
+    const { data: local } = await admin
+      .from('locales').select('id, nombre').eq('nombre', venue.nombre).maybeSingle()
+    if (!local) {
+      errors.push(`Local famoso no encontrado: ${venue.nombre} — ¿se aplicó migración 007?`)
+      continue
+    }
+    log.push(`Local famoso encontrado: ${venue.nombre} → ${local.id}`)
+
+    for (const r of rolesPorLocal) {
+      const email = `${r.prefijo}.${venue.slug}@partymaps.com`
+      const password = `PM_${r.passLabel}_${venue.slug.replace(/-/g, '')}_2025!`
+      const user = await crearAuthUserPorEmail(email, password)
+      if (!user) continue
+      const { error } = await admin.from('usuario_local').upsert({
+        usuario_id: null,
+        local_id: local.id,
+        rol: r.rol,
+        email,
+        nombre: `${r.nombreBase} ${venue.nombre}`,
+        activo: true,
+      }, { onConflict: 'email,local_id' })
+      if (error) errors.push(`Worker ${email}: ${error.message}`)
+      else log.push(`Worker OK: ${email} (${r.rol}) → ${venue.nombre}`)
+    }
+
+    // Un evento próximo en cada local famoso (publicado)
+    const { data: evExistente } = await admin
+      .from('eventos').select('id').eq('local_id', local.id).eq('nombre', `Noche en ${venue.nombre}`).maybeSingle()
+    if (!evExistente) {
+      const fechaInicio = new Date()
+      fechaInicio.setDate(fechaInicio.getDate() + 2)
+      fechaInicio.setHours(23, 30, 0, 0)
+      const fechaFin = new Date(fechaInicio)
+      fechaFin.setHours(fechaFin.getHours() + 6)
+      const { error: evErr } = await admin.from('eventos').insert({
+        local_id: local.id,
+        nombre: `Noche en ${venue.nombre}`,
+        descripcion: `Una noche de fiesta legendaria en ${venue.nombre}. Música y ambiente al máximo.`,
+        fecha_inicio: fechaInicio.toISOString(),
+        fecha_fin: fechaFin.toISOString(),
+        aforo_maximo: 800,
+        precio_base: 15,
+        precio_maximo: 20,
+        estado: 'publicado',
+        modulos_activos: ['concurso'],
+      })
+      if (evErr) errors.push(`Evento ${venue.nombre}: ${evErr.message}`)
+      else log.push(`Evento creado para ${venue.nombre}`)
+    }
+  }
+
+  // ── 9. USUARIOS PWA (3 cuentas genéricas con teléfono + contraseña) ───────
+  //     Usamos números E.164 ficticios. Login del PWA por SMS sigue funcionando;
+  //     además añadimos login por contraseña en /login para testing automatizado.
+  const pwaUsuarios: { telefono: string; password: string; nombre: string; fecha_nacimiento: string }[] = [
+    { telefono: '+34666000001', password: 'PM_User1_2025!', nombre: 'María García',  fecha_nacimiento: '1998-04-15' },
+    { telefono: '+34666000002', password: 'PM_User2_2025!', nombre: 'Carlos López',  fecha_nacimiento: '2000-08-22' },
+    { telefono: '+34666000003', password: 'PM_User3_2025!', nombre: 'Laura Sánchez', fecha_nacimiento: '1995-12-03' },
+  ]
+
+  for (const u of pwaUsuarios) {
+    const authUser = await crearAuthUserPorTelefono(u.telefono, u.password)
+    if (!authUser) continue
+    // Asegurar fila en `usuarios`. UNIQUE por auth_id y por telefono.
+    const { data: existente } = await admin
+      .from('usuarios').select('id').eq('auth_id', authUser.id).maybeSingle()
+    if (existente) {
+      log.push(`Usuario PWA ya existe en BD: ${u.telefono}`)
+      continue
+    }
+    const { error } = await admin.from('usuarios').insert({
+      auth_id: authUser.id,
+      telefono: u.telefono,
+      telefono_verificado: true,
+      nombre: u.nombre,
+      fecha_nacimiento: u.fecha_nacimiento,
+      estado_cuenta: 'activa',
+    })
+    if (error) errors.push(`Usuario PWA ${u.telefono}: ${error.message}`)
+    else log.push(`Usuario PWA creado: ${u.telefono} (${u.nombre})`)
   }
 
   // ── RESUMEN ───────────────────────────────────────────────────────────────
@@ -231,16 +351,35 @@ export async function POST(req: NextRequest) {
         totp_nota:   'Código TOTP: usa app autenticador con secret = K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7',
         totp_url:    'otpauth://totp/PartyMaps%20Admin?secret=K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7&issuer=PartyMaps',
       },
-      '── PANEL LOCAL (/local-panel/login) ──': {
+      '── PANEL LOCAL — Club Test ──': {
         dueno:          'dueno@testlocal.com      /  PM_Dueno2025!',
         gestor:         'gestor@testlocal.com     /  PM_Gestor2025!',
         operador_noche: 'operador@testlocal.com   /  PM_Operador2025!',
         puerta:         'puerta@testlocal.com     /  PM_Puerta2025!',
-        local:          'Club Test PartyMaps (Madrid, tier Pro)',
+      },
+      '── PANEL LOCAL — Kapital ──': {
+        dueno:    'dueno.kapital@partymaps.com    /  PM_Dueno_kapital_2025!',
+        gestor:   'gestor.kapital@partymaps.com   /  PM_Gestor_kapital_2025!',
+        operador: 'operador.kapital@partymaps.com /  PM_Operador_kapital_2025!',
+        puerta:   'puerta.kapital@partymaps.com   /  PM_Puerta_kapital_2025!',
+      },
+      '── PANEL LOCAL — Teatro Barceló ──': {
+        dueno:    'dueno.teatro-barcelo@partymaps.com    /  PM_Dueno_teatrobarcelo_2025!',
+        gestor:   'gestor.teatro-barcelo@partymaps.com   /  PM_Gestor_teatrobarcelo_2025!',
+        operador: 'operador.teatro-barcelo@partymaps.com /  PM_Operador_teatrobarcelo_2025!',
+        puerta:   'puerta.teatro-barcelo@partymaps.com   /  PM_Puerta_teatrobarcelo_2025!',
+      },
+      '── PANEL LOCAL — Mondo Disko ──': {
+        dueno:    'dueno.mondo-disko@partymaps.com    /  PM_Dueno_mondodisko_2025!',
+        gestor:   'gestor.mondo-disko@partymaps.com   /  PM_Gestor_mondodisko_2025!',
+        operador: 'operador.mondo-disko@partymaps.com /  PM_Operador_mondodisko_2025!',
+        puerta:   'puerta.mondo-disko@partymaps.com   /  PM_Puerta_mondodisko_2025!',
       },
       '── PWA USUARIO (/login) ──': {
-        nota: 'Login por SMS OTP — usa tu número real o configura un número de prueba en Supabase: Dashboard > Auth > Phone > Test phone numbers',
-        supabase_test_number: '+34666000001  /  código: 123456',
+        nota: 'Login por SMS (número real) o, para testing, login por contraseña (mismo endpoint /login con link "Acceder con contraseña").',
+        usuario_1: '+34666000001  /  PM_User1_2025!  · María García',
+        usuario_2: '+34666000002  /  PM_User2_2025!  · Carlos López',
+        usuario_3: '+34666000003  /  PM_User3_2025!  · Laura Sánchez',
       },
     },
   })

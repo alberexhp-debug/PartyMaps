@@ -178,7 +178,7 @@ export default function MapaExplorar() {
       <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center gap-3 safe-top">
         {/* Logo */}
         <div className="w-10 h-10 rounded-xl bg-[#E94560] flex items-center justify-center shadow-lg shadow-[#E94560]/30 flex-shrink-0">
-          <span className="text-sm font-bold text-white">FV</span>
+          <span className="text-sm font-bold text-white">PM</span>
         </div>
 
         {/* Buscador */}

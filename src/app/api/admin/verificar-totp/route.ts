@@ -17,7 +17,9 @@ export async function POST(req: NextRequest) {
 
   // Use the secret from env if no per-admin secret
   const secret = admin.totp_secret || process.env.ADMIN_TOTP_SECRET!
-  const result = verifySync({ secret, token: totp, strategy: 'totp' } as Parameters<typeof verifySync>[0])
+  // epochTolerance: ±30s (acepta ventana anterior y siguiente) para evitar rechazos
+  // por desincronización mínima de reloj o por entrar el código a fin de ventana.
+  const result = verifySync({ secret, token: totp, strategy: 'totp', epochTolerance: 30 } as Parameters<typeof verifySync>[0])
   const valid = result.valid
   return NextResponse.json({ valid })
 }

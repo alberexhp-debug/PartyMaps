@@ -17,7 +17,7 @@ export function PageLoader() {
     <div className="fixed inset-0 bg-[#0D0D1A] flex items-center justify-center z-50">
       <div className="flex flex-col items-center gap-4">
         <div className="w-16 h-16 rounded-2xl bg-[#E94560] flex items-center justify-center">
-          <span className="text-2xl font-bold text-white">FV</span>
+          <span className="text-2xl font-bold text-white">PM</span>
         </div>
         <Spinner size="md" />
       </div>
