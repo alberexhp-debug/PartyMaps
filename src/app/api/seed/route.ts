@@ -9,6 +9,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // ADMIN_TOTP_SECRET tiene que venir del entorno. Sin él no se puede sembrar
+  // admins (se haría con un secret vacío y nadie podría loguearse en 2FA).
+  const totpSecret = process.env.ADMIN_TOTP_SECRET
+  if (!totpSecret) {
+    return NextResponse.json(
+      { error: 'Falta ADMIN_TOTP_SECRET en el entorno' },
+      { status: 500 },
+    )
+  }
+
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -69,7 +79,7 @@ export async function POST(req: NextRequest) {
       email: acc.email,
       rol: acc.rol,
       activo: true,
-      totp_secret: process.env.ADMIN_TOTP_SECRET ?? 'K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7',
+      totp_secret: totpSecret,
       totp_activado: true,
     }, { onConflict: 'email' })
     if (error) errors.push(`Administrador ${acc.email}: ${error.message}`)
@@ -348,8 +358,7 @@ export async function POST(req: NextRequest) {
         super_admin: 'superadmin@partymaps.com  /  PM_SuperAdmin2025!',
         admin:       'admin@partymaps.com       /  PM_Admin2025!',
         soporte:     'soporte@partymaps.com     /  PM_Soporte2025!',
-        totp_nota:   'Código TOTP: usa app autenticador con secret = K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7',
-        totp_url:    'otpauth://totp/PartyMaps%20Admin?secret=K45HX3JEC7U4Z5BPEFCKMNOR7RRPLMS7&issuer=PartyMaps',
+        totp_nota:   'Usa el secret guardado en la env var ADMIN_TOTP_SECRET (ver Vercel / .env.local). NO se devuelve aquí por seguridad.',
       },
       '── PANEL LOCAL — Club Test ──': {
         dueno:          'dueno@testlocal.com      /  PM_Dueno2025!',
