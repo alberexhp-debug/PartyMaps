@@ -110,13 +110,44 @@ export function generarCodigoInvitacion(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
 }
 
-// Comisión PartyMaps: 8% sobre el precio que pone el dueño. Se SUMA al precio
-// que paga el usuario, no se descuenta del local. Si en algún momento queremos
-// diferenciar por tier, este es el único punto a tocar.
-export const COMISION_PORCENTAJE = 8
+// Modelo de tiers mixto (suscripción + comisión).
+// Cada tier tiene su % de comisión sobre cada venta (entrada o pedido de bar).
+// La comisión se SUMA al precio que paga el usuario, no se descuenta del local.
+//
+//   visibility:  0%   (no vende; solo aparece en mapa)
+//   venta:       4.0% (gratis mensual, ideal para empezar)
+//   basico:      4.0% (alias legacy de 'venta')
+//   pro:         2.5% (49€/mes — break-even ~3.300€/mes en ventas)
+//   destacado:   1.5% (149€/mes — break-even ~10.000€/mes)
+//
+// Tope absoluto: 3€ por transacción. Una entrada de 100€ no paga 4€ de comisión.
+export const COMISION_POR_TIER: Record<'visibility' | 'venta' | 'basico' | 'pro' | 'destacado', number> = {
+  visibility: 0,
+  venta: 4.0,
+  basico: 4.0,
+  pro: 2.5,
+  destacado: 1.5,
+}
 
-export function calcularComision(precioLocal: number, _tier?: 'basico' | 'pro' | 'destacado'): number {
-  return Math.round(precioLocal * (COMISION_PORCENTAJE / 100) * 100) / 100
+export const COMISION_MAX_POR_TRANSACCION = 3.0
+
+// Compat con código existente que esperaba un porcentaje plano. Devuelve el
+// valor "venta" como referencia para la UI cuando no hay tier disponible.
+export const COMISION_PORCENTAJE = COMISION_POR_TIER.venta
+
+export function calcularComision(precioLocal: number, tier?: string): number {
+  if (precioLocal <= 0) return 0
+  const t = (tier ?? 'venta') as keyof typeof COMISION_POR_TIER
+  const pct = COMISION_POR_TIER[t] ?? COMISION_POR_TIER.venta
+  if (pct === 0) return 0
+  const bruta = precioLocal * (pct / 100)
+  const final = Math.min(bruta, COMISION_MAX_POR_TRANSACCION)
+  return Math.round(final * 100) / 100
+}
+
+export function porcentajeComisionTier(tier?: string): number {
+  const t = (tier ?? 'venta') as keyof typeof COMISION_POR_TIER
+  return COMISION_POR_TIER[t] ?? COMISION_POR_TIER.venta
 }
 
 // Precio dinámico (Doc4 §6.2). Devuelve precio actual y, si la curva es por

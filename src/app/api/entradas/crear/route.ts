@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const { data: local, error: localError } = await supabase
       .from('locales')
-      .select('id, tier, precio_entrada_min, precio_entrada_max, precio_dinamico, precio_promocional, promo_ultima_hora_hasta, aforo_maximo, nombre')
+      .select('id, tier, comision_porcentaje_override, precio_entrada_min, precio_entrada_max, precio_dinamico, precio_promocional, promo_ultima_hora_hasta, aforo_maximo, nombre')
       .eq('id', local_id)
       .single()
     if (localError || !local) return NextResponse.json({ error: 'Local no encontrado' }, { status: 404 })
@@ -80,7 +80,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const comision = calcularComision(precioBase, local.tier)
+    // Si el admin definió un override personalizado para este local, lo usamos.
+    // Si no, la comisión sale del tier (4% venta, 2.5% pro, 1.5% destacado, etc.).
+    const comision = local.comision_porcentaje_override != null
+      ? Math.round(precioBase * (local.comision_porcentaje_override / 100) * 100) / 100
+      : calcularComision(precioBase, local.tier)
     const precioTotal = precioBase + comision
 
     // Create tickets

@@ -1,181 +1,314 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { formatearPrecio, formatearFecha } from '@/lib/utils'
-import { CreditCard, TrendingUp, Star, Zap, Check, AlertCircle } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase/client'
+import { formatearPrecio, cn } from '@/lib/utils'
+import {
+  Check, Sparkles, Star, Zap, Eye, CreditCard, TrendingDown,
+} from 'lucide-react'
+import type { TierLocal } from '@/types'
 
-const TIERS = [
+interface Tier {
+  id: TierLocal
+  nombre: string
+  cuota: number
+  comision: number
+  color: string
+  icono: React.ElementType
+  vende: boolean
+  features: string[]
+  parametros?: string
+  destacado?: boolean
+}
+
+const TIERS: Tier[] = [
   {
-    id: 'basico',
-    nombre: 'Básico',
-    precio: 'Gratis',
-    comision: '7%',
-    features: ['Perfil en el mapa', 'Venta de entradas', 'Hasta 2 eventos/mes', '1 usuario del panel'],
-    color: '#505065',
+    id: 'visibility',
+    nombre: 'Visibility',
+    cuota: 0,
+    comision: 0,
+    color: '#8B8BA8',
+    icono: Eye,
+    vende: false,
+    features: [
+      'Aparece en el mapa y en la lista de explorar',
+      'Recibe seguidores y reseñas',
+      'Página de perfil del local editable',
+      'Sin venta de entradas ni bar',
+    ],
+  },
+  {
+    id: 'venta',
+    nombre: 'Venta',
+    cuota: 0,
+    comision: 4.0,
+    color: '#4F8EF7',
+    icono: CreditCard,
+    vende: true,
+    features: [
+      'Todo lo anterior',
+      'Venta de entradas con QR',
+      'Módulo bar (hasta 10 productos)',
+      'Hasta 2 eventos al mes',
+      '1 trabajador en el panel',
+    ],
+    parametros: 'Sin cuota mensual · 4% por venta · Para empezar',
   },
   {
     id: 'pro',
     nombre: 'Pro',
-    precio: '69€/mes',
-    comision: '6%',
-    features: ['Todo lo de Básico', 'Eventos ilimitados', 'Analytics avanzado', '5 usuarios del panel', 'Notificaciones push', 'Módulos de experiencia'],
-    color: '#4F8EF7',
-    destacado: false,
+    cuota: 49,
+    comision: 2.5,
+    color: '#E94560',
+    icono: Sparkles,
+    vende: true,
+    destacado: true,
+    features: [
+      'Todo lo anterior',
+      'Eventos ilimitados',
+      'Hasta 50 productos en la carta',
+      'Hasta 5 trabajadores',
+      'Analytics avanzados',
+      '1 boost de evento al mes',
+      '5.000 notificaciones push/mes',
+    ],
+    parametros: 'Compensa si facturas >3.300€/mes',
   },
   {
     id: 'destacado',
     nombre: 'Destacado',
-    precio: '169€/mes',
-    comision: '5%',
-    features: ['Todo lo de Pro', 'Posición prioritaria en mapa', 'Badge ★ Destacado', '10 usuarios del panel', 'Soporte prioritario', 'Estadísticas de suscriptores avanzadas'],
-    color: '#F39C12',
-    destacado: true,
+    cuota: 149,
+    comision: 1.5,
+    color: '#D4A84B',
+    icono: Star,
+    vende: true,
+    features: [
+      'Todo lo anterior',
+      'Insignia ★ en mapa y lista',
+      'Posicionamiento Top en explorar',
+      'Productos del bar ilimitados',
+      'Trabajadores ilimitados',
+      '4 boosts de evento al mes',
+      'Notif patrocinadas ilimitadas',
+      'Comisión casi a nivel datáfono',
+      'Soporte prioritario',
+    ],
+    parametros: 'Compensa si facturas >10.000€/mes',
   },
 ]
 
 export default function FacturacionPage() {
-  const toast = useToast()
   const { local, trabajador } = useLocalPanelStore()
-  const [loading, setLoading] = useState(false)
-  const [stats, setStats] = useState({ ingresos_mes: 0, comisiones_mes: 0 })
+  const toast = useToast()
+  const [volumenMensual, setVolumenMensual] = useState(3000)
+  const [ingresosUltMes, setIngresosUltMes] = useState<number | null>(null)
+  const [solicitando, setSolicitando] = useState<TierLocal | null>(null)
 
-  const esDueno = trabajador?.rol === 'dueno'
+  const tierActual = local?.tier ?? 'visibility'
+  const puedeCambiar = trabajador?.rol === 'dueno'
 
   useEffect(() => {
     if (!local) return
-    const inicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
-    supabase.from('entradas').select('precio_total, comision_plataforma')
-      .eq('local_id', local.id).gte('created_at', inicio).eq('estado', 'activa')
-      .then(({ data }) => {
-        if (data) {
-          setStats({
-            ingresos_mes: data.reduce((s, e) => s + (e.precio_total - e.comision_plataforma), 0),
-            comisiones_mes: data.reduce((s, e) => s + e.comision_plataforma, 0),
-          })
-        }
-      })
+    const hace30d = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()
+    Promise.all([
+      supabase.from('entradas').select('precio_local').eq('local_id', local.id).gte('created_at', hace30d).eq('estado', 'activa'),
+      supabase.from('pedidos_bar').select('precio_total, comision_plataforma').eq('local_id', local.id).gte('pagado_at', hace30d).in('estado', ['pagado', 'entregado']),
+    ]).then(([e, p]) => {
+      const eIngresos = (e.data || []).reduce((s, x) => s + (x.precio_local || 0), 0)
+      const pIngresos = (p.data || []).reduce((s, x) => s + ((x.precio_total || 0) - (x.comision_plataforma || 0)), 0)
+      const total = Math.round(eIngresos + pIngresos)
+      setIngresosUltMes(total)
+      if (total > 100) setVolumenMensual(total)
+    })
   }, [local])
 
-  const solicitarCambio = (tier: string) => {
-    toast.info(`Solicitud de cambio a ${tier} enviada. El equipo de PartyMaps se pondrá en contacto.`)
+  const costePorTier = (t: Tier, volumen: number) => {
+    if (!t.vende) return Infinity
+    return t.cuota + (volumen * t.comision) / 100
   }
 
-  if (!local) return null
+  const tierRecomendado = useMemo<TierLocal>(() => {
+    if (volumenMensual === 0) return 'visibility'
+    let menor: Tier = TIERS[1]
+    let menorCoste = costePorTier(menor, volumenMensual)
+    for (const t of TIERS) {
+      if (!t.vende) continue
+      const c = costePorTier(t, volumenMensual)
+      if (c < menorCoste) { menor = t; menorCoste = c }
+    }
+    return menor.id
+  }, [volumenMensual])
+
+  const solicitarCambio = async (nuevoTier: TierLocal) => {
+    if (!puedeCambiar) { toast.error('Solo el dueño puede cambiar el plan'); return }
+    setSolicitando(nuevoTier)
+    await new Promise(r => setTimeout(r, 600))
+    toast.info(`Solicitud de cambio a ${nuevoTier} registrada. Te contactaremos para activarlo.`)
+    setSolicitando(null)
+  }
 
   return (
-    <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-6">
-      <h1 className="text-2xl font-black text-white">Facturación</h1>
+    <div className="relative p-4 md:p-8 pb-20 md:pb-8 space-y-6 overflow-hidden">
+      <div className="hero-halo-rose" />
 
-      {!esDueno && (
-        <div className="flex items-center gap-2 p-3 bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl text-sm text-[#F39C12]">
-          <AlertCircle size={14} />
-          Solo el dueño del local puede gestionar la facturación
-        </div>
-      )}
-
-      {/* Resumen del mes */}
-      <div className="glass rounded-2xl p-4 space-y-3">
-        <h2 className="font-bold text-white">Este mes</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white/5 rounded-xl p-3">
-            <p className="text-xs text-[#6B6B85]">Ingresos netos</p>
-            <p className="text-xl font-black text-white mt-1">{formatearPrecio(stats.ingresos_mes)}</p>
-          </div>
-          <div className="bg-white/5 rounded-xl p-3">
-            <p className="text-xs text-[#6B6B85]">Comisión plataforma</p>
-            <p className="text-xl font-black text-[#E94560] mt-1">{formatearPrecio(stats.comisiones_mes)}</p>
-          </div>
-        </div>
-        <p className="text-xs text-[#6B6B85]">
-          Tier actual: <span className="capitalize text-white font-semibold">{local.tier}</span>
-          {' '}· Comisión: <span className="text-[#E94560] font-semibold">
-            {local.tier === 'basico' ? '7%' : local.tier === 'pro' ? '6%' : '5%'}
-          </span>
-        </p>
-        <p className="text-xs text-[#6B6B85]">
-          Los pagos se realizan mediante Stripe Connect. Conecta tu cuenta para recibir transferencias.
+      <div className="relative">
+        <p className="eyebrow mb-2">Tu plan</p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Facturación</h1>
+        <p className="text-sm text-[#B8B8CC] mt-2">
+          Modelo mixto: paga solo lo que vendes, o sube de plan y baja tu comisión.
         </p>
       </div>
 
-      {/* Tiers */}
-      <div className="space-y-3">
-        <h2 className="font-bold text-white">Planes disponibles</h2>
-        {TIERS.map(tier => {
-          const esActual = local.tier === tier.id
+      {/* Estado actual + calculadora */}
+      <div className="card-premium p-5 md:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="eyebrow eyebrow-muted mb-1.5">Plan actual</p>
+            <p className="text-2xl font-bold text-white text-display capitalize">{tierActual}</p>
+            {ingresosUltMes != null && (
+              <p className="text-xs text-[#B8B8CC] mt-1">
+                Últimos 30 días vendiste <span className="text-white font-bold text-numeric">{formatearPrecio(ingresosUltMes)}</span>
+              </p>
+            )}
+          </div>
+          {tierRecomendado !== tierActual && (
+            <div className="px-3 py-2 rounded-xl bg-[#27AE60]/12 border border-[#27AE60]/30 text-[#27AE60] text-xs">
+              <p className="font-bold uppercase tracking-wider mb-0.5">Recomendación</p>
+              <p className="text-sm font-semibold">
+                Con tu volumen, <span className="capitalize">{tierRecomendado}</span> te sale más barato
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 border-t border-white/8 pt-5">
+          <p className="eyebrow eyebrow-muted mb-2">Calculadora de plan ideal</p>
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm text-[#B8B8CC]">Cuánto vendes al mes</span>
+            <span className="text-2xl font-bold text-white text-display text-numeric">{formatearPrecio(volumenMensual)}</span>
+          </div>
+          <input
+            type="range" min={0} max={20000} step={100}
+            value={volumenMensual}
+            onChange={e => setVolumenMensual(Number(e.target.value))}
+            className="w-full accent-[#E94560] mt-2"
+            aria-label="Volumen mensual estimado"
+          />
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {TIERS.map(t => {
+              const coste = costePorTier(t, volumenMensual)
+              const esRecomendado = t.id === tierRecomendado
+              return (
+                <div
+                  key={t.id}
+                  className={cn(
+                    'rounded-xl p-2.5 border transition-colors',
+                    esRecomendado ? 'border-[#27AE60]/50 bg-[#27AE60]/8' : 'border-white/8 bg-white/3'
+                  )}
+                >
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-[#B8B8CC]">{t.nombre}</p>
+                  <p className={cn('text-lg font-bold text-display text-numeric mt-0.5', esRecomendado ? 'text-[#27AE60]' : 'text-white')}>
+                    {t.vende ? formatearPrecio(coste) : '—'}
+                  </p>
+                  <p className="text-[10px] text-[#8B8BA8] mt-0.5">
+                    {t.vende ? `${t.cuota}€ + ${t.comision}%` : 'No vende'}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Cards de planes */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {TIERS.map(t => {
+          const Icon = t.icono
+          const esActual = tierActual === t.id || (tierActual === 'basico' && t.id === 'venta')
           return (
-            <div key={tier.id} className={cn(
-              'rounded-2xl border p-4 space-y-3 relative',
-              esActual ? 'border-2' : 'border',
-              esActual ? `border-[${tier.color}]` : 'border-white/10',
-              'bg-white/6'
-            )} style={{ borderColor: esActual ? tier.color : undefined }}>
-              {tier.destacado && (
-                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#F39C12] rounded-full text-xs font-bold text-black">
-                  ★ Más popular
+            <div
+              key={t.id}
+              className={cn(
+                'relative card-premium p-5 flex flex-col',
+                t.destacado && 'ring-1 ring-[#E94560]/40',
+              )}
+            >
+              {t.destacado && (
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#E94560] text-white text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                  Más usado
                 </div>
               )}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold text-white">{tier.nombre}</h3>
-                  <p className="text-sm font-bold" style={{ color: tier.color }}>{tier.precio}</p>
+              {esActual && (
+                <div className="absolute -top-2.5 right-3 px-2.5 py-0.5 rounded-full bg-[#27AE60] text-white text-[10px] font-bold uppercase tracking-wider">
+                  Tu plan
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-[#6B6B85]">Comisión</p>
-                  <p className="text-lg font-black text-white">{tier.comision}</p>
-                </div>
+              )}
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+                style={{ background: `${t.color}22`, border: `1px solid ${t.color}40` }}>
+                <Icon size={18} style={{ color: t.color }} />
               </div>
-              <ul className="space-y-1.5">
-                {tier.features.map((f, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-[#A0A0B8]">
-                    <Check size={12} style={{ color: tier.color }} />
-                    {f}
+              <h2 className="text-xl font-bold text-display tracking-tight">{t.nombre}</h2>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-white text-display text-numeric">
+                  {t.cuota === 0 ? 'Gratis' : `${t.cuota}€`}
+                </span>
+                {t.cuota > 0 && <span className="text-xs text-[#B8B8CC]">/mes</span>}
+              </div>
+              {t.vende ? (
+                <p className="text-xs text-[#B8B8CC] mt-1">+ {t.comision}% por venta</p>
+              ) : (
+                <p className="text-xs text-[#8B8BA8] mt-1">No vende</p>
+              )}
+              {t.parametros && (
+                <p className="text-[11px] text-[#8B8BA8] italic mt-2 leading-snug">{t.parametros}</p>
+              )}
+
+              <ul className="mt-4 space-y-2 flex-1">
+                {t.features.map(f => (
+                  <li key={f} className="flex items-start gap-2 text-xs text-[#B8B8CC]">
+                    <Check size={13} className="text-[#27AE60] shrink-0 mt-0.5" />
+                    <span>{f}</span>
                   </li>
                 ))}
               </ul>
-              {esActual ? (
-                <div className="flex items-center justify-center h-10 rounded-xl border text-sm font-semibold"
-                  style={{ borderColor: tier.color, color: tier.color }}>
-                  Plan actual
-                </div>
-              ) : (
-                <Button
-                  fullWidth
-                  variant={tier.id === 'destacado' ? 'primary' : 'secondary'}
-                  disabled={!esDueno}
-                  onClick={() => solicitarCambio(tier.nombre)}
-                >
-                  {tier.id === 'basico' ? 'Degradar a Básico' : `Actualizar a ${tier.nombre}`}
-                </Button>
-              )}
+
+              <Button
+                fullWidth
+                variant={esActual ? 'glass' : t.destacado ? 'primary' : 'secondary'}
+                className="mt-5"
+                disabled={esActual || !puedeCambiar}
+                loading={solicitando === t.id}
+                onClick={() => solicitarCambio(t.id)}
+              >
+                {esActual ? 'Plan actual' : t.cuota > 0 ? 'Solicitar cambio' : 'Cambiar a este plan'}
+              </Button>
             </div>
           )
         })}
       </div>
 
-      {/* Stripe */}
-      <div className="glass rounded-2xl p-4 space-y-3">
-        <h2 className="font-bold text-white flex items-center gap-2">
-          <CreditCard size={16} className="text-[#4F8EF7]" />
-          Cuenta Stripe
-        </h2>
-        {local.stripe_account_id ? (
-          <div className="flex items-center gap-2 text-sm text-green-400">
-            <Check size={14} />
-            Cuenta conectada: {local.stripe_account_id}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-sm text-[#A0A0B8]">Conecta tu cuenta de Stripe para recibir pagos</p>
-            <Button variant="outline" disabled>
-              Conectar Stripe (próximamente)
-            </Button>
-          </div>
-        )}
+      {/* Detalles legales/modelo */}
+      <div className="card-premium p-5 space-y-3">
+        <h2 className="text-base font-bold text-display text-white">Detalles del modelo</h2>
+        <ul className="space-y-2 text-xs leading-relaxed">
+          <li className="flex gap-2 text-[#B8B8CC]"><TrendingDown size={13} className="text-[#27AE60] mt-0.5 shrink-0" />
+            <span>Tope absoluto: la comisión nunca supera <strong className="text-white">3€ por transacción</strong>.</span></li>
+          <li className="flex gap-2 text-[#B8B8CC]"><Zap size={13} className="text-[#F39C12] mt-0.5 shrink-0" />
+            <span><strong className="text-white">3 meses gratis</strong> al cambiar a Pro por primera vez (cuota + comisión reducida desde el día 1).</span></li>
+          <li className="flex gap-2 text-[#B8B8CC]"><Check size={13} className="text-[#27AE60] mt-0.5 shrink-0" />
+            <span>Sin comisión en reembolsos: si cancelas un evento, PartyMaps no cobra esa comisión.</span></li>
+          <li className="flex gap-2 text-[#B8B8CC]"><CreditCard size={13} className="text-[#4F8EF7] mt-0.5 shrink-0" />
+            <span>Pago real con Stripe en breve. De momento las solicitudes se registran y te contactamos.</span></li>
+        </ul>
       </div>
+
+      {!puedeCambiar && (
+        <div className="card-premium p-3 text-xs text-[#F39C12] flex items-center gap-2 border border-[#F39C12]/30">
+          Solo el dueño puede cambiar el plan.
+        </div>
+      )}
     </div>
   )
 }

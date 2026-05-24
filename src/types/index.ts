@@ -4,7 +4,10 @@
 
 // --- ENUMS ---
 
-export type TierLocal = 'basico' | 'pro' | 'destacado'
+// 'basico' se mantiene por compatibilidad (legacy) — equivale a 'venta'.
+// El modelo nuevo es: visibility (gratis, no vende) · venta (gratis, 4%) ·
+// pro (49€/mes, 2.5%) · destacado (149€/mes, 1.5%).
+export type TierLocal = 'visibility' | 'venta' | 'pro' | 'destacado' | 'basico'
 export type EstadoLocal = 'pendiente_verificacion' | 'activo' | 'suspendido' | 'eliminado'
 export type TipoLocal = 'discoteca' | 'bar_copas' | 'rooftop' | 'sala_conciertos' | 'bar_cocteleria' | 'otro'
 export type TipoMusica = 'techno' | 'house' | 'reggaeton' | 'pop' | 'hip_hop' | 'indie' | 'electronica' | 'flamenco' | 'otro'

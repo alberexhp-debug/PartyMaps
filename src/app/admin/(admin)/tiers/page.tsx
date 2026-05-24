@@ -58,7 +58,13 @@ export default function AdminTiersPage() {
     cargar()
   }
 
-  const tierColor = { basico: '#505065', pro: '#4F8EF7', destacado: '#F39C12' }
+  const tierColor: Record<TierLocal, string> = {
+    visibility: '#8B8BA8',
+    venta: '#4F8EF7',
+    basico: '#4F8EF7',     // legacy → mismo color que venta
+    pro: '#E94560',
+    destacado: '#D4A84B',
+  }
 
   return (
     <div className="p-4 md:p-6 pb-20 md:pb-6 space-y-4">
@@ -92,7 +98,7 @@ export default function AdminTiersPage() {
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        {(['todos', 'basico', 'pro', 'destacado'] as const).map(t => (
+        {(['todos', 'visibility', 'venta', 'pro', 'destacado'] as const).map(t => (
           <button key={t} onClick={() => setFiltroTier(t)}
             className={cn('px-3 py-1.5 rounded-xl text-xs font-medium border capitalize transition-colors',
               filtroTier === t ? 'bg-[#4F8EF7] border-[#4F8EF7] text-white' : 'border-white/10 text-[#6B6B85]')}>
@@ -102,13 +108,17 @@ export default function AdminTiersPage() {
       </div>
 
       {/* Resumen */}
-      <div className="grid grid-cols-3 gap-2">
-        {(['basico', 'pro', 'destacado'] as TierLocal[]).map(tier => (
-          <div key={tier} className="glass rounded-xl p-3 text-center">
-            <p className="text-xs capitalize" style={{ color: tierColor[tier] }}>{tier}</p>
-            <p className="text-xl font-black text-white">{locales.filter(l => l.tier === tier).length}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {(['visibility', 'venta', 'pro', 'destacado'] as TierLocal[]).map(tier => {
+          // contar también los legacy 'basico' como 'venta'
+          const count = locales.filter(l => l.tier === tier || (tier === 'venta' && l.tier === 'basico')).length
+          return (
+            <div key={tier} className="card-premium p-3 text-center">
+              <p className="text-xs capitalize text-numeric font-bold" style={{ color: tierColor[tier] }}>{tier}</p>
+              <p className="text-2xl font-bold text-white text-display text-numeric mt-1">{count}</p>
+            </div>
+          )
+        })}
       </div>
 
       <div className="space-y-2">
@@ -133,11 +143,12 @@ export default function AdminTiersPage() {
                 {l.tier}
               </span>
               <div className="relative">
-                <select value={l.tier} onChange={e => cambiarTier(l.id, e.target.value as TierLocal)}
+                <select value={l.tier === 'basico' ? 'venta' : l.tier} onChange={e => cambiarTier(l.id, e.target.value as TierLocal)}
                   className="pl-2 pr-6 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-[#A0A0B8] outline-none appearance-none cursor-pointer">
-                  <option value="basico">Básico</option>
-                  <option value="pro">Pro</option>
-                  <option value="destacado">Destacado</option>
+                  <option value="visibility">Visibility</option>
+                  <option value="venta">Venta (4%)</option>
+                  <option value="pro">Pro (49€ · 2.5%)</option>
+                  <option value="destacado">Destacado (149€ · 1.5%)</option>
                 </select>
                 <ChevronDown size={10} className="absolute right-1.5 top-2 text-[#6B6B85] pointer-events-none" />
               </div>

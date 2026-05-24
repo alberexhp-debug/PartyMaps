@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server'
-import { COMISION_PORCENTAJE } from '@/lib/utils'
+import { calcularComision } from '@/lib/utils'
 
 interface ItemBody { producto_id: string; cantidad: number }
 
@@ -40,12 +40,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Cuenta no activa' }, { status: 403 })
   }
 
-  // Cargar productos del local pedidos
+  // Cargar productos del local pedidos + tier del local
   const productoIds = [...new Set(body.items.map(i => i.producto_id))]
-  const { data: productos } = await admin
-    .from('productos_local')
-    .select('id, local_id, nombre, precio, disponible')
-    .in('id', productoIds)
+  const [{ data: productos }, { data: localInfo }] = await Promise.all([
+    admin.from('productos_local').select('id, local_id, nombre, precio, disponible').in('id', productoIds),
+    admin.from('locales').select('tier, comision_porcentaje_override').eq('id', body.local_id).maybeSingle(),
+  ])
   if (!productos || productos.length !== productoIds.length) {
     return NextResponse.json({ error: 'Productos no encontrados' }, { status: 404 })
   }
@@ -66,7 +66,11 @@ export async function POST(req: NextRequest) {
     const p = productosMap.get(it.producto_id)!
     subtotal += p.precio * it.cantidad
   }
-  const comision = Math.round(subtotal * (COMISION_PORCENTAJE / 100) * 100) / 100
+  // Comisión por tier del local (con override si lo hay)
+  const tier = localInfo?.tier || 'venta'
+  const comision = localInfo?.comision_porcentaje_override != null
+    ? Math.round(subtotal * (localInfo.comision_porcentaje_override / 100) * 100) / 100
+    : calcularComision(subtotal, tier)
   const total = Math.round((subtotal + comision) * 100) / 100
 
   // Generar QR único
