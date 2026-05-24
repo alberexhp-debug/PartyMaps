@@ -41,7 +41,7 @@ export default function ConcursoPage() {
       .eq('id', id)
       .single()
 
-    if (!data) { router.push('/explorar'); return }
+    if (!data) { router.push('/mapa'); return }
     setConcurso(data)
 
     const miP = data.participaciones_concurso.find((p: ParticipacionConcurso) => p.usuario_id === usuario?.id)

@@ -34,7 +34,7 @@ export default function PerfilNochePage() {
       }).is('salida_at', null).maybeSingle(),
     ])
 
-    if (!localData) { toast.error('Local no encontrado'); router.push('/explorar'); return }
+    if (!localData) { toast.error('Local no encontrado'); router.push('/mapa'); return }
     if (!localData.modulos_activos?.includes('perfil_noche')) {
       toast.info('Este local no tiene perfil de noche activo')
       router.push(`/local/${localId}`); return

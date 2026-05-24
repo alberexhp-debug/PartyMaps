@@ -123,7 +123,7 @@ export default function RegistroPage() {
       toast.error('Error al crear la cuenta. Inténtalo de nuevo.')
     } else {
       toast.success('¡Cuenta creada! Bienvenido/a a PartyMaps')
-      router.push('/explorar')
+      router.push('/mapa')
     }
     setLoading(false)
   }

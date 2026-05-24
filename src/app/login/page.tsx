@@ -48,7 +48,7 @@ export default function LoginPage() {
     if (err) {
       toast.error('Código incorrecto o expirado')
     } else {
-      router.push('/explorar')
+      router.push('/mapa')
     }
     setLoading(false)
   }
@@ -65,7 +65,7 @@ export default function LoginPage() {
     if (err) {
       toast.error('Teléfono o contraseña incorrectos')
     } else {
-      router.push('/explorar')
+      router.push('/mapa')
     }
     setLoading(false)
   }

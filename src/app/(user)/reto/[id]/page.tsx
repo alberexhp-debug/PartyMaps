@@ -45,7 +45,7 @@ export default function RetoPage() {
       .eq('id', id)
       .single()
 
-    if (!data) { router.push('/explorar'); return }
+    if (!data) { router.push('/mapa'); return }
     setReto(data)
 
     const miP = data.participaciones_reto.find((p: ParticipacionReto) => p.usuario_id === usuario?.id)

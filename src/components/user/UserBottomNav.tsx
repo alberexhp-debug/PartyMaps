@@ -1,15 +1,15 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, Users, Ticket, Bell, User } from 'lucide-react'
+import { Map, Compass, Users, Ticket, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const tabs = [
-  { href: '/explorar', icon: Map, label: 'Explorar' },
-  { href: '/planes', icon: Users, label: 'Planes' },
-  { href: '/entradas', icon: Ticket, label: 'Entradas' },
-  { href: '/suscritos', icon: Bell, label: 'Suscritos' },
-  { href: '/perfil', icon: User, label: 'Perfil' },
+  { href: '/mapa',     icon: Map,     label: 'Mapa' },
+  { href: '/explorar', icon: Compass, label: 'Explorar' },
+  { href: '/entradas', icon: Ticket,  label: 'Entradas' },
+  { href: '/planes',   icon: Users,   label: 'Planes' },
+  { href: '/perfil',   icon: User,    label: 'Perfil' },
 ]
 
 export function UserBottomNav() {
@@ -21,14 +21,16 @@ export function UserBottomNav() {
       <div className="relative glass-strong border-t border-white/8 mx-auto">
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
           {tabs.map(({ href, icon: Icon, label }) => {
-            const active = pathname === href || (href !== '/explorar' && pathname.startsWith(href))
+            const active = pathname === href || pathname.startsWith(href + '/')
             return (
               <Link
                 key={href}
                 href={href}
+                aria-label={label}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
                   'relative flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all min-w-[56px]',
-                  active ? 'text-[#E94560]' : 'text-[#6B6B85] hover:text-white'
+                  active ? 'text-[#E94560]' : 'text-[#8B8BA8] hover:text-white'
                 )}
               >
                 {active && (

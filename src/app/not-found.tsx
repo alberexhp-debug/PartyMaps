@@ -13,7 +13,7 @@ export default function NotFound() {
         Puede que el enlace haya cambiado o que la página ya no esté disponible.
       </p>
       <Link
-        href="/explorar"
+        href="/mapa"
         className="px-6 py-3 bg-[#E94560] rounded-2xl text-white font-semibold text-sm hover:bg-[#c73652] transition-colors"
       >
         Ir al mapa

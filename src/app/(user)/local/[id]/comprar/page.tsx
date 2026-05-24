@@ -31,7 +31,7 @@ export default function ComprarEntradaPage() {
         .select('*')
         .eq('id', id)
         .single()
-      if (!localData) { router.push('/explorar'); return }
+      if (!localData) { router.push('/mapa'); return }
       setLocal(localData)
 
       const { data: eventoData } = await supabase
