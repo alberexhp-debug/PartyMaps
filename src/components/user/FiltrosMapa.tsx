@@ -58,7 +58,7 @@ export function FiltrosMapa({ open, onClose }: Props) {
                   'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors',
                   filtros.tipos.includes(value)
                     ? 'bg-[#E94560] border-[#E94560] text-white'
-                    : 'bg-[#0D0D1A] border-[#2A2A3E] text-[#A0A0B8]'
+                    : 'bg-white/5 border-white/10 text-[#A0A0B8]'
                 )}
               >
                 <span>{emoji}</span> {label}
@@ -79,7 +79,7 @@ export function FiltrosMapa({ open, onClose }: Props) {
                   'px-3 py-2 rounded-xl text-sm font-medium border transition-colors',
                   filtros.musica.includes(value)
                     ? 'bg-[#4F8EF7] border-[#4F8EF7] text-white'
-                    : 'bg-[#0D0D1A] border-[#2A2A3E] text-[#A0A0B8]'
+                    : 'bg-white/5 border-white/10 text-[#A0A0B8]'
                 )}
               >
                 {label}
@@ -98,7 +98,7 @@ export function FiltrosMapa({ open, onClose }: Props) {
             <div
               key={key}
               onClick={() => setFiltros({ [key]: !filtros[key] })}
-              className="flex items-center justify-between p-4 bg-[#0D0D1A] rounded-xl border border-[#2A2A3E] cursor-pointer"
+              className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 cursor-pointer"
             >
               <span className="text-sm text-white">{emoji} {label}</span>
               <div className={cn(

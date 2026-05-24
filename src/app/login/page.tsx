@@ -70,41 +70,49 @@ export default function LoginPage() {
     setLoading(false)
   }
 
+  const selectPrefijo = (
+    <select
+      value={prefijo}
+      onChange={e => setPrefijo(e.target.value)}
+      className="h-12 bg-white/5 border border-white/10 rounded-xl text-white px-3 text-sm focus:border-[#E94560]/60 outline-none transition-colors"
+    >
+      <option value="+34">🇪🇸 +34</option>
+      <option value="+1">🇺🇸 +1</option>
+      <option value="+44">🇬🇧 +44</option>
+      <option value="+33">🇫🇷 +33</option>
+    </select>
+  )
+
   return (
-    <div className="min-h-screen bg-[#0D0D1A] flex flex-col">
-      <div className="flex items-center gap-3 px-4 pt-12 pb-6">
+    <div className="relative min-h-screen flex flex-col overflow-hidden">
+      <div className="absolute top-0 -left-32 w-96 h-96 rounded-full opacity-30 blur-3xl pointer-events-none bg-[#E94560]/30" />
+      <div className="absolute top-32 -right-32 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none bg-[#7C5CFF]/30" />
+
+      <div className="relative flex items-center gap-3 px-4 pt-10 pb-6 safe-top">
         {step !== 'telefono' ? (
-          <button onClick={() => setStep('telefono')} className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-[#1A1A2E]">
+          <button onClick={() => setStep('telefono')} className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-white/8 transition-colors">
             <ChevronLeft size={22} />
           </button>
         ) : (
-          <Link href="/bienvenida" className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-[#1A1A2E]">
+          <Link href="/bienvenida" className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-white/8 transition-colors">
             <ChevronLeft size={22} />
           </Link>
         )}
-        <div className="w-10 h-10 rounded-xl bg-[#E94560] flex items-center justify-center">
-          <span className="text-base font-bold text-white">PM</span>
+        <div className="w-10 h-10 rounded-xl holo-bg flex items-center justify-center shadow-[0_4px_14px_-4px_rgba(124,92,255,0.6)]">
+          <span className="text-sm font-black text-white">PM</span>
         </div>
       </div>
 
-      <div className="flex-1 px-6 pt-4 space-y-6">
+      <div className="relative flex-1 px-6 pt-6 space-y-6">
         {step === 'telefono' && (
           <>
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Bienvenido/a de vuelta</h1>
-              <p className="text-[#A0A0B8]">Introduce tu número para continuar</p>
+              <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-3">Acceder</p>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight leading-tight">Bienvenido<br />de vuelta</h1>
+              <p className="text-[#A0A0B8] mt-2">Introduce tu número para continuar</p>
             </div>
             <div className="flex gap-3">
-              <select
-                value={prefijo}
-                onChange={e => setPrefijo(e.target.value)}
-                className="h-12 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white px-3 text-sm"
-              >
-                <option value="+34">🇪🇸 +34</option>
-                <option value="+1">🇺🇸 +1</option>
-                <option value="+44">🇬🇧 +44</option>
-                <option value="+33">🇫🇷 +33</option>
-              </select>
+              {selectPrefijo}
               <Input
                 className="flex-1"
                 type="tel"
@@ -115,37 +123,30 @@ export default function LoginPage() {
                 icon={<Phone size={16} />}
               />
             </div>
-            <Button fullWidth onClick={enviarSMS} loading={loading}>
+            <Button fullWidth size="lg" onClick={enviarSMS} loading={loading}>
               Enviar código SMS
             </Button>
             <button
               type="button"
               onClick={() => { setError(''); setStep('password') }}
-              className="w-full flex items-center justify-center gap-2 text-sm text-[#A0A0B8] hover:text-white transition-colors"
+              className="w-full flex items-center justify-center gap-2 text-sm text-[#A0A0B8] hover:text-white transition-colors py-2"
             >
               <Lock size={14} />
               Acceder con contraseña
             </button>
-            <p className="text-center text-sm text-[#505065]">
+            <p className="text-center text-sm text-[#6B6B85]">
               ¿No tienes cuenta?{' '}
-              <Link href="/registro" className="text-[#E94560]">Regístrate gratis</Link>
+              <Link href="/registro" className="text-[#E94560] font-semibold">Regístrate gratis</Link>
             </p>
-            <div className="pt-4 border-t border-[#2A2A3E]">
-              <p className="text-xs text-center text-[#505065]">
-                ¿No tienes acceso a tu número?{' '}
-                <Link href="/soporte" className="text-[#4F8EF7]">Contacta con soporte</Link>
-              </p>
-            </div>
           </>
         )}
 
         {step === 'sms' && (
           <>
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Introduce el código</h1>
-              <p className="text-[#A0A0B8]">
-                Enviado a {prefijo} {telefono}
-              </p>
+              <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-3">Verificación</p>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight">Introduce el código</h1>
+              <p className="text-[#A0A0B8] mt-2">Enviado a {prefijo} {telefono}</p>
             </div>
             <Input
               type="number"
@@ -155,13 +156,13 @@ export default function LoginPage() {
               value={codigo}
               onChange={e => setCodigo(e.target.value.slice(0, 6))}
               error={error}
-              className="text-center text-2xl tracking-widest"
+              className="text-center text-2xl tracking-[0.5em] font-bold"
             />
-            <Button fullWidth onClick={verificarSMS} loading={loading}>
+            <Button fullWidth size="lg" onClick={verificarSMS} loading={loading}>
               Entrar
             </Button>
             <button
-              className="w-full text-sm text-[#A0A0B8] hover:text-white transition-colors"
+              className="w-full text-sm text-[#A0A0B8] hover:text-white transition-colors py-2"
               onClick={enviarSMS}
               disabled={loading}
             >
@@ -173,20 +174,12 @@ export default function LoginPage() {
         {step === 'password' && (
           <>
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Acceder con contraseña</h1>
-              <p className="text-[#A0A0B8]">Introduce tu número y contraseña</p>
+              <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-3">Acceso rápido</p>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight">Con contraseña</h1>
+              <p className="text-[#A0A0B8] mt-2">Introduce tu número y contraseña</p>
             </div>
             <div className="flex gap-3">
-              <select
-                value={prefijo}
-                onChange={e => setPrefijo(e.target.value)}
-                className="h-12 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white px-3 text-sm"
-              >
-                <option value="+34">🇪🇸 +34</option>
-                <option value="+1">🇺🇸 +1</option>
-                <option value="+44">🇬🇧 +44</option>
-                <option value="+33">🇫🇷 +33</option>
-              </select>
+              {selectPrefijo}
               <Input
                 className="flex-1"
                 type="tel"
@@ -205,18 +198,24 @@ export default function LoginPage() {
               icon={<Lock size={16} />}
               onKeyDown={e => { if (e.key === 'Enter') loginConPassword() }}
             />
-            <Button fullWidth onClick={loginConPassword} loading={loading}>
+            <Button fullWidth size="lg" onClick={loginConPassword} loading={loading}>
               Entrar
             </Button>
             <button
               type="button"
               onClick={() => { setError(''); setStep('telefono') }}
-              className="w-full text-sm text-[#A0A0B8] hover:text-white transition-colors"
+              className="w-full text-sm text-[#A0A0B8] hover:text-white transition-colors py-2"
             >
               ← Usar código SMS
             </button>
           </>
         )}
+      </div>
+
+      <div className="relative pb-8 pt-6 px-6 safe-bottom">
+        <p className="text-center text-[10px] text-[#6B6B85] uppercase tracking-[0.2em]">
+          Al continuar aceptas los <Link href="/terminos" className="text-[#A0A0B8] hover:text-white">Términos</Link> y <Link href="/privacidad" className="text-[#A0A0B8] hover:text-white">Privacidad</Link>
+        </p>
       </div>
     </div>
   )

@@ -51,7 +51,7 @@ export function LocalBottomSheet({ local, onClose }: Props) {
 
   return (
     <div className="absolute bottom-20 left-0 right-0 z-20 animate-slide-up px-3">
-      <div className="bg-[#1A1A2E] rounded-3xl border border-[#2A2A3E] overflow-hidden shadow-2xl shadow-black/50">
+      <div className="glass-strong rounded-3xl overflow-hidden shadow-[0_30px_60px_-20px_rgba(0,0,0,0.7)]">
         {/* Imagen */}
         <div className="relative h-44">
           <img
@@ -60,12 +60,12 @@ export function LocalBottomSheet({ local, onClose }: Props) {
             className="w-full h-full object-cover"
             onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A2E] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#14142A] via-[#14142A]/30 to-transparent" />
 
           {/* Cerrar */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white"
+            className="absolute top-3 right-3 w-8 h-8 glass-strong rounded-full flex items-center justify-center text-white"
           >
             <X size={16} />
           </button>
@@ -79,10 +79,10 @@ export function LocalBottomSheet({ local, onClose }: Props) {
 
           {/* Temperatura indicator */}
           <div className="absolute bottom-3 left-3 flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm"
-              style={{ background: `${colorTemp}20`, border: `1px solid ${colorTemp}60`, color: colorTemp }}>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md"
+              style={{ background: `${colorTemp}25`, border: `1px solid ${colorTemp}70`, color: colorTemp }}>
               <div className={cn('w-2 h-2 rounded-full', local.temperatura === 'caliente' && 'animate-pulse-heat')}
-                style={{ background: colorTemp }} />
+                style={{ background: colorTemp, boxShadow: `0 0 8px ${colorTemp}` }} />
               {getLabelTemperatura(local.temperatura)}
             </div>
           </div>
@@ -93,8 +93,8 @@ export function LocalBottomSheet({ local, onClose }: Props) {
           {/* Cabecera */}
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-bold text-white leading-tight truncate">{local.nombre}</h3>
-              <p className="text-sm text-[#A0A0B8]">{getLabelTipoLocal(local.tipo_local)}</p>
+              <h3 className="text-xl font-bold text-white leading-tight truncate text-display tracking-tight">{local.nombre}</h3>
+              <p className="text-sm text-[#A0A0B8] mt-0.5">{getLabelTipoLocal(local.tipo_local)}</p>
             </div>
             <button
               onClick={toggleSuscripcion}
@@ -113,19 +113,19 @@ export function LocalBottomSheet({ local, onClose }: Props) {
 
           {/* Info rápida */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col items-center p-2.5 bg-[#0D0D1A] rounded-xl">
+            <div className="flex flex-col items-center p-2.5 bg-white/5 border border-white/8 rounded-xl">
               <TrendingUp size={16} style={{ color: colorTemp }} />
-              <span className="text-[10px] text-[#505065] mt-1">Aforo</span>
+              <span className="text-[10px] text-[#6B6B85] mt-1 font-medium uppercase tracking-wide">Aforo</span>
               <span className="text-xs font-semibold text-white">{Math.round(local.aforo_estimado_porcentaje || 0)}%</span>
             </div>
-            <div className="flex flex-col items-center p-2.5 bg-[#0D0D1A] rounded-xl">
+            <div className="flex flex-col items-center p-2.5 bg-white/5 border border-white/8 rounded-xl">
               <Clock size={16} className="text-[#4F8EF7]" />
-              <span className="text-[10px] text-[#505065] mt-1">Hora pico</span>
+              <span className="text-[10px] text-[#6B6B85] mt-1 font-medium uppercase tracking-wide">Pico</span>
               <span className="text-xs font-semibold text-white">2:00 AM</span>
             </div>
-            <div className="flex flex-col items-center p-2.5 bg-[#0D0D1A] rounded-xl">
+            <div className="flex flex-col items-center p-2.5 bg-white/5 border border-white/8 rounded-xl">
               <Ticket size={16} className="text-[#F39C12]" />
-              <span className="text-[10px] text-[#505065] mt-1">Entrada</span>
+              <span className="text-[10px] text-[#6B6B85] mt-1 font-medium uppercase tracking-wide">Entrada</span>
               <span className="text-xs font-semibold text-white">
                 {local.precio_entrada_min === 0 ? 'Gratis' : formatearPrecio(local.precio_entrada_min || 0)}
               </span>
@@ -133,7 +133,7 @@ export function LocalBottomSheet({ local, onClose }: Props) {
           </div>
 
           {/* Descripción de temperatura */}
-          <p className="text-xs text-[#505065]">
+          <p className="text-xs text-[#A0A0B8] leading-relaxed">
             {getDescripcionTemperatura(local.temperatura, local.aforo_estimado_porcentaje || 0)}
           </p>
 

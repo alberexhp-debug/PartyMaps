@@ -100,7 +100,7 @@ export default function RetoPage() {
   }
 
   if (loading || !reto) return (
-    <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-[#F39C12] border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -110,14 +110,14 @@ export default function RetoPage() {
     .sort((a, b) => b.num_votos - a.num_votos)
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] pb-24">
+    <div className="min-h-screen pb-24">
       <div className="px-4 py-3 flex items-center gap-3 safe-top">
         <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-lg font-bold text-white">{reto.nombre}</h1>
-          <p className="text-xs text-[#505065]">{reto.locales?.nombre}</p>
+          <p className="text-xs text-[#6B6B85]">{reto.locales?.nombre}</p>
         </div>
       </div>
 
@@ -127,7 +127,7 @@ export default function RetoPage() {
           <div className="flex items-center gap-2">
             <Target size={18} className="text-[#F39C12]" />
             <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full border',
-              reto.estado === 'activo' ? 'bg-green-400/10 border-green-400/30 text-green-400' : 'bg-[#2A2A3E] border-[#2A2A3E] text-[#505065]')}>
+              reto.estado === 'activo' ? 'bg-green-400/10 border-green-400/30 text-green-400' : 'bg-[#2A2A3E] border-white/10 text-[#6B6B85]')}>
               {reto.estado}
             </span>
           </div>
@@ -135,7 +135,7 @@ export default function RetoPage() {
           {reto.premio && (
             <p className="text-sm"><span className="text-[#F39C12] font-semibold">🎁 Premio:</span> <span className="text-white">{reto.premio}</span></p>
           )}
-          <div className="flex items-center gap-4 text-xs text-[#505065]">
+          <div className="flex items-center gap-4 text-xs text-[#6B6B85]">
             <span className="flex items-center gap-1"><Users size={11} /> {reto.participaciones_reto.length} participantes</span>
             <span className="capitalize">Tipo: {reto.tipo_contenido}</span>
           </div>
@@ -154,7 +154,7 @@ export default function RetoPage() {
 
         {/* Formulario participación */}
         {reto.estado === 'activo' && !miParticipacion && (
-          <div className="bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl p-4 space-y-3">
+          <div className="glass rounded-2xl p-4 space-y-3">
             <p className="font-semibold text-white text-sm">Tu participación</p>
             {reto.tipo_contenido === 'texto' && (
               <textarea
@@ -163,7 +163,7 @@ export default function RetoPage() {
                 placeholder="Escribe tu respuesta aquí..."
                 rows={4}
                 maxLength={500}
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#F39C12]/50 resize-none placeholder:text-[#505065]"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#F39C12]/50 resize-none placeholder:text-[#6B6B85]"
               />
             )}
             {(reto.tipo_contenido === 'foto' || reto.tipo_contenido === 'video') && (
@@ -171,7 +171,7 @@ export default function RetoPage() {
                 value={form.url}
                 onChange={e => setForm(f => ({ ...f, url: e.target.value }))}
                 placeholder={`URL de tu ${reto.tipo_contenido} (Imgur, Google Photos...)`}
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#F39C12]/50 placeholder:text-[#505065]"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#F39C12]/50 placeholder:text-[#6B6B85]"
               />
             )}
             <Button fullWidth loading={enviando} onClick={participar}
@@ -199,8 +199,8 @@ export default function RetoPage() {
           <div className="space-y-3">
             <p className="text-sm font-semibold text-white">Participaciones ({aprobadas.length})</p>
             {aprobadas.map((p, i) => (
-              <div key={p.id} className={cn('bg-[#1A1A2E] rounded-2xl border overflow-hidden',
-                reto.ganador_participacion_id === p.id ? 'border-yellow-400/50' : 'border-[#2A2A3E]')}>
+              <div key={p.id} className={cn('bg-white/6 rounded-2xl border overflow-hidden',
+                reto.ganador_participacion_id === p.id ? 'border-yellow-400/50' : 'border-white/10')}>
                 {reto.ganador_participacion_id === p.id && (
                   <div className="flex items-center gap-2 px-4 py-2 bg-yellow-400/10">
                     <Crown size={14} className="text-yellow-400" />

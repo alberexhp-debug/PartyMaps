@@ -51,24 +51,25 @@ export default function SuscritosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A]">
-      <div className="bg-[#0D0D1A] border-b border-[#1A1A2E] px-4 py-4 safe-top">
-        <h1 className="text-xl font-bold text-white">Suscritos</h1>
-        <p className="text-sm text-[#505065] mt-0.5">{suscripciones.length} locales seguidos</p>
+    <div className="min-h-screen">
+      <div className="px-5 pt-5 pb-3 safe-top">
+        <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-1">Tu radar</p>
+        <h1 className="text-2xl font-bold text-white text-display tracking-tight">Suscritos</h1>
+        <p className="text-sm text-[#A0A0B8] mt-1">{suscripciones.length} {suscripciones.length === 1 ? 'local seguido' : 'locales seguidos'}</p>
       </div>
 
       <div className="p-4 space-y-3">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-36 bg-[#1A1A2E] rounded-2xl animate-pulse" />
+            <div key={i} className="h-36 glass-subtle rounded-2xl animate-pulse" />
           ))
         ) : suscripciones.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="w-16 h-16 bg-[#1A1A2E] rounded-2xl flex items-center justify-center">
-              <Bell size={28} className="text-[#505065]" />
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+            <div className="w-20 h-20 glass rounded-2xl flex items-center justify-center">
+              <Bell size={32} className="text-[#A0A0B8]" />
             </div>
-            <p className="text-[#505065] text-center">No sigues ningún local todavía</p>
-            <button onClick={() => router.push('/explorar')} className="text-sm text-[#E94560] font-medium">
+            <p className="text-[#A0A0B8] max-w-xs">No sigues ningún local todavía. Sigue tus favoritos para no perderte nada.</p>
+            <button onClick={() => router.push('/explorar')} className="text-sm text-[#E94560] font-semibold">
               Explorar locales →
             </button>
           </div>
@@ -80,7 +81,7 @@ export default function SuscritosPage() {
               .sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime())[0]
 
             return (
-              <div key={s.id} className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] overflow-hidden">
+              <div key={s.id} className="glass rounded-2xl overflow-hidden">
                 {/* Banner */}
                 <div className="relative h-24">
                   <img
@@ -100,7 +101,7 @@ export default function SuscritosPage() {
                     className="absolute top-2 right-3 w-7 h-7 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center"
                   >
                     {s.silenciada
-                      ? <BellOff size={12} className="text-[#505065]" />
+                      ? <BellOff size={12} className="text-[#6B6B85]" />
                       : <Bell size={12} className="text-white" />
                     }
                   </button>
@@ -110,14 +111,14 @@ export default function SuscritosPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h3 className="font-bold text-white">{local.nombre}</h3>
-                      <div className="flex items-center gap-1 text-xs text-[#505065]">
+                      <div className="flex items-center gap-1 text-xs text-[#6B6B85]">
                         <MapPin size={10} />
                         {local.ciudad} · {getLabelTipoLocal(local.tipo_local)}
                       </div>
                     </div>
                     <button
                       onClick={() => router.push(`/local/${local.id}`)}
-                      className="flex items-center gap-1 text-xs text-[#A0A0B8] border border-[#2A2A3E] rounded-lg px-2 py-1 hover:border-[#505065] shrink-0"
+                      className="flex items-center gap-1 text-xs text-[#A0A0B8] border border-white/10 rounded-lg px-2 py-1 hover:border-[#505065] shrink-0"
                     >
                       Ver <ChevronRight size={11} />
                     </button>
@@ -140,11 +141,11 @@ export default function SuscritosPage() {
                       </button>
                     </div>
                   ) : (
-                    <p className="text-xs text-[#505065]">Sin eventos próximos</p>
+                    <p className="text-xs text-[#6B6B85]">Sin eventos próximos</p>
                   )}
 
                   {s.silenciada && (
-                    <p className="text-[10px] text-[#505065]">Notificaciones silenciadas</p>
+                    <p className="text-[10px] text-[#6B6B85]">Notificaciones silenciadas</p>
                   )}
                 </div>
               </div>

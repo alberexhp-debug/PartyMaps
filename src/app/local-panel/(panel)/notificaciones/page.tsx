@@ -111,7 +111,7 @@ export default function NotificacionesPage() {
         <div className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${
           haAlcanzadoLimite
             ? 'bg-[#E94560]/10 border-[#E94560]/30 text-[#E94560]'
-            : 'bg-[#1A1A2E] border-[#2A2A3E] text-[#A0A0B8]'
+            : 'bg-white/6 border-white/10 text-[#A0A0B8]'
         }`}>
           <div className="flex items-center gap-2 text-sm">
             <Zap size={14} />
@@ -126,7 +126,7 @@ export default function NotificacionesPage() {
       )}
 
       {/* Formulario */}
-      <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-4">
+      <div className="glass rounded-2xl p-4 space-y-4">
         <h2 className="font-bold text-white">Nueva notificación</h2>
 
         <div className="space-y-1.5">
@@ -136,9 +136,9 @@ export default function NotificacionesPage() {
             onChange={e => setTitulo(e.target.value)}
             maxLength={80}
             placeholder="Ej: ¡Esta noche tenemos DJ set!"
-            className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
           />
-          <p className="text-xs text-right text-[#505065]">{titulo.length}/80</p>
+          <p className="text-xs text-right text-[#6B6B85]">{titulo.length}/80</p>
         </div>
 
         <div className="space-y-1.5">
@@ -149,9 +149,9 @@ export default function NotificacionesPage() {
             rows={3}
             maxLength={200}
             placeholder="Mensaje breve y directo..."
-            className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none"
           />
-          <p className="text-xs text-right text-[#505065]">{cuerpo.length}/200</p>
+          <p className="text-xs text-right text-[#6B6B85]">{cuerpo.length}/200</p>
         </div>
 
         <div className="space-y-1.5">
@@ -160,7 +160,7 @@ export default function NotificacionesPage() {
             value={enlace}
             onChange={e => setEnlace(e.target.value)}
             placeholder="https://... o /local/..."
-            className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
           />
         </div>
 
@@ -180,15 +180,15 @@ export default function NotificacionesPage() {
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-[#A0A0B8] uppercase tracking-wider">Historial</h2>
           {historial.map(n => (
-            <div key={n.id} className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-4 space-y-2">
+            <div key={n.id} className="glass rounded-xl p-4 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-white text-sm truncate">{n.titulo}</p>
                   <p className="text-xs text-[#A0A0B8] mt-0.5">{n.cuerpo}</p>
                 </div>
-                <Bell size={14} className="text-[#505065] shrink-0 mt-0.5" />
+                <Bell size={14} className="text-[#6B6B85] shrink-0 mt-0.5" />
               </div>
-              <div className="flex items-center gap-4 text-xs text-[#505065]">
+              <div className="flex items-center gap-4 text-xs text-[#6B6B85]">
                 <span className="flex items-center gap-1">
                   <Users size={10} /> {n.num_destinatarios}
                 </span>

@@ -3,14 +3,14 @@ import { ChevronLeft } from 'lucide-react'
 
 export default function PrivacidadPage() {
   return (
-    <div className="min-h-screen bg-[#0D0D1A]">
+    <div className="min-h-screen">
       <div className="px-5 pt-12 pb-20 max-w-2xl mx-auto">
         <Link href="/registro" className="inline-flex items-center gap-2 text-[#A0A0B8] mb-8 hover:text-white transition-colors">
           <ChevronLeft size={18} /> Volver
         </Link>
 
         <h1 className="text-2xl font-bold text-white mb-2">Política de privacidad</h1>
-        <p className="text-sm text-[#505065] mb-8">Última actualización: mayo 2026</p>
+        <p className="text-sm text-[#6B6B85] mb-8">Última actualización: mayo 2026</p>
 
         <div className="space-y-8 text-sm text-[#A0A0B8] leading-relaxed">
           <Section title="1. Responsable del tratamiento">

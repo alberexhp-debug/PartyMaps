@@ -134,17 +134,18 @@ export default function LocalPanelDashboard() {
   const colorTemp = getColorTemperatura(temperatura)
 
   return (
-    <div className="p-4 md:p-6 space-y-6 pb-20 md:pb-6">
+    <div className="p-4 md:p-8 space-y-6 pb-20 md:pb-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-white">{local.nombre}</h1>
-          <p className="text-[#505065] text-sm capitalize">{local.tier} · {local.ciudad}</p>
+          <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-1">Dashboard</p>
+          <h1 className="text-3xl font-bold text-white text-display tracking-tight">{local.nombre}</h1>
+          <p className="text-[#A0A0B8] text-sm capitalize mt-1">{local.tier} · {local.ciudad}</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border"
-          style={{ background: `${colorTemp}20`, borderColor: `${colorTemp}60`, color: colorTemp }}>
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: colorTemp }} />
-          {getLabelTemperatura(temperatura)} ({Math.round(kpis?.aforo_actual || 0)}%)
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border backdrop-blur-md"
+          style={{ background: `${colorTemp}20`, borderColor: `${colorTemp}60`, color: colorTemp, boxShadow: `0 0 18px -4px ${colorTemp}40` }}>
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: colorTemp, boxShadow: `0 0 6px ${colorTemp}` }} />
+          {getLabelTemperatura(temperatura)} · {Math.round(kpis?.aforo_actual || 0)}%
         </div>
       </div>
 
@@ -191,7 +192,7 @@ export default function LocalPanelDashboard() {
 
       {/* Evento activo */}
       {kpis?.evento_activo && (
-        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-bold text-white flex items-center gap-2">
               <Calendar size={16} className="text-[#F39C12]" />
@@ -203,11 +204,11 @@ export default function LocalPanelDashboard() {
           </div>
           <p className="font-semibold text-white">{kpis.evento_activo.nombre}</p>
           <div className="mt-3">
-            <div className="flex items-center justify-between text-xs text-[#505065] mb-1">
+            <div className="flex items-center justify-between text-xs text-[#6B6B85] mb-1">
               <span>Entradas vendidas</span>
               <span>{kpis.evento_activo.entradas_vendidas}/{kpis.evento_activo.aforo_maximo}</span>
             </div>
-            <div className="w-full h-2 bg-[#0D0D1A] rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#E94560] rounded-full transition-all"
                 style={{ width: `${Math.min(100, (kpis.evento_activo.entradas_vendidas / kpis.evento_activo.aforo_maximo) * 100)}%` }}
@@ -219,34 +220,34 @@ export default function LocalPanelDashboard() {
 
       {/* Gráfica aforo últimas 24h */}
       {kpis?.historico_aforo && kpis.historico_aforo.length > 1 && (
-        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
+        <div className="glass rounded-2xl p-4">
           <h2 className="font-bold text-white mb-4 flex items-center gap-2">
             <BarChart3 size={16} className="text-[#4F8EF7]" />
             Aforo últimas 24h
           </h2>
-          <ResponsiveContainer width="100%" height={140}>
+          <ResponsiveContainer width="100%" height={160}>
             <LineChart data={kpis.historico_aforo}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3E" />
-              <XAxis dataKey="hora" tick={{ fill: '#505065', fontSize: 10 }} />
-              <YAxis domain={[0, 100]} tick={{ fill: '#505065', fontSize: 10 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <XAxis dataKey="hora" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 100]} tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip
-                contentStyle={{ background: '#1A1A2E', border: '1px solid #2A2A3E', borderRadius: 8 }}
+                contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
                 labelStyle={{ color: '#A0A0B8' }}
                 itemStyle={{ color: '#E94560' }}
               />
-              <Line type="monotone" dataKey="porcentaje" stroke="#E94560" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="porcentaje" stroke="#E94560" strokeWidth={2.5} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       )}
 
       {/* Aforo manual */}
-      <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-4">
+      <div className="glass rounded-2xl p-4 space-y-4">
         <h2 className="font-bold text-white flex items-center gap-2">
           <Gauge size={16} className="text-[#E94560]" />
           Ajuste manual de aforo
         </h2>
-        <p className="text-xs text-[#505065]">
+        <p className="text-xs text-[#6B6B85]">
           Corrige el aforo estimado. Tu valor sobreescribirá la estimación automática y expirará a las 6:00 AM.
         </p>
         <div className="space-y-3">
@@ -265,7 +266,7 @@ export default function LocalPanelDashboard() {
             onChange={e => setAforoSlider(Number(e.target.value))}
             className="w-full accent-[#E94560]"
           />
-          <div className="flex justify-between text-xs text-[#505065]">
+          <div className="flex justify-between text-xs text-[#6B6B85]">
             <span>Vacío</span>
             <span>Medio</span>
             <span>Lleno</span>
@@ -284,8 +285,8 @@ export default function LocalPanelDashboard() {
 
       {/* Promoción de última hora */}
       <div className={cn(
-        'bg-[#1A1A2E] rounded-2xl border p-4 space-y-3',
-        promoActiva ? 'border-[#F39C12]/50' : 'border-[#2A2A3E]'
+        'bg-white/6 rounded-2xl border p-4 space-y-3',
+        promoActiva ? 'border-[#F39C12]/50' : 'border-white/10'
       )}>
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-white flex items-center gap-2">
@@ -310,20 +311,20 @@ export default function LocalPanelDashboard() {
           </>
         ) : (
           <>
-            <p className="text-xs text-[#505065]">
+            <p className="text-xs text-[#6B6B85]">
               Baja temporalmente el precio para atraer más gente. Envía notificación automática a tus suscriptores (no cuenta en tu límite semanal).
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs text-[#505065]">Precio promo (€)</label>
+                <label className="text-xs text-[#6B6B85]">Precio promo (€)</label>
                 <input type="number" min={local?.precio_entrada_min || 0} step="0.5"
                   value={promoPrecio}
                   onChange={e => setPromoPrecio(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none"
+                  className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs text-[#505065]">Duración: {promoHoras}h (máx 4h)</label>
+                <label className="text-xs text-[#6B6B85]">Duración: {promoHoras}h (máx 4h)</label>
                 <input type="range" min={1} max={4} step={1}
                   value={promoHoras}
                   onChange={e => setPromoHoras(parseInt(e.target.value))}
@@ -340,7 +341,7 @@ export default function LocalPanelDashboard() {
       </div>
 
       {/* Acciones rápidas */}
-      <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-2">
+      <div className="glass rounded-2xl p-4 space-y-2">
         <h2 className="font-bold text-white mb-3">Acciones rápidas</h2>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" size="sm" onClick={() => router.push('/local-panel/eventos')}>
@@ -365,14 +366,17 @@ function KPICard({ icon: Icon, label, value, color }: {
   icon: React.ElementType; label: string; value: string; color: string
 }) {
   return (
-    <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}20` }}>
-          <Icon size={14} style={{ color }} />
+    <div className="glass rounded-2xl p-4 relative overflow-hidden">
+      <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20 blur-2xl" style={{ background: color }} />
+      <div className="relative">
+        <div className="flex items-center gap-2 mb-2.5">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, border: `1px solid ${color}38` }}>
+            <Icon size={15} style={{ color }} />
+          </div>
+          <span className="text-[10px] text-[#A0A0B8] font-semibold uppercase tracking-[0.15em]">{label}</span>
         </div>
-        <span className="text-xs text-[#505065] font-medium">{label}</span>
+        <p className="text-2xl font-bold text-white text-display tracking-tight">{value}</p>
       </div>
-      <p className="text-xl font-black text-white">{value}</p>
     </div>
   )
 }

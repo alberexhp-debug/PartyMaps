@@ -140,7 +140,7 @@ export default function ConcursoPage() {
   }
 
   if (loading || !concurso) return (
-    <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-[#E94560] border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -150,7 +150,7 @@ export default function ConcursoPage() {
     .sort((a, b) => b.num_votos - a.num_votos)
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] pb-24">
+    <div className="min-h-screen pb-24">
       {/* Header */}
       <div className="px-4 py-3 flex items-center gap-3 safe-top">
         <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
@@ -158,7 +158,7 @@ export default function ConcursoPage() {
         </button>
         <div>
           <h1 className="text-lg font-bold text-white">Concurso</h1>
-          <p className="text-xs text-[#505065]">{concurso.locales?.nombre}</p>
+          <p className="text-xs text-[#6B6B85]">{concurso.locales?.nombre}</p>
         </div>
       </div>
 
@@ -168,7 +168,7 @@ export default function ConcursoPage() {
           <div className="flex items-center gap-2">
             <Trophy size={18} className="text-[#4F8EF7]" />
             <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full',
-              concurso.estado === 'activo' ? 'bg-green-400/10 border border-green-400/30 text-green-400' : 'bg-[#2A2A3E] text-[#505065]')}>
+              concurso.estado === 'activo' ? 'bg-green-400/10 border border-green-400/30 text-green-400' : 'bg-[#2A2A3E] text-[#6B6B85]')}>
               {concurso.estado}
             </span>
           </div>
@@ -177,7 +177,7 @@ export default function ConcursoPage() {
             <span className="text-[#4F8EF7] font-semibold">🎁 Premio:</span>
             <span className="text-white">{concurso.premio}</span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-[#505065]">
+          <div className="flex items-center gap-1 text-xs text-[#6B6B85]">
             <Users size={12} />
             <span>{concurso.participaciones_concurso.length} participantes</span>
           </div>
@@ -196,7 +196,7 @@ export default function ConcursoPage() {
 
         {/* Participar */}
         {concurso.estado === 'activo' && !miParticipacion && (
-          <div className="bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl p-4 space-y-3">
+          <div className="glass rounded-2xl p-4 space-y-3">
             <p className="font-semibold text-white text-sm">Tu participación</p>
             {!checkinValido ? (
               <div className="text-xs text-[#F39C12] bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl p-3">
@@ -247,8 +247,8 @@ export default function ConcursoPage() {
           <div className="space-y-3">
             <p className="text-sm font-semibold text-white">Participaciones aprobadas ({aprobadas.length})</p>
             {aprobadas.map((p, i) => (
-              <div key={p.id} className={cn('bg-[#1A1A2E] rounded-2xl border overflow-hidden',
-                concurso.ganador_participacion_id === p.id ? 'border-yellow-400/50' : 'border-[#2A2A3E]')}>
+              <div key={p.id} className={cn('bg-white/6 rounded-2xl border overflow-hidden',
+                concurso.ganador_participacion_id === p.id ? 'border-yellow-400/50' : 'border-white/10')}>
                 {concurso.ganador_participacion_id === p.id && (
                   <div className="flex items-center gap-2 px-4 py-2 bg-yellow-400/10">
                     <Crown size={14} className="text-yellow-400" />
@@ -271,7 +271,7 @@ export default function ConcursoPage() {
                       <button
                         onClick={() => reportarParticipacion(p.id)}
                         title="Reportar"
-                        className="p-1.5 text-[#505065] hover:text-[#E94560] rounded-lg"
+                        className="p-1.5 text-[#6B6B85] hover:text-[#E94560] rounded-lg"
                       >
                         <Flag size={13} />
                       </button>

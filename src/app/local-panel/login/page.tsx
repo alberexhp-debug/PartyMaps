@@ -51,17 +51,20 @@ export default function LocalPanelLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] flex flex-col items-center justify-center p-6">
-      {/* Logo */}
-      <div className="mb-8 text-center">
-        <div className="w-16 h-16 bg-[#E94560] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#E94560]/30">
-          <span className="text-2xl font-black text-white">PM</span>
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden">
+      <div className="absolute top-0 -left-32 w-96 h-96 rounded-full opacity-30 blur-3xl pointer-events-none bg-[#E94560]/30" />
+      <div className="absolute bottom-0 -right-32 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none bg-[#D4A84B]/25" />
+
+      <div className="relative mb-8 text-center">
+        <div className="w-16 h-16 holo-bg rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-[0_12px_30px_-8px_rgba(124,92,255,0.6)]">
+          <span className="text-xl font-black text-white">PM</span>
         </div>
-        <h1 className="text-2xl font-black text-white">Panel del local</h1>
-        <p className="text-[#505065] text-sm mt-1">Gestiona tu local desde aquí</p>
+        <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-2">Negocio</p>
+        <h1 className="text-3xl font-bold text-white text-display tracking-tight">Panel del local</h1>
+        <p className="text-[#A0A0B8] text-sm mt-2">Gestiona tu local desde aquí</p>
       </div>
 
-      <div className="w-full max-w-sm space-y-4">
+      <div className="relative w-full max-w-sm space-y-4">
         <Input
           label="Email"
           type="email"
@@ -86,17 +89,17 @@ export default function LocalPanelLoginPage() {
           }
           onKeyDown={e => { if (e.key === 'Enter') login() }}
         />
-        <Button fullWidth loading={loading} onClick={login}>
+        <Button fullWidth size="lg" loading={loading} onClick={login}>
           Acceder al panel
         </Button>
       </div>
 
-      <div className="mt-6 text-center space-y-2">
-        <p className="text-sm text-[#505065]">
+      <div className="relative mt-8 text-center space-y-2">
+        <p className="text-sm text-[#A0A0B8]">
           ¿Tu local aún no está en PartyMaps?{' '}
-          <Link href="/local-panel/registro" className="text-[#E94560] font-medium">Regístralo gratis</Link>
+          <Link href="/local-panel/registro" className="text-[#E94560] font-semibold">Regístralo gratis</Link>
         </p>
-        <p className="text-xs text-[#505065]">
+        <p className="text-xs text-[#6B6B85]">
           ¿Problemas para acceder?{' '}
           <span className="text-[#4F8EF7]">soporte@partymaps.com</span>
         </p>

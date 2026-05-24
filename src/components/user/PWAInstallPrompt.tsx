@@ -71,7 +71,7 @@ export function PWAInstallPrompt() {
   if (showAndroidPrompt) {
     return (
       <div className="fixed inset-x-0 bottom-24 z-40 px-4 animate-in slide-in-from-bottom">
-        <div className="bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl p-4 shadow-2xl">
+        <div className="glass rounded-2xl p-4 shadow-2xl">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 bg-[#E94560]/20 rounded-xl flex items-center justify-center shrink-0">
               <Download size={20} className="text-[#E94560]" />
@@ -85,12 +85,12 @@ export function PWAInstallPrompt() {
                 <Button size="sm" onClick={instalarAndroid}>
                   <Download size={13} /> Instalar
                 </Button>
-                <button onClick={dismiss} className="text-xs text-[#505065] px-3">
+                <button onClick={dismiss} className="text-xs text-[#6B6B85] px-3">
                   Ahora no
                 </button>
               </div>
             </div>
-            <button onClick={dismiss} className="text-[#505065] -mt-1">
+            <button onClick={dismiss} className="text-[#6B6B85] -mt-1">
               <X size={18} />
             </button>
           </div>
@@ -102,7 +102,7 @@ export function PWAInstallPrompt() {
   if (showIOSInstructions) {
     return (
       <div className="fixed inset-x-0 bottom-24 z-40 px-4 animate-in slide-in-from-bottom">
-        <div className="bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl p-4 shadow-2xl">
+        <div className="glass rounded-2xl p-4 shadow-2xl">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 bg-[#4F8EF7]/20 rounded-xl flex items-center justify-center shrink-0">
               <Share size={20} className="text-[#4F8EF7]" />
@@ -120,7 +120,7 @@ export function PWAInstallPrompt() {
                 Entendido
               </button>
             </div>
-            <button onClick={dismiss} className="text-[#505065] -mt-1">
+            <button onClick={dismiss} className="text-[#6B6B85] -mt-1">
               <X size={18} />
             </button>
           </div>

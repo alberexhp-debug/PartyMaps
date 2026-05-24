@@ -83,7 +83,7 @@ export default function EquipoPage() {
 
       {/* Form añadir */}
       {showForm && (
-        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+        <div className="glass rounded-2xl p-4 space-y-3">
           <h2 className="font-bold text-white">Nuevo miembro</h2>
           <Input label="Nombre" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder="Nombre completo" />
           <Input label="Email" type="email" icon={<Mail size={14} />}
@@ -94,11 +94,11 @@ export default function EquipoPage() {
               {ROLES.map(r => (
                 <button key={r.value} onClick={() => setNuevoRol(r.value)}
                   className={cn('w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors',
-                    nuevoRol === r.value ? 'border-[#E94560] bg-[#E94560]/10' : 'border-[#2A2A3E] bg-[#0D0D1A]')}>
-                  <Shield size={14} className={nuevoRol === r.value ? 'text-[#E94560]' : 'text-[#505065]'} />
+                    nuevoRol === r.value ? 'border-[#E94560] bg-[#E94560]/10' : 'border-white/10 bg-white/5')}>
+                  <Shield size={14} className={nuevoRol === r.value ? 'text-[#E94560]' : 'text-[#6B6B85]'} />
                   <div>
                     <p className="text-sm font-semibold text-white">{r.label}</p>
-                    <p className="text-xs text-[#505065]">{r.desc}</p>
+                    <p className="text-xs text-[#6B6B85]">{r.desc}</p>
                   </div>
                 </button>
               ))}
@@ -113,27 +113,27 @@ export default function EquipoPage() {
 
       {/* Lista equipo */}
       {loading ? (
-        Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-20 bg-[#1A1A2E] rounded-2xl animate-pulse" />)
+        Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-20 bg-white/6 rounded-2xl animate-pulse" />)
       ) : equipo.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <Users size={40} className="text-[#505065]" />
-          <p className="text-[#505065]">No hay miembros en el equipo</p>
+          <Users size={40} className="text-[#6B6B85]" />
+          <p className="text-[#6B6B85]">No hay miembros en el equipo</p>
         </div>
       ) : (
         equipo.map(m => {
           const rol = ROLES.find(r => r.value === m.rol)
           const esMio = m.id === trabajador?.id
           return (
-            <div key={m.id} className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 flex items-center gap-3">
+            <div key={m.id} className="glass rounded-2xl p-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#2A2A3E] flex items-center justify-center">
                 <span className="text-white font-bold">{m.nombre[0]}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-white truncate">{m.nombre}</p>
-                  {esMio && <span className="text-xs text-[#505065]">(Tú)</span>}
+                  {esMio && <span className="text-xs text-[#6B6B85]">(Tú)</span>}
                 </div>
-                <p className="text-xs text-[#505065] truncate">{m.email}</p>
+                <p className="text-xs text-[#6B6B85] truncate">{m.email}</p>
                 <span className="text-xs px-2 py-0.5 bg-[#2A2A3E] rounded-full text-[#A0A0B8] mt-1 inline-block">
                   {rol?.label || m.rol}
                 </span>

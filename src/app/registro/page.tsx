@@ -124,17 +124,24 @@ export default function RegistroPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] flex flex-col">
+    <div className="relative min-h-screen flex flex-col overflow-hidden">
+      <div className="absolute top-0 -right-32 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none bg-[#E94560]/30" />
+      <div className="absolute bottom-0 -left-32 w-96 h-96 rounded-full opacity-15 blur-3xl pointer-events-none bg-[#7C5CFF]/25" />
+
       {/* Header */}
-      <div className="flex items-center gap-4 px-4 pt-12 pb-4">
+      <div className="relative flex items-center gap-4 px-4 pt-10 pb-4 safe-top">
         {stepIndex > 0 && (
-          <button onClick={() => ir(STEPS[stepIndex - 1])} className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-[#1A1A2E]">
+          <button onClick={() => ir(STEPS[stepIndex - 1])} className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-white/8 transition-colors">
             <ChevronLeft size={22} />
           </button>
         )}
         <div className="flex-1">
-          <div className="h-1 bg-[#1A1A2E] rounded-full overflow-hidden">
-            <div className="h-full bg-[#E94560] rounded-full transition-all duration-500" style={{ width: `${progreso}%` }} />
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-bold text-[#A0A0B8] uppercase tracking-[0.2em]">Paso {stepIndex + 1} de {STEPS.length}</span>
+            <span className="text-[10px] font-bold text-[#E94560] tracking-wider">{Math.round(progreso)}%</span>
+          </div>
+          <div className="h-1 bg-white/8 rounded-full overflow-hidden">
+            <div className="h-full bg-[#E94560] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(233,69,96,0.6)]" style={{ width: `${progreso}%` }} />
           </div>
         </div>
       </div>
@@ -144,14 +151,14 @@ export default function RegistroPage() {
         {step === 'telefono' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Tu número de teléfono</h1>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight mb-1.5">Tu número de teléfono</h1>
               <p className="text-[#A0A0B8]">Te enviaremos un código por SMS para verificarlo</p>
             </div>
             <div className="flex gap-3">
               <select
                 value={form.prefijo}
                 onChange={e => setForm(f => ({ ...f, prefijo: e.target.value }))}
-                className="h-12 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white px-3 text-sm"
+                className="h-12 glass rounded-xl text-white px-3 text-sm"
               >
                 <option value="+34">🇪🇸 +34</option>
                 <option value="+1">🇺🇸 +1</option>
@@ -172,7 +179,7 @@ export default function RegistroPage() {
             <Button fullWidth onClick={enviarSMS} loading={loading}>
               Enviar código SMS
             </Button>
-            <p className="text-center text-sm text-[#505065]">
+            <p className="text-center text-sm text-[#6B6B85]">
               ¿Ya tienes cuenta?{' '}
               <Link href="/login" className="text-[#E94560]">Inicia sesión</Link>
             </p>
@@ -182,7 +189,7 @@ export default function RegistroPage() {
         {step === 'sms' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Verifica tu número</h1>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight mb-1.5">Verifica tu número</h1>
               <p className="text-[#A0A0B8]">
                 Código enviado a {form.prefijo} {form.telefono}
               </p>
@@ -214,7 +221,7 @@ export default function RegistroPage() {
         {step === 'nombre' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">¿Cómo te llamamos?</h1>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight mb-1.5">¿Cómo te llamamos?</h1>
               <p className="text-[#A0A0B8]">Este nombre aparecerá en los planes y módulos</p>
             </div>
             <Input
@@ -226,14 +233,14 @@ export default function RegistroPage() {
               icon={<User size={16} />}
               maxLength={50}
             />
-            <p className="text-xs text-[#505065]">No hace falta que sea tu nombre real.</p>
+            <p className="text-xs text-[#6B6B85]">No hace falta que sea tu nombre real.</p>
           </div>
         )}
 
         {step === 'nacimiento' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">¿Cuándo naciste?</h1>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight mb-1.5">¿Cuándo naciste?</h1>
               <p className="text-[#A0A0B8]">Verificamos que tienes 18 años o más</p>
             </div>
             <Input
@@ -256,18 +263,18 @@ export default function RegistroPage() {
         {step === 'foto' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Foto de perfil</h1>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight mb-1.5">Foto de perfil</h1>
               <p className="text-[#A0A0B8]">Opcional. Puedes añadirla más adelante.</p>
             </div>
             <div className="flex flex-col items-center gap-6">
-              <div className="w-28 h-28 rounded-full bg-[#1A1A2E] border-2 border-dashed border-[#2A2A3E] flex items-center justify-center">
+              <div className="w-28 h-28 rounded-full bg-white/6 border-2 border-dashed border-white/10 flex items-center justify-center">
                 {form.foto_perfil_url ? (
                   <img src={form.foto_perfil_url} className="w-full h-full rounded-full object-cover" alt="Perfil" />
                 ) : (
-                  <Camera size={32} className="text-[#505065]" />
+                  <Camera size={32} className="text-[#6B6B85]" />
                 )}
               </div>
-              <p className="text-sm text-[#505065] text-center">Función de subida disponible después del registro</p>
+              <p className="text-sm text-[#6B6B85] text-center">Función de subida disponible después del registro</p>
             </div>
           </div>
         )}
@@ -275,7 +282,7 @@ export default function RegistroPage() {
         {step === 'permisos' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Permisos necesarios</h1>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight mb-1.5">Permisos necesarios</h1>
               <p className="text-[#A0A0B8]">Puedes aceptarlos ahora o más adelante cuando los necesites</p>
             </div>
             <div className="space-y-4">
@@ -284,7 +291,7 @@ export default function RegistroPage() {
                 { icon: '🔔', title: 'Notificaciones', desc: 'Para alertas de locales que sigues y del sistema' },
                 { icon: '📷', title: 'Cámara y galería', desc: 'Para participar en concursos de foto' },
               ].map(p => (
-                <div key={p.title} className="flex gap-4 p-4 bg-[#1A1A2E] rounded-xl border border-[#2A2A3E]">
+                <div key={p.title} className="flex gap-4 p-4 glass rounded-xl">
                   <span className="text-2xl">{p.icon}</span>
                   <div>
                     <p className="font-semibold text-white text-sm">{p.title}</p>
@@ -299,15 +306,15 @@ export default function RegistroPage() {
         {step === 'terminos' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Casi listo</h1>
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight mb-1.5">Casi listo</h1>
               <p className="text-[#A0A0B8]">Acepta para crear tu cuenta</p>
             </div>
-            <label className="flex items-start gap-4 p-4 bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] cursor-pointer">
+            <label className="flex items-start gap-4 p-4 glass rounded-xl cursor-pointer">
               <div
                 onClick={() => setForm(f => ({ ...f, aceptar_terminos: !f.aceptar_terminos }))}
                 className={cn(
                   'w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors',
-                  form.aceptar_terminos ? 'bg-[#E94560] border-[#E94560]' : 'border-[#2A2A3E]'
+                  form.aceptar_terminos ? 'bg-[#E94560] border-[#E94560]' : 'border-white/10'
                 )}
               >
                 {form.aceptar_terminos && <Check size={14} className="text-white" />}
@@ -338,7 +345,7 @@ export default function RegistroPage() {
           </Button>
           {(step === 'foto' || step === 'permisos') && (
             <button
-              className="w-full mt-3 text-sm text-[#505065] hover:text-white transition-colors"
+              className="w-full mt-3 text-sm text-[#6B6B85] hover:text-white transition-colors"
               onClick={next}
             >
               Omitir por ahora

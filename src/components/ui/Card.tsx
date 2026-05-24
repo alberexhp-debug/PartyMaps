@@ -9,7 +9,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 export function Card({ className, elevated, variant = 'solid', interactive, children, ...props }: CardProps) {
   const variantClasses = {
-    solid: 'bg-[#14142A] border border-[#2A2A3E]',
+    solid: 'bg-[#14142A] border border-white/10',
     glass: 'glass',
     'glass-strong': 'glass-strong',
     'glass-subtle': 'glass-subtle',

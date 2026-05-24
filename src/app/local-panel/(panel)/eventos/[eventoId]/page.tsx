@@ -16,7 +16,7 @@ const ESTADO_COLOR: Record<EstadoEvento, string> = {
   borrador: 'border-[#F39C12] text-[#F39C12]',
   publicado: 'border-green-500 text-green-400',
   cancelado: 'border-red-500 text-red-400',
-  finalizado: 'border-[#505065] text-[#505065]',
+  finalizado: 'border-[#505065] text-[#6B6B85]',
 }
 
 export default function EventoEditPage() {
@@ -90,7 +90,7 @@ export default function EventoEditPage() {
           value={form.descripcion || ''}
           onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
           rows={3}
-          className="w-full px-4 py-3 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none"
+          className="w-full px-4 py-3 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none"
           placeholder="Describe el evento..."
         />
       </div>
@@ -101,7 +101,7 @@ export default function EventoEditPage() {
           <input type="datetime-local"
             value={form.fecha_inicio ? form.fecha_inicio.slice(0, 16) : ''}
             onChange={e => setForm(f => ({ ...f, fecha_inicio: new Date(e.target.value).toISOString() }))}
-            className="w-full px-3 py-2.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
           />
         </div>
         <div className="space-y-1.5">
@@ -109,7 +109,7 @@ export default function EventoEditPage() {
           <input type="datetime-local"
             value={form.fecha_fin ? form.fecha_fin.slice(0, 16) : ''}
             onChange={e => setForm(f => ({ ...f, fecha_fin: new Date(e.target.value).toISOString() }))}
-            className="w-full px-3 py-2.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
           />
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function EventoEditPage() {
           <input type="number" min="0" step="0.5"
             value={form.precio_base || 0}
             onChange={e => setForm(f => ({ ...f, precio_base: parseFloat(e.target.value) }))}
-            className="w-full px-3 py-2.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
           />
         </div>
         <div className="space-y-1.5">
@@ -128,7 +128,7 @@ export default function EventoEditPage() {
           <input type="number" min="0" step="0.5"
             value={form.precio_maximo ?? ''}
             onChange={e => setForm(f => ({ ...f, precio_maximo: e.target.value === '' ? undefined : parseFloat(e.target.value) }))}
-            className="w-full px-3 py-2.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
             placeholder="Sin tope"
           />
         </div>
@@ -137,7 +137,7 @@ export default function EventoEditPage() {
           <input type="number" min="1"
             value={form.aforo_maximo || 200}
             onChange={e => setForm(f => ({ ...f, aforo_maximo: parseInt(e.target.value) }))}
-            className="w-full px-3 py-2.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
           />
         </div>
       </div>
@@ -151,35 +151,35 @@ export default function EventoEditPage() {
       />
 
       {/* Early bird */}
-      <div className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-4 space-y-3">
+      <div className="glass rounded-xl p-4 space-y-3">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
           <Zap size={14} className="text-green-400" /> Precio Early Bird
         </h3>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs text-[#505065]">Precio EB (€)</label>
+            <label className="text-xs text-[#6B6B85]">Precio EB (€)</label>
             <input type="number" min="0" step="0.5"
               value={form.precio_early_bird || ''}
               onChange={e => setForm(f => ({ ...f, precio_early_bird: parseFloat(e.target.value) || undefined }))}
-              className="w-full px-3 py-2.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none"
+              className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none"
               placeholder="0.00"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs text-[#505065]">Válido hasta</label>
+            <label className="text-xs text-[#6B6B85]">Válido hasta</label>
             <input type="datetime-local"
               value={form.early_bird_hasta ? form.early_bird_hasta.slice(0, 16) : ''}
               onChange={e => setForm(f => ({ ...f, early_bird_hasta: new Date(e.target.value).toISOString() }))}
-              className="w-full px-3 py-2.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none"
+              className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none"
             />
           </div>
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs text-[#505065]">Cupo Early Bird (vacío = ilimitado)</label>
+          <label className="text-xs text-[#6B6B85]">Cupo Early Bird (vacío = ilimitado)</label>
           <input type="number" min="1"
             value={form.early_bird_cupo || ''}
             onChange={e => setForm(f => ({ ...f, early_bird_cupo: parseInt(e.target.value) || undefined }))}
-            className="w-full px-3 py-2.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none"
+            className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none"
             placeholder="Ej: 50"
           />
         </div>
@@ -210,7 +210,7 @@ export default function EventoEditPage() {
                 'px-3 py-1.5 rounded-xl text-sm border capitalize transition-colors',
                 form.estado === estado
                   ? ESTADO_COLOR[estado] + ' bg-opacity-10'
-                  : 'border-[#2A2A3E] text-[#505065]'
+                  : 'border-white/10 text-[#6B6B85]'
               )}>
               {estado}
             </button>

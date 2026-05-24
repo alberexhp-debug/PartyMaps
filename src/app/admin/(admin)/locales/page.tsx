@@ -74,7 +74,7 @@ export default function AdminLocalesPage() {
     activo: 'text-green-400 bg-green-400/10 border-green-400/30',
     pendiente_verificacion: 'text-[#F39C12] bg-[#F39C12]/10 border-[#F39C12]/30',
     suspendido: 'text-red-400 bg-red-400/10 border-red-400/30',
-    eliminado: 'text-[#505065] bg-[#1A1A2E] border-[#2A2A3E]',
+    eliminado: 'text-[#6B6B85] bg-white/6 border-white/10',
   }
 
   return (
@@ -83,30 +83,30 @@ export default function AdminLocalesPage() {
 
       {/* Filtros */}
       <div className="flex gap-2 flex-wrap">
-        <div className="flex items-center gap-2 flex-1 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl px-3 py-2 min-w-48">
-          <Search size={14} className="text-[#505065]" />
+        <div className="flex items-center gap-2 flex-1 glass rounded-xl px-3 py-2 min-w-48">
+          <Search size={14} className="text-[#6B6B85]" />
           <input value={busqueda} onChange={e => setBusqueda(e.target.value)}
             placeholder="Buscar local..."
-            className="bg-transparent text-white text-sm flex-1 outline-none placeholder:text-[#505065]" />
+            className="bg-transparent text-white text-sm flex-1 outline-none placeholder:text-[#6B6B85]" />
         </div>
         {(['todos', 'pendiente_verificacion', 'activo', 'suspendido'] as const).map(e => (
           <button key={e} onClick={() => setFiltroEstado(e)}
             className={cn('px-3 py-2 rounded-xl text-xs font-medium border transition-colors',
-              filtroEstado === e ? 'bg-[#4F8EF7] border-[#4F8EF7] text-white' : 'border-[#2A2A3E] text-[#505065]')}>
+              filtroEstado === e ? 'bg-[#4F8EF7] border-[#4F8EF7] text-white' : 'border-white/10 text-[#6B6B85]')}>
             {e === 'todos' ? 'Todos' : e.replace('_', ' ')}
           </button>
         ))}
       </div>
 
       {/* Contador */}
-      <p className="text-xs text-[#505065]">{filtrados.length} locales</p>
+      <p className="text-xs text-[#6B6B85]">{filtrados.length} locales</p>
 
       {/* Lista */}
       <div className="space-y-3">
         {loading ? (
-          Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-28 bg-[#1A1A2E] rounded-2xl animate-pulse" />)
+          Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-28 bg-white/6 rounded-2xl animate-pulse" />)
         ) : filtrados.map(local => (
-          <div key={local.id} className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+          <div key={local.id} className="glass rounded-2xl p-4 space-y-3">
             <div className="flex items-start gap-3">
               <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#2A2A3E] shrink-0">
                 <img src={local.imagenes?.[0] || ''} alt="" className="w-full h-full object-cover"
@@ -122,8 +122,8 @@ export default function AdminLocalesPage() {
                     {local.tier}
                   </span>
                 </div>
-                <p className="text-xs text-[#505065]">{getLabelTipoLocal(local.tipo_local)} · {local.ciudad}</p>
-                <p className="text-xs text-[#505065]">{formatearFecha(local.created_at)}</p>
+                <p className="text-xs text-[#6B6B85]">{getLabelTipoLocal(local.tipo_local)} · {local.ciudad}</p>
+                <p className="text-xs text-[#6B6B85]">{formatearFecha(local.created_at)}</p>
               </div>
             </div>
 
@@ -168,13 +168,13 @@ export default function AdminLocalesPage() {
                 <select
                   value={local.tier}
                   onChange={e => cambiarTier(local.id, e.target.value as TierLocal)}
-                  className="px-3 py-1.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-xs text-[#A0A0B8] outline-none cursor-pointer appearance-none pr-6"
+                  className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-xs text-[#A0A0B8] outline-none cursor-pointer appearance-none pr-6"
                 >
                   <option value="basico">Básico</option>
                   <option value="pro">Pro</option>
                   <option value="destacado">Destacado</option>
                 </select>
-                <ChevronDown size={10} className="absolute right-2 top-2.5 text-[#505065] pointer-events-none" />
+                <ChevronDown size={10} className="absolute right-2 top-2.5 text-[#6B6B85] pointer-events-none" />
               </div>
             </div>
           </div>

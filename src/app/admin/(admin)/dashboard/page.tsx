@@ -63,10 +63,11 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-4 md:p-6 pb-20 md:pb-6 space-y-6">
+    <div className="p-4 md:p-8 pb-20 md:pb-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-white">Dashboard global</h1>
-        <p className="text-[#505065] text-sm">Vista en tiempo real de la plataforma</p>
+        <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.25em] mb-1">Tiempo real</p>
+        <h1 className="text-3xl font-bold text-white text-display tracking-tight">Dashboard global</h1>
+        <p className="text-[#A0A0B8] text-sm mt-1">Vista de la plataforma</p>
       </div>
 
       {/* Alertas */}
@@ -92,58 +93,69 @@ export default function AdminDashboard() {
           { icon: Ticket, label: 'Entradas hoy', value: loading ? '...' : stats!.total_entradas_hoy.toString(), color: '#F39C12' },
           { icon: TrendingUp, label: 'Comisiones hoy', value: loading ? '...' : formatearPrecio(stats!.ingresos_plataforma_hoy), color: '#27AE60' },
         ].map(({ icon: Icon, label, value, color }) => (
-          <div key={label} className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${color}20` }}>
-                <Icon size={12} style={{ color }} />
+          <div key={label} className="glass rounded-2xl p-4 relative overflow-hidden">
+            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20 blur-2xl" style={{ background: color }} />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, border: `1px solid ${color}38` }}>
+                  <Icon size={14} style={{ color }} />
+                </div>
+                <span className="text-[10px] text-[#A0A0B8] font-semibold uppercase tracking-[0.15em]">{label}</span>
               </div>
-              <span className="text-xs text-[#505065]">{label}</span>
+              <p className="text-2xl font-bold text-white text-display tracking-tight">{value}</p>
             </div>
-            <p className="text-xl font-black text-white">{value}</p>
           </div>
         ))}
       </div>
 
       {/* Gráfica comisiones */}
       {!loading && stats && (
-        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
-          <h2 className="font-bold text-white mb-4">Comisiones últimos 7 días</h2>
-          <ResponsiveContainer width="100%" height={150}>
+        <div className="glass rounded-2xl p-5">
+          <div className="mb-4">
+            <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.2em]">Últimos 7 días</p>
+            <h2 className="font-bold text-white text-lg text-display">Comisiones de la plataforma</h2>
+          </div>
+          <ResponsiveContainer width="100%" height={170}>
             <AreaChart data={stats.ingresos_semana}>
               <defs>
                 <linearGradient id="gradAdmin" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4F8EF7" stopOpacity={0.3} />
+                  <stop offset="5%" stopColor="#4F8EF7" stopOpacity={0.4} />
                   <stop offset="95%" stopColor="#4F8EF7" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3E" />
-              <XAxis dataKey="dia" tick={{ fill: '#505065', fontSize: 10 }} />
-              <YAxis tick={{ fill: '#505065', fontSize: 10 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <XAxis dataKey="dia" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip
-                contentStyle={{ background: '#1A1A2E', border: '1px solid #2A2A3E', borderRadius: 8 }}
+                contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
                 formatter={(v: unknown) => [formatearPrecio(Number(v)), 'Comisiones']}
               />
-              <Area type="monotone" dataKey="ingresos" stroke="#4F8EF7" fill="url(#gradAdmin)" strokeWidth={2} />
+              <Area type="monotone" dataKey="ingresos" stroke="#4F8EF7" fill="url(#gradAdmin)" strokeWidth={2.5} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       )}
 
       {/* Accesos rápidos */}
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: 'Gestionar locales', href: '/admin/locales', color: '#E94560' },
-          { label: 'Gestionar usuarios', href: '/admin/usuarios', color: '#4F8EF7' },
-          { label: 'Cola moderación', href: '/admin/moderacion', color: '#F39C12' },
-          { label: 'Configuración', href: '/admin/configuracion', color: '#27AE60' },
-        ].map(({ label, href, color }) => (
-          <button key={href} onClick={() => router.push(href)}
-            className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-3 text-left hover:border-[#2A2A3E]/50 transition-colors"
-            style={{ borderLeftColor: color, borderLeftWidth: 3 }}>
-            <p className="text-sm font-semibold text-white">{label}</p>
-            <ChevronRight size={14} className="text-[#505065] mt-1" />
-          </button>
-        ))}
+      <div>
+        <p className="text-[10px] font-bold text-[#A0A0B8] uppercase tracking-[0.2em] mb-3">Accesos rápidos</p>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: 'Gestionar locales', href: '/admin/locales', color: '#E94560' },
+            { label: 'Gestionar usuarios', href: '/admin/usuarios', color: '#4F8EF7' },
+            { label: 'Cola moderación', href: '/admin/moderacion', color: '#F39C12' },
+            { label: 'Configuración', href: '/admin/configuracion', color: '#27AE60' },
+          ].map(({ label, href, color }) => (
+            <button key={href} onClick={() => router.push(href)}
+              className="glass rounded-2xl p-4 text-left transition-all hover:-translate-y-0.5 group relative overflow-hidden">
+              <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
+              <div className="ml-2 flex items-center justify-between">
+                <p className="text-sm font-semibold text-white">{label}</p>
+                <ChevronRight size={14} className="text-[#6B6B85] group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )

@@ -113,11 +113,11 @@ export default function AnalyticsPage() {
     <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-black text-white">Analytics</h1>
-        <div className="flex gap-1 bg-[#1A1A2E] rounded-xl p-1 border border-[#2A2A3E]">
+        <div className="flex gap-1 bg-white/6 rounded-xl p-1 border border-white/10">
           {(['7d', '30d', '90d'] as const).map(p => (
             <button key={p} onClick={() => setPeriodo(p)}
               className={cn('px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
-                periodo === p ? 'bg-[#E94560] text-white' : 'text-[#505065]')}>
+                periodo === p ? 'bg-[#E94560] text-white' : 'text-[#6B6B85]')}>
               {p}
             </button>
           ))}
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
 
       {loading ? (
         <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 bg-[#1A1A2E] rounded-2xl animate-pulse" />)}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 bg-white/6 rounded-2xl animate-pulse" />)}
         </div>
       ) : data && (
         <>
@@ -138,12 +138,12 @@ export default function AnalyticsPage() {
               { icon: Star, label: 'Rating', value: data.resumen.media_rating > 0 ? `${data.resumen.media_rating.toFixed(1)} ★` : 'N/A', color: '#F39C12' },
               { icon: Users, label: 'Suscriptores', value: data.resumen.total_suscriptores.toString(), color: '#27AE60' },
             ].map(({ icon: Icon, label, value, color }) => (
-              <div key={label} className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
+              <div key={label} className="glass rounded-2xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${color}20` }}>
                     <Icon size={12} style={{ color }} />
                   </div>
-                  <span className="text-xs text-[#505065]">{label}</span>
+                  <span className="text-xs text-[#6B6B85]">{label}</span>
                 </div>
                 <p className="text-xl font-black text-white">{value}</p>
               </div>
@@ -151,18 +151,18 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Gráfica ingresos */}
-          <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
+          <div className="glass rounded-2xl p-4">
             <h2 className="font-bold text-white mb-4 flex items-center gap-2">
               <TrendingUp size={16} className="text-[#E94560]" />
               Ingresos por día
             </h2>
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={data.ingresos_semana}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3E" />
-                <XAxis dataKey="dia" tick={{ fill: '#505065', fontSize: 10 }} />
-                <YAxis tick={{ fill: '#505065', fontSize: 10 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="dia" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ background: '#1A1A2E', border: '1px solid #2A2A3E', borderRadius: 8 }}
+                  contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
                   formatter={(v: unknown) => [formatearPrecio(Number(v)), 'Ingresos']}
                 />
                 <Bar dataKey="ingresos" fill="#E94560" radius={[4, 4, 0, 0]} />
@@ -171,17 +171,17 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Entradas por día */}
-          <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
+          <div className="glass rounded-2xl p-4">
             <h2 className="font-bold text-white mb-4 flex items-center gap-2">
               <Ticket size={16} className="text-[#4F8EF7]" />
               Entradas vendidas
             </h2>
             <ResponsiveContainer width="100%" height={140}>
               <LineChart data={data.ingresos_semana}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3E" />
-                <XAxis dataKey="dia" tick={{ fill: '#505065', fontSize: 10 }} />
-                <YAxis tick={{ fill: '#505065', fontSize: 10 }} />
-                <Tooltip contentStyle={{ background: '#1A1A2E', border: '1px solid #2A2A3E', borderRadius: 8 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="dia" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }} />
                 <Line type="monotone" dataKey="entradas" stroke="#4F8EF7" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -189,20 +189,20 @@ export default function AnalyticsPage() {
 
           {/* Distribución de edad de clientes */}
           {data.resumen.clientes_unicos > 0 && (
-            <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
+            <div className="glass rounded-2xl p-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-white flex items-center gap-2">
                   <UserCircle size={16} className="text-[#27AE60]" />
                   Edad de tus clientes
                 </h2>
-                <span className="text-xs text-[#505065]">{data.resumen.clientes_unicos} únicos</span>
+                <span className="text-xs text-[#6B6B85]">{data.resumen.clientes_unicos} únicos</span>
               </div>
               <ResponsiveContainer width="100%" height={140}>
                 <BarChart data={data.distribucion_edad}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3E" />
-                  <XAxis dataKey="rango" tick={{ fill: '#505065', fontSize: 10 }} />
-                  <YAxis tick={{ fill: '#505065', fontSize: 10 }} allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: '#1A1A2E', border: '1px solid #2A2A3E', borderRadius: 8 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="rango" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }} />
                   <Bar dataKey="count" fill="#27AE60" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -211,22 +211,22 @@ export default function AnalyticsPage() {
 
           {/* Top eventos */}
           {data.top_eventos.length > 0 && (
-            <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+            <div className="glass rounded-2xl p-4 space-y-3">
               <h2 className="font-bold text-white flex items-center gap-2">
                 <Calendar size={16} className="text-[#F39C12]" />
                 Top eventos
               </h2>
               {data.top_eventos.map((e, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-[#505065] w-4">{i + 1}</span>
+                  <span className="text-sm font-bold text-[#6B6B85] w-4">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white truncate">{e.nombre}</p>
-                    <div className="w-full h-1 bg-[#0D0D1A] rounded-full mt-1 overflow-hidden">
+                    <div className="w-full h-1 bg-white/5 rounded-full mt-1 overflow-hidden">
                       <div className="h-full bg-[#F39C12] rounded-full"
                         style={{ width: `${data.top_eventos[0].entradas > 0 ? (e.entradas / data.top_eventos[0].entradas) * 100 : 0}%` }} />
                     </div>
                   </div>
-                  <span className="text-xs text-[#505065] shrink-0">{e.entradas} entradas</span>
+                  <span className="text-xs text-[#6B6B85] shrink-0">{e.entradas} entradas</span>
                 </div>
               ))}
             </div>

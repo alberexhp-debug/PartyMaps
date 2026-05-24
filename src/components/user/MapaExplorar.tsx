@@ -175,16 +175,16 @@ export default function MapaExplorar() {
       <div ref={mapContainerRef} className="w-full h-full" />
 
       {/* Barra superior */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center gap-3 safe-top">
+      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center gap-2.5 safe-top">
         {/* Logo */}
-        <div className="w-10 h-10 rounded-xl bg-[#E94560] flex items-center justify-center shadow-lg shadow-[#E94560]/30 flex-shrink-0">
-          <span className="text-sm font-bold text-white">PM</span>
+        <div className="w-10 h-10 rounded-xl holo-bg flex items-center justify-center shadow-[0_6px_18px_-4px_rgba(124,92,255,0.6)] flex-shrink-0">
+          <span className="text-xs font-black text-white tracking-tight">PM</span>
         </div>
 
         {/* Buscador */}
         <button
           onClick={() => setShowBuscador(true)}
-          className="flex-1 flex items-center gap-2 h-10 bg-[#0D0D1A]/90 backdrop-blur-md border border-[#2A2A3E] rounded-xl px-3 text-sm text-[#505065] hover:border-[#E94560]/50 transition-colors"
+          className="flex-1 flex items-center gap-2 h-10 glass-strong rounded-xl px-3.5 text-sm text-[#A0A0B8] hover:text-white transition-colors"
         >
           <Search size={15} />
           <span>Buscar local...</span>
@@ -194,24 +194,27 @@ export default function MapaExplorar() {
         <button
           onClick={() => setShowFiltros(true)}
           className={cn(
-            'w-10 h-10 rounded-xl flex items-center justify-center backdrop-blur-md border transition-colors flex-shrink-0',
+            'relative w-10 h-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0',
             filtrosActivos
-              ? 'bg-[#E94560] border-[#E94560] text-white'
-              : 'bg-[#0D0D1A]/90 border-[#2A2A3E] text-[#A0A0B8]'
+              ? 'bg-[#E94560] text-white shadow-[0_6px_18px_-4px_rgba(233,69,96,0.55)]'
+              : 'glass-strong text-[#A0A0B8] hover:text-white'
           )}
         >
           <SlidersHorizontal size={16} />
+          {filtrosActivos && (
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-white rounded-full shadow" />
+          )}
         </button>
       </div>
 
       {/* Chips de filtros activos */}
       {filtrosActivos && (
-        <div className="absolute top-20 left-0 right-0 z-10 px-4 flex gap-2 overflow-x-auto pb-1">
+        <div className="absolute top-20 left-0 right-0 z-10 px-4 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {filtros.tipos.map(t => (
-            <span key={t} className="shrink-0 px-3 py-1 bg-[#E94560] text-white text-xs rounded-full font-medium">{t}</span>
+            <span key={t} className="shrink-0 px-3 py-1 bg-[#E94560] text-white text-xs rounded-full font-medium shadow-[0_4px_12px_-4px_rgba(233,69,96,0.55)]">{t}</span>
           ))}
           {filtros.solo_con_evento && (
-            <span className="shrink-0 px-3 py-1 bg-[#F39C12]/80 text-white text-xs rounded-full font-medium">Con evento</span>
+            <span className="shrink-0 px-3 py-1 bg-[#F39C12] text-white text-xs rounded-full font-medium">Con evento</span>
           )}
         </div>
       )}
@@ -220,15 +223,17 @@ export default function MapaExplorar() {
       <div className="absolute right-4 bottom-28 z-10 flex flex-col gap-2">
         <button
           onClick={centrarEnUsuario}
-          className="w-11 h-11 bg-[#0D0D1A]/90 backdrop-blur-md border border-[#2A2A3E] rounded-xl flex items-center justify-center text-[#A0A0B8] hover:text-white hover:border-[#E94560]/50 transition-colors"
+          className="w-11 h-11 glass-strong rounded-xl flex items-center justify-center text-[#A0A0B8] hover:text-white transition-colors"
         >
           <Crosshair size={18} />
         </button>
         <button
           onClick={() => setShowPlanes(!showPlanes)}
           className={cn(
-            'w-11 h-11 rounded-xl flex items-center justify-center backdrop-blur-md border transition-colors',
-            showPlanes ? 'bg-[#4F8EF7] border-[#4F8EF7] text-white' : 'bg-[#0D0D1A]/90 border-[#2A2A3E] text-[#A0A0B8]'
+            'w-11 h-11 rounded-xl flex items-center justify-center transition-all',
+            showPlanes
+              ? 'bg-[#4F8EF7] text-white shadow-[0_6px_18px_-4px_rgba(79,142,247,0.55)]'
+              : 'glass-strong text-[#A0A0B8] hover:text-white'
           )}
         >
           <Layers size={18} />
@@ -236,15 +241,15 @@ export default function MapaExplorar() {
       </div>
 
       {/* Leyenda temperatura */}
-      <div className="absolute bottom-24 left-4 z-10 flex flex-col gap-1 bg-[#0D0D1A]/80 backdrop-blur-sm rounded-xl p-3 border border-[#2A2A3E]">
+      <div className="absolute bottom-24 left-4 z-10 glass-strong rounded-2xl px-3 py-2.5 space-y-1.5">
         {[
           { color: '#4F8EF7', label: 'Tranquilo' },
           { color: '#F39C12', label: 'Animado' },
           { color: '#E94560', label: 'Lleno' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
-            <span className="text-[10px] text-[#A0A0B8]">{label}</span>
+            <div className="w-2.5 h-2.5 rounded-full shadow-[0_0_6px_currentColor]" style={{ background: color, color }} />
+            <span className="text-[10px] font-medium text-[#A0A0B8] tracking-wide">{label}</span>
           </div>
         ))}
       </div>

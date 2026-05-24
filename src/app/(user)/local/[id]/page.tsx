@@ -165,13 +165,13 @@ export default function LocalPerfilPage() {
   }
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-screen bg-[#0D0D1A]">
+    <div className="flex items-center justify-center min-h-screen">
       <Spinner size="lg" />
     </div>
   )
 
   if (!local) return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0D0D1A] gap-4">
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
       <p className="text-[#A0A0B8]">Local no encontrado</p>
       <Button onClick={() => router.back()}>Volver</Button>
     </div>
@@ -207,21 +207,21 @@ export default function LocalPerfilPage() {
 
     return (
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
-        <div className="w-full bg-[#1A1A2E] rounded-t-3xl p-6 space-y-4">
+        <div className="w-full bg-white/6 rounded-t-3xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white">Sugerencia al local</h2>
-            <button onClick={onClose} className="p-2 text-[#505065] hover:text-white"><X size={20} /></button>
+            <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
           </div>
-          <p className="text-sm text-[#505065]">Tu sugerencia será anónima para otros usuarios. Solo la verá el equipo del local.</p>
+          <p className="text-sm text-[#6B6B85]">Tu sugerencia será anónima para otros usuarios. Solo la verá el equipo del local.</p>
           <textarea
             value={texto}
             onChange={e => setTexto(e.target.value)}
             placeholder="Ej: Podrían mejorar el volumen en la zona VIP..."
             rows={4}
             maxLength={400}
-            className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#505065]"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]"
           />
-          <p className="text-xs text-[#505065] text-right">{texto.length}/400</p>
+          <p className="text-xs text-[#6B6B85] text-right">{texto.length}/400</p>
           <Button fullWidth loading={loading} onClick={enviar}>
             <Send size={15} /> Enviar sugerencia
           </Button>
@@ -276,10 +276,10 @@ export default function LocalPerfilPage() {
 
     return (
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
-        <div className="w-full bg-[#1A1A2E] rounded-t-3xl p-6 space-y-5">
+        <div className="w-full bg-white/6 rounded-t-3xl p-6 space-y-5">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white">Tu opinión sobre {localNombre}</h2>
-            <button onClick={onClose} className="p-2 text-[#505065] hover:text-white">
+            <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white">
               <X size={20} />
             </button>
           </div>
@@ -311,9 +311,9 @@ export default function LocalPerfilPage() {
               placeholder="Cuéntanos tu experiencia..."
               rows={4}
               maxLength={500}
-              className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#505065]"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]"
             />
-            <p className="text-xs text-[#505065] text-right">{comentario.length}/500</p>
+            <p className="text-xs text-[#6B6B85] text-right">{comentario.length}/500</p>
           </div>
 
           <Button fullWidth loading={loading} onClick={guardar}>
@@ -445,12 +445,12 @@ export default function LocalPerfilPage() {
               {Math.round(local.aforo_estimado_porcentaje || 0)}%
             </span>
           </div>
-          <div className="h-2 bg-[#0D0D1A] rounded-full overflow-hidden">
+          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
             <div className="h-full rounded-full transition-all" style={{ width: `${local.aforo_estimado_porcentaje || 0}%`, background: colorTemp }} />
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-[#505065]">Estimación actualizada hace &lt;10 min</span>
-            <span className="text-xs text-[#505065]">Pico: 2:00 AM</span>
+            <span className="text-xs text-[#6B6B85]">Estimación actualizada hace &lt;10 min</span>
+            <span className="text-xs text-[#6B6B85]">Pico: 2:00 AM</span>
           </div>
           {local.aforo_correccion_manual != null
             && local.aforo_correccion_manual_expires
@@ -498,23 +498,23 @@ export default function LocalPerfilPage() {
         {usuario && (
           <div className={cn(
             'flex items-center gap-3 p-3 rounded-2xl border',
-            checkinActivo ? 'bg-green-500/10 border-green-500/30' : 'bg-[#1A1A2E] border-[#2A2A3E]'
+            checkinActivo ? 'bg-green-500/10 border-green-500/30' : 'bg-white/6 border-white/10'
           )}>
             <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0',
               checkinActivo ? 'bg-green-500/20' : 'bg-[#2A2A3E]')}>
-              {checkinActivo ? <LogIn size={18} className="text-green-400" /> : <LogIn size={18} className="text-[#505065]" />}
+              {checkinActivo ? <LogIn size={18} className="text-green-400" /> : <LogIn size={18} className="text-[#6B6B85]" />}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white">
                 {checkinActivo ? '¡Estás aquí!' : 'Check-in'}
               </p>
-              <p className="text-xs text-[#505065]">
+              <p className="text-xs text-[#6B6B85]">
                 {checkinActivo ? 'Tu presencia está registrada' : 'Verifica que estás en el local'}
               </p>
             </div>
             {checkinActivo ? (
               <button onClick={hacerCheckout}
-                className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-xs text-[#A0A0B8] hover:text-white">
+                className="shrink-0 flex items-center gap-1 px-3 py-1.5 glass rounded-xl text-xs text-[#A0A0B8] hover:text-white">
                 <LogOut size={13} /> Salir
               </button>
             ) : (
@@ -526,7 +526,7 @@ export default function LocalPerfilPage() {
         )}
 
         {/* Tabs info / reviews / módulos */}
-        <div className="flex gap-1 p-1 bg-[#1A1A2E] rounded-xl">
+        <div className="flex gap-1 p-1 bg-white/6 rounded-xl">
           {[
             { key: 'info', label: 'Info' },
             { key: 'reviews', label: `Reviews (${reviews.length})` },
@@ -537,7 +537,7 @@ export default function LocalPerfilPage() {
               onClick={() => setTab(key as 'info' | 'reviews' | 'modulos')}
               className={cn(
                 'flex-1 py-2 rounded-lg text-sm font-medium transition-colors',
-                tab === key ? 'bg-[#E94560] text-white' : 'text-[#505065]'
+                tab === key ? 'bg-[#E94560] text-white' : 'text-[#6B6B85]'
               )}
             >
               {label}
@@ -567,7 +567,7 @@ export default function LocalPerfilPage() {
                   {diasSemana.map((dia, i) => {
                     const h = local.horario[dia as keyof typeof local.horario]
                     return (
-                      <div key={dia} className="flex justify-between text-sm p-2.5 bg-[#1A1A2E] rounded-lg">
+                      <div key={dia} className="flex justify-between text-sm p-2.5 bg-white/6 rounded-lg">
                         <span className="text-[#A0A0B8]">{diasLabel[i]}</span>
                         <span className="text-white">{h ? `${h.apertura}–${h.cierre}` : 'Cerrado'}</span>
                       </div>
@@ -581,10 +581,10 @@ export default function LocalPerfilPage() {
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-white">Consumiciones de bienvenida</h3>
                 {local.consumiciones_bienvenida.map(c => (
-                  <div key={c.id} className="flex justify-between items-center p-3 bg-[#1A1A2E] rounded-xl border border-[#2A2A3E]">
+                  <div key={c.id} className="flex justify-between items-center p-3 glass rounded-xl">
                     <div>
                       <p className="text-sm font-medium text-white">{c.nombre}</p>
-                      <p className="text-xs text-[#505065]">{c.descripcion}</p>
+                      <p className="text-xs text-[#6B6B85]">{c.descripcion}</p>
                     </div>
                     <span className="text-[#E94560] font-semibold">{formatearPrecio(c.precio)}</span>
                   </div>
@@ -600,7 +600,7 @@ export default function LocalPerfilPage() {
             {usuario && !miReview && (
               <button
                 onClick={() => setShowReviewModal(true)}
-                className="w-full flex items-center gap-3 p-4 bg-[#1A1A2E] border border-dashed border-[#E94560]/40 rounded-2xl hover:border-[#E94560] transition-colors"
+                className="w-full flex items-center gap-3 p-4 bg-white/6 border border-dashed border-[#E94560]/40 rounded-2xl hover:border-[#E94560] transition-colors"
               >
                 <PenLine size={18} className="text-[#E94560]" />
                 <span className="text-sm font-medium text-[#A0A0B8]">Escribe tu opinión sobre {local.nombre}</span>
@@ -615,27 +615,27 @@ export default function LocalPerfilPage() {
             {!usuario && (
               <button
                 onClick={() => router.push('/login')}
-                className="w-full flex items-center gap-3 p-4 bg-[#1A1A2E] border border-dashed border-[#2A2A3E] rounded-2xl"
+                className="w-full flex items-center gap-3 p-4 bg-white/6 border border-dashed border-white/10 rounded-2xl"
               >
-                <PenLine size={18} className="text-[#505065]" />
-                <span className="text-sm text-[#505065]">Inicia sesión para dejar una review</span>
+                <PenLine size={18} className="text-[#6B6B85]" />
+                <span className="text-sm text-[#6B6B85]">Inicia sesión para dejar una review</span>
               </button>
             )}
 
             {reviews.length === 0 ? (
               <div className="flex flex-col items-center py-12 gap-3">
-                <MessageSquare size={40} className="text-[#505065]" />
-                <p className="text-[#505065] text-sm text-center">Aún no hay reviews. Sé el primero en opinar.</p>
+                <MessageSquare size={40} className="text-[#6B6B85]" />
+                <p className="text-[#6B6B85] text-sm text-center">Aún no hay reviews. Sé el primero en opinar.</p>
               </div>
             ) : (
               <>
                 {/* Distribución de estrellas */}
-                <div className="p-4 bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E]">
+                <div className="p-4 glass rounded-2xl">
                   <div className="flex items-center gap-6">
                     <div className="flex flex-col items-center">
                       <span className="text-4xl font-bold text-white">{mediaReviews.toFixed(1)}</span>
                       <StarDisplay value={mediaReviews} />
-                      <span className="text-xs text-[#505065] mt-1">{reviews.length} reviews</span>
+                      <span className="text-xs text-[#6B6B85] mt-1">{reviews.length} reviews</span>
                     </div>
                     <div className="flex-1 space-y-1">
                       {[5, 4, 3, 2, 1].map(n => {
@@ -643,11 +643,11 @@ export default function LocalPerfilPage() {
                         const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0
                         return (
                           <div key={n} className="flex items-center gap-2 text-xs">
-                            <span className="text-[#505065] w-3">{n}</span>
-                            <div className="flex-1 h-1.5 bg-[#0D0D1A] rounded-full overflow-hidden">
+                            <span className="text-[#6B6B85] w-3">{n}</span>
+                            <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
                               <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
                             </div>
-                            <span className="text-[#505065] w-4">{count}</span>
+                            <span className="text-[#6B6B85] w-4">{count}</span>
                           </div>
                         )
                       })}
@@ -656,7 +656,7 @@ export default function LocalPerfilPage() {
                 </div>
 
                 {reviews.map(review => (
-                  <div key={review.id} className="p-4 bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] space-y-2">
+                  <div key={review.id} className="p-4 glass rounded-2xl space-y-2">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-[#2A2A3E] flex items-center justify-center text-xs font-bold text-white">
@@ -667,11 +667,11 @@ export default function LocalPerfilPage() {
                           <StarDisplay value={review.puntuacion} />
                         </div>
                       </div>
-                      <span className="text-xs text-[#505065]">{tiempoRelativo(review.created_at)}</span>
+                      <span className="text-xs text-[#6B6B85]">{tiempoRelativo(review.created_at)}</span>
                     </div>
                     {review.comentario && <p className="text-sm text-[#A0A0B8]">{review.comentario}</p>}
                     {review.respuesta_local && (
-                      <div className="mt-2 p-3 bg-[#0D0D1A] rounded-xl border-l-2 border-[#E94560]">
+                      <div className="mt-2 p-3 bg-white/5 rounded-xl border-l-2 border-[#E94560]">
                         <p className="text-xs text-[#E94560] font-medium mb-1">Respuesta del local</p>
                         <p className="text-xs text-[#A0A0B8]">{review.respuesta_local}</p>
                       </div>
@@ -760,11 +760,11 @@ export default function LocalPerfilPage() {
             )}
 
             {/* Sugerencia al local */}
-            <div className="p-4 bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl space-y-2">
+            <div className="p-4 glass rounded-2xl space-y-2">
               <p className="text-sm font-semibold text-white flex items-center gap-2">
                 <MessageSquare size={15} className="text-[#A0A0B8]" /> ¿Algo que mejorar?
               </p>
-              <p className="text-xs text-[#505065]">Manda una sugerencia anónima al local</p>
+              <p className="text-xs text-[#6B6B85]">Manda una sugerencia anónima al local</p>
               <Button size="sm" variant="secondary" fullWidth onClick={() => {
                 if (!usuario) { router.push('/login'); return }
                 setShowSugerencia(true)
@@ -803,9 +803,9 @@ export default function LocalPerfilPage() {
 
       {/* Footer fijo: comprar entrada */}
       <div className="fixed bottom-20 left-0 right-0 px-4 z-20">
-        <div className="bg-[#0D0D1A]/95 backdrop-blur-md p-3 rounded-2xl border border-[#2A2A3E] flex items-center gap-3">
+        <div className="glass-strong p-3 rounded-2xl border border-white/10 flex items-center gap-3">
           <div>
-            <p className="text-xs text-[#505065]">Entrada desde</p>
+            <p className="text-xs text-[#6B6B85]">Entrada desde</p>
             <p className="font-bold text-white">
               {local.precio_entrada_min === 0 ? 'Gratis' : formatearPrecio(local.precio_entrada_min || 0)}
             </p>

@@ -15,7 +15,7 @@ const ESTADO_COLORS: Record<string, string> = {
   programado: 'text-blue-400 bg-blue-400/10 border-blue-400/30',
   activo: 'text-green-400 bg-green-400/10 border-green-400/30',
   cerrado: 'text-orange-400 bg-orange-400/10 border-orange-400/30',
-  finalizado: 'text-[#505065] bg-[#1A1A2E] border-[#2A2A3E]',
+  finalizado: 'text-[#6B6B85] bg-white/6 border-white/10',
   cancelado: 'text-red-400 bg-red-400/10 border-red-400/30',
 }
 
@@ -80,7 +80,7 @@ export default function ConcursosPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-white">Concursos</h1>
-          <p className="text-[#505065] text-sm">Gestiona los concursos de tu local</p>
+          <p className="text-[#6B6B85] text-sm">Gestiona los concursos de tu local</p>
         </div>
         <Button size="sm" onClick={() => setShowCrear(true)}>
           <Plus size={16} /> Nuevo concurso
@@ -89,18 +89,18 @@ export default function ConcursosPage() {
 
       {loading ? (
         <div className="space-y-3">
-          {[1,2].map(i => <div key={i} className="h-28 bg-[#1A1A2E] rounded-2xl animate-pulse" />)}
+          {[1,2].map(i => <div key={i} className="h-28 bg-white/6 rounded-2xl animate-pulse" />)}
         </div>
       ) : concursos.length === 0 ? (
         <div className="flex flex-col items-center py-20 gap-4">
-          <Trophy size={40} className="text-[#505065]" />
-          <p className="text-[#505065] text-center">No hay concursos todavía.<br/>Crea el primero para activar el módulo.</p>
+          <Trophy size={40} className="text-[#6B6B85]" />
+          <p className="text-[#6B6B85] text-center">No hay concursos todavía.<br/>Crea el primero para activar el módulo.</p>
           <Button size="sm" onClick={() => setShowCrear(true)}><Plus size={14} /> Crear concurso</Button>
         </div>
       ) : (
         <div className="space-y-3">
           {concursos.map(c => (
-            <div key={c.id} className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+            <div key={c.id} className="glass rounded-2xl p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-white truncate">{c.premio}</p>
@@ -111,7 +111,7 @@ export default function ConcursosPage() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-[#505065]">
+              <div className="flex items-center gap-4 text-xs text-[#6B6B85]">
                 <span>{formatearFecha(c.hora_apertura)} {formatearHora(c.hora_apertura)} → {formatearHora(c.hora_cierre)}</span>
                 <span className="flex items-center gap-1"><Users size={11} /> {c.participaciones?.length || 0} participantes</span>
               </div>
@@ -207,24 +207,24 @@ function CrearConcursoModal({ localId, onClose, onCreado }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
-      <div className="w-full bg-[#1A1A2E] rounded-t-3xl max-h-[90vh] overflow-y-auto">
+      <div className="w-full bg-white/6 rounded-t-3xl max-h-[90vh] overflow-y-auto">
         <div className="p-5 space-y-5">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white">Nuevo concurso</h2>
-            <button onClick={onClose} className="p-2 text-[#505065] hover:text-white"><X size={20} /></button>
+            <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
           </div>
 
           <div className="space-y-4">
             <Field label="Descripción *">
               <textarea value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
                 placeholder="Ej: Sube la mejor foto del ambiente y gana..." rows={3} maxLength={300}
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#505065]" />
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]" />
             </Field>
 
             <Field label="Premio *">
               <input value={form.premio} onChange={e => setForm(f => ({ ...f, premio: e.target.value }))}
                 placeholder="Ej: Botella de champán para el ganador"
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#505065]" />
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#6B6B85]" />
             </Field>
 
             <Field label="Tipo de contenido">
@@ -232,7 +232,7 @@ function CrearConcursoModal({ localId, onClose, onCreado }: {
                 {(['foto', 'video', 'ambos'] as const).map(t => (
                   <button key={t} onClick={() => setForm(f => ({ ...f, tipo_contenido: t }))}
                     className={cn('flex-1 py-2 rounded-xl text-sm font-medium border transition-colors',
-                      form.tipo_contenido === t ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-[#2A2A3E] text-[#A0A0B8]')}>
+                      form.tipo_contenido === t ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-white/10 text-[#A0A0B8]')}>
                     {t.charAt(0).toUpperCase() + t.slice(1)}
                   </button>
                 ))}
@@ -243,12 +243,12 @@ function CrearConcursoModal({ localId, onClose, onCreado }: {
               <Field label="Apertura *">
                 <input type="datetime-local" value={form.hora_apertura}
                   onChange={e => setForm(f => ({ ...f, hora_apertura: e.target.value }))}
-                  className="w-full px-3 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50" />
+                  className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50" />
               </Field>
               <Field label="Cierre *">
                 <input type="datetime-local" value={form.hora_cierre}
                   onChange={e => setForm(f => ({ ...f, hora_cierre: e.target.value }))}
-                  className="w-full px-3 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50" />
+                  className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50" />
               </Field>
             </div>
           </div>
@@ -274,10 +274,10 @@ function ParticipacionesModal({ concurso, onClose, onAprobar, onRechazar, onGana
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
-      <div className="w-full bg-[#1A1A2E] rounded-t-3xl max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between p-5 border-b border-[#2A2A3E]">
+      <div className="w-full bg-white/6 rounded-t-3xl max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between p-5 border-b border-white/10">
           <h2 className="text-lg font-bold text-white">Participaciones ({concurso.participaciones?.length || 0})</h2>
-          <button onClick={onClose} className="p-2 text-[#505065] hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
         </div>
         <div className="overflow-y-auto flex-1 p-5 space-y-4">
           {pendientes.length > 0 && (
@@ -299,7 +299,7 @@ function ParticipacionesModal({ concurso, onClose, onAprobar, onRechazar, onGana
             </div>
           )}
           {(concurso.participaciones?.length || 0) === 0 && (
-            <p className="text-center text-[#505065] py-10">Aún no hay participaciones</p>
+            <p className="text-center text-[#6B6B85] py-10">Aún no hay participaciones</p>
           )}
         </div>
       </div>
@@ -313,7 +313,7 @@ function ParticipacionRow({ p, concurso, onAprobar, onRechazar, onGanador }: {
 }) {
   const esGanador = concurso.ganador_participacion_id === p.id
   return (
-    <div className={cn('p-3 bg-[#0D0D1A] rounded-xl border', esGanador ? 'border-yellow-400/50' : 'border-[#2A2A3E]')}>
+    <div className={cn('p-3 bg-white/5 rounded-xl border', esGanador ? 'border-yellow-400/50' : 'border-white/10')}>
       <div className="flex items-start gap-3">
         {p.contenido_url && (
           <img src={p.contenido_url} alt="" className="w-16 h-16 rounded-lg object-cover bg-[#2A2A3E] shrink-0"
@@ -326,7 +326,7 @@ function ParticipacionRow({ p, concurso, onAprobar, onRechazar, onGanador }: {
             </p>
             {esGanador && <Crown size={14} className="text-yellow-400 shrink-0" />}
           </div>
-          <p className="text-xs text-[#505065]">{p.num_votos} votos</p>
+          <p className="text-xs text-[#6B6B85]">{p.num_votos} votos</p>
         </div>
       </div>
       {p.estado === 'pendiente_moderacion' && (

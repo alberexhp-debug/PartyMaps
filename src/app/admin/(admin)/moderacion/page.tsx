@@ -134,7 +134,7 @@ export default function ModeracionPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-[#2A2A3E]">
+      <div className="flex gap-2 border-b border-white/10">
         {[
           { id: 'reviews' as Tab,        label: 'Reseñas',         count: reviews.length },
           { id: 'participaciones' as Tab, label: 'Participaciones', count: participaciones.length },
@@ -142,22 +142,22 @@ export default function ModeracionPage() {
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={cn('px-3 py-2 text-sm border-b-2 -mb-px transition-colors',
-              tab === t.id ? 'border-[#4F8EF7] text-white' : 'border-transparent text-[#505065] hover:text-[#A0A0B8]')}>
+              tab === t.id ? 'border-[#4F8EF7] text-white' : 'border-transparent text-[#6B6B85] hover:text-[#A0A0B8]')}>
             {t.label}
             {t.count > 0 && <span className="ml-1 text-xs px-1.5 py-0.5 rounded-full bg-[#F39C12]/20 text-[#F39C12]">{t.count}</span>}
           </button>
         ))}
       </div>
 
-      {loading && Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-28 bg-[#1A1A2E] rounded-2xl animate-pulse" />)}
+      {loading && Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-28 bg-white/6 rounded-2xl animate-pulse" />)}
 
       {!loading && tab === 'reviews' && (reviews.length === 0
         ? <Vacio mensaje="Sin reseñas en cola" />
         : reviews.map(r => (
-          <div key={r.id} className="bg-[#1A1A2E] rounded-2xl border border-[#F39C12]/30 p-4 space-y-3">
+          <div key={r.id} className="bg-white/6 rounded-2xl border border-[#F39C12]/30 p-4 space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-xs text-[#505065]">
+                <p className="text-xs text-[#6B6B85]">
                   <span className="text-white font-medium">{r.usuarios?.nombre || 'Usuario'}</span>
                   {' → '}
                   <span className="text-white font-medium">{r.locales?.nombre || 'Local'}</span>
@@ -168,9 +168,9 @@ export default function ModeracionPage() {
                   ))}
                 </div>
               </div>
-              <span className="text-xs text-[#505065]">{tiempoRelativo(r.created_at)}</span>
+              <span className="text-xs text-[#6B6B85]">{tiempoRelativo(r.created_at)}</span>
             </div>
-            {r.comentario && <p className="text-sm text-[#A0A0B8] bg-[#0D0D1A] rounded-xl p-3">{r.comentario}</p>}
+            {r.comentario && <p className="text-sm text-[#A0A0B8] bg-white/5 rounded-xl p-3">{r.comentario}</p>}
             {r.motivo_censura && (
               <div className="flex items-center gap-2 text-xs text-[#F39C12]">
                 <Flag size={12} /> {r.motivo_censura}
@@ -183,18 +183,18 @@ export default function ModeracionPage() {
       {!loading && tab === 'participaciones' && (participaciones.length === 0
         ? <Vacio mensaje="Sin participaciones pendientes" />
         : participaciones.map(p => (
-          <div key={p.id} className="bg-[#1A1A2E] rounded-2xl border border-[#F39C12]/30 p-4 space-y-3">
+          <div key={p.id} className="bg-white/6 rounded-2xl border border-[#F39C12]/30 p-4 space-y-3">
             <div className="flex items-start gap-3">
               {p.contenido_url ? (
                 <img src={p.contenido_url} alt="" className="w-20 h-20 object-cover rounded-lg shrink-0" />
               ) : (
-                <div className="w-20 h-20 bg-[#0D0D1A] rounded-lg flex items-center justify-center shrink-0">
-                  <ImageIcon size={20} className="text-[#505065]" />
+                <div className="w-20 h-20 bg-white/5 rounded-lg flex items-center justify-center shrink-0">
+                  <ImageIcon size={20} className="text-[#6B6B85]" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white">{p.usuarios?.nombre || 'Usuario'}</p>
-                <p className="text-xs text-[#505065]">{tiempoRelativo(p.created_at)}</p>
+                <p className="text-xs text-[#6B6B85]">{tiempoRelativo(p.created_at)}</p>
               </div>
             </div>
             <BotonesAprobarRechazar onAprobar={() => aprobarParticipacion(p.id)} onRechazar={() => rechazarParticipacion(p.id)} />
@@ -204,19 +204,19 @@ export default function ModeracionPage() {
       {!loading && tab === 'reportes' && (reportes.length === 0
         ? <Vacio mensaje="Sin reportes pendientes" />
         : reportes.map(r => (
-          <div key={r.id} className="bg-[#1A1A2E] rounded-2xl border border-[#E94560]/30 p-4 space-y-3">
+          <div key={r.id} className="bg-white/6 rounded-2xl border border-[#E94560]/30 p-4 space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-xs text-[#505065]">
+                <p className="text-xs text-[#6B6B85]">
                   Reportó <span className="text-white">{r.reportador?.nombre || 'Anónimo'}</span>
                 </p>
                 <p className="text-sm text-white mt-1">
-                  <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-[#0D0D1A] text-[#E94560]">{r.tipo_contenido}</span>
-                  <span className="ml-2 text-xs text-[#505065]">motivo: {r.motivo}</span>
+                  <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-white/5 text-[#E94560]">{r.tipo_contenido}</span>
+                  <span className="ml-2 text-xs text-[#6B6B85]">motivo: {r.motivo}</span>
                 </p>
-                {r.descripcion && <p className="text-xs text-[#A0A0B8] mt-2 bg-[#0D0D1A] rounded p-2">{r.descripcion}</p>}
+                {r.descripcion && <p className="text-xs text-[#A0A0B8] mt-2 bg-white/5 rounded p-2">{r.descripcion}</p>}
               </div>
-              <span className="text-xs text-[#505065]">{tiempoRelativo(r.created_at)}</span>
+              <span className="text-xs text-[#6B6B85]">{tiempoRelativo(r.created_at)}</span>
             </div>
             <div className="flex items-center gap-2 text-xs text-[#F39C12]">
               <AlertCircle size={12} /> Aprobar oculta el contenido. Rechazar lo deja visible.

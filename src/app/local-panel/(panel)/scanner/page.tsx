@@ -113,7 +113,7 @@ export default function ScannerPage() {
               'px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors',
               modoConsumicion
                 ? 'bg-green-500/20 border-green-500/50 text-green-400'
-                : 'border-[#2A2A3E] text-[#505065]'
+                : 'border-white/10 text-[#6B6B85]'
             )}
           >
             {modoConsumicion ? '🍹 Modo consumición' : '🎫 Modo entrada'}
@@ -157,9 +157,9 @@ export default function ScannerPage() {
 
         {/* No activo */}
         {!activo && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#0D0D1A]">
-            <QrCode size={48} className="text-[#505065]" />
-            <p className="text-[#505065] text-sm">Cámara inactiva</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white/5">
+            <QrCode size={48} className="text-[#6B6B85]" />
+            <p className="text-[#6B6B85] text-sm">Cámara inactiva</p>
           </div>
         )}
 
@@ -215,7 +215,7 @@ export default function ScannerPage() {
                   {h.resultado.mensaje}
                 </p>
               </div>
-              <span className="text-[10px] text-[#505065] shrink-0">{h.hora}</span>
+              <span className="text-[10px] text-[#6B6B85] shrink-0">{h.hora}</span>
             </div>
           ))}
         </div>

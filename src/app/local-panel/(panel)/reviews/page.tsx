@@ -68,7 +68,7 @@ export default function ReviewsPage() {
 
       {/* Resumen */}
       {reviews.length > 0 && (
-        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-center gap-6">
             <div className="text-center">
               <p className="text-5xl font-black text-white">{media.toFixed(1)}</p>
@@ -77,17 +77,17 @@ export default function ReviewsPage() {
                   <Star key={n} size={12} className={cn(n <= Math.round(media) ? 'text-[#F39C12] fill-current' : 'text-[#2A2A3E]')} />
                 ))}
               </div>
-              <p className="text-xs text-[#505065] mt-1">{reviews.length} reseñas</p>
+              <p className="text-xs text-[#6B6B85] mt-1">{reviews.length} reseñas</p>
             </div>
             <div className="flex-1 space-y-1.5">
               {distribucion.map(({ estrellas, count, pct }) => (
                 <div key={estrellas} className="flex items-center gap-2">
-                  <span className="text-xs text-[#505065] w-4">{estrellas}</span>
+                  <span className="text-xs text-[#6B6B85] w-4">{estrellas}</span>
                   <Star size={10} className="text-[#F39C12] fill-current" />
-                  <div className="flex-1 h-1.5 bg-[#0D0D1A] rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
                     <div className="h-full bg-[#F39C12] rounded-full" style={{ width: `${pct}%` }} />
                   </div>
-                  <span className="text-xs text-[#505065] w-4">{count}</span>
+                  <span className="text-xs text-[#6B6B85] w-4">{count}</span>
                 </div>
               ))}
             </div>
@@ -98,16 +98,16 @@ export default function ReviewsPage() {
       {/* Lista */}
       {loading ? (
         Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-32 bg-[#1A1A2E] rounded-2xl animate-pulse" />
+          <div key={i} className="h-32 bg-white/6 rounded-2xl animate-pulse" />
         ))
       ) : reviews.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <Star size={40} className="text-[#505065]" />
-          <p className="text-[#505065]">Sin reseñas todavía</p>
+          <Star size={40} className="text-[#6B6B85]" />
+          <p className="text-[#6B6B85]">Sin reseñas todavía</p>
         </div>
       ) : (
         reviews.map(review => (
-          <div key={review.id} className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+          <div key={review.id} className="glass rounded-2xl p-4 space-y-3">
             {/* Usuario + stars */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ export default function ReviewsPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">{review.usuarios?.nombre || 'Usuario'}</p>
-                  <p className="text-xs text-[#505065]">{tiempoRelativo(review.created_at)}</p>
+                  <p className="text-xs text-[#6B6B85]">{tiempoRelativo(review.created_at)}</p>
                 </div>
               </div>
               <div className="flex gap-0.5">
@@ -135,7 +135,7 @@ export default function ReviewsPage() {
 
             {/* Respuesta del local */}
             {review.respuesta_local && (
-              <div className="bg-[#0D0D1A] rounded-xl p-3 border-l-2 border-[#E94560]">
+              <div className="bg-white/5 rounded-xl p-3 border-l-2 border-[#E94560]">
                 <p className="text-xs font-semibold text-[#E94560] mb-1">{local.nombre} respondió:</p>
                 <p className="text-xs text-[#A0A0B8]">{review.respuesta_local}</p>
               </div>
@@ -150,7 +150,7 @@ export default function ReviewsPage() {
                   rows={2}
                   maxLength={500}
                   placeholder="Escribe tu respuesta..."
-                  className="w-full px-3 py-2 bg-[#0D0D1A] border border-[#E94560]/50 rounded-xl text-white text-sm outline-none resize-none"
+                  className="w-full px-3 py-2 bg-white/5 border border-[#E94560]/50 rounded-xl text-white text-sm outline-none resize-none"
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => responder(review.id)}>
@@ -174,7 +174,7 @@ export default function ReviewsPage() {
                 </button>
                 <button
                   onClick={() => reportar(review.id)}
-                  className="flex items-center gap-1.5 text-xs text-[#505065] hover:text-red-400"
+                  className="flex items-center gap-1.5 text-xs text-[#6B6B85] hover:text-red-400"
                 >
                   <Flag size={12} /> Reportar
                 </button>

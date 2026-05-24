@@ -78,7 +78,7 @@ export default function EntradaDetallePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#E94560] border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -87,9 +87,9 @@ export default function EntradaDetallePage() {
 
   const estadoInfo = {
     activa: { label: 'Entrada válida', color: 'text-green-400', bg: 'bg-green-400/10 border-green-400/30', icon: CheckCircle2 },
-    usada: { label: 'Ya usada', color: 'text-[#505065]', bg: 'bg-[#1A1A2E] border-[#2A2A3E]', icon: Clock },
+    usada: { label: 'Ya usada', color: 'text-[#6B6B85]', bg: 'bg-white/6 border-white/10', icon: Clock },
     cancelada: { label: 'Cancelada', color: 'text-red-400', bg: 'bg-red-400/10 border-red-400/30', icon: AlertCircle },
-    expirada: { label: 'Expirada', color: 'text-[#505065]', bg: 'bg-[#1A1A2E] border-[#2A2A3E]', icon: Clock },
+    expirada: { label: 'Expirada', color: 'text-[#6B6B85]', bg: 'bg-white/6 border-white/10', icon: Clock },
   }[entrada.estado]
 
   const StatusIcon = estadoInfo.icon
@@ -107,7 +107,7 @@ export default function EntradaDetallePage() {
 
       <div className="p-4 space-y-4">
         {/* Ticket card */}
-        <div className="bg-[#1A1A2E] rounded-3xl border border-[#2A2A3E] overflow-hidden">
+        <div className="glass rounded-3xl overflow-hidden">
           {/* Local header */}
           <div className="relative h-28">
             <img
@@ -124,9 +124,9 @@ export default function EntradaDetallePage() {
 
           {/* Torn edge */}
           <div className="flex items-center px-4 py-2">
-            <div className="w-4 h-4 rounded-full bg-[#0D0D1A] -ml-8 shrink-0" />
-            <div className="flex-1 border-b-2 border-dashed border-[#2A2A3E]" />
-            <div className="w-4 h-4 rounded-full bg-[#0D0D1A] -mr-8 shrink-0" />
+            <div className="w-4 h-4 rounded-full bg-white/5 -ml-8 shrink-0" />
+            <div className="flex-1 border-b-2 border-dashed border-white/10" />
+            <div className="w-4 h-4 rounded-full bg-white/5 -mr-8 shrink-0" />
           </div>
 
           {/* QR Code */}
@@ -148,15 +148,15 @@ export default function EntradaDetallePage() {
             </div>
 
             {entrada.estado === 'activa' && (
-              <p className="mt-2 text-xs text-[#505065]">Toca el QR para aumentar el brillo</p>
+              <p className="mt-2 text-xs text-[#6B6B85]">Toca el QR para aumentar el brillo</p>
             )}
           </div>
 
           {/* Torn edge bottom */}
           <div className="flex items-center px-4 py-2">
-            <div className="w-4 h-4 rounded-full bg-[#0D0D1A] -ml-8 shrink-0" />
-            <div className="flex-1 border-b-2 border-dashed border-[#2A2A3E]" />
-            <div className="w-4 h-4 rounded-full bg-[#0D0D1A] -mr-8 shrink-0" />
+            <div className="w-4 h-4 rounded-full bg-white/5 -ml-8 shrink-0" />
+            <div className="flex-1 border-b-2 border-dashed border-white/10" />
+            <div className="w-4 h-4 rounded-full bg-white/5 -mr-8 shrink-0" />
           </div>
 
           {/* Info */}
@@ -195,7 +195,7 @@ export default function EntradaDetallePage() {
           <div className={cn(
             'flex items-center gap-3 p-4 rounded-2xl border',
             entrada.consumicion_canjeada
-              ? 'border-[#2A2A3E] bg-[#1A1A2E] opacity-60'
+              ? 'border-white/10 bg-white/6 opacity-60'
               : 'border-green-500/30 bg-green-500/10'
           )}>
             <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
@@ -210,15 +210,15 @@ export default function EntradaDetallePage() {
               </p>
             </div>
             {entrada.consumicion_canjeada
-              ? <CheckCircle2 size={18} className="text-[#505065]" />
+              ? <CheckCircle2 size={18} className="text-[#6B6B85]" />
               : <CheckCircle2 size={18} className="text-green-400" />
             }
           </div>
         )}
 
         {/* Desglose precio */}
-        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-2">
-          <h3 className="text-xs font-semibold text-[#505065] uppercase tracking-wider">Detalle del pago</h3>
+        <div className="glass rounded-2xl p-4 space-y-2">
+          <h3 className="text-xs font-semibold text-[#6B6B85] uppercase tracking-wider">Detalle del pago</h3>
           <div className="flex justify-between text-sm">
             <span className="text-[#A0A0B8]">Entrada</span>
             <span className="text-white">{formatearPrecio(entrada.precio_local)}</span>
@@ -227,14 +227,14 @@ export default function EntradaDetallePage() {
             <span className="text-[#A0A0B8]">Servicio PartyMaps</span>
             <span className="text-white">{formatearPrecio(entrada.comision_plataforma)}</span>
           </div>
-          <div className="pt-2 border-t border-[#2A2A3E] flex justify-between font-bold">
+          <div className="pt-2 border-t border-white/10 flex justify-between font-bold">
             <span className="text-white">Total pagado</span>
             <span className="text-[#E94560]">{formatearPrecio(entrada.precio_total)}</span>
           </div>
         </div>
 
         {/* ID de entrada */}
-        <p className="text-center text-[10px] text-[#505065]">ID: {entrada.id}</p>
+        <p className="text-center text-[10px] text-[#6B6B85]">ID: {entrada.id}</p>
       </div>
     </div>
   )

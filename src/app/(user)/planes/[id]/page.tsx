@@ -149,7 +149,7 @@ export default function PlanDetallePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#E94560] border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -163,16 +163,16 @@ export default function PlanDetallePage() {
   const miembrosAceptados = participantes.filter(p => p.estado === 'aceptada')
 
   return (
-    <div className="flex flex-col h-screen bg-[#0D0D1A]">
+    <div className="flex flex-col h-screen bg-white/5">
       {/* Header */}
-      <div className="bg-[#0D0D1A] border-b border-[#1A1A2E] safe-top">
+      <div className="bg-white/5 border-b border-[#1A1A2E] safe-top">
         <div className="flex items-center gap-3 px-4 py-3">
           <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
             <ArrowLeft size={20} />
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="font-bold text-white truncate">{plan.locales?.nombre}</h1>
-            <div className="flex items-center gap-3 text-xs text-[#505065]">
+            <div className="flex items-center gap-3 text-xs text-[#6B6B85]">
               <span className="flex items-center gap-1">
                 <Clock size={10} />
                 {formatearHora(plan.hora_llegada)}
@@ -199,7 +199,7 @@ export default function PlanDetallePage() {
               onClick={() => setTab(t)}
               className={cn(
                 'flex-1 py-2.5 text-sm font-semibold border-b-2 transition-colors capitalize',
-                tab === t ? 'border-[#E94560] text-white' : 'border-transparent text-[#505065]'
+                tab === t ? 'border-[#E94560] text-white' : 'border-transparent text-[#6B6B85]'
               )}
             >
               {t === 'chat' ? (
@@ -226,14 +226,14 @@ export default function PlanDetallePage() {
       {tab === 'miembros' && (
         <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
           {/* Plan info */}
-          <div className="bg-[#1A1A2E] rounded-2xl p-4 border border-[#2A2A3E]">
+          <div className="bg-white/6 rounded-2xl p-4 border border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#2A2A3E] shrink-0">
                 <img src={plan.locales?.imagenes?.[0] || ''} alt="" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="font-bold text-white">{plan.locales?.nombre}</p>
-                <div className="flex items-center gap-1 text-xs text-[#505065]">
+                <div className="flex items-center gap-1 text-xs text-[#6B6B85]">
                   <MapPin size={10} />
                   {plan.locales?.ciudad}
                 </div>
@@ -264,7 +264,7 @@ export default function PlanDetallePage() {
                 Solicitudes pendientes ({solicitudesPendientes.length})
               </h3>
               {solicitudesPendientes.map(p => (
-                <div key={p.id} className="flex items-center gap-3 p-3 bg-[#1A1A2E] rounded-xl border border-[#F39C12]/20">
+                <div key={p.id} className="flex items-center gap-3 p-3 bg-white/6 rounded-xl border border-[#F39C12]/20">
                   <Avatar usuario={p.usuarios} size={36} />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white text-sm truncate">{p.usuarios?.nombre || 'Usuario'}</p>
@@ -297,21 +297,21 @@ export default function PlanDetallePage() {
               Miembros ({miembrosAceptados.length + 1})
             </h3>
             {/* Creador */}
-            <div className="flex items-center gap-3 p-3 bg-[#1A1A2E] rounded-xl border border-[#2A2A3E]">
+            <div className="flex items-center gap-3 p-3 glass rounded-xl">
               <Avatar usuario={plan.creador} size={36} />
               <div className="flex-1">
                 <p className="font-semibold text-white text-sm">{plan.creador?.nombre || 'Creador'}</p>
-                <p className="text-xs text-[#505065]">Organizador</p>
+                <p className="text-xs text-[#6B6B85]">Organizador</p>
               </div>
               <Crown size={14} className="text-[#F39C12]" />
             </div>
             {miembrosAceptados.map(p => (
-              <div key={p.id} className="flex items-center gap-3 p-3 bg-[#1A1A2E] rounded-xl border border-[#2A2A3E]">
+              <div key={p.id} className="flex items-center gap-3 p-3 glass rounded-xl">
                 <Avatar usuario={p.usuarios} size={36} />
                 <div className="flex-1">
                   <p className="font-semibold text-white text-sm">{p.usuarios?.nombre || 'Usuario'}</p>
                   {p.usuarios?.reputacion_puntuacion && (
-                    <p className="text-xs text-[#505065]">★ {p.usuarios.reputacion_puntuacion.toFixed(1)}</p>
+                    <p className="text-xs text-[#6B6B85]">★ {p.usuarios.reputacion_puntuacion.toFixed(1)}</p>
                   )}
                 </div>
               </div>
@@ -326,15 +326,15 @@ export default function PlanDetallePage() {
           <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3">
             {!soyMiembro ? (
               <div className="flex flex-col items-center justify-center h-full py-20 gap-3">
-                <MessageCircle size={40} className="text-[#505065]" />
-                <p className="text-[#505065] text-center text-sm">
+                <MessageCircle size={40} className="text-[#6B6B85]" />
+                <p className="text-[#6B6B85] text-center text-sm">
                   Únete al plan para ver y participar en el chat
                 </p>
               </div>
             ) : mensajes.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-20 gap-3">
-                <MessageCircle size={40} className="text-[#505065]" />
-                <p className="text-[#505065] text-sm">Sé el primero en escribir</p>
+                <MessageCircle size={40} className="text-[#6B6B85]" />
+                <p className="text-[#6B6B85] text-sm">Sé el primero en escribir</p>
               </div>
             ) : (
               mensajes.map(msg => {
@@ -344,13 +344,13 @@ export default function PlanDetallePage() {
                     {!esMio && <Avatar usuario={msg.usuarios} size={28} />}
                     <div className={cn(
                       'max-w-[75%] rounded-2xl px-3 py-2',
-                      esMio ? 'bg-[#E94560] rounded-br-sm' : 'bg-[#1A1A2E] rounded-bl-sm'
+                      esMio ? 'bg-[#E94560] rounded-br-sm' : 'bg-white/6 rounded-bl-sm'
                     )}>
                       {!esMio && (
                         <p className="text-xs font-semibold text-[#A0A0B8] mb-1">{msg.usuarios?.nombre}</p>
                       )}
                       <p className="text-sm text-white">{msg.contenido}</p>
-                      <p className={cn('text-[10px] mt-1', esMio ? 'text-white/60 text-right' : 'text-[#505065]')}>
+                      <p className={cn('text-[10px] mt-1', esMio ? 'text-white/60 text-right' : 'text-[#6B6B85]')}>
                         {tiempoRelativo(msg.created_at)}
                       </p>
                     </div>
@@ -370,7 +370,7 @@ export default function PlanDetallePage() {
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje() } }}
                 placeholder="Mensaje..."
                 maxLength={500}
-                className="flex-1 px-4 py-2.5 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#505065]"
+                className="flex-1 px-4 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#6B6B85]"
               />
               <button
                 onClick={enviarMensaje}

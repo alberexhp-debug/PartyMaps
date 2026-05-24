@@ -25,7 +25,7 @@ type RetoConParticipaciones = Reto & { participaciones?: ParticipacionReto[] }
 
 const ESTADO_COLORS: Record<string, string> = {
   activo: 'text-green-400 bg-green-400/10 border-green-400/30',
-  cerrado: 'text-[#505065] bg-[#1A1A2E] border-[#2A2A3E]',
+  cerrado: 'text-[#6B6B85] bg-white/6 border-white/10',
   cancelado: 'text-red-400 bg-red-400/10 border-red-400/30',
 }
 
@@ -76,7 +76,7 @@ export default function RetosPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-white">Retos</h1>
-          <p className="text-[#505065] text-sm">Desafíos para tus clientes esta noche</p>
+          <p className="text-[#6B6B85] text-sm">Desafíos para tus clientes esta noche</p>
         </div>
         <Button size="sm" onClick={() => setShowCrear(true)}>
           <Plus size={16} /> Nuevo reto
@@ -85,18 +85,18 @@ export default function RetosPage() {
 
       {loading ? (
         <div className="space-y-3">
-          {[1,2].map(i => <div key={i} className="h-24 bg-[#1A1A2E] rounded-2xl animate-pulse" />)}
+          {[1,2].map(i => <div key={i} className="h-24 bg-white/6 rounded-2xl animate-pulse" />)}
         </div>
       ) : retos.length === 0 ? (
         <div className="flex flex-col items-center py-20 gap-4">
-          <Target size={40} className="text-[#505065]" />
-          <p className="text-[#505065] text-center">No hay retos activos.<br/>Crea uno para dinamizar la noche.</p>
+          <Target size={40} className="text-[#6B6B85]" />
+          <p className="text-[#6B6B85] text-center">No hay retos activos.<br/>Crea uno para dinamizar la noche.</p>
           <Button size="sm" onClick={() => setShowCrear(true)}><Plus size={14} /> Crear reto</Button>
         </div>
       ) : (
         <div className="space-y-3">
           {retos.map(r => (
-            <div key={r.id} className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+            <div key={r.id} className="glass rounded-2xl p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -110,7 +110,7 @@ export default function RetosPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-[#505065]">
+              <div className="flex items-center gap-4 text-xs text-[#6B6B85]">
                 <span className="capitalize">{r.tipo_contenido}</span>
                 {r.premio && <span>🎁 {r.premio}</span>}
                 {r.hora_cierre && <span>Cierra: {formatearHora(r.hora_cierre)}</span>}
@@ -195,24 +195,24 @@ function CrearRetoModal({ localId, onClose, onCreado }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
-      <div className="w-full bg-[#1A1A2E] rounded-t-3xl max-h-[90vh] overflow-y-auto">
+      <div className="w-full bg-white/6 rounded-t-3xl max-h-[90vh] overflow-y-auto">
         <div className="p-5 space-y-5">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white">Nuevo reto</h2>
-            <button onClick={onClose} className="p-2 text-[#505065] hover:text-white"><X size={20} /></button>
+            <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
           </div>
 
           <div className="space-y-4">
             <Field label="Nombre del reto *">
               <input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
                 placeholder="Ej: El selfie más épico de la noche"
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#505065]" />
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#6B6B85]" />
             </Field>
 
             <Field label="Descripción *">
               <textarea value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
                 placeholder="Explica las reglas del reto..." rows={3} maxLength={500}
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#505065]" />
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]" />
             </Field>
 
             <Field label="Tipo de participación">
@@ -220,7 +220,7 @@ function CrearRetoModal({ localId, onClose, onCreado }: {
                 {(['foto', 'video', 'texto'] as const).map(t => (
                   <button key={t} onClick={() => setForm(f => ({ ...f, tipo_contenido: t }))}
                     className={cn('flex-1 py-2 rounded-xl text-sm font-medium border transition-colors',
-                      form.tipo_contenido === t ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-[#2A2A3E] text-[#A0A0B8]')}>
+                      form.tipo_contenido === t ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-white/10 text-[#A0A0B8]')}>
                     {t.charAt(0).toUpperCase() + t.slice(1)}
                   </button>
                 ))}
@@ -232,7 +232,7 @@ function CrearRetoModal({ localId, onClose, onCreado }: {
                 {(['votos', 'manual'] as const).map(m => (
                   <button key={m} onClick={() => setForm(f => ({ ...f, metodo_ganador: m }))}
                     className={cn('flex-1 py-2 rounded-xl text-sm font-medium border transition-colors',
-                      form.metodo_ganador === m ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-[#2A2A3E] text-[#A0A0B8]')}>
+                      form.metodo_ganador === m ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-white/10 text-[#A0A0B8]')}>
                     {m === 'votos' ? 'Votos' : 'Manual'}
                   </button>
                 ))}
@@ -242,13 +242,13 @@ function CrearRetoModal({ localId, onClose, onCreado }: {
             <Field label="Premio (opcional)">
               <input value={form.premio} onChange={e => setForm(f => ({ ...f, premio: e.target.value }))}
                 placeholder="Ej: Consumición gratis para el ganador"
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#505065]" />
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#6B6B85]" />
             </Field>
 
             <Field label="Hora de cierre (opcional)">
               <input type="datetime-local" value={form.hora_cierre}
                 onChange={e => setForm(f => ({ ...f, hora_cierre: e.target.value }))}
-                className="w-full px-3 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50" />
+                className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50" />
             </Field>
           </div>
 
@@ -269,18 +269,18 @@ function VerParticipacionesModal({ reto, onClose, onAprobar, onGanador }: {
 }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
-      <div className="w-full bg-[#1A1A2E] rounded-t-3xl max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between p-5 border-b border-[#2A2A3E]">
+      <div className="w-full bg-white/6 rounded-t-3xl max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between p-5 border-b border-white/10">
           <h2 className="text-lg font-bold text-white">{reto.nombre} — Participaciones</h2>
-          <button onClick={onClose} className="p-2 text-[#505065] hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
         </div>
         <div className="overflow-y-auto flex-1 p-5 space-y-3">
           {(reto.participaciones?.length || 0) === 0 ? (
-            <p className="text-center text-[#505065] py-10">Sin participaciones todavía</p>
+            <p className="text-center text-[#6B6B85] py-10">Sin participaciones todavía</p>
           ) : (
             reto.participaciones!.sort((a, b) => b.num_votos - a.num_votos).map(p => (
-              <div key={p.id} className={cn('p-3 bg-[#0D0D1A] rounded-xl border',
-                reto.ganador_participacion_id === p.id ? 'border-yellow-400/50' : 'border-[#2A2A3E]')}>
+              <div key={p.id} className={cn('p-3 bg-white/5 rounded-xl border',
+                reto.ganador_participacion_id === p.id ? 'border-yellow-400/50' : 'border-white/10')}>
                 <div className="flex items-start gap-3">
                   {p.contenido_url && (
                     <img src={p.contenido_url} alt="" className="w-14 h-14 rounded-lg object-cover bg-[#2A2A3E] shrink-0"
@@ -292,7 +292,7 @@ function VerParticipacionesModal({ reto, onClose, onAprobar, onGanador }: {
                       {reto.ganador_participacion_id === p.id && <Crown size={14} className="text-yellow-400" />}
                     </div>
                     {p.contenido_texto && <p className="text-xs text-[#A0A0B8] mt-1">{p.contenido_texto}</p>}
-                    <p className="text-xs text-[#505065] mt-1">{p.num_votos} votos</p>
+                    <p className="text-xs text-[#6B6B85] mt-1">{p.num_votos} votos</p>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-2">

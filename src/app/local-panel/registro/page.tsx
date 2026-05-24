@@ -143,7 +143,7 @@ export default function LocalPanelRegistroPage() {
 
   if (step === 'listo') {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex flex-col items-center justify-center px-6 text-center gap-6">
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center gap-6">
         <div className="w-20 h-20 bg-green-500/10 border border-green-500/30 rounded-3xl flex items-center justify-center">
           <Check size={36} className="text-green-400" />
         </div>
@@ -153,7 +153,7 @@ export default function LocalPanelRegistroPage() {
             Tu local está pendiente de verificación. El equipo de PartyMaps revisará la información y activará tu cuenta en 24-48h.
           </p>
         </div>
-        <div className="bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl p-4 text-sm text-[#A0A0B8] text-left w-full max-w-xs space-y-1">
+        <div className="glass rounded-2xl p-4 text-sm text-[#A0A0B8] text-left w-full max-w-xs space-y-1">
           <p className="text-white font-semibold mb-2">Próximos pasos:</p>
           <p>1. Revisa tu email para confirmar tu cuenta</p>
           <p>2. Espera la verificación del equipo</p>
@@ -167,20 +167,20 @@ export default function LocalPanelRegistroPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-4 px-4 pt-12 pb-4">
         {stepIdx > 0 ? (
-          <button onClick={() => setStep(STEPS[stepIdx - 1])} className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-[#1A1A2E]">
+          <button onClick={() => setStep(STEPS[stepIdx - 1])} className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-white/6">
             <ChevronLeft size={22} />
           </button>
         ) : (
-          <Link href="/local-panel/login" className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-[#1A1A2E]">
+          <Link href="/local-panel/login" className="p-2 rounded-xl text-[#A0A0B8] hover:text-white hover:bg-white/6">
             <ChevronLeft size={22} />
           </Link>
         )}
         <div className="flex-1">
-          <div className="h-1 bg-[#1A1A2E] rounded-full overflow-hidden">
+          <div className="h-1 bg-white/6 rounded-full overflow-hidden">
             <div className="h-full bg-[#E94560] rounded-full transition-all duration-500" style={{ width: `${progreso}%` }} />
           </div>
         </div>
@@ -195,7 +195,7 @@ export default function LocalPanelRegistroPage() {
             <h1 className="text-xl font-black text-white">
               {step === 'cuenta' ? 'Crea tu cuenta' : step === 'local' ? 'Tu local' : 'Ubicación'}
             </h1>
-            <p className="text-xs text-[#505065]">Paso {stepIdx + 1} de {STEPS.length}</p>
+            <p className="text-xs text-[#6B6B85]">Paso {stepIdx + 1} de {STEPS.length}</p>
           </div>
         </div>
 
@@ -223,7 +223,7 @@ export default function LocalPanelRegistroPage() {
                 {TIPOS_LOCAL.map(t => (
                   <button key={t.value} onClick={() => update('tipo_local', t.value)}
                     className={cn('flex items-center gap-2 p-3 rounded-xl border text-sm text-left transition-colors',
-                      form.tipo_local === t.value ? 'border-[#E94560] bg-[#E94560]/10 text-white' : 'border-[#2A2A3E] text-[#A0A0B8] hover:border-[#505065]')}>
+                      form.tipo_local === t.value ? 'border-[#E94560] bg-[#E94560]/10 text-white' : 'border-white/10 text-[#A0A0B8] hover:border-[#505065]')}>
                     <span>{t.emoji}</span>
                     <span className="font-medium">{t.label}</span>
                   </button>
@@ -234,7 +234,7 @@ export default function LocalPanelRegistroPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-[#A0A0B8]">Ciudad *</label>
               <select value={form.ciudad} onChange={e => update('ciudad', e.target.value)}
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none">
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none">
                 {['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga', 'Zaragoza', 'Otra'].map(c => (
                   <option key={c} value={c}>{c}</option>
                 ))}
@@ -256,7 +256,7 @@ export default function LocalPanelRegistroPage() {
               <label className="text-sm font-medium text-[#A0A0B8]">Descripción breve (opcional)</label>
               <textarea value={form.descripcion} onChange={e => update('descripcion', e.target.value)}
                 placeholder="Cuéntanos brevemente qué tipo de local sois..." rows={3} maxLength={300}
-                className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#505065]" />
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]" />
             </div>
           </div>
         )}
@@ -283,7 +283,7 @@ export default function LocalPanelRegistroPage() {
               </div>
             </div>
 
-            <div className="p-3 bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] text-xs text-[#505065]">
+            <div className="p-3 glass rounded-xl text-xs text-[#6B6B85]">
               💡 Busca tu local en <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="text-[#4F8EF7]">Google Maps</a>, haz clic derecho sobre la ubicación exacta y copia las coordenadas.
             </div>
           </div>
@@ -296,7 +296,7 @@ export default function LocalPanelRegistroPage() {
           {step !== 'ubicacion' && <ChevronRight size={18} />}
         </Button>
         {step === 'cuenta' && (
-          <p className="text-center text-sm text-[#505065]">
+          <p className="text-center text-sm text-[#6B6B85]">
             ¿Ya tienes cuenta?{' '}
             <Link href="/local-panel/login" className="text-[#E94560]">Inicia sesión</Link>
           </p>

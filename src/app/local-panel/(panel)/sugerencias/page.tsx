@@ -62,15 +62,15 @@ export default function SugerenciasPage() {
     <div className="p-4 md:p-6 space-y-6 pb-20 md:pb-6">
       <div>
         <h1 className="text-2xl font-black text-white">Sugerencias</h1>
-        <p className="text-[#505065] text-sm">Opiniones y sugerencias de tus clientes</p>
+        <p className="text-[#6B6B85] text-sm">Opiniones y sugerencias de tus clientes</p>
       </div>
 
       {/* Resumen */}
       <div className="grid grid-cols-3 gap-3">
         {(['nueva', 'leida', 'respondida'] as const).map(e => (
-          <div key={e} className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-3 text-center">
+          <div key={e} className="glass rounded-xl p-3 text-center">
             <p className="text-2xl font-black text-white">{counts[e]}</p>
-            <p className="text-xs text-[#505065] capitalize">{e === 'nueva' ? 'Nuevas' : e === 'leida' ? 'Leídas' : 'Respondidas'}</p>
+            <p className="text-xs text-[#6B6B85] capitalize">{e === 'nueva' ? 'Nuevas' : e === 'leida' ? 'Leídas' : 'Respondidas'}</p>
           </div>
         ))}
       </div>
@@ -83,7 +83,7 @@ export default function SugerenciasPage() {
             onClick={() => setFiltro(f)}
             className={cn(
               'shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
-              filtro === f ? 'bg-[#E94560] text-white' : 'bg-[#1A1A2E] text-[#A0A0B8] border border-[#2A2A3E]'
+              filtro === f ? 'bg-[#E94560] text-white' : 'bg-white/6 text-[#A0A0B8] border border-white/10'
             )}
           >
             {f === 'todas' ? 'Todas' : f === 'nueva' ? `Nuevas (${counts.nueva})` : f === 'leida' ? 'Leídas' : 'Respondidas'}
@@ -93,35 +93,35 @@ export default function SugerenciasPage() {
 
       {loading ? (
         <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-20 bg-[#1A1A2E] rounded-2xl animate-pulse" />)}
+          {[1,2,3].map(i => <div key={i} className="h-20 bg-white/6 rounded-2xl animate-pulse" />)}
         </div>
       ) : filtradas.length === 0 ? (
         <div className="flex flex-col items-center py-16 gap-3">
-          <MessageSquare size={36} className="text-[#505065]" />
-          <p className="text-[#505065] text-sm">No hay sugerencias {filtro !== 'todas' ? `en estado "${filtro}"` : 'todavía'}</p>
+          <MessageSquare size={36} className="text-[#6B6B85]" />
+          <p className="text-[#6B6B85] text-sm">No hay sugerencias {filtro !== 'todas' ? `en estado "${filtro}"` : 'todavía'}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtradas.map(s => (
             <div key={s.id} className={cn(
-              'bg-[#1A1A2E] rounded-2xl border p-4 space-y-3 transition-all',
-              s.estado === 'nueva' ? 'border-[#E94560]/30' : 'border-[#2A2A3E]'
+              'bg-white/6 rounded-2xl border p-4 space-y-3 transition-all',
+              s.estado === 'nueva' ? 'border-[#E94560]/30' : 'border-white/10'
             )}>
               <div className="flex items-start gap-3">
-                <div className={cn('mt-0.5 shrink-0', s.estado === 'nueva' ? 'text-[#E94560]' : s.estado === 'respondida' ? 'text-green-400' : 'text-[#505065]')}>
+                <div className={cn('mt-0.5 shrink-0', s.estado === 'nueva' ? 'text-[#E94560]' : s.estado === 'respondida' ? 'text-green-400' : 'text-[#6B6B85]')}>
                   {s.estado === 'respondida' ? <CheckCircle2 size={16} /> : s.estado === 'nueva' ? <MessageSquare size={16} /> : <Eye size={16} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="text-sm font-semibold text-white">{s.usuarios?.nombre || 'Usuario anónimo'}</p>
-                    <span className="text-xs text-[#505065]">{tiempoRelativo(s.created_at)}</span>
+                    <span className="text-xs text-[#6B6B85]">{tiempoRelativo(s.created_at)}</span>
                     {s.estado === 'nueva' && (
                       <span className="text-[10px] px-1.5 py-0.5 bg-[#E94560]/10 border border-[#E94560]/30 rounded-full text-[#E94560] font-semibold">Nueva</span>
                     )}
                   </div>
                   <p className="text-sm text-[#A0A0B8]">{s.contenido}</p>
                   {s.nota_interna && (
-                    <div className="mt-2 p-2 bg-[#0D0D1A] rounded-lg border-l-2 border-green-400">
+                    <div className="mt-2 p-2 bg-white/5 rounded-lg border-l-2 border-green-400">
                       <p className="text-xs text-green-400 font-medium mb-0.5">Nota interna</p>
                       <p className="text-xs text-[#A0A0B8]">{s.nota_interna}</p>
                     </div>
@@ -132,13 +132,13 @@ export default function SugerenciasPage() {
               <div className="flex gap-2 flex-wrap">
                 {s.estado === 'nueva' && (
                   <button onClick={() => marcarLeida(s.id)}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-lg text-xs text-[#A0A0B8] hover:text-white transition-colors">
+                    className="flex items-center gap-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-[#A0A0B8] hover:text-white transition-colors">
                     <Eye size={12} /> Marcar como leída
                   </button>
                 )}
                 <button
                   onClick={() => setExpandida(expandida === s.id ? null : s.id)}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-lg text-xs text-[#A0A0B8] hover:text-white transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-[#A0A0B8] hover:text-white transition-colors"
                 >
                   <Clock size={12} /> {s.nota_interna ? 'Editar nota' : 'Añadir nota interna'}
                 </button>
@@ -151,7 +151,7 @@ export default function SugerenciasPage() {
                     onChange={e => setNotas(n => ({ ...n, [s.id]: e.target.value }))}
                     placeholder="Nota interna (solo la ve el equipo)..."
                     rows={3}
-                    className="w-full px-3 py-2 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#505065]"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]"
                   />
                   <Button size="sm" onClick={() => guardarNota(s.id)}>
                     Guardar nota

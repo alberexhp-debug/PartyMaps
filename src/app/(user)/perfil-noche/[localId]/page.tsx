@@ -87,7 +87,7 @@ export default function PerfilNochePage() {
 
   if (loading || !usuario || !local) {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#E94560] border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -95,8 +95,8 @@ export default function PerfilNochePage() {
 
   if (checkinValido === false) {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex flex-col items-center justify-center p-6 gap-4">
-        <Sparkles size={48} className="text-[#505065]" />
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4">
+        <Sparkles size={48} className="text-[#6B6B85]" />
         <h2 className="text-xl font-bold text-white text-center">Necesitas estar en {local.nombre}</h2>
         <p className="text-[#A0A0B8] text-center text-sm">
           Haz check-in desde el perfil del local para generar tu carta de noche.
@@ -113,14 +113,14 @@ export default function PerfilNochePage() {
   const fechaTexto = formatearFecha(new Date().toISOString())
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] pb-24">
+    <div className="min-h-screen pb-24">
       <div className="px-4 py-3 flex items-center gap-3 safe-top">
         <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="text-lg font-bold text-white">Tu perfil de noche</h1>
-          <p className="text-xs text-[#505065]">{local.nombre}</p>
+          <p className="text-xs text-[#6B6B85]">{local.nombre}</p>
         </div>
       </div>
 
@@ -188,7 +188,7 @@ export default function PerfilNochePage() {
           </Button>
         </div>
 
-        <p className="mt-6 text-center text-xs text-[#505065] max-w-sm mx-auto">
+        <p className="mt-6 text-center text-xs text-[#6B6B85] max-w-sm mx-auto">
           La carta se genera automáticamente con los datos de tu perfil. Solo es visible para ti mientras estás en el local.
         </p>
       </div>

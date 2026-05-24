@@ -23,7 +23,7 @@ export function StarRating({ value, max = 5, onChange, size = 18, className }: S
         >
           <Star
             size={size}
-            className={star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-[#505065]'}
+            className={star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-[#6B6B85]'}
           />
         </button>
       ))}
@@ -36,7 +36,7 @@ export function StarDisplay({ value, count }: { value: number; count?: number })
     <div className="flex items-center gap-1.5">
       <Star size={14} className="fill-yellow-400 text-yellow-400" />
       <span className="text-sm font-semibold text-white">{value.toFixed(1)}</span>
-      {count !== undefined && <span className="text-sm text-[#505065]">({count})</span>}
+      {count !== undefined && <span className="text-sm text-[#6B6B85]">({count})</span>}
     </div>
   )
 }

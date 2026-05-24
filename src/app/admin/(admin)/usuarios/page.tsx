@@ -67,7 +67,7 @@ export default function AdminUsuariosPage() {
     activa: 'text-green-400',
     suspendida_temporal: 'text-[#F39C12]',
     suspendida_permanente: 'text-red-400',
-    eliminada: 'text-[#505065]',
+    eliminada: 'text-[#6B6B85]',
   }
 
   return (
@@ -81,27 +81,27 @@ export default function AdminUsuariosPage() {
         </p>
       </div>
 
-      <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+      <div className="glass rounded-2xl p-4 space-y-3">
         <div className="space-y-1.5">
-          <label className="text-xs text-[#505065]">Motivo de la consulta *</label>
+          <label className="text-xs text-[#6B6B85]">Motivo de la consulta *</label>
           <input
             value={motivo}
             onChange={e => setMotivo(e.target.value)}
             placeholder="Ej: Ticket #1234, reembolso entrada"
-            className="w-full px-3 py-2 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#4F8EF7]/50"
+            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#4F8EF7]/50"
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs text-[#505065]">Búsqueda por nombre, teléfono o UUID *</label>
+          <label className="text-xs text-[#6B6B85]">Búsqueda por nombre, teléfono o UUID *</label>
           <div className="flex gap-2">
-            <div className="flex-1 flex items-center gap-2 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl px-3 py-2">
-              <Search size={14} className="text-[#505065]" />
+            <div className="flex-1 flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+              <Search size={14} className="text-[#6B6B85]" />
               <input
                 value={criterio}
                 onChange={e => setCriterio(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') buscar() }}
                 placeholder="Mínimo 3 caracteres"
-                className="bg-transparent text-white text-sm flex-1 outline-none placeholder:text-[#505065]"
+                className="bg-transparent text-white text-sm flex-1 outline-none placeholder:text-[#6B6B85]"
               />
             </div>
             <button onClick={buscar} disabled={buscando}
@@ -114,16 +114,16 @@ export default function AdminUsuariosPage() {
 
       {haBuscado && (
         <>
-          <p className="text-xs text-[#505065]">{resultados.length} resultados</p>
+          <p className="text-xs text-[#6B6B85]">{resultados.length} resultados</p>
           {resultados.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-2">
-              <AlertCircle size={28} className="text-[#505065]" />
-              <p className="text-sm text-[#505065]">Sin resultados para esa búsqueda</p>
+              <AlertCircle size={28} className="text-[#6B6B85]" />
+              <p className="text-sm text-[#6B6B85]">Sin resultados para esa búsqueda</p>
             </div>
           ) : (
             <div className="space-y-2">
               {resultados.map(u => (
-                <div key={u.id} className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-3 flex items-center gap-3">
+                <div key={u.id} className="glass rounded-xl p-3 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[#2A2A3E] overflow-hidden shrink-0 flex items-center justify-center">
                     {u.foto_perfil_url
                       ? <img src={u.foto_perfil_url} alt="" className="w-full h-full object-cover" />
@@ -134,10 +134,10 @@ export default function AdminUsuariosPage() {
                       <p className="font-semibold text-white text-sm truncate">{u.nombre}</p>
                       <span className={cn('text-xs', estadoColor[u.estado_cuenta])}>●</span>
                     </div>
-                    <p className="text-xs text-[#505065]">
+                    <p className="text-xs text-[#6B6B85]">
                       {calcularEdad(u.fecha_nacimiento)} años · {u.telefono || 'sin teléfono'}
                     </p>
-                    <p className="text-[10px] text-[#505065] font-mono">{u.id.slice(0, 8)}</p>
+                    <p className="text-[10px] text-[#6B6B85] font-mono">{u.id.slice(0, 8)}</p>
                   </div>
                   <div className="flex gap-1 shrink-0">
                     {u.estado_cuenta === 'activa' ? (

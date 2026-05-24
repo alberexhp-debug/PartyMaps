@@ -96,14 +96,14 @@ export function PhotoUpload({
         disabled={subiendo}
         className={cn(
           sizeClasses,
-          'relative overflow-hidden bg-[#1A1A2E] border-2 border-dashed border-[#2A2A3E] flex items-center justify-center hover:border-[#E94560]/50 transition-colors disabled:opacity-50',
+          'relative overflow-hidden bg-white/6 border-2 border-dashed border-white/10 flex items-center justify-center hover:border-[#E94560]/50 transition-colors disabled:opacity-50',
         )}
       >
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={preview} alt="Vista previa" className="w-full h-full object-cover" />
         ) : (
-          <div className="flex flex-col items-center gap-1.5 text-[#505065]">
+          <div className="flex flex-col items-center gap-1.5 text-[#6B6B85]">
             <Camera size={22} />
             <span className="text-[11px] font-medium">{label}</span>
           </div>

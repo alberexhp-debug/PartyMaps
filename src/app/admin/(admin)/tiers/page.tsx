@@ -68,7 +68,7 @@ export default function AdminTiersPage() {
       </div>
 
       {/* Precios y comisiones actuales */}
-      <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+      <div className="glass rounded-2xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-white flex items-center gap-2">
             <Tag size={14} className="text-[#F39C12]" /> Precios y comisiones
@@ -80,11 +80,11 @@ export default function AdminTiersPage() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {CLAVES_PRECIOS.map(p => (
-            <div key={p.clave} className="bg-[#0D0D1A] rounded-xl p-3">
-              <p className="text-xs text-[#505065]">{p.label}</p>
+            <div key={p.clave} className="bg-white/5 rounded-xl p-3">
+              <p className="text-xs text-[#6B6B85]">{p.label}</p>
               <p className="text-lg font-black text-white">
                 {precios[p.clave] ?? '—'}
-                <span className="text-xs text-[#505065] font-medium ml-1">{p.sufijo}</span>
+                <span className="text-xs text-[#6B6B85] font-medium ml-1">{p.sufijo}</span>
               </p>
             </div>
           ))}
@@ -95,7 +95,7 @@ export default function AdminTiersPage() {
         {(['todos', 'basico', 'pro', 'destacado'] as const).map(t => (
           <button key={t} onClick={() => setFiltroTier(t)}
             className={cn('px-3 py-1.5 rounded-xl text-xs font-medium border capitalize transition-colors',
-              filtroTier === t ? 'bg-[#4F8EF7] border-[#4F8EF7] text-white' : 'border-[#2A2A3E] text-[#505065]')}>
+              filtroTier === t ? 'bg-[#4F8EF7] border-[#4F8EF7] text-white' : 'border-white/10 text-[#6B6B85]')}>
             {t}
           </button>
         ))}
@@ -104,7 +104,7 @@ export default function AdminTiersPage() {
       {/* Resumen */}
       <div className="grid grid-cols-3 gap-2">
         {(['basico', 'pro', 'destacado'] as TierLocal[]).map(tier => (
-          <div key={tier} className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-3 text-center">
+          <div key={tier} className="glass rounded-xl p-3 text-center">
             <p className="text-xs capitalize" style={{ color: tierColor[tier] }}>{tier}</p>
             <p className="text-xl font-black text-white">{locales.filter(l => l.tier === tier).length}</p>
           </div>
@@ -113,16 +113,16 @@ export default function AdminTiersPage() {
 
       <div className="space-y-2">
         {loading ? (
-          Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-20 bg-[#1A1A2E] rounded-xl animate-pulse" />)
+          Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-20 bg-white/6 rounded-xl animate-pulse" />)
         ) : locales.map(l => (
-          <div key={l.id} className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-3 flex items-center gap-3">
+          <div key={l.id} className="glass rounded-xl p-3 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#2A2A3E] overflow-hidden shrink-0">
               <img src={l.imagenes?.[0] || ''} alt="" className="w-full h-full object-cover"
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-white text-sm truncate">{l.nombre}</p>
-              <p className="text-xs text-[#505065]">{getLabelTipoLocal(l.tipo_local)} · {l.ciudad}</p>
+              <p className="text-xs text-[#6B6B85]">{getLabelTipoLocal(l.tipo_local)} · {l.ciudad}</p>
               {l.tier_fecha_fin && (
                 <p className="text-xs text-[#F39C12]">Hasta: {formatearFecha(l.tier_fecha_fin)}</p>
               )}
@@ -134,12 +134,12 @@ export default function AdminTiersPage() {
               </span>
               <div className="relative">
                 <select value={l.tier} onChange={e => cambiarTier(l.id, e.target.value as TierLocal)}
-                  className="pl-2 pr-6 py-1 bg-[#0D0D1A] border border-[#2A2A3E] rounded-lg text-xs text-[#A0A0B8] outline-none appearance-none cursor-pointer">
+                  className="pl-2 pr-6 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-[#A0A0B8] outline-none appearance-none cursor-pointer">
                   <option value="basico">Básico</option>
                   <option value="pro">Pro</option>
                   <option value="destacado">Destacado</option>
                 </select>
-                <ChevronDown size={10} className="absolute right-1.5 top-2 text-[#505065] pointer-events-none" />
+                <ChevronDown size={10} className="absolute right-1.5 top-2 text-[#6B6B85] pointer-events-none" />
               </div>
             </div>
           </div>

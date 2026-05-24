@@ -78,25 +78,25 @@ export default function FacturacionPage() {
       )}
 
       {/* Resumen del mes */}
-      <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+      <div className="glass rounded-2xl p-4 space-y-3">
         <h2 className="font-bold text-white">Este mes</h2>
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-[#0D0D1A] rounded-xl p-3">
-            <p className="text-xs text-[#505065]">Ingresos netos</p>
+          <div className="bg-white/5 rounded-xl p-3">
+            <p className="text-xs text-[#6B6B85]">Ingresos netos</p>
             <p className="text-xl font-black text-white mt-1">{formatearPrecio(stats.ingresos_mes)}</p>
           </div>
-          <div className="bg-[#0D0D1A] rounded-xl p-3">
-            <p className="text-xs text-[#505065]">Comisión plataforma</p>
+          <div className="bg-white/5 rounded-xl p-3">
+            <p className="text-xs text-[#6B6B85]">Comisión plataforma</p>
             <p className="text-xl font-black text-[#E94560] mt-1">{formatearPrecio(stats.comisiones_mes)}</p>
           </div>
         </div>
-        <p className="text-xs text-[#505065]">
+        <p className="text-xs text-[#6B6B85]">
           Tier actual: <span className="capitalize text-white font-semibold">{local.tier}</span>
           {' '}· Comisión: <span className="text-[#E94560] font-semibold">
             {local.tier === 'basico' ? '7%' : local.tier === 'pro' ? '6%' : '5%'}
           </span>
         </p>
-        <p className="text-xs text-[#505065]">
+        <p className="text-xs text-[#6B6B85]">
           Los pagos se realizan mediante Stripe Connect. Conecta tu cuenta para recibir transferencias.
         </p>
       </div>
@@ -110,8 +110,8 @@ export default function FacturacionPage() {
             <div key={tier.id} className={cn(
               'rounded-2xl border p-4 space-y-3 relative',
               esActual ? 'border-2' : 'border',
-              esActual ? `border-[${tier.color}]` : 'border-[#2A2A3E]',
-              'bg-[#1A1A2E]'
+              esActual ? `border-[${tier.color}]` : 'border-white/10',
+              'bg-white/6'
             )} style={{ borderColor: esActual ? tier.color : undefined }}>
               {tier.destacado && (
                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#F39C12] rounded-full text-xs font-bold text-black">
@@ -124,7 +124,7 @@ export default function FacturacionPage() {
                   <p className="text-sm font-bold" style={{ color: tier.color }}>{tier.precio}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-[#505065]">Comisión</p>
+                  <p className="text-xs text-[#6B6B85]">Comisión</p>
                   <p className="text-lg font-black text-white">{tier.comision}</p>
                 </div>
               </div>
@@ -157,7 +157,7 @@ export default function FacturacionPage() {
       </div>
 
       {/* Stripe */}
-      <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+      <div className="glass rounded-2xl p-4 space-y-3">
         <h2 className="font-bold text-white flex items-center gap-2">
           <CreditCard size={16} className="text-[#4F8EF7]" />
           Cuenta Stripe

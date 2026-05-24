@@ -97,11 +97,11 @@ export default function MiLocalPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-[#1A1A2E] rounded-xl p-1 border border-[#2A2A3E]">
+      <div className="flex gap-1 bg-white/6 rounded-xl p-1 border border-white/10">
         {(['info', 'horario', 'consumiciones', 'galeria'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={cn('flex-1 py-2 text-xs font-semibold rounded-lg capitalize transition-colors',
-              tab === t ? 'bg-[#E94560] text-white' : 'text-[#505065] hover:text-white')}>
+              tab === t ? 'bg-[#E94560] text-white' : 'text-[#6B6B85] hover:text-white')}>
             {t === 'consumiciones' ? 'Bienvenida' : t}
           </button>
         ))}
@@ -117,7 +117,7 @@ export default function MiLocalPage() {
               value={form.descripcion || ''}
               onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
               rows={4}
-              className="w-full px-4 py-3 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#505065]"
+              className="w-full px-4 py-3 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]"
               placeholder="Describe tu local..."
             />
           </div>
@@ -130,7 +130,7 @@ export default function MiLocalPage() {
                   className={cn('px-3 py-1.5 rounded-xl text-sm border transition-colors',
                     form.tipo_local === t
                       ? 'bg-[#E94560] border-[#E94560] text-white'
-                      : 'border-[#2A2A3E] text-[#A0A0B8] hover:border-[#505065]')}>
+                      : 'border-white/10 text-[#A0A0B8] hover:border-[#505065]')}>
                   {getLabelTipoLocal(t)}
                 </button>
               ))}
@@ -145,7 +145,7 @@ export default function MiLocalPage() {
                   className={cn('px-3 py-1.5 rounded-xl text-sm border capitalize transition-colors',
                     (form.musica || []).includes(m)
                       ? 'bg-[#4F8EF7] border-[#4F8EF7] text-white'
-                      : 'border-[#2A2A3E] text-[#A0A0B8] hover:border-[#505065]')}>
+                      : 'border-white/10 text-[#A0A0B8] hover:border-[#505065]')}>
                   {m.replace('_', ' ')}
                 </button>
               ))}
@@ -161,7 +161,7 @@ export default function MiLocalPage() {
               <input type="number" min="0" step="0.5"
                 value={form.precio_entrada_min || 0}
                 onChange={e => setForm(f => ({ ...f, precio_entrada_min: parseFloat(e.target.value) }))}
-                className="w-full px-4 py-3 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+                className="w-full px-4 py-3 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
               />
             </div>
             <div className="space-y-1.5">
@@ -169,7 +169,7 @@ export default function MiLocalPage() {
               <input type="number" min="0" step="0.5"
                 value={form.precio_entrada_max || 0}
                 onChange={e => setForm(f => ({ ...f, precio_entrada_max: parseFloat(e.target.value) }))}
-                className="w-full px-4 py-3 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+                className="w-full px-4 py-3 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
               />
             </div>
           </div>
@@ -191,12 +191,12 @@ export default function MiLocalPage() {
           {DIAS.map(dia => {
             const h = (form.horario as Record<string, { apertura: string; cierre: string } | null>)?.[dia]
             return (
-              <div key={dia} className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-4">
+              <div key={dia} className="glass rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={cn(
                       'w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold',
-                      h ? 'bg-[#E94560] text-white' : 'bg-[#0D0D1A] text-[#505065]'
+                      h ? 'bg-[#E94560] text-white' : 'bg-white/5 text-[#6B6B85]'
                     )}>
                       {LABEL_DIA[dia]}
                     </div>
@@ -215,17 +215,17 @@ export default function MiLocalPage() {
                 {h && (
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs text-[#505065]">Apertura</label>
+                      <label className="text-xs text-[#6B6B85]">Apertura</label>
                       <input type="time" value={h.apertura}
                         onChange={e => setForm(f => ({ ...f, horario: { ...f.horario, [dia]: { ...h, apertura: e.target.value } } }))}
-                        className="w-full px-3 py-2 bg-[#0D0D1A] border border-[#2A2A3E] rounded-lg text-white text-sm outline-none"
+                        className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs text-[#505065]">Cierre</label>
+                      <label className="text-xs text-[#6B6B85]">Cierre</label>
                       <input type="time" value={h.cierre}
                         onChange={e => setForm(f => ({ ...f, horario: { ...f.horario, [dia]: { ...h, cierre: e.target.value } } }))}
-                        className="w-full px-3 py-2 bg-[#0D0D1A] border border-[#2A2A3E] rounded-lg text-white text-sm outline-none"
+                        className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none"
                       />
                     </div>
                   </div>
@@ -241,7 +241,7 @@ export default function MiLocalPage() {
         <div className="space-y-3">
           <p className="text-sm text-[#A0A0B8]">Consumiciones que el usuario puede elegir al comprar su entrada</p>
           {(form.consumiciones_bienvenida || []).map((c, i) => (
-            <div key={c.id} className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-4 space-y-3">
+            <div key={c.id} className="glass rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-white">Consumición {i + 1}</span>
                 <button onClick={() => removeConsumicion(c.id)} className="text-red-400">
@@ -262,14 +262,14 @@ export default function MiLocalPage() {
                 <label className="text-sm font-medium text-[#A0A0B8]">Precio (€)</label>
                 <input type="number" min="0" step="0.5" value={c.precio}
                   onChange={e => updateConsumicion(c.id, 'precio', parseFloat(e.target.value))}
-                  className="w-full px-4 py-3 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
                 />
               </div>
             </div>
           ))}
           <button
             onClick={addConsumicion}
-            className="w-full flex items-center justify-center gap-2 h-12 border-2 border-dashed border-[#2A2A3E] rounded-xl text-[#505065] hover:border-[#E94560]/50 hover:text-[#E94560] transition-colors"
+            className="w-full flex items-center justify-center gap-2 h-12 border-2 border-dashed border-white/10 rounded-xl text-[#6B6B85] hover:border-[#E94560]/50 hover:text-[#E94560] transition-colors"
           >
             <Plus size={18} /> Añadir consumición
           </button>
@@ -283,7 +283,7 @@ export default function MiLocalPage() {
           <div className="grid grid-cols-2 gap-3">
             {(form.imagenes || []).map((url, i) => (
               <div key={i} className="relative">
-                <img src={url} alt="" className="w-full h-32 object-cover rounded-xl bg-[#1A1A2E]" />
+                <img src={url} alt="" className="w-full h-32 object-cover rounded-xl bg-white/6" />
                 <button
                   onClick={() => setForm(f => ({ ...f, imagenes: f.imagenes?.filter((_, j) => j !== i) }))}
                   className="absolute top-2 right-2 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-red-400"
@@ -300,7 +300,7 @@ export default function MiLocalPage() {
                 id="nueva-url-img"
                 type="url"
                 placeholder="https://..."
-                className="flex-1 px-4 py-3 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+                className="flex-1 px-4 py-3 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
               />
               <button
                 onClick={() => {
@@ -316,7 +316,7 @@ export default function MiLocalPage() {
               </button>
             </div>
           </div>
-          <p className="text-xs text-[#505065]">La primera imagen es la portada del local en el mapa</p>
+          <p className="text-xs text-[#6B6B85]">La primera imagen es la portada del local en el mapa</p>
         </div>
       )}
     </div>

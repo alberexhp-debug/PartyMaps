@@ -64,16 +64,20 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] flex flex-col items-center justify-center p-6">
-      <div className="mb-8 text-center">
-        <div className="w-16 h-16 bg-[#4F8EF7] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#4F8EF7]/30">
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden">
+      <div className="absolute top-0 -left-32 w-96 h-96 rounded-full opacity-25 blur-3xl pointer-events-none bg-[#4F8EF7]/40" />
+      <div className="absolute bottom-0 -right-32 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none bg-[#7C5CFF]/30" />
+
+      <div className="relative mb-8 text-center">
+        <div className="w-16 h-16 bg-gradient-to-br from-[#4F8EF7] to-[#7C5CFF] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-[0_12px_30px_-8px_rgba(79,142,247,0.6)]">
           <Shield size={28} className="text-white" />
         </div>
-        <h1 className="text-2xl font-black text-white">Panel de administración</h1>
-        <p className="text-[#505065] text-sm mt-1">Acceso restringido al equipo de PartyMaps</p>
+        <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.25em] mb-2">Acceso restringido</p>
+        <h1 className="text-3xl font-bold text-white text-display tracking-tight">Panel de administración</h1>
+        <p className="text-[#A0A0B8] text-sm mt-2">Solo para el equipo de PartyMaps</p>
       </div>
 
-      <div className="w-full max-w-sm space-y-4">
+      <div className="relative w-full max-w-sm space-y-4">
         {paso === 'credentials' ? (
           <>
             <Input label="Email" type="email" icon={<Mail size={16} />}
@@ -81,16 +85,16 @@ export default function AdminLoginPage() {
             <Input label="Contraseña" type="password" icon={<Lock size={16} />}
               value={password} onChange={e => setPassword(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') verificarCredenciales() }} />
-            <Button fullWidth loading={loading} onClick={verificarCredenciales}>
+            <Button fullWidth size="lg" loading={loading} onClick={verificarCredenciales}>
               Continuar
             </Button>
           </>
         ) : (
           <>
-            <div className="p-4 bg-[#1A1A2E] rounded-xl border border-[#4F8EF7]/30 text-center">
+            <div className="p-4 glass rounded-2xl border border-[#4F8EF7]/30 text-center">
               <Shield size={24} className="text-[#4F8EF7] mx-auto mb-2" />
               <p className="text-white font-semibold text-sm">Verificación en dos pasos</p>
-              <p className="text-[#505065] text-xs mt-1">Introduce el código de tu app de autenticación</p>
+              <p className="text-[#A0A0B8] text-xs mt-1">Introduce el código de tu app de autenticación</p>
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-[#A0A0B8]">Código TOTP (6 dígitos)</label>
@@ -101,16 +105,16 @@ export default function AdminLoginPage() {
                 value={totp}
                 onChange={e => setTotp(e.target.value.replace(/\D/g, ''))}
                 placeholder="000000"
-                className="w-full px-4 py-4 bg-[#1A1A2E] border border-[#2A2A3E] rounded-xl text-white text-2xl font-mono tracking-[0.5em] text-center outline-none focus:border-[#4F8EF7]/50"
+                className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-2xl font-mono tracking-[0.5em] text-center outline-none focus:border-[#4F8EF7]/60 focus:ring-2 focus:ring-[#4F8EF7]/20 transition-all"
                 autoFocus
                 onKeyDown={e => { if (e.key === 'Enter') verificarTOTP() }}
               />
             </div>
-            <Button fullWidth loading={loading} onClick={verificarTOTP}>
+            <Button fullWidth size="lg" loading={loading} onClick={verificarTOTP}>
               <Shield size={16} />
               Verificar y entrar
             </Button>
-            <button onClick={() => setPaso('credentials')} className="w-full text-sm text-[#505065] hover:text-white">
+            <button onClick={() => setPaso('credentials')} className="w-full text-sm text-[#A0A0B8] hover:text-white py-2 transition-colors">
               ← Volver
             </button>
           </>

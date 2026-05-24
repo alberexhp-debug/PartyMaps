@@ -48,13 +48,13 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
   }
 
   return (
-    <div className="space-y-3 bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl p-4">
+    <div className="space-y-3 glass rounded-2xl p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-white flex items-center gap-2">
             <Zap size={14} className="text-[#E94560]" /> Precio dinámico
           </p>
-          {ayuda && <p className="text-xs text-[#505065] mt-1">{ayuda}</p>}
+          {ayuda && <p className="text-xs text-[#6B6B85] mt-1">{ayuda}</p>}
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -70,7 +70,7 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
       {config.activo && (
         <>
           <div className="space-y-1.5">
-            <label className="text-xs text-[#505065]">Tipo de curva</label>
+            <label className="text-xs text-[#6B6B85]">Tipo de curva</label>
             <div className="grid grid-cols-2 gap-2">
               {(['lineal', 'tramos'] as const).map(c => (
                 <button
@@ -80,7 +80,7 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
                   className={`px-3 py-2 rounded-xl text-sm border transition-colors ${
                     config.curva === c
                       ? 'bg-[#E94560] border-[#E94560] text-white'
-                      : 'border-[#2A2A3E] text-[#A0A0B8] hover:border-[#505065]'
+                      : 'border-white/10 text-[#A0A0B8] hover:border-[#505065]'
                   }`}
                 >
                   {c === 'lineal' ? 'Lineal' : 'Por tramos'}
@@ -104,24 +104,24 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
               {(config.tramos ?? []).map((t, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <div className="flex-1 flex items-center gap-1.5">
-                    <span className="text-xs text-[#505065]">Desde</span>
+                    <span className="text-xs text-[#6B6B85]">Desde</span>
                     <input
                       type="number" min={0} max={100}
                       value={t.pct}
                       onChange={e => setTramo(i, { pct: parseInt(e.target.value) || 0 })}
-                      className="w-16 px-2 py-1.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-lg text-white text-sm outline-none"
+                      className="w-16 px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none"
                     />
-                    <span className="text-xs text-[#505065]">%</span>
+                    <span className="text-xs text-[#6B6B85]">%</span>
                   </div>
                   <div className="flex-1 flex items-center gap-1.5">
-                    <span className="text-xs text-[#505065]">Precio</span>
+                    <span className="text-xs text-[#6B6B85]">Precio</span>
                     <input
                       type="number" min={0} step="0.5"
                       value={t.precio}
                       onChange={e => setTramo(i, { precio: parseFloat(e.target.value) || 0 })}
-                      className="w-20 px-2 py-1.5 bg-[#0D0D1A] border border-[#2A2A3E] rounded-lg text-white text-sm outline-none"
+                      className="w-20 px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none"
                     />
-                    <span className="text-xs text-[#505065]">€</span>
+                    <span className="text-xs text-[#6B6B85]">€</span>
                   </div>
                   <button
                     type="button"
@@ -136,7 +136,7 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
               <button
                 type="button"
                 onClick={addTramo}
-                className="w-full flex items-center justify-center gap-1.5 py-2 border border-dashed border-[#2A2A3E] rounded-xl text-xs text-[#A0A0B8] hover:border-[#505065]"
+                className="w-full flex items-center justify-center gap-1.5 py-2 border border-dashed border-white/10 rounded-xl text-xs text-[#A0A0B8] hover:border-[#505065]"
               >
                 <Plus size={12} /> Añadir tramo
               </button>
@@ -144,12 +144,12 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
           )}
 
           {/* Previsualización */}
-          <div className="pt-2 border-t border-[#2A2A3E]">
-            <p className="text-xs text-[#505065] mb-2">Vista previa según ventas:</p>
+          <div className="pt-2 border-t border-white/10">
+            <p className="text-xs text-[#6B6B85] mb-2">Vista previa según ventas:</p>
             <div className="grid grid-cols-5 gap-1.5">
               {preview.map(p => (
-                <div key={p.pct} className="text-center bg-[#0D0D1A] rounded-lg p-2">
-                  <p className="text-[10px] text-[#505065]">{p.pct}%</p>
+                <div key={p.pct} className="text-center bg-white/5 rounded-lg p-2">
+                  <p className="text-[10px] text-[#6B6B85]">{p.pct}%</p>
                   <p className="text-xs font-bold text-white">{formatearPrecio(p.precio)}</p>
                 </div>
               ))}

@@ -63,19 +63,19 @@ export default function ConfiguracionPage() {
       </div>
 
       {loading ? (
-        Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-20 bg-[#1A1A2E] rounded-xl animate-pulse" />)
+        Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-20 bg-white/6 rounded-xl animate-pulse" />)
       ) : (
         <div className="space-y-3">
           {config.map(c => (
-            <div key={c.clave} className="bg-[#1A1A2E] rounded-xl border border-[#2A2A3E] p-4 space-y-2">
+            <div key={c.clave} className="glass rounded-xl p-4 space-y-2">
               <div>
                 <p className="text-sm font-bold text-white font-mono">{c.clave}</p>
-                {c.descripcion && <p className="text-xs text-[#505065]">{c.descripcion}</p>}
+                {c.descripcion && <p className="text-xs text-[#6B6B85]">{c.descripcion}</p>}
               </div>
               <input
                 value={valores[c.clave] || ''}
                 onChange={e => setValores(v => ({ ...v, [c.clave]: e.target.value }))}
-                className="w-full px-3 py-2 bg-[#0D0D1A] border border-[#2A2A3E] rounded-xl text-white text-sm outline-none focus:border-[#4F8EF7]/50 font-mono"
+                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#4F8EF7]/50 font-mono"
               />
             </div>
           ))}

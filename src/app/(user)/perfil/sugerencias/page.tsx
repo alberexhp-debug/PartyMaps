@@ -41,7 +41,7 @@ export default function MisSugerenciasPage() {
   }, [usuario, router])
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] pb-24">
+    <div className="min-h-screen pb-24">
       <div className="px-4 py-3 flex items-center gap-3 safe-top">
         <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
           <ChevronLeft size={20} />
@@ -51,24 +51,24 @@ export default function MisSugerenciasPage() {
 
       <div className="p-4 space-y-3">
         {loading ? (
-          Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-24 bg-[#1A1A2E] rounded-2xl animate-pulse" />)
+          Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-24 bg-white/6 rounded-2xl animate-pulse" />)
         ) : sugerencias.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
-            <Lightbulb size={36} className="text-[#505065]" />
+            <Lightbulb size={36} className="text-[#6B6B85]" />
             <p className="text-sm text-[#A0A0B8]">No has enviado sugerencias todavía.</p>
-            <p className="text-xs text-[#505065]">
+            <p className="text-xs text-[#6B6B85]">
               Desde el perfil de cualquier local puedes proponer ideas al equipo.
             </p>
           </div>
         ) : sugerencias.map(s => {
           const estado = ESTADO_LABEL[s.estado] ?? ESTADO_LABEL.nueva
           return (
-            <div key={s.id} className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-2">
+            <div key={s.id} className="glass rounded-2xl p-4 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 {s.locales ? (
                   <Link href={`/local/${s.locales.id}`}
                     className="flex items-center gap-1.5 text-sm font-semibold text-white hover:text-[#E94560]">
-                    <MapPin size={12} className="text-[#505065]" />
+                    <MapPin size={12} className="text-[#6B6B85]" />
                     {s.locales.nombre}
                   </Link>
                 ) : (
@@ -80,7 +80,7 @@ export default function MisSugerenciasPage() {
                 </span>
               </div>
               <p className="text-sm text-[#A0A0B8] leading-relaxed">{s.contenido}</p>
-              <p className="text-[10px] text-[#505065]">{tiempoRelativo(s.created_at)}</p>
+              <p className="text-[10px] text-[#6B6B85]">{tiempoRelativo(s.created_at)}</p>
             </div>
           )
         })}
