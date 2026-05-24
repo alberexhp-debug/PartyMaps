@@ -58,7 +58,7 @@ export default function MapaExplorar() {
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/dark-v11',
       center: MADRID_CENTER,
-      zoom: 12.5,
+      zoom: 8.5,            // empezamos lejos para hacer fly-in
       pitch: 0,
       bearing: 0,
       attributionControl: false,
@@ -66,6 +66,17 @@ export default function MapaExplorar() {
     })
 
     map.on('load', () => {
+      // Fly-in cinemático sobre Madrid (la app entra "aterrizando")
+      setTimeout(() => {
+        map.flyTo({
+          center: MADRID_CENTER,
+          zoom: 12.5,
+          duration: 2200,
+          essential: true,
+          curve: 1.6,
+        })
+      }, 200)
+
       // Atenuar fondo del mapa para que destaque la capa de calor
       try {
         map.setPaintProperty('background', 'background-color', '#05050C')

@@ -11,6 +11,7 @@ import {
   Users, Plus, MapPin, Clock, ChevronRight, Search,
   UserCheck, Lock, Unlock
 } from 'lucide-react'
+import { IlustracionEstrellas } from '@/components/ui/Illustration'
 import { cn } from '@/lib/utils'
 
 type PlanConLocal = PlanPublico & { locales?: Local }
@@ -100,10 +101,9 @@ function PlanesContent() {
           ))
         ) : planes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 px-6 text-center">
-            <div className="w-20 h-20 glass rounded-2xl flex items-center justify-center">
-              <Users size={32} className="text-[#A0A0B8]" />
-            </div>
-            <p className="text-[#A0A0B8] max-w-xs">No hay planes disponibles ahora mismo. ¡Crea el primero y reúne a tu grupo!</p>
+            <IlustracionEstrellas size={140} />
+            <p className="text-[#FAFAFC] text-xl font-semibold text-display max-w-xs">Sin planes esta noche</p>
+            <p className="text-[#A0A0B8] text-sm max-w-xs">Crea el primero y deja que la gente que va al mismo sitio se una.</p>
             <Button size="lg" variant="holo" onClick={() => setShowCrear(true)}>
               <Plus size={16} />
               Crear el primero

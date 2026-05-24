@@ -101,6 +101,8 @@ export default function LocalPerfilPage() {
       await supabase.from('suscripciones').insert({ usuario_id: usuario.id, local_id: id })
       setSuscrito(true)
       toast.success('Siguiendo este local')
+      const { dispararConfetiSuave } = await import('@/lib/confeti')
+      dispararConfetiSuave(0.5, 0.35)
     }
   }
 

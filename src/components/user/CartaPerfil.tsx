@@ -1,8 +1,66 @@
 'use client'
-import { forwardRef } from 'react'
+import { forwardRef, useRef, useState, useCallback } from 'react'
 import { cn, EMOJI_SIGNO } from '@/lib/utils'
 import type { EstiloCarta, SignoZodiaco } from '@/types'
 import { User, Star, Sparkles } from 'lucide-react'
+
+/**
+ * Hook de 3D tilt cinético. Devuelve refs + handlers para aplicar a la carta.
+ * No actualiza estado React por frame — usa CSS vars + requestAnimationFrame.
+ */
+function useTilt(enabled: boolean) {
+  const ref = useRef<HTMLDivElement>(null)
+  const rafRef = useRef<number | null>(null)
+  const targetRef = useRef({ x: 0, y: 0, gx: 50, gy: 50 })
+
+  const apply = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const { x, y, gx, gy } = targetRef.current
+    el.style.setProperty('--tilt-x', `${x.toFixed(2)}deg`)
+    el.style.setProperty('--tilt-y', `${y.toFixed(2)}deg`)
+    el.style.setProperty('--gloss-x', `${gx.toFixed(1)}%`)
+    el.style.setProperty('--gloss-y', `${gy.toFixed(1)}%`)
+  }, [])
+
+  const updateFromPointer = useCallback((cx: number, cy: number) => {
+    const el = ref.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const px = (cx - r.left) / r.width   // 0-1
+    const py = (cy - r.top) / r.height
+    const tiltX = (py - 0.5) * -14         // grados
+    const tiltY = (px - 0.5) * 14
+    targetRef.current = { x: tiltX, y: tiltY, gx: px * 100, gy: py * 100 }
+    if (rafRef.current == null) {
+      rafRef.current = requestAnimationFrame(() => {
+        apply()
+        rafRef.current = null
+      })
+    }
+  }, [apply])
+
+  const reset = useCallback(() => {
+    targetRef.current = { x: 0, y: 0, gx: 50, gy: 50 }
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
+    rafRef.current = requestAnimationFrame(() => {
+      apply()
+      rafRef.current = null
+    })
+  }, [apply])
+
+  const handlers = !enabled ? {} : {
+    onMouseMove: (e: React.MouseEvent) => updateFromPointer(e.clientX, e.clientY),
+    onMouseLeave: reset,
+    onTouchMove: (e: React.TouchEvent) => {
+      const t = e.touches[0]
+      if (t) updateFromPointer(t.clientX, t.clientY)
+    },
+    onTouchEnd: reset,
+  }
+
+  return { tiltRef: ref, tiltHandlers: handlers }
+}
 
 export interface CartaPerfilProps {
   nombre: string
@@ -18,6 +76,8 @@ export interface CartaPerfilProps {
   reputacion?: { puntuacion: number; total: number } | null
   /** Cuando es true, deshabilita animaciones y filtros que rompen html2canvas */
   paraExportar?: boolean
+  /** Activa efecto 3D tilt al mover el dedo/ratón sobre la carta (true por defecto en pantalla). */
+  tilt?: boolean
   className?: string
 }
 
@@ -60,24 +120,38 @@ const ESTILOS: Record<EstiloCarta, { gradient: string; acento: string; trama: st
 
 export const CartaPerfil = forwardRef<HTMLDivElement, CartaPerfilProps>(function CartaPerfil({
   nombre, apodo, edad, signo, foto, frase, ciudad,
-  estilo = 'holo', slug, stats, reputacion, paraExportar = false, className,
+  estilo = 'holo', slug, stats, reputacion, paraExportar = false, tilt = true, className,
 }, ref) {
   const tema = ESTILOS[estilo]
   const emojiSigno = EMOJI_SIGNO[signo as SignoZodiaco] || '✨'
   const numeroCorto = slug ? `#${slug.slice(0, 4).toUpperCase()}` : '#0000'
   const nombreMostrar = apodo?.trim() || nombre
 
+  const tiltActivo = tilt && !paraExportar
+  const { tiltRef, tiltHandlers } = useTilt(tiltActivo)
+
+  // Asignar ambos refs (forwarded + tilt) al mismo elemento
+  const setRefs = (node: HTMLDivElement | null) => {
+    if (typeof ref === 'function') ref(node)
+    else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+    ;(tiltRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+  }
+
   return (
     <div
-      ref={ref}
+      ref={setRefs}
+      {...tiltHandlers}
       className={cn(
         'relative w-full aspect-[5/7] rounded-[28px] overflow-hidden select-none',
         !paraExportar && 'shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)]',
+        tiltActivo && 'transition-transform duration-100',
         className,
       )}
       style={{
         background: tema.gradient,
         backgroundSize: '300% 300%',
+        transformStyle: 'preserve-3d',
+        transform: tiltActivo ? 'perspective(900px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg))' : undefined,
       }}
     >
       {/* Trama radial */}
@@ -102,6 +176,18 @@ export const CartaPerfil = forwardRef<HTMLDivElement, CartaPerfilProps>(function
               'linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0.05) 55%, transparent 70%)',
             backgroundSize: '200% 200%',
             mixBlendMode: 'overlay',
+          }}
+        />
+      )}
+
+      {/* Gloss que sigue al cursor (3D tilt) */}
+      {tiltActivo && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle at var(--gloss-x, 50%) var(--gloss-y, 50%), rgba(255,255,255,0.35), rgba(255,255,255,0.08) 25%, transparent 50%)',
+            mixBlendMode: 'overlay',
+            transition: 'background 0.08s linear',
           }}
         />
       )}

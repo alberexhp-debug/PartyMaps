@@ -183,7 +183,7 @@ export default function PerfilPage() {
                   frase={usuario.carta_frase}
                   estilo={usuario.carta_estilo ?? 'holo'}
                   slug={usuario.carta_slug}
-                  paraExportar
+                  tilt={false}
                   className="!aspect-[5/7]"
                 />
               </div>

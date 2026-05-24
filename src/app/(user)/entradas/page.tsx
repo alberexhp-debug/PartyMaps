@@ -6,6 +6,7 @@ import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Entrada, Local, Evento } from '@/types'
 import { formatearPrecio, formatearFecha } from '@/lib/utils'
 import { Ticket, Clock, ChevronRight, Search } from 'lucide-react'
+import { IlustracionTickets } from '@/components/ui/Illustration'
 import { cn } from '@/lib/utils'
 
 type EntradaConInfo = Entrada & { local?: Local; evento?: Evento }
@@ -83,14 +84,9 @@ export default function EntradasPage() {
             <div key={i} className="h-28 skeleton rounded-2xl" />
           ))
         ) : mostradas.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-5 text-center px-6">
-            <div className="relative w-24 h-24">
-              <div className="absolute inset-0 rounded-3xl holo-bg opacity-20 blur-2xl" />
-              <div className="relative w-full h-full card-premium flex items-center justify-center">
-                <Ticket size={36} className="text-[#A0A0B8]" />
-              </div>
-            </div>
-            <p className="text-[#FAFAFC] text-lg font-semibold text-display max-w-xs">
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-6">
+            <IlustracionTickets size={140} />
+            <p className="text-[#FAFAFC] text-xl font-semibold text-display max-w-xs">
               {tab === 'activas' ? 'Aún no hay entradas' : 'Sin historial'}
             </p>
             <p className="text-[#A0A0B8] text-sm max-w-xs">

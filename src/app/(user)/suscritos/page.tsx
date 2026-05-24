@@ -6,6 +6,7 @@ import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Local, Evento } from '@/types'
 import { formatearFecha, formatearHora, getLabelTipoLocal } from '@/lib/utils'
 import { Bell, Calendar, ChevronRight, BellOff, MapPin } from 'lucide-react'
+import { IlustracionRadar } from '@/components/ui/Illustration'
 import { cn } from '@/lib/utils'
 
 type SuscripcionConLocal = {
@@ -67,14 +68,9 @@ export default function SuscritosPage() {
             <div key={i} className="h-40 skeleton rounded-2xl" />
           ))
         ) : suscripciones.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-5 text-center px-6">
-            <div className="relative w-24 h-24">
-              <div className="absolute inset-0 rounded-3xl bg-[#7C5CFF] opacity-25 blur-2xl" />
-              <div className="relative w-full h-full card-premium flex items-center justify-center">
-                <Bell size={36} className="text-[#A0A0B8]" />
-              </div>
-            </div>
-            <p className="text-[#FAFAFC] text-lg font-semibold text-display max-w-xs">Tu radar está vacío</p>
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-6">
+            <IlustracionRadar size={140} />
+            <p className="text-[#FAFAFC] text-xl font-semibold text-display max-w-xs">Tu radar está vacío</p>
             <p className="text-[#A0A0B8] text-sm max-w-xs">Sigue tus locales favoritos para recibir avisos de aforo, eventos y promos sin tener que abrir la app.</p>
             <button onClick={() => router.push('/explorar')} className="text-sm text-[#E94560] font-semibold mt-2">
               Explorar locales →
