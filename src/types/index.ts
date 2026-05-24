@@ -10,7 +10,59 @@ export type TipoLocal = 'discoteca' | 'bar_copas' | 'rooftop' | 'sala_conciertos
 export type TipoMusica = 'techno' | 'house' | 'reggaeton' | 'pop' | 'hip_hop' | 'indie' | 'electronica' | 'flamenco' | 'otro'
 export type EstadoUsuario = 'activa' | 'suspendida_temporal' | 'suspendida_permanente' | 'eliminada'
 export type SignoZodiaco = 'Aries' | 'Tauro' | 'Géminis' | 'Cáncer' | 'Leo' | 'Virgo' | 'Libra' | 'Escorpio' | 'Sagitario' | 'Capricornio' | 'Acuario' | 'Piscis'
-export type RolLocal = 'dueno' | 'gestor' | 'operador_noche' | 'puerta'
+export type RolLocal = 'dueno' | 'gestor' | 'operador_noche' | 'puerta' | 'barman'
+
+export type CategoriaProducto =
+  | 'cerveza' | 'cubata' | 'copa' | 'cocktail' | 'chupito'
+  | 'refresco' | 'agua' | 'comida' | 'snack' | 'pack' | 'otro'
+
+export interface ProductoLocal {
+  id: string
+  local_id: string
+  nombre: string
+  descripcion?: string
+  categoria: CategoriaProducto
+  precio: number
+  imagen_url?: string
+  disponible: boolean
+  orden: number
+  es_pack: boolean
+  unidades_pack?: number
+  created_at: string
+  updated_at: string
+}
+
+export type EstadoPedidoBar = 'pagado' | 'entregado' | 'expirado' | 'cancelado'
+
+export interface PedidoBar {
+  id: string
+  usuario_id: string
+  local_id: string
+  qr_code: string
+  estado: EstadoPedidoBar
+  precio_total: number
+  comision_plataforma: number
+  metodo_pago: string
+  pagado_at: string
+  expira_at: string
+  entregado_at?: string
+  entregado_por?: string
+  cancelado_at?: string
+  cancelado_motivo?: string
+  notas?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PedidoBarItem {
+  id: string
+  pedido_id: string
+  producto_id?: string
+  nombre_snapshot: string
+  precio_unitario: number
+  cantidad: number
+  created_at: string
+}
 export type RolAdmin = 'super_admin' | 'admin' | 'soporte'
 export type EstadoConcurso = 'programado' | 'activo' | 'cerrado' | 'finalizado' | 'cancelado'
 export type EstadoPlan = 'activo' | 'completado' | 'cancelado'

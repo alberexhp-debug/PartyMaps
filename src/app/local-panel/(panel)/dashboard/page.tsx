@@ -8,7 +8,7 @@ import { useToast } from '@/components/ui/Toast'
 import { formatearPrecio, getTemperaturaAforo, getColorTemperatura, getLabelTemperatura } from '@/lib/utils'
 import {
   Ticket, Users, TrendingUp, Bell, Star, Zap,
-  Calendar, ChevronRight, BarChart3, AlertCircle, Gauge, Check, X,
+  Calendar, ChevronRight, BarChart3, AlertCircle, Gauge, Check, X, Beer,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
@@ -22,6 +22,9 @@ interface KPIs {
   num_reviews: number
   evento_activo: { nombre: string; entradas_vendidas: number; aforo_maximo: number } | null
   historico_aforo: { hora: string; porcentaje: number }[]
+  pedidos_bar_hoy: number
+  ingresos_bar_hoy: number
+  pedidos_bar_pendientes: number
 }
 
 export default function LocalPanelDashboard() {
@@ -47,7 +50,7 @@ export default function LocalPanelDashboard() {
     const hoy = new Date()
     const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).toISOString()
 
-    const [entradasRes, suscritorRes, reviewsRes, eventoRes, aforoRes] = await Promise.all([
+    const [entradasRes, suscritorRes, reviewsRes, eventoRes, aforoRes, pedidosBarRes, pedidosPendientesRes] = await Promise.all([
       supabase.from('entradas').select('precio_total').eq('local_id', local.id)
         .gte('created_at', inicioHoy).eq('estado', 'activa'),
       supabase.from('suscripciones').select('id', { count: 'exact' }).eq('local_id', local.id),
@@ -60,6 +63,9 @@ export default function LocalPanelDashboard() {
         .gte('registrado_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
         .order('registrado_at', { ascending: true })
         .limit(24),
+      supabase.from('pedidos_bar').select('precio_total').eq('local_id', local.id)
+        .gte('pagado_at', inicioHoy).in('estado', ['pagado', 'entregado']),
+      supabase.from('pedidos_bar').select('id', { count: 'exact', head: true }).eq('local_id', local.id).eq('estado', 'pagado'),
     ])
 
     const entradas = entradasRes.data || []
@@ -69,6 +75,7 @@ export default function LocalPanelDashboard() {
       porcentaje: Math.round(h.porcentaje),
     }))
 
+    const pedidosBar = pedidosBarRes.data || []
     setKpis({
       entradas_hoy: entradas.length,
       ingresos_hoy: entradas.reduce((sum, e) => sum + (e.precio_total || 0), 0),
@@ -78,6 +85,9 @@ export default function LocalPanelDashboard() {
         ? reviews.reduce((sum, r) => sum + r.puntuacion, 0) / reviews.length
         : 0,
       num_reviews: reviews.length,
+      pedidos_bar_hoy: pedidosBar.length,
+      ingresos_bar_hoy: pedidosBar.reduce((s, p) => s + (p.precio_total || 0), 0),
+      pedidos_bar_pendientes: pedidosPendientesRes.count || 0,
       evento_activo: eventoRes.data || null,
       historico_aforo: historico,
     })
@@ -202,6 +212,36 @@ export default function LocalPanelDashboard() {
           color={colorTemp}
         />
       </div>
+
+      {/* Bar — KPI + acceso rápido a cola */}
+      {!loading && (kpis!.pedidos_bar_hoy > 0 || kpis!.pedidos_bar_pendientes > 0) && (
+        <button
+          onClick={() => router.push('/local-panel/pedidos-bar')}
+          className="card-premium relative w-full overflow-hidden p-5 text-left transition-all hover:-translate-y-0.5"
+        >
+          <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full opacity-25 blur-3xl bg-[#F39C12]" />
+          <div className="relative flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#F39C12]/15 border border-[#F39C12]/40 flex items-center justify-center shrink-0" style={{ boxShadow: '0 4px 14px -4px rgba(243,156,18,0.7)' }}>
+              <Beer size={20} className="text-[#F39C12]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="eyebrow" style={{ color: '#F39C12' }}>Bar · hoy</p>
+              <p className="text-3xl font-bold text-white text-display text-numeric mt-1">
+                {formatearPrecio(kpis!.ingresos_bar_hoy)}
+              </p>
+              <p className="text-xs text-[#B8B8CC] mt-1">
+                {kpis!.pedidos_bar_hoy} {kpis!.pedidos_bar_hoy === 1 ? 'pedido' : 'pedidos'}
+                {kpis!.pedidos_bar_pendientes > 0 && (
+                  <span className="text-[#E94560] font-bold ml-2">
+                    · {kpis!.pedidos_bar_pendientes} por servir
+                  </span>
+                )}
+              </p>
+            </div>
+            <ChevronRight size={20} className="text-[#B8B8CC] shrink-0" />
+          </div>
+        </button>
+      )}
 
       {/* Evento activo */}
       {kpis?.evento_activo && (

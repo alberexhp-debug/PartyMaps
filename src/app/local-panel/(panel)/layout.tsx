@@ -6,6 +6,7 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import {
   LayoutDashboard, Store, Calendar, QrCode, Bell,
   Star, BarChart3, Users, CreditCard, LogOut, Trophy, Target, MessageSquare,
+  Beer, ShoppingBag,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +15,8 @@ const NAV_ITEMS = [
   { href: '/local-panel/mi-local', icon: Store, label: 'Mi local' },
   { href: '/local-panel/eventos', icon: Calendar, label: 'Eventos' },
   { href: '/local-panel/scanner', icon: QrCode, label: 'Scanner' },
+  { href: '/local-panel/pedidos-bar', icon: Beer, label: 'Bar — Pedidos' },
+  { href: '/local-panel/productos', icon: ShoppingBag, label: 'Bar — Carta' },
   { href: '/local-panel/concursos', icon: Trophy, label: 'Concursos' },
   { href: '/local-panel/retos', icon: Target, label: 'Retos' },
   { href: '/local-panel/sugerencias', icon: MessageSquare, label: 'Sugerencias' },

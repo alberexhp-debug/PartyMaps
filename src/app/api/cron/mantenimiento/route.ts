@@ -154,5 +154,9 @@ export async function GET(req: NextRequest) {
     .lt('promo_ultima_hora_hasta', nowIso)
   stats.promos_ultima_hora_expiradas = promosLimpiadas || 0
 
+  // 10. Expirar pedidos de bar pagados pero no canjeados en 6h
+  const { data: expirados } = await supabase.rpc('expirar_pedidos_bar')
+  stats.pedidos_bar_expirados = typeof expirados === 'number' ? expirados : 0
+
   return NextResponse.json({ ok: true, stats, timestamp: nowIso })
 }

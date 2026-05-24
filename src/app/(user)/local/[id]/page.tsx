@@ -17,7 +17,7 @@ import {
 import {
   ChevronLeft, Bell, BellOff, MapPin, Clock, Music, Ticket,
   Star, MessageSquare, Lightbulb, Share2, Navigation, PenLine, X,
-  LogIn, LogOut, Trophy, Target, Send, Sparkles
+  LogIn, LogOut, Trophy, Target, Send, Sparkles, Beer,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LocalImagen } from '@/components/ui/LocalImagen'
@@ -429,6 +429,16 @@ export default function LocalPerfilPage() {
               </>
             )}
           </span>
+        </button>
+
+        {/* CTA pedir en barra (módulo bar) */}
+        <button
+          onClick={() => router.push(`/local/${id}/bar`)}
+          className="group relative w-full h-14 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] glass border border-white/15 text-white hover:border-white/25 overflow-hidden flex items-center justify-center gap-2.5"
+        >
+          <Beer size={20} className="text-[#F39C12]" />
+          <span>Pedir en barra</span>
+          <span className="text-xs text-[#B8B8CC] font-normal">· QR para canjear</span>
         </button>
 
         {/* Estado aforo */}

@@ -225,6 +225,29 @@ export default function ScannerPage() {
 }
 
 async function verificarQR(qrData: string, localId: string, modoConsumicion: boolean): Promise<ResultadoEscaneoQR> {
+  // QR de pedido de bar (PMB:) — se canjea vía endpoint dedicado
+  if (qrData.startsWith('PMB:')) {
+    try {
+      const res = await fetch('/api/pedidos-bar/canjear', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ qr_code: qrData }),
+      })
+      const j = await res.json()
+      if (!res.ok) {
+        return { tipo: 'qr_invalido', mensaje: j.error || 'No se pudo canjear el pedido' }
+      }
+      const items = (j.pedido.pedido_items as Array<{ nombre_snapshot: string; cantidad: number }> | undefined) || []
+      const resumen = items.map(i => `${i.cantidad}× ${i.nombre_snapshot}`).join(' · ')
+      return {
+        tipo: 'consumicion_ok',
+        mensaje: `✓ Pedido entregado · ${resumen.slice(0, 80)}`,
+        timestamp: new Date().toISOString(),
+      } as ResultadoEscaneoQR
+    } catch {
+      return { tipo: 'qr_invalido', mensaje: 'Error de red al canjear el pedido' }
+    }
+  }
+
   // Format: PM2:<entrada_id>
   if (!qrData.startsWith('PM2:')) {
     return { tipo: 'qr_invalido', mensaje: 'QR no reconocido. No es de PartyMaps.' }
