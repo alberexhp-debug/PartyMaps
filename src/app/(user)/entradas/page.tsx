@@ -7,6 +7,10 @@ import { Entrada, Local, Evento } from '@/types'
 import { formatearPrecio, formatearFecha } from '@/lib/utils'
 import { Ticket, Clock, ChevronRight, Search } from 'lucide-react'
 import { IlustracionTickets } from '@/components/ui/Illustration'
+import { LocalImagen } from '@/components/ui/LocalImagen'
+import { SkeletonLocalCard } from '@/components/ui/ErrorState'
+import { PullIndicator } from '@/components/ui/PullIndicator'
+import { usePullToRefresh } from '@/lib/hooks/usePullToRefresh'
 import { cn } from '@/lib/utils'
 
 type EntradaConInfo = Entrada & { local?: Local; evento?: Evento }
@@ -22,6 +26,8 @@ export default function EntradasPage() {
     if (!usuario) { router.push('/login'); return }
     cargar()
   }, [usuario])
+
+  const ptr = usePullToRefresh({ onRefresh: cargar })
 
   async function cargar() {
     const { data } = await supabase
@@ -50,12 +56,13 @@ export default function EntradasPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
+      <PullIndicator {...ptr} />
       <div className="hero-halo-rose" />
 
       {/* Header */}
       <div className="relative px-5 pt-6 pb-0 safe-top">
         <p className="eyebrow mb-2">Tus accesos</p>
-        <h1 className="text-display-lg text-white">Mis entradas</h1>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Mis entradas</h1>
         <p className="text-[#A0A0B8] mt-2 text-sm">
           {activas.length === 0 ? 'Sin entradas activas' : `${activas.length} ${activas.length === 1 ? 'entrada lista' : 'entradas listas'}`}
         </p>
@@ -80,9 +87,7 @@ export default function EntradasPage() {
 
       <div className="relative p-4 space-y-3 mt-2">
         {loading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-28 skeleton rounded-2xl" />
-          ))
+          Array.from({ length: 3 }).map((_, i) => <SkeletonLocalCard key={i} />)
         ) : mostradas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-6">
             <IlustracionTickets size={140} />
@@ -135,13 +140,8 @@ function EntradaCard({ entrada, onClick }: { entrada: EntradaConInfo; onClick: (
     >
       <div className="flex items-stretch">
         {/* Imagen */}
-        <div className="w-24 h-28 bg-white/5 flex-shrink-0 relative">
-          <img
-            src={entrada.local?.imagenes?.[0] || ''}
-            alt={entrada.local?.nombre}
-            className="w-full h-full object-cover"
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-          />
+        <div className="w-24 h-28 bg-white/5 flex-shrink-0 relative overflow-hidden">
+          <LocalImagen src={entrada.local?.imagenes?.[0]} nombre={entrada.local?.nombre || 'Local'} />
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/40" />
         </div>
 

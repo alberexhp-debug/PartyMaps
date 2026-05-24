@@ -140,7 +140,7 @@ export default function LocalPanelDashboard() {
       <div className="relative flex items-start justify-between gap-3">
         <div>
           <p className="eyebrow mb-2">Dashboard</p>
-          <h1 className="text-display-lg text-white">{local.nombre}</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{local.nombre}</h1>
           <p className="text-[#A0A0B8] text-sm capitalize mt-2">{local.tier} · {local.ciudad}</p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border backdrop-blur-md mt-1"
@@ -161,33 +161,45 @@ export default function LocalPanelDashboard() {
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <KPICard
-          icon={Ticket}
-          label="Entradas hoy"
-          value={loading ? '...' : kpis!.entradas_hoy.toString()}
-          color="#E94560"
-        />
-        <KPICard
-          icon={TrendingUp}
-          label="Ingresos hoy"
-          value={loading ? '...' : formatearPrecio(kpis!.ingresos_hoy)}
-          color="#4F8EF7"
-        />
-        <KPICard
+      {/* KPI principal — ingresos hoy a tamaño hero */}
+      <div className="card-premium relative overflow-hidden p-6 md:p-8">
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-30 blur-3xl bg-[#4F8EF7]" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-[#4F8EF7]/22 border border-[#4F8EF7]/40 flex items-center justify-center" style={{ boxShadow: '0 4px 14px -4px rgba(79,142,247,0.7)' }}>
+              <TrendingUp size={18} className="text-[#4F8EF7]" />
+            </div>
+            <span className="text-[10px] text-[#B8B8CC] font-bold uppercase tracking-[0.2em]">Ingresos hoy</span>
+          </div>
+          <p className="text-5xl md:text-6xl font-bold text-white text-display text-numeric tracking-tight">
+            {loading ? '—' : formatearPrecio(kpis!.ingresos_hoy)}
+          </p>
+          <p className="text-sm text-[#B8B8CC] mt-2">
+            {loading ? '' : `${kpis!.entradas_hoy} ${kpis!.entradas_hoy === 1 ? 'entrada vendida' : 'entradas vendidas'} hoy`}
+          </p>
+        </div>
+      </div>
+
+      {/* KPIs secundarios — pequeños */}
+      <div className="grid grid-cols-3 gap-3">
+        <KPISecundario
           icon={Users}
           label="Suscriptores"
-          value={loading ? '...' : kpis!.suscriptores.toString()}
+          value={loading ? '—' : kpis!.suscriptores.toString()}
           color="#F39C12"
         />
-        <KPICard
+        <KPISecundario
           icon={Star}
           label="Valoración"
-          value={loading ? '...' : kpis!.media_reviews > 0
-            ? `${kpis!.media_reviews.toFixed(1)} ★ (${kpis!.num_reviews})`
-            : 'Sin reseñas'}
+          value={loading ? '—' : kpis!.media_reviews > 0 ? kpis!.media_reviews.toFixed(1) : '—'}
+          sublabel={loading || kpis!.num_reviews === 0 ? undefined : `${kpis!.num_reviews} reseñas`}
           color="#27AE60"
+        />
+        <KPISecundario
+          icon={Ticket}
+          label="Aforo"
+          value={loading ? '—' : `${Math.round(kpis!.aforo_actual)}%`}
+          color={colorTemp}
         />
       </div>
 
@@ -374,10 +386,26 @@ function KPICard({ icon: Icon, label, value, color }: {
           <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, border: `1px solid ${color}40`, boxShadow: `0 4px 14px -4px ${color}80` }}>
             <Icon size={16} style={{ color }} />
           </div>
-          <span className="text-[10px] text-[#A0A0B8] font-bold uppercase tracking-[0.18em]">{label}</span>
+          <span className="text-[10px] text-[#B8B8CC] font-bold uppercase tracking-[0.18em]">{label}</span>
         </div>
         <p className="text-3xl font-bold text-white text-display text-numeric tracking-tight">{value}</p>
       </div>
+    </div>
+  )
+}
+
+/** KPI compacto para métricas secundarias bajo el hero */
+function KPISecundario({ icon: Icon, label, value, sublabel, color }: {
+  icon: React.ElementType; label: string; value: string; sublabel?: string; color: string
+}) {
+  return (
+    <div className="card-premium p-3 md:p-4">
+      <div className="flex items-center gap-1.5 mb-2">
+        <Icon size={13} style={{ color }} />
+        <span className="text-[9px] text-[#B8B8CC] font-bold uppercase tracking-[0.16em] truncate">{label}</span>
+      </div>
+      <p className="text-xl md:text-2xl font-bold text-white text-display text-numeric tracking-tight leading-none">{value}</p>
+      {sublabel && <p className="text-[10px] text-[#8B8BA8] mt-1.5 truncate">{sublabel}</p>}
     </div>
   )
 }

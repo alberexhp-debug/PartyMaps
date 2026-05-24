@@ -66,7 +66,7 @@ export default function EventoEditPage() {
   return (
     <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-4">
       <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 text-[#A0A0B8]">
+        <button aria-label="Volver" onClick={() => router.back()} className="p-2 text-[#A0A0B8]">
           <ArrowLeft size={20} />
         </button>
         <h1 className="text-2xl font-black text-white flex-1">

@@ -3,6 +3,7 @@ import { withSentryConfig } from "@sentry/nextjs"
 
 const nextConfig: NextConfig = {
   images: {
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       { protocol: "https", hostname: "cyeunxszrivubdexirul.supabase.co" },
       { protocol: "https", hostname: "*.supabase.co" },
@@ -10,6 +11,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "api.mapbox.com" },
       { protocol: "https", hostname: "*.cdninstagram.com" },
       { protocol: "https", hostname: "*.fbcdn.net" },
+      { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
   turbopack: {},

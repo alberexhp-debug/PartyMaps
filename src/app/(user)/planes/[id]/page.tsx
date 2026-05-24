@@ -167,7 +167,7 @@ export default function PlanDetallePage() {
       {/* Header */}
       <div className="bg-white/5 border-b border-[#1A1A2E] safe-top">
         <div className="flex items-center gap-3 px-4 py-3">
-          <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
+          <button aria-label="Volver" onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
             <ArrowLeft size={20} />
           </button>
           <div className="flex-1 min-w-0">

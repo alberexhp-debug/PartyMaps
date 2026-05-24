@@ -12,6 +12,8 @@ import {
   UserCheck, Lock, Unlock
 } from 'lucide-react'
 import { IlustracionEstrellas } from '@/components/ui/Illustration'
+import { LocalImagen } from '@/components/ui/LocalImagen'
+import { SkeletonPlanCard } from '@/components/ui/ErrorState'
 import { cn } from '@/lib/utils'
 
 type PlanConLocal = PlanPublico & { locales?: Local }
@@ -96,15 +98,13 @@ function PlanesContent() {
 
       <div className="px-4 pb-4 space-y-3">
         {loading ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 glass-subtle rounded-2xl animate-pulse" />
-          ))
+          Array.from({ length: 4 }).map((_, i) => <SkeletonPlanCard key={i} />)
         ) : planes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 px-6 text-center">
             <IlustracionEstrellas size={140} />
             <p className="text-[#FAFAFC] text-xl font-semibold text-display max-w-xs">Sin planes esta noche</p>
             <p className="text-[#A0A0B8] text-sm max-w-xs">Crea el primero y deja que la gente que va al mismo sitio se una.</p>
-            <Button size="lg" variant="holo" onClick={() => setShowCrear(true)}>
+            <Button size="lg" onClick={() => setShowCrear(true)}>
               <Plus size={16} />
               Crear el primero
             </Button>
@@ -151,16 +151,11 @@ function PlanCard({
     : 0
 
   return (
-    <div className="glass rounded-2xl overflow-hidden transition-all hover:border-white/15">
+    <div className="card-premium overflow-hidden transition-all">
       <div className="flex items-stretch">
         {/* Imagen */}
-        <div className="w-24 h-32 bg-white/5 flex-shrink-0 relative">
-          <img
-            src={plan.locales?.imagenes?.[0] || ''}
-            alt={plan.locales?.nombre}
-            className="w-full h-full object-cover"
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-          />
+        <div className="w-24 h-32 flex-shrink-0 relative overflow-hidden">
+          <LocalImagen src={plan.locales?.imagenes?.[0]} nombre={plan.locales?.nombre || 'Plan'} />
           <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/30" />
         </div>
 

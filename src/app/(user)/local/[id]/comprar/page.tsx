@@ -133,7 +133,7 @@ export default function ComprarEntradaPage() {
     <div className="min-h-screen pb-6">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white/5/95 backdrop-blur-sm border-b border-[#1A1A2E] px-4 py-3 flex items-center gap-3 safe-top">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
+        <button aria-label="Volver" onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
           <ArrowLeft size={20} />
         </button>
         <h1 className="text-lg font-bold text-white">Comprar entrada</h1>

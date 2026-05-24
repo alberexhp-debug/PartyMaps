@@ -108,7 +108,7 @@ export default function LoginPage() {
           <>
             <div>
               <p className="eyebrow mb-3">Acceder</p>
-              <h1 className="text-display-lg text-white">Bienvenido<br />de vuelta</h1>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Bienvenido<br />de vuelta</h1>
               <p className="text-[#A0A0B8] mt-3 text-base">Introduce tu número para continuar</p>
             </div>
             <div className="flex gap-3">

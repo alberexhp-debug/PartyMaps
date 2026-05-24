@@ -75,7 +75,7 @@ export default function BienvenidaPage() {
         </div>
 
         {/* Title MEGA */}
-        <h1 className="text-mega text-white mb-5 whitespace-pre-line">{current.title}</h1>
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-display text-white mb-5 whitespace-pre-line">{current.title}</h1>
 
         {/* Description */}
         <p className="text-[#A0A0B8] leading-relaxed text-lg max-w-md">{current.description}</p>

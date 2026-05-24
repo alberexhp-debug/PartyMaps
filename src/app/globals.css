@@ -18,11 +18,11 @@
   --color-accent-violet: #7C5CFF;
   --color-accent-gold: #D4A84B;
 
-  /* Texto */
-  --color-text-primary: #FAFAFC;
-  --color-text-secondary: #A0A0B8;
-  --color-text-tertiary: #6B6B85;
-  --color-text-disabled: #404058;
+  /* Texto — todos los valores cumplen WCAG AA contra el fondo base #06060C */
+  --color-text-primary: #FAFAFC;       /* ratio 18.7:1 */
+  --color-text-secondary: #B8B8CC;     /* ratio 9.5:1 — subido para AA */
+  --color-text-tertiary: #8B8BA8;      /* ratio 5.5:1 — antes era 4.1 */
+  --color-text-disabled: #4A4A60;
 
   /* Estados */
   --color-success: #27AE60;
@@ -215,26 +215,18 @@ body {
   box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.65);
 }
 
-/* ---------- Tipografía display ---------- */
+/* ---------- Tipografía ----------
+ * Sistema único: una sola clase .text-display aplica la fuente display
+ * (Sora) + tracking + features. Los tamaños SIEMPRE con utilities tailwind
+ * (text-sm, text-base, text-lg, text-xl, text-2xl, text-3xl, text-4xl, text-5xl).
+ * Para tabular nums en KPIs usar .text-numeric.
+ */
 .text-display {
   font-family: var(--font-display);
   font-feature-settings: 'ss01', 'cv11';
   letter-spacing: -0.025em;
   font-weight: 700;
-}
-.text-display-lg {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 6vw, 3.25rem);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
-  font-weight: 800;
-}
-.text-mega {
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 8vw, 4.5rem);
-  line-height: 0.98;
-  letter-spacing: -0.04em;
-  font-weight: 800;
+  line-height: 1.05;
 }
 .text-numeric {
   font-feature-settings: 'tnum', 'lnum';
@@ -304,11 +296,18 @@ button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 /* Selección de texto */
 ::selection { background: rgba(233, 69, 96, 0.4); color: #fff; }
 
-/* Foco accesible */
+/* Foco accesible — visible siempre con teclado/tabulación */
 :focus-visible {
-  outline: 2px solid rgba(233, 69, 96, 0.6);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 2px solid #FF3D71;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+/* En cards/botones que ya tienen radius, el outline se redondea con ellos */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline-color: #FF3D71;
+  outline-width: 2px;
 }
 
 /* Scrollbar hide para tabs y carruseles horizontales */

@@ -93,7 +93,7 @@ export default function CartaPublicaPage() {
           <span className="text-white font-semibold">Descubre dónde brilla la ciudad.</span>
         </p>
         <Link href="/" className="mt-5">
-          <Button variant="holo" size="lg">
+          <Button size="lg">
             Crear mi carta <ArrowRight size={18} />
           </Button>
         </Link>

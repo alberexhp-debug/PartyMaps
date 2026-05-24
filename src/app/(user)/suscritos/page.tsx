@@ -7,6 +7,10 @@ import { Local, Evento } from '@/types'
 import { formatearFecha, formatearHora, getLabelTipoLocal } from '@/lib/utils'
 import { Bell, Calendar, ChevronRight, BellOff, MapPin } from 'lucide-react'
 import { IlustracionRadar } from '@/components/ui/Illustration'
+import { LocalImagen } from '@/components/ui/LocalImagen'
+import { SkeletonSuscritoCard } from '@/components/ui/ErrorState'
+import { PullIndicator } from '@/components/ui/PullIndicator'
+import { usePullToRefresh } from '@/lib/hooks/usePullToRefresh'
 import { cn } from '@/lib/utils'
 
 type SuscripcionConLocal = {
@@ -27,6 +31,8 @@ export default function SuscritosPage() {
     if (!usuario) { router.push('/login'); return }
     cargar()
   }, [usuario])
+
+  const ptr = usePullToRefresh({ onRefresh: cargar })
 
   async function cargar() {
     const { data } = await supabase
@@ -53,10 +59,11 @@ export default function SuscritosPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
+      <PullIndicator {...ptr} />
       <div className="hero-halo-violet" />
       <div className="relative px-5 pt-6 pb-3 safe-top">
         <p className="eyebrow eyebrow-violet mb-2">Tu radar</p>
-        <h1 className="text-display-lg text-white">Suscritos</h1>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Suscritos</h1>
         <p className="text-[#A0A0B8] mt-2 text-sm">
           <span className="text-white font-bold text-numeric">{suscripciones.length}</span> {suscripciones.length === 1 ? 'local seguido' : 'locales seguidos'}
         </p>
@@ -64,9 +71,7 @@ export default function SuscritosPage() {
 
       <div className="relative p-4 space-y-3">
         {loading ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-40 skeleton rounded-2xl" />
-          ))
+          Array.from({ length: 4 }).map((_, i) => <SkeletonSuscritoCard key={i} />)
         ) : suscripciones.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-6">
             <IlustracionRadar size={140} />
@@ -84,16 +89,11 @@ export default function SuscritosPage() {
               .sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime())[0]
 
             return (
-              <div key={s.id} className="glass rounded-2xl overflow-hidden">
+              <div key={s.id} className="card-premium overflow-hidden">
                 {/* Banner */}
-                <div className="relative h-24">
-                  <img
-                    src={local.imagenes?.[0] || ''}
-                    alt={local.nombre}
-                    className="w-full h-full object-cover"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A2E] via-[#1A1A2E]/60 to-transparent" />
+                <div className="relative h-28">
+                  <LocalImagen src={local.imagenes?.[0]} nombre={local.nombre} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#14142A] via-[#14142A]/40 to-transparent" />
                   {local.tier === 'destacado' && (
                     <div className="absolute top-2 left-3 px-2 py-0.5 bg-[#F39C12] rounded-full text-[10px] font-bold text-white">
                       ★ Destacado

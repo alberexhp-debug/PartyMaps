@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/Toast'
 import {
   X, Bell, BellOff, ChevronRight, TrendingUp, Clock, Ticket, Star, MapPin
 } from 'lucide-react'
+import { LocalImagen } from '@/components/ui/LocalImagen'
 import {
   getLabelTipoLocal, getColorTemperatura, getLabelTemperatura,
   getDescripcionTemperatura, formatearPrecio, formatearHora
@@ -47,19 +48,12 @@ export function LocalBottomSheet({ local, onClose }: Props) {
     setLoadingSub(false)
   }
 
-  const imagenPrincipal = local.imagenes?.[0] || '/placeholder-local.jpg'
-
   return (
     <div className="absolute bottom-20 left-0 right-0 z-20 animate-slide-up px-3">
       <div className="glass-strong rounded-3xl overflow-hidden shadow-[0_30px_60px_-20px_rgba(0,0,0,0.7)]">
         {/* Imagen */}
         <div className="relative h-44">
-          <img
-            src={imagenPrincipal}
-            alt={local.nombre}
-            className="w-full h-full object-cover"
-            onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800' }}
-          />
+          <LocalImagen src={local.imagenes?.[0]} nombre={local.nombre} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#14142A] via-[#14142A]/30 to-transparent" />
 
           {/* Cerrar */}

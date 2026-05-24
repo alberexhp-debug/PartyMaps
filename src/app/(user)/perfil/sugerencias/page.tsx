@@ -43,7 +43,7 @@ export default function MisSugerenciasPage() {
   return (
     <div className="min-h-screen pb-24">
       <div className="px-4 py-3 flex items-center gap-3 safe-top">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
+        <button aria-label="Volver" onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
           <ChevronLeft size={20} />
         </button>
         <h1 className="text-lg font-bold text-white">Mis sugerencias</h1>

@@ -20,8 +20,8 @@ export function SplashScreen() {
       return
     }
     sessionStorage.setItem(STORAGE_KEY, '1')
-    const t1 = setTimeout(() => setFading(true), 900)
-    const t2 = setTimeout(() => setVisible(false), 1400)
+    const t1 = setTimeout(() => setFading(true), 450)
+    const t2 = setTimeout(() => setVisible(false), 750)
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [])
 

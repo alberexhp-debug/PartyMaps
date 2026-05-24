@@ -20,6 +20,7 @@ import {
   LogIn, LogOut, Trophy, Target, Send, Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LocalImagen } from '@/components/ui/LocalImagen'
 
 export default function LocalPerfilPage() {
   const { id } = useParams<{ id: string }>()
@@ -101,8 +102,6 @@ export default function LocalPerfilPage() {
       await supabase.from('suscripciones').insert({ usuario_id: usuario.id, local_id: id })
       setSuscrito(true)
       toast.success('Siguiendo este local')
-      const { dispararConfetiSuave } = await import('@/lib/confeti')
-      dispararConfetiSuave(0.5, 0.35)
     }
   }
 
@@ -337,18 +336,8 @@ export default function LocalPerfilPage() {
     <div className="min-h-screen">
       {/* Hero cinemático */}
       <div className="relative h-[58vh] min-h-[420px] max-h-[560px]">
-        {local.imagenes?.length > 0 ? (
-          <img
-            src={local.imagenes[imagenActiva]}
-            alt={local.nombre}
-            className="w-full h-full object-cover"
-            onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=1200' }}
-          />
-        ) : (
-          <div className="w-full h-full bg-[#14142A] flex items-center justify-center">
-            <Music size={64} className="text-white/10" />
-          </div>
-        )}
+        <LocalImagen src={local.imagenes?.[imagenActiva]} nombre={local.nombre} priority />
+
         {/* Vignette superior + degradado fuerte abajo */}
         <div className="absolute inset-0" style={{
           background: 'linear-gradient(180deg, rgba(6,6,12,0.5) 0%, rgba(6,6,12,0.05) 25%, rgba(6,6,12,0.6) 70%, #06060C 100%)'
@@ -356,10 +345,10 @@ export default function LocalPerfilPage() {
 
         {/* Nav */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 safe-top z-20">
-          <button onClick={() => router.back()} className="w-11 h-11 glass-strong rounded-2xl flex items-center justify-center text-white">
+          <button aria-label="Volver" onClick={() => router.back()} className="w-11 h-11 glass-strong rounded-2xl flex items-center justify-center text-white">
             <ChevronLeft size={22} />
           </button>
-          <button onClick={compartir} className="w-11 h-11 glass-strong rounded-2xl flex items-center justify-center text-white">
+          <button aria-label="Compartir" onClick={compartir} className="w-11 h-11 glass-strong rounded-2xl flex items-center justify-center text-white">
             <Share2 size={18} />
           </button>
         </div>
@@ -375,7 +364,7 @@ export default function LocalPerfilPage() {
               </Badge>
             )}
           </div>
-          <h1 className="text-mega text-white" style={{ textShadow: '0 4px 30px rgba(0,0,0,0.6)' }}>{local.nombre}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-display text-white" style={{ textShadow: '0 4px 30px rgba(0,0,0,0.6)' }}>{local.nombre}</h1>
         </div>
 
         {/* Miniaturas */}

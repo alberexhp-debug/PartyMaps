@@ -67,7 +67,7 @@ export default function AdminDashboard() {
       <div className="absolute -top-32 -right-20 w-[40vw] h-[40vw] rounded-full opacity-25 blur-3xl pointer-events-none bg-[#4F8EF7]/40" />
       <div className="relative">
         <p className="eyebrow eyebrow-blue mb-2">Tiempo real</p>
-        <h1 className="text-display-lg text-white">Dashboard global</h1>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Dashboard global</h1>
         <p className="text-[#A0A0B8] text-sm mt-2">Vista de la plataforma</p>
       </div>
 

@@ -66,16 +66,22 @@ export default function MapaExplorar() {
     })
 
     map.on('load', () => {
-      // Fly-in cinemático sobre Madrid (la app entra "aterrizando")
-      setTimeout(() => {
-        map.flyTo({
-          center: MADRID_CENTER,
-          zoom: 12.5,
-          duration: 2200,
-          essential: true,
-          curve: 1.6,
-        })
-      }, 200)
+      // Fly-in solo la primera vez por sesión (evita ser molesto al repetir navegación)
+      const yaVistoFlyIn = typeof window !== 'undefined' && sessionStorage.getItem('pm_map_flyin_seen')
+      if (!yaVistoFlyIn) {
+        sessionStorage.setItem('pm_map_flyin_seen', '1')
+        setTimeout(() => {
+          map.flyTo({
+            center: MADRID_CENTER,
+            zoom: 12.5,
+            duration: 1400,
+            essential: true,
+            curve: 1.4,
+          })
+        }, 100)
+      } else {
+        map.jumpTo({ center: MADRID_CENTER, zoom: 12.5 })
+      }
 
       // Atenuar fondo del mapa para que destaque la capa de calor
       try {

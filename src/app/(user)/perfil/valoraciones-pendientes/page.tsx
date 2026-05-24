@@ -69,7 +69,7 @@ export default function ValoracionesPendientesPage() {
   return (
     <div className="min-h-screen pb-24">
       <div className="sticky top-0 z-10 glass-strong border-b border-white/8 px-4 py-3 safe-top flex items-center gap-3">
-        <button onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-white">
+        <button aria-label="Volver" onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-white">
           <ChevronLeft size={20} />
         </button>
         <div>

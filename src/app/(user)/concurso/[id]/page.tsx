@@ -157,7 +157,7 @@ export default function ConcursoPage() {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <div className="px-4 py-3 flex items-center gap-3 safe-top">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
+        <button aria-label="Volver" onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
           <ArrowLeft size={20} />
         </button>
         <div>

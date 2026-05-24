@@ -99,7 +99,7 @@ export default function EntradaDetallePage() {
       style={{ background: '#0D0D1A' }}>
       {/* Header */}
       <div className="px-4 py-3 flex items-center gap-3 safe-top">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
+        <button aria-label="Volver" onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
           <ArrowLeft size={20} />
         </button>
         <h1 className="text-lg font-bold text-white">Mi entrada</h1>

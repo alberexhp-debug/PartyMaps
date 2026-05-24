@@ -43,7 +43,7 @@ export function Modal({ open, onClose, title, children, className, size = 'md' }
         {title && (
           <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-white/8">
             <h2 className="text-lg font-semibold text-white text-display">{title}</h2>
-            <button onClick={onClose} className="p-1.5 rounded-lg text-[#A0A0B8] hover:text-white hover:bg-white/10 transition-colors">
+            <button onClick={onClose} aria-label="Cerrar" className="p-1.5 rounded-lg text-[#A0A0B8] hover:text-white hover:bg-white/10 transition-colors">
               <X size={20} />
             </button>
           </div>
