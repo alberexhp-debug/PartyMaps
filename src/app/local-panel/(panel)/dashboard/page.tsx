@@ -143,6 +143,12 @@ export default function LocalPanelDashboard() {
   const temperatura = getTemperaturaAforo(kpis?.aforo_actual || 0)
   const colorTemp = getColorTemperatura(temperatura)
 
+  // Operador de noche: vista enfocada a la operativa "esta noche".
+  // Sin KPIs financieros, sin charts históricos: solo aforo, scanner y cola bar.
+  if (trabajador?.rol === 'operador_noche') {
+    return <DashboardOperador />
+  }
+
   return (
     <div className="relative p-4 md:p-8 space-y-6 pb-20 md:pb-8 overflow-hidden">
       <div className="hero-halo-rose" />
@@ -447,5 +453,141 @@ function KPISecundario({ icon: Icon, label, value, sublabel, color }: {
       <p className="text-xl md:text-2xl font-bold text-white text-display text-numeric tracking-tight leading-none">{value}</p>
       {sublabel && <p className="text-[10px] text-[#8B8BA8] mt-1.5 truncate">{sublabel}</p>}
     </div>
+  )
+}
+
+// ────────────────────────────────────────────────────────────────────
+// Dashboard del operador de noche — UI mínima, focal, sin charts.
+// ────────────────────────────────────────────────────────────────────
+function DashboardOperador() {
+  const router = useRouter()
+  const toast = useToast()
+  const { local, trabajador } = useLocalPanelStore()
+  const [pedidosPendientes, setPedidosPendientes] = useState(0)
+  const [aforoSlider, setAforoSlider] = useState<number | null>(null)
+  const [guardando, setGuardando] = useState(false)
+
+  useEffect(() => {
+    if (!local) return
+    const cargar = async () => {
+      const { count } = await supabase
+        .from('pedidos_bar')
+        .select('id', { count: 'exact', head: true })
+        .eq('local_id', local.id).eq('estado', 'pagado')
+      setPedidosPendientes(count ?? 0)
+    }
+    cargar()
+    // Realtime: nuevos pedidos aparecen al instante
+    const ch = supabase.channel(`op-${local.id}`)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'pedidos_bar', filter: `local_id=eq.${local.id}`,
+      }, cargar)
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [local])
+
+  if (!local) return null
+  const temperatura = getTemperaturaAforo(local.aforo_estimado_porcentaje || 0)
+  const colorTemp = getColorTemperatura(temperatura)
+  const aforoActual = aforoSlider !== null ? aforoSlider : Math.round(local.aforo_estimado_porcentaje || 0)
+
+  const guardar = async () => {
+    if (aforoSlider === null || !trabajador) return
+    setGuardando(true)
+    await fetch('/api/locales/aforo', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ local_id: local.id, porcentaje: aforoSlider, worker_id: trabajador.usuario_id }),
+    })
+    setGuardando(false)
+    toast.success('Aforo actualizado')
+  }
+
+  return (
+    <div className="relative p-4 md:p-8 space-y-5 pb-20 md:pb-8 overflow-hidden">
+      <div className="hero-halo-rose" />
+      <div className="relative">
+        <p className="eyebrow mb-2">Esta noche</p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{local.nombre}</h1>
+      </div>
+
+      {/* Aforo HERO con slider grande */}
+      <div className="card-premium relative overflow-hidden p-5">
+        <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full opacity-25 blur-3xl" style={{ background: colorTemp }} />
+        <div className="relative">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full animate-pulse" style={{ background: colorTemp, boxShadow: `0 0 10px ${colorTemp}` }} />
+              <p className="eyebrow" style={{ color: colorTemp }}>{getLabelTemperatura(temperatura)}</p>
+            </div>
+            <p className="text-5xl md:text-6xl font-bold text-display text-numeric" style={{ color: colorTemp }}>{aforoActual}%</p>
+          </div>
+          <input
+            type="range" min={0} max={100}
+            value={aforoActual}
+            onChange={e => setAforoSlider(Number(e.target.value))}
+            className="w-full accent-[#E94560]"
+          />
+          {aforoSlider !== null && (
+            <Button fullWidth size="md" className="mt-3" onClick={guardar} loading={guardando}>
+              Guardar aforo
+            </Button>
+          )}
+          <p className="text-xs text-[#8B8BA8] mt-2">Tu valor sobreescribe la estimación hasta las 6 AM.</p>
+        </div>
+      </div>
+
+      {/* Acción Bar — pedidos por servir */}
+      <button
+        onClick={() => router.push('/local-panel/pedidos-bar')}
+        className="card-premium relative w-full overflow-hidden p-5 text-left transition-all hover:-translate-y-0.5"
+      >
+        <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full opacity-25 blur-3xl bg-[#F39C12]" />
+        <div className="relative flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-[#F39C12]/15 border border-[#F39C12]/40 flex items-center justify-center shrink-0">
+            <Calendar size={22} className="text-[#F39C12]" />
+          </div>
+          <div className="flex-1">
+            <p className="eyebrow" style={{ color: '#F39C12' }}>Bar · cola en vivo</p>
+            <p className="text-3xl font-bold text-white text-display text-numeric mt-1">{pedidosPendientes}</p>
+            <p className="text-xs text-[#B8B8CC] mt-1">
+              {pedidosPendientes === 0 ? 'Sin pedidos por servir' : pedidosPendientes === 1 ? '1 pedido por servir' : `${pedidosPendientes} pedidos por servir`}
+            </p>
+          </div>
+          <ChevronRight size={20} className="text-[#B8B8CC]" />
+        </div>
+      </button>
+
+      {/* Acciones rápidas grandes */}
+      <div className="grid grid-cols-2 gap-3">
+        <AccionRapida onClick={() => router.push('/local-panel/scanner')}
+          color="#4F8EF7" icon={Calendar} label="Scanner" sublabel="Entradas y bar" />
+        <AccionRapida onClick={() => router.push('/local-panel/notificaciones')}
+          color="#7C5CFF" icon={AlertCircle} label="Notificación" sublabel="A tus seguidores" />
+        <AccionRapida onClick={() => router.push('/local-panel/sugerencias')}
+          color="#27AE60" icon={Check} label="Sugerencias" sublabel="De los clientes" />
+        <AccionRapida onClick={() => router.push('/local-panel/concursos')}
+          color="#D4A84B" icon={X} label="Concursos" sublabel="Activos esta noche" />
+      </div>
+    </div>
+  )
+}
+
+function AccionRapida({ onClick, color, icon: Icon, label, sublabel }: {
+  onClick: () => void; color: string; icon: React.ElementType; label: string; sublabel: string
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="card-premium relative p-4 text-left overflow-hidden transition-all hover:-translate-y-0.5"
+    >
+      <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-30 blur-2xl" style={{ background: color }} />
+      <div className="relative">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2.5" style={{ background: `${color}22`, border: `1px solid ${color}40` }}>
+          <Icon size={17} style={{ color }} />
+        </div>
+        <p className="text-base font-bold text-white text-display">{label}</p>
+        <p className="text-[11px] text-[#B8B8CC] mt-0.5">{sublabel}</p>
+      </div>
+    </button>
   )
 }

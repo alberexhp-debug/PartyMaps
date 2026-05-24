@@ -47,7 +47,8 @@ export default function LocalPanelLoginPage() {
 
     setTrabajador(trabajador)
     setLocal(trabajador.locales)
-    router.push('/local-panel/dashboard')
+    const { homeDeRol } = await import('@/lib/permisosLocal')
+    router.push(`/local-panel/${homeDeRol(trabajador.rol)}`)
   }
 
   return (

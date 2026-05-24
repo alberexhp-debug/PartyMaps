@@ -142,6 +142,7 @@ export async function POST(req: NextRequest) {
       { email: 'gestor@testlocal.com',    password: 'PM_Gestor2025!',   rol: 'gestor',          nombre: 'Gestor Test' },
       { email: 'operador@testlocal.com',  password: 'PM_Operador2025!', rol: 'operador_noche',  nombre: 'Operador Noche' },
       { email: 'puerta@testlocal.com',    password: 'PM_Puerta2025!',   rol: 'puerta',          nombre: 'Puerta Test' },
+      { email: 'barman@testlocal.com',    password: 'PM_Barman2025!',   rol: 'barman',          nombre: 'Barman Test' },
     ]
 
     for (const acc of localAccounts) {
