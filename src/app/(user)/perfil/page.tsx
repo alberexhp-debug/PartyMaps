@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
@@ -12,7 +12,7 @@ import {
 } from '@/lib/utils'
 import {
   User, Star, Bell, BellOff, Shield, LogOut, ChevronRight,
-  Ticket, Users, Edit3, Camera, AlertCircle, Lightbulb, Sparkles, ArrowRight,
+  Ticket, Users, Edit3, Camera, AlertCircle, Lightbulb, Sparkles, ArrowRight, ClipboardCheck,
 } from 'lucide-react'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 
@@ -25,10 +25,11 @@ export default function PerfilPage() {
   const [nuevoNombre, setNuevoNombre] = useState(usuario?.nombre || '')
   const push = usePushSubscription()
 
-  if (!usuario) {
-    router.push('/login')
-    return null
-  }
+  useEffect(() => {
+    if (!usuario) router.push('/login')
+  }, [usuario, router])
+
+  if (!usuario) return null
 
   const signo = calcularSignoZodiaco(usuario.fecha_nacimiento)
   const edad = calcularEdad(usuario.fecha_nacimiento)
@@ -220,6 +221,7 @@ export default function PerfilPage() {
         {/* Opciones */}
         <div className="glass rounded-2xl overflow-hidden divide-y divide-white/5">
           <OpcionPerfil icon={Sparkles} label="Mi carta de perfil" onClick={() => router.push('/perfil/carta')} />
+          <OpcionPerfil icon={ClipboardCheck} label="Valoraciones pendientes" onClick={() => router.push('/perfil/valoraciones-pendientes')} />
           <OpcionPerfil icon={Lightbulb} label="Mis sugerencias enviadas" onClick={() => router.push('/perfil/sugerencias')} />
           <OpcionPerfil icon={Shield} label="Privacidad y seguridad" onClick={() => {}} />
           <OpcionPerfil icon={Star} label="Mis reseñas" onClick={() => {}} />

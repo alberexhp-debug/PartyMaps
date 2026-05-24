@@ -35,7 +35,22 @@ interface Reporte {
   reportador?: { nombre: string }
 }
 
-type Tab = 'reviews' | 'participaciones' | 'reportes'
+type Tab = 'reviews' | 'participaciones' | 'reportes' | 'votos'
+
+interface FlagVoto {
+  participacion_id: string
+  total_votos: number
+  ips_unicas: number
+  porcentaje_ips_unicas: number
+  porcentaje_cuentas_nuevas: number
+  max_votos_por_ip: number
+  motivos: string[]
+  participacion?: { id: string; contenido_url: string; votos: number; usuarios?: { nombre: string; foto_perfil_url?: string } | null }
+}
+interface ConcursoFlag {
+  concurso: { id: string; descripcion: string; premio: string; locales?: { id: string; nombre: string } | null }
+  flags: FlagVoto[]
+}
 
 export default function ModeracionPage() {
   const toast = useToast()
@@ -43,6 +58,7 @@ export default function ModeracionPage() {
   const [reviews, setReviews] = useState<ReviewConExtra[]>([])
   const [participaciones, setParticipaciones] = useState<ParticipacionPendiente[]>([])
   const [reportes, setReportes] = useState<Reporte[]>([])
+  const [votosFlags, setVotosFlags] = useState<ConcursoFlag[]>([])
   const [loading, setLoading] = useState(true)
 
   async function cargar() {
@@ -61,6 +77,16 @@ export default function ModeracionPage() {
     if (revRes.data) setReviews(revRes.data as ReviewConExtra[])
     if (partRes.data) setParticipaciones(partRes.data as unknown as ParticipacionPendiente[])
     if (repRes.data) setReportes(repRes.data as unknown as Reporte[])
+
+    // Votos sospechosos en paralelo (endpoint admin)
+    try {
+      const r = await fetch('/api/admin/votos-sospechosos')
+      if (r.ok) {
+        const json = await r.json()
+        setVotosFlags(json.concursos ?? [])
+      }
+    } catch {}
+
     setLoading(false)
   }
 
@@ -126,19 +152,24 @@ export default function ModeracionPage() {
     cargar()
   }
 
+  const totalFlagsVotos = votosFlags.reduce((s, c) => s + c.flags.length, 0)
+
   return (
-    <div className="p-4 md:p-6 pb-20 md:pb-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <Shield size={20} className="text-[#4F8EF7]" />
-        <h1 className="text-2xl font-black text-white">Moderación</h1>
+    <div className="p-4 md:p-8 pb-20 md:pb-8 space-y-4">
+      <div>
+        <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.25em] mb-1">Cola de revisión</p>
+        <h1 className="text-3xl font-bold text-white text-display tracking-tight flex items-center gap-2">
+          <Shield size={22} className="text-[#4F8EF7]" /> Moderación
+        </h1>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-white/10">
+      <div className="flex gap-2 border-b border-white/10 overflow-x-auto">
         {[
           { id: 'reviews' as Tab,        label: 'Reseñas',         count: reviews.length },
           { id: 'participaciones' as Tab, label: 'Participaciones', count: participaciones.length },
           { id: 'reportes' as Tab,       label: 'Reportes',         count: reportes.length },
+          { id: 'votos' as Tab,          label: 'Votos sospechosos', count: totalFlagsVotos },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={cn('px-3 py-2 text-sm border-b-2 -mb-px transition-colors',
@@ -229,6 +260,71 @@ export default function ModeracionPage() {
             />
           </div>
         )))}
+
+      {!loading && tab === 'votos' && (votosFlags.length === 0
+        ? <Vacio mensaje="Sin votación sospechosa detectada" />
+        : votosFlags.map(c => (
+          <div key={c.concurso.id} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">
+                {c.concurso.locales?.nombre} <span className="text-[#A0A0B8] font-normal">· {c.concurso.descripcion?.slice(0, 60)}</span>
+              </h3>
+              <span className="text-xs text-[#E94560] font-semibold">{c.flags.length} participaciones flagueadas</span>
+            </div>
+            {c.flags.map(f => (
+              <div key={f.participacion_id} className="glass rounded-2xl border border-[#E94560]/25 p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  {f.participacion?.contenido_url ? (
+                    <img src={f.participacion.contenido_url} alt="" className="w-20 h-20 object-cover rounded-lg shrink-0" />
+                  ) : (
+                    <div className="w-20 h-20 bg-white/5 rounded-lg flex items-center justify-center shrink-0">
+                      <ImageIcon size={20} className="text-[#6B6B85]" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white">{f.participacion?.usuarios?.nombre || 'Usuario'}</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-[11px]">
+                      <Metric label="Votos" value={f.total_votos.toString()} />
+                      <Metric label="IPs únicas" value={`${f.ips_unicas} (${f.porcentaje_ips_unicas}%)`} />
+                      <Metric label="Cuentas <48h" value={`${f.porcentaje_cuentas_nuevas}%`} accent={f.porcentaje_cuentas_nuevas > 60 ? '#E94560' : undefined} />
+                      <Metric label="Max votos/IP" value={f.max_votos_por_ip.toString()} accent={f.max_votos_por_ip > 3 ? '#E94560' : undefined} />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {f.motivos.map(m => (
+                    <span key={m} className="text-[10px] px-2 py-0.5 rounded-full bg-[#E94560]/15 border border-[#E94560]/30 text-[#E94560] font-semibold uppercase tracking-wider">
+                      {m.replace(/_/g, ' ')}
+                    </span>
+                  ))}
+                </div>
+                <BotonesAprobarRechazar
+                  labelOk="Marcar legítimo"
+                  labelKo="Descalificar participación"
+                  onAprobar={async () => {
+                    toast.success('Marcado como legítimo (sin acción)')
+                  }}
+                  onRechazar={async () => {
+                    if (!confirm('¿Descalificar esta participación? Sus votos no contarán para el ganador.')) return
+                    await supabase.from('participaciones_concurso').update({ estado: 'rechazada' }).eq('id', f.participacion_id)
+                    await registrarAuditoria({ tipo_accion: 'participacion_descalificada', entidad_tipo: 'participacion_concurso', entidad_id: f.participacion_id })
+                    toast.success('Participación descalificada')
+                    cargar()
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )))}
+    </div>
+  )
+}
+
+function Metric({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div className="bg-white/5 border border-white/8 rounded-lg px-2 py-1.5">
+      <p className="text-[9px] uppercase tracking-wider text-[#6B6B85]">{label}</p>
+      <p className="text-sm font-bold mt-0.5" style={{ color: accent || '#FAFAFC' }}>{value}</p>
     </div>
   )
 }

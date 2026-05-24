@@ -54,14 +54,29 @@ export default function EditorCartaPage() {
   const signo = useMemo(() => calcularSignoZodiaco(usuario?.fecha_nacimiento || new Date().toISOString()), [usuario?.fecha_nacimiento])
   const edad  = useMemo(() => calcularEdad(usuario?.fecha_nacimiento || new Date().toISOString()), [usuario?.fecha_nacimiento])
 
-  const sugerenciasFrase = useMemo(() => {
-    const banco = FRASES_ZODIACO[signo] || []
-    return banco.slice(0, 5)
+  // Sugerencias del banco admin (frases_zodiaco). Si no hay nada en BD, fallback a constantes.
+  const [sugerenciasFrase, setSugerenciasFrase] = useState<string[]>(() => (FRASES_ZODIACO[signo] || []).slice(0, 5))
+  useEffect(() => {
+    supabase
+      .from('frases_zodiaco')
+      .select('frase')
+      .eq('signo', signo)
+      .eq('activa', true)
+      .limit(8)
+      .then(({ data }) => {
+        const bd = (data ?? []).map(r => r.frase as string)
+        const fallback = FRASES_ZODIACO[signo] || []
+        const todas = bd.length > 0 ? bd : fallback
+        setSugerenciasFrase(todas.slice(0, 5))
+      })
   }, [signo])
 
   const sugerirAleatoria = () => {
-    const f = getFraseZodiaco(signo, Math.random().toString())
-    setFrase(f)
+    if (sugerenciasFrase.length > 0) {
+      setFrase(sugerenciasFrase[Math.floor(Math.random() * sugerenciasFrase.length)])
+    } else {
+      setFrase(getFraseZodiaco(signo, Math.random().toString()))
+    }
   }
 
   if (!usuario) return null

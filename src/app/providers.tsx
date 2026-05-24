@@ -2,6 +2,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 import { ToastProvider } from '@/components/ui/Toast'
+import { CookieBanner } from '@/components/ui/CookieBanner'
 import { AuthProvider } from '@/components/user/AuthProvider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -19,6 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ToastProvider>
         <AuthProvider>
           {children}
+          <CookieBanner />
         </AuthProvider>
       </ToastProvider>
     </QueryClientProvider>

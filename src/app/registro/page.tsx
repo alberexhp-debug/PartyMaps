@@ -1,12 +1,13 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase/client'
 import { calcularEdad, normalizarTelefono, validarTelefono } from '@/lib/utils'
-import { Phone, User, Calendar, Camera, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { PhotoUpload } from '@/components/ui/PhotoUpload'
+import { Phone, User, Calendar, ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -29,6 +30,17 @@ export default function RegistroPage() {
     aceptar_terminos: false,
   })
   const [errores, setErrores] = useState<Record<string, string>>({})
+  const [authIdPreRegistro, setAuthIdPreRegistro] = useState<string | null>(null)
+
+  // Tras verificar el SMS, Supabase ya da sesión auth. Capturamos auth.uid()
+  // para usarlo como path en Storage al subir la foto del paso 5.
+  useEffect(() => {
+    if (step === 'foto' && !authIdPreRegistro) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user) setAuthIdPreRegistro(data.user.id)
+      })
+    }
+  }, [step, authIdPreRegistro])
 
   const stepIndex = STEPS.indexOf(step)
   const progreso = ((stepIndex + 1) / STEPS.length) * 100
@@ -266,15 +278,19 @@ export default function RegistroPage() {
               <h1 className="text-3xl font-bold text-white text-display tracking-tight mb-1.5">Foto de perfil</h1>
               <p className="text-[#A0A0B8]">Opcional. Puedes añadirla más adelante.</p>
             </div>
-            <div className="flex flex-col items-center gap-6">
-              <div className="w-28 h-28 rounded-full bg-white/6 border-2 border-dashed border-white/10 flex items-center justify-center">
-                {form.foto_perfil_url ? (
-                  <img src={form.foto_perfil_url} className="w-full h-full rounded-full object-cover" alt="Perfil" />
-                ) : (
-                  <Camera size={32} className="text-[#6B6B85]" />
-                )}
-              </div>
-              <p className="text-sm text-[#6B6B85] text-center">Función de subida disponible después del registro</p>
+            <div className="flex flex-col items-center gap-3">
+              <PhotoUpload
+                bucket="perfiles"
+                path={authIdPreRegistro ?? 'pendiente'}
+                variant="circle"
+                label="Subir foto"
+                currentUrl={form.foto_perfil_url}
+                onUpload={url => setForm(f => ({ ...f, foto_perfil_url: url }))}
+                onError={msg => toast.error(msg)}
+              />
+              <p className="text-sm text-[#6B6B85] text-center max-w-xs">
+                JPG, PNG o WEBP · Hasta 5MB. Se mostrará en tu carta de perfil y en planes.
+              </p>
             </div>
           </div>
         )}
