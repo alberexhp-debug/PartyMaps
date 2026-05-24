@@ -108,6 +108,23 @@ export async function POST(req: NextRequest) {
       await supabase.rpc('incrementar_entradas_vendidas', { p_evento_id: evento_id, p_cantidad: cantidad })
     }
 
+    // Confirmación por email (no bloquea la respuesta; falla silenciosamente si no hay Resend)
+    if (user.email && created && created.length > 0) {
+      const { emailConfirmacionEntrada } = await import('@/lib/email')
+      const { data: evento } = evento_id
+        ? await supabase.from('eventos').select('fecha_inicio, nombre').eq('id', evento_id).maybeSingle()
+        : { data: null }
+      const { data: usuarioFull } = await supabase
+        .from('usuarios').select('nombre').eq('id', usuarioRow.id).maybeSingle()
+      emailConfirmacionEntrada(user.email, {
+        nombreUsuario: usuarioFull?.nombre || 'cliente',
+        nombreLocal: local.nombre,
+        fechaEvento: evento?.fecha_inicio,
+        precio: precioTotal,
+        entradaId: created[0].id,
+      }).catch(() => {})
+    }
+
     return NextResponse.json({ entradas: created })
   } catch (e) {
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })

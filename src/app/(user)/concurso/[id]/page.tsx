@@ -74,19 +74,23 @@ export default function ConcursoPage() {
     if (!checkinValido) { toast.error('Debes estar en el local (haz check-in) para participar'); return }
     if (!urlContenido) { toast.error('Sube una foto para tu participación'); return }
     setParticipando(true)
-    const { data, error } = await supabase.from('participaciones_concurso').insert({
-      concurso_id: id,
-      usuario_id: usuario.id,
-      contenido_url: urlContenido.trim() || null,
-      estado: 'pendiente_moderacion',
-    }).select('*').single()
 
-    if (error) {
-      if (error.code === '23505') toast.error('Ya has participado en este concurso')
-      else toast.error('Error al participar')
+    const res = await fetch('/api/concursos/participar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ concurso_id: id, contenido_url: urlContenido.trim() }),
+    })
+    const json = await res.json()
+
+    if (!res.ok) {
+      toast.error(json.error || 'Error al participar')
     } else {
-      setMiParticipacion(data)
-      toast.success('¡Participación enviada! El equipo del local la revisará pronto.')
+      setMiParticipacion(json.participacion)
+      if (json.moderacion_auto?.rechazada) {
+        toast.error(`Imagen rechazada: ${json.moderacion_auto.motivo}. Sube una distinta.`)
+      } else {
+        toast.success('¡Participación enviada! El equipo del local la revisará pronto.')
+      }
       cargar()
     }
     setParticipando(false)
