@@ -1,19 +1,19 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
+import { CartaPerfil } from '@/components/user/CartaPerfil'
 import {
-  calcularSignoZodiaco, calcularEdad, getFraseZodiaco,
-  formatearFecha, EMOJI_SIGNO
+  calcularSignoZodiaco, calcularEdad, EMOJI_SIGNO, cn,
 } from '@/lib/utils'
 import {
   User, Star, Bell, BellOff, Shield, LogOut, ChevronRight,
-  Ticket, Users, Edit3, Camera, AlertCircle, Lightbulb,
+  Ticket, Users, Edit3, Camera, AlertCircle, Lightbulb, Sparkles, ArrowRight,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 
 export default function PerfilPage() {
@@ -32,7 +32,6 @@ export default function PerfilPage() {
 
   const signo = calcularSignoZodiaco(usuario.fecha_nacimiento)
   const edad = calcularEdad(usuario.fecha_nacimiento)
-  const frase = getFraseZodiaco(signo, new Date().toISOString())
   const emojiSigno = EMOJI_SIGNO[signo] || '✨'
 
   const logout = async () => {
@@ -52,27 +51,27 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] pb-24">
+    <div className="min-h-screen pb-28">
       {/* Header */}
-      <div className="bg-[#0D0D1A] border-b border-[#1A1A2E] px-4 py-4 safe-top">
-        <h1 className="text-xl font-bold text-white">Mi perfil</h1>
+      <div className="px-5 py-5 safe-top">
+        <h1 className="text-2xl font-bold text-white text-display">Mi perfil</h1>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="px-4 space-y-5">
         {/* Avatar + nombre */}
-        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-5">
+        <div className="glass rounded-3xl p-5">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-20 h-20 rounded-2xl bg-[#2A2A3E] overflow-hidden">
+              <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
                 {usuario.foto_perfil_url ? (
                   <img src={usuario.foto_perfil_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <User size={32} className="text-[#505065]" />
+                    <User size={32} className="text-[#6B6B85]" />
                   </div>
                 )}
               </div>
-              <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-[#E94560] rounded-full flex items-center justify-center">
+              <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-[#E94560] rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(233,69,96,0.5)]">
                 <Camera size={12} className="text-white" />
               </button>
             </div>
@@ -82,7 +81,7 @@ export default function PerfilPage() {
                   <input
                     value={nuevoNombre}
                     onChange={e => setNuevoNombre(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#0D0D1A] border border-[#E94560]/50 rounded-xl text-white text-sm outline-none"
+                    className="w-full px-3 py-2 bg-white/5 border border-[#E94560]/60 rounded-xl text-white text-sm outline-none focus:ring-2 focus:ring-[#E94560]/30"
                     autoFocus
                     onKeyDown={e => { if (e.key === 'Enter') guardarNombre() }}
                   />
@@ -94,19 +93,19 @@ export default function PerfilPage() {
               ) : (
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-white truncate">{usuario.nombre}</h2>
-                    <button onClick={() => setEditandoNombre(true)}>
-                      <Edit3 size={14} className="text-[#505065] hover:text-white" />
+                    <h2 className="text-xl font-bold text-white text-display truncate">{usuario.nombre}</h2>
+                    <button onClick={() => setEditandoNombre(true)} className="text-[#6B6B85] hover:text-white transition-colors">
+                      <Edit3 size={14} />
                     </button>
                   </div>
-                  <p className="text-sm text-[#505065]">{edad} años · {emojiSigno} {signo}</p>
+                  <p className="text-sm text-[#A0A0B8] mt-0.5">{edad} años · <span className="text-base">{emojiSigno}</span> {signo}</p>
                   {usuario.reputacion_num_valoraciones > 0 && (
                     <div className="flex items-center gap-1 mt-1">
                       <Star size={12} className="text-[#F39C12] fill-current" />
                       <span className="text-xs text-[#F39C12] font-semibold">
                         {(usuario.reputacion_puntuacion || 0).toFixed(1)}
                       </span>
-                      <span className="text-xs text-[#505065]">({usuario.reputacion_num_valoraciones} valoraciones)</span>
+                      <span className="text-xs text-[#6B6B85]">({usuario.reputacion_num_valoraciones})</span>
                     </div>
                   )}
                 </div>
@@ -115,24 +114,42 @@ export default function PerfilPage() {
           </div>
         </div>
 
-        {/* Carta zodiacal — Perfil de noche */}
-        <div className="relative bg-gradient-to-br from-[#1A0A2E] to-[#0D0D1A] rounded-2xl border border-[#4F8EF7]/30 p-5 overflow-hidden">
-          {/* Decoración */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#4F8EF7]/5 rounded-full -translate-y-16 translate-x-16" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#E94560]/5 rounded-full translate-y-12 -translate-x-12" />
-
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">{emojiSigno}</span>
-              <div>
-                <p className="text-xs text-[#4F8EF7] font-semibold uppercase tracking-wider">Tu noche</p>
-                <p className="text-sm font-bold text-white">{signo}</p>
+        {/* Carta de perfil — preview prominente */}
+        <Link href="/perfil/carta" className="block">
+          <div className="relative rounded-3xl overflow-hidden group">
+            <div className="relative px-5 py-5 glass-strong">
+              <div className="flex items-center gap-4">
+                <div className="w-24 shrink-0">
+                  <CartaPerfil
+                    nombre={usuario.nombre}
+                    apodo={usuario.carta_apodo}
+                    edad={edad}
+                    signo={signo}
+                    foto={usuario.foto_perfil_url}
+                    frase={usuario.carta_frase}
+                    estilo={usuario.carta_estilo ?? 'holo'}
+                    slug={usuario.carta_slug}
+                    paraExportar
+                    className="!aspect-[5/7]"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Sparkles size={14} className="text-[#E94560]" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#E94560]">Tu carta</span>
+                  </div>
+                  <p className="text-sm text-white font-semibold leading-tight">Personalízala y compártela</p>
+                  <p className="text-xs text-[#A0A0B8] mt-1 leading-snug line-clamp-2">
+                    {usuario.carta_frase || `${signo}, brilla esta noche. Tu carta te identifica en PartyMaps.`}
+                  </p>
+                  <div className="mt-2.5 inline-flex items-center gap-1 text-xs font-semibold text-[#E94560]">
+                    Abrir carta <ArrowRight size={12} />
+                  </div>
+                </div>
               </div>
             </div>
-            <p className="text-base text-white font-medium italic leading-relaxed">&ldquo;{frase}&rdquo;</p>
-            <p className="mt-2 text-xs text-[#505065]">{formatearFecha(new Date().toISOString())}</p>
           </div>
-        </div>
+        </Link>
 
         {/* Estadísticas rápidas */}
         <div className="grid grid-cols-3 gap-3">
@@ -144,24 +161,24 @@ export default function PerfilPage() {
             <button
               key={label}
               onClick={onClick}
-              className="bg-[#1A1A2E] border border-[#2A2A3E] rounded-2xl p-4 flex flex-col items-center gap-2 hover:border-[#E94560]/30 transition-colors"
+              className="glass rounded-2xl p-4 flex flex-col items-center gap-2 hover:border-white/20 transition-all active:scale-[0.98]"
             >
               <Icon size={22} className="text-[#A0A0B8]" />
-              <span className="text-xs text-[#505065] font-medium">{label}</span>
+              <span className="text-xs text-white font-medium">{label}</span>
             </button>
           ))}
         </div>
 
         {/* Notificaciones push */}
-        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] p-4 space-y-3">
+        <div className="glass rounded-2xl p-4 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               {push.estado === 'activado'
                 ? <Bell size={18} className="text-[#4F8EF7]" />
-                : <BellOff size={18} className="text-[#505065]" />}
+                : <BellOff size={18} className="text-[#6B6B85]" />}
               <div>
                 <p className="text-sm font-semibold text-white">Notificaciones push</p>
-                <p className="text-xs text-[#505065]">
+                <p className="text-xs text-[#A0A0B8]">
                   {push.estado === 'activado' && 'Recibirás avisos de tus locales suscritos'}
                   {push.estado === 'desactivado' && 'Actívalas para no perderte ninguna noche'}
                   {push.estado === 'denegado' && 'Permiso bloqueado en este navegador'}
@@ -173,7 +190,7 @@ export default function PerfilPage() {
               <button
                 onClick={() => push.desactivar().then(() => toast.info('Notificaciones desactivadas'))}
                 disabled={push.trabajando}
-                className="text-xs text-red-400 font-semibold disabled:opacity-50"
+                className="text-xs text-[#E94560] font-semibold disabled:opacity-50"
               >
                 Desactivar
               </button>
@@ -201,7 +218,8 @@ export default function PerfilPage() {
         </div>
 
         {/* Opciones */}
-        <div className="bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E] overflow-hidden divide-y divide-[#2A2A3E]">
+        <div className="glass rounded-2xl overflow-hidden divide-y divide-white/5">
+          <OpcionPerfil icon={Sparkles} label="Mi carta de perfil" onClick={() => router.push('/perfil/carta')} />
           <OpcionPerfil icon={Lightbulb} label="Mis sugerencias enviadas" onClick={() => router.push('/perfil/sugerencias')} />
           <OpcionPerfil icon={Shield} label="Privacidad y seguridad" onClick={() => {}} />
           <OpcionPerfil icon={Star} label="Mis reseñas" onClick={() => {}} />
@@ -211,13 +229,16 @@ export default function PerfilPage() {
         <button
           onClick={logout}
           disabled={loggingOut}
-          className="w-full flex items-center justify-center gap-2 h-12 rounded-xl border border-red-500/30 text-red-400 text-sm font-semibold hover:bg-red-500/10 transition-colors disabled:opacity-50"
+          className={cn(
+            'w-full flex items-center justify-center gap-2 h-12 rounded-xl border border-[#E94560]/30 text-[#E94560] text-sm font-semibold transition-colors disabled:opacity-50',
+            'hover:bg-[#E94560]/10'
+          )}
         >
           <LogOut size={16} />
           {loggingOut ? 'Cerrando sesión...' : 'Cerrar sesión'}
         </button>
 
-        <p className="text-center text-[10px] text-[#505065]">PartyMaps 2.0 · v0.1.0</p>
+        <p className="text-center text-[10px] text-[#6B6B85] tracking-wider uppercase">PartyMaps 2.0 · v0.1.0</p>
       </div>
     </div>
   )
@@ -227,11 +248,11 @@ function OpcionPerfil({ icon: Icon, label, onClick }: { icon: React.ElementType;
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#0D0D1A]/50 transition-colors"
+      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/3 transition-colors"
     >
       <Icon size={18} className="text-[#A0A0B8]" />
       <span className="flex-1 text-sm text-white text-left">{label}</span>
-      <ChevronRight size={16} className="text-[#505065]" />
+      <ChevronRight size={16} className="text-[#6B6B85]" />
     </button>
   )
 }

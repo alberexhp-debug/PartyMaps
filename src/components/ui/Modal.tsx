@@ -33,17 +33,17 @@ export function Modal({ open, onClose, title, children, className, size = 'md' }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-fade-in">
-      <div ref={overlayRef} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div ref={overlayRef} className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
       <div className={cn(
-        'relative w-full bg-[#1A1A2E] border border-[#2A2A3E] shadow-2xl animate-slide-up',
+        'relative w-full glass-strong shadow-2xl animate-slide-up',
         'rounded-t-3xl sm:rounded-2xl',
         sizes[size],
         className
       )}>
         {title && (
-          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#2A2A3E]">
-            <h2 className="text-lg font-semibold text-white">{title}</h2>
-            <button onClick={onClose} className="p-1 rounded-lg text-[#505065] hover:text-white hover:bg-[#2A2A3E] transition-colors">
+          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-white/8">
+            <h2 className="text-lg font-semibold text-white text-display">{title}</h2>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-[#A0A0B8] hover:text-white hover:bg-white/10 transition-colors">
               <X size={20} />
             </button>
           </div>
@@ -74,14 +74,14 @@ export function BottomSheet({ open, onClose, children, className }: BottomSheetP
 
   return (
     <div className="fixed inset-0 z-40">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className={cn(
-        'absolute bottom-0 left-0 right-0 bg-[#1A1A2E] rounded-t-3xl border-t border-[#2A2A3E] animate-slide-up',
+        'absolute bottom-0 left-0 right-0 glass-strong rounded-t-3xl animate-slide-up',
         'max-h-[90vh] overflow-y-auto',
         className
       )}>
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-[#2A2A3E] rounded-full" />
+          <div className="w-10 h-1 bg-white/20 rounded-full" />
         </div>
         {children}
       </div>

@@ -3,14 +3,25 @@ import { HTMLAttributes } from 'react'
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   elevated?: boolean
+  variant?: 'solid' | 'glass' | 'glass-strong' | 'glass-subtle' | 'flat'
+  interactive?: boolean
 }
 
-export function Card({ className, elevated, children, ...props }: CardProps) {
+export function Card({ className, elevated, variant = 'solid', interactive, children, ...props }: CardProps) {
+  const variantClasses = {
+    solid: 'bg-[#14142A] border border-[#2A2A3E]',
+    glass: 'glass',
+    'glass-strong': 'glass-strong',
+    'glass-subtle': 'glass-subtle',
+    flat: 'bg-transparent border border-white/5',
+  }
   return (
     <div
       className={cn(
-        'bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E]',
-        elevated && 'shadow-xl shadow-black/30',
+        'rounded-2xl',
+        variantClasses[variant],
+        elevated && 'glow-soft',
+        interactive && 'transition-all duration-200 hover:border-white/15 hover:-translate-y-0.5 active:scale-[0.99]',
         className
       )}
       {...props}
@@ -30,7 +41,7 @@ export function CardBody({ className, children, ...props }: HTMLAttributes<HTMLD
 
 export function CardFooter({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('px-5 pb-5 pt-3 border-t border-[#2A2A3E]', className)} {...props}>
+    <div className={cn('px-5 pb-5 pt-3 border-t border-white/5', className)} {...props}>
       {children}
     </div>
   )

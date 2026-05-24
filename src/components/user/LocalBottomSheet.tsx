@@ -100,13 +100,14 @@ export function LocalBottomSheet({ local, onClose }: Props) {
               onClick={toggleSuscripcion}
               disabled={loadingSub}
               className={cn(
-                'p-2.5 rounded-xl border transition-colors shrink-0',
+                'flex items-center gap-1.5 px-3 h-10 rounded-xl font-semibold text-sm transition-all shrink-0 active:scale-[0.97]',
                 suscrito
-                  ? 'bg-[#E94560]/10 border-[#E94560]/30 text-[#E94560]'
-                  : 'bg-[#0D0D1A] border-[#2A2A3E] text-[#505065] hover:text-white'
+                  ? 'glass border border-white/15 text-white'
+                  : 'bg-[#E94560] text-white shadow-[0_6px_18px_-6px_rgba(233,69,96,0.55)] hover:bg-[#FF3D71]'
               )}
             >
-              {suscrito ? <Bell size={18} className="fill-current" /> : <BellOff size={18} />}
+              {suscrito ? <Bell size={16} className="fill-current text-[#E94560]" /> : <BellOff size={16} />}
+              <span>{suscrito ? 'Siguiendo' : 'Seguir'}</span>
             </button>
           </div>
 

@@ -33,6 +33,8 @@ export interface PrecioDinamicoConfig {
 
 // --- ENTIDADES ---
 
+export type EstiloCarta = 'holo' | 'aurora' | 'oro' | 'noche' | 'rosa'
+
 export interface Usuario {
   id: string
   telefono?: string
@@ -45,6 +47,11 @@ export interface Usuario {
   estado_cuenta: EstadoUsuario
   prefs_notificaciones: PrefsNotificaciones
   auth_provider: 'ninguno' | 'google' | 'apple'
+  carta_frase?: string
+  carta_estilo?: EstiloCarta
+  carta_publica?: boolean
+  carta_slug?: string
+  carta_apodo?: string
   created_at: string
   updated_at: string
 }

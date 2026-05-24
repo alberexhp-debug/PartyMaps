@@ -1,24 +1,41 @@
 @import "tailwindcss";
 
 @theme {
+  /* Base — Nocturno Premium */
+  --color-bg-base: #08080F;
   --color-bg-primary: #0D0D1A;
-  --color-bg-secondary: #1A1A2E;
-  --color-bg-tertiary: #2A2A3E;
+  --color-bg-secondary: #14142A;
+  --color-bg-tertiary: #1F1F38;
+  --color-bg-elevated: #1A1A30;
+
+  /* Acentos */
   --color-accent: #E94560;
+  --color-accent-strong: #FF3D71;
+  --color-accent-soft: rgba(233, 69, 96, 0.12);
+  --color-accent-glow: rgba(233, 69, 96, 0.35);
   --color-accent-blue: #4F8EF7;
-  --color-text-primary: #FFFFFF;
+  --color-accent-violet: #7C5CFF;
+  --color-accent-gold: #D4A84B;
+
+  /* Texto */
+  --color-text-primary: #FAFAFC;
   --color-text-secondary: #A0A0B8;
-  --color-text-disabled: #505065;
+  --color-text-tertiary: #6B6B85;
+  --color-text-disabled: #404058;
+
+  /* Estados */
   --color-success: #27AE60;
   --color-warning: #F39C12;
+  --color-danger: #E94560;
+
+  /* Bordes */
   --color-border: #2A2A3E;
-  --color-bg-light-primary: #F5F5FA;
-  --color-bg-light-secondary: #FFFFFF;
-  --color-bg-light-tertiary: #EAEAF2;
-  --color-text-light-primary: #0D0D1A;
-  --color-text-light-secondary: #6B6B80;
-  --color-border-light: #DADADF;
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Fuentes */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -26,21 +43,29 @@
 html {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: #0D0D1A;
-  color: #FFFFFF;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(124, 92, 255, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 100% 10%, rgba(233, 69, 96, 0.06), transparent 60%),
+    #08080F;
+  color: #FAFAFC;
   overscroll-behavior: none;
   margin: 0;
+  min-height: 100vh;
 }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #1A1A2E; }
-::-webkit-scrollbar-thumb { background: #2A2A3E; border-radius: 2px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.16); }
 
 .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib { display: none !important; }
 
+/* ---------- Keyframes ---------- */
 @keyframes pulse-heat {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -53,12 +78,118 @@ body {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes holo-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 24px rgba(233, 69, 96, 0.25), 0 0 0 1px rgba(233, 69, 96, 0.18) inset; }
+  50% { box-shadow: 0 0 40px rgba(233, 69, 96, 0.45), 0 0 0 1px rgba(233, 69, 96, 0.28) inset; }
+}
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
 
 .animate-pulse-heat { animation: pulse-heat 2s ease-in-out infinite; }
 .animate-slide-up { animation: slide-up 0.3s ease-out; }
 .animate-fade-in { animation: fade-in 0.2s ease-out; }
+.animate-shimmer { animation: shimmer 2.5s linear infinite; }
+.animate-glow-pulse { animation: glow-pulse 2.5s ease-in-out infinite; }
+.animate-float-soft { animation: float-soft 4s ease-in-out infinite; }
 
+/* ---------- Glass cards ---------- */
+.glass {
+  background: linear-gradient(180deg, rgba(26, 26, 48, 0.72), rgba(20, 20, 42, 0.6));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-strong {
+  background: linear-gradient(180deg, rgba(31, 31, 56, 0.85), rgba(22, 22, 42, 0.78));
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-subtle {
+  background: rgba(20, 20, 42, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ---------- Holo gradient (para carta de perfil) ---------- */
+.holo-bg {
+  background:
+    linear-gradient(135deg,
+      #E94560 0%,
+      #7C5CFF 25%,
+      #4F8EF7 50%,
+      #7C5CFF 75%,
+      #E94560 100%
+    );
+  background-size: 300% 300%;
+  animation: holo-rotate 8s ease infinite;
+}
+
+.holo-overlay {
+  background:
+    linear-gradient(135deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.18) 45%,
+      rgba(255, 255, 255, 0.05) 55%,
+      transparent 70%
+    );
+  background-size: 200% 200%;
+  animation: shimmer 4s linear infinite;
+  mix-blend-mode: overlay;
+}
+
+.holo-grain {
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.06) 1px, transparent 1.5px),
+    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.04) 1px, transparent 1.5px);
+  background-size: 8px 8px, 12px 12px;
+}
+
+/* ---------- Glow accents ---------- */
+.glow-accent {
+  box-shadow: 0 8px 24px -8px rgba(233, 69, 96, 0.45), 0 0 0 1px rgba(233, 69, 96, 0.15) inset;
+}
+.glow-violet {
+  box-shadow: 0 8px 24px -8px rgba(124, 92, 255, 0.45), 0 0 0 1px rgba(124, 92, 255, 0.15) inset;
+}
+.glow-soft {
+  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Tipografía display ---------- */
+.text-display {
+  font-feature-settings: 'ss01', 'cv11';
+  letter-spacing: -0.02em;
+}
+.text-display-lg {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+/* ---------- Safe areas iOS ---------- */
 .safe-top { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
 input, textarea, select { outline: none; }
+
+/* Touch / tap highlight */
+button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
+
+/* Selección de texto */
+::selection { background: rgba(233, 69, 96, 0.35); color: #fff; }

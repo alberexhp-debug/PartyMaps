@@ -332,9 +332,9 @@ export default function LocalPerfilPage() {
   const diasLabel = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A]">
+    <div className="min-h-screen">
       {/* Galería */}
-      <div className="relative h-72">
+      <div className="relative h-80">
         {local.imagenes?.length > 0 ? (
           <img
             src={local.imagenes[imagenActiva]}
@@ -343,28 +343,20 @@ export default function LocalPerfilPage() {
             onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800' }}
           />
         ) : (
-          <div className="w-full h-full bg-[#1A1A2E] flex items-center justify-center">
-            <Music size={48} className="text-[#2A2A3E]" />
+          <div className="w-full h-full bg-[#14142A] flex items-center justify-center">
+            <Music size={48} className="text-white/10" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D1A] via-[#0D0D1A]/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#08080F] via-[#08080F]/40 to-[#08080F]/10" />
 
         {/* Nav */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 safe-top">
-          <button onClick={() => router.back()} className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-xl flex items-center justify-center text-white">
+          <button onClick={() => router.back()} className="w-10 h-10 glass-strong rounded-xl flex items-center justify-center text-white">
             <ChevronLeft size={22} />
           </button>
-          <div className="flex gap-2">
-            <button onClick={compartir} className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-xl flex items-center justify-center text-white">
-              <Share2 size={18} />
-            </button>
-            <button onClick={toggleSuscripcion} className={cn(
-              'w-10 h-10 rounded-xl backdrop-blur-sm flex items-center justify-center transition-colors',
-              suscrito ? 'bg-[#E94560] text-white' : 'bg-black/50 text-white'
-            )}>
-              {suscrito ? <Bell size={18} className="fill-current" /> : <BellOff size={18} />}
-            </button>
-          </div>
+          <button onClick={compartir} className="w-10 h-10 glass-strong rounded-xl flex items-center justify-center text-white">
+            <Share2 size={18} />
+          </button>
         </div>
 
         {/* Miniaturas galería */}
@@ -382,32 +374,67 @@ export default function LocalPerfilPage() {
       </div>
 
       {/* Contenido */}
-      <div className="px-5 space-y-5 pb-32">
+      <div className="px-5 space-y-5 pb-32 -mt-6">
         {/* Cabecera */}
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold text-white">{local.nombre}</h1>
-              <div className="flex items-center gap-2 mt-1">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl font-bold text-white text-display tracking-tight">{local.nombre}</h1>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <Badge variant="default">{getLabelTipoLocal(local.tipo_local)}</Badge>
                 {local.tier === 'destacado' && <Badge variant="gold">★ Destacado</Badge>}
+                {local.num_suscriptores > 0 && (
+                  <Badge variant="default">
+                    <Bell size={10} /> {local.num_suscriptores.toLocaleString('es-ES')} {local.num_suscriptores === 1 ? 'sigue' : 'siguen'}
+                  </Badge>
+                )}
               </div>
             </div>
             {reviews.length > 0 && <StarDisplay value={mediaReviews} count={reviews.length} />}
           </div>
 
           <div className="flex items-center gap-2 text-sm text-[#A0A0B8]">
-            <MapPin size={14} />
-            <span>{local.direccion}</span>
-            <button className="ml-auto flex items-center gap-1 text-[#4F8EF7] text-xs"
+            <MapPin size={14} className="shrink-0" />
+            <span className="truncate">{local.direccion}</span>
+            <button className="ml-auto flex items-center gap-1 text-[#4F8EF7] text-xs shrink-0"
               onClick={() => window.open(`https://maps.google.com/?q=${local.latitud},${local.longitud}`)}>
               <Navigation size={12} /> Cómo llegar
             </button>
           </div>
         </div>
 
+        {/* Suscribirse — botón prominente */}
+        <button
+          onClick={toggleSuscripcion}
+          className={cn(
+            'group relative w-full h-14 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] overflow-hidden',
+            suscrito
+              ? 'glass border border-white/15 text-white hover:border-white/25'
+              : 'bg-[#E94560] text-white shadow-[0_12px_28px_-8px_rgba(233,69,96,0.55)] hover:bg-[#FF3D71] hover:shadow-[0_14px_34px_-6px_rgba(255,61,113,0.65)]'
+          )}
+        >
+          {!suscrito && (
+            <span className="absolute inset-0 holo-bg opacity-0 group-hover:opacity-30 transition-opacity" />
+          )}
+          <span className="relative flex items-center justify-center gap-2.5">
+            {suscrito ? (
+              <>
+                <Bell size={20} className="fill-current text-[#E94560]" />
+                <span>Siguiendo</span>
+                <span className="text-xs text-[#A0A0B8] font-normal">· Toca para dejar de seguir</span>
+              </>
+            ) : (
+              <>
+                <BellOff size={20} />
+                <span className="tracking-wide">Seguir local</span>
+                <span className="text-xs opacity-90 font-normal">· Recibe avisos de eventos</span>
+              </>
+            )}
+          </span>
+        </button>
+
         {/* Estado aforo */}
-        <div className="p-4 bg-[#1A1A2E] rounded-2xl border border-[#2A2A3E]">
+        <div className="p-4 glass rounded-2xl">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className={cn('w-3 h-3 rounded-full', local.temperatura === 'caliente' && 'animate-pulse-heat')}
