@@ -107,9 +107,9 @@ export default function LoginPage() {
         {step === 'telefono' && (
           <>
             <div>
-              <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-3">Acceder</p>
-              <h1 className="text-3xl font-bold text-white text-display tracking-tight leading-tight">Bienvenido<br />de vuelta</h1>
-              <p className="text-[#A0A0B8] mt-2">Introduce tu número para continuar</p>
+              <p className="eyebrow mb-3">Acceder</p>
+              <h1 className="text-display-lg text-white">Bienvenido<br />de vuelta</h1>
+              <p className="text-[#A0A0B8] mt-3 text-base">Introduce tu número para continuar</p>
             </div>
             <div className="flex gap-3">
               {selectPrefijo}

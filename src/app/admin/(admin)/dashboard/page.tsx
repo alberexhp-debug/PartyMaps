@@ -63,11 +63,12 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-4 md:p-8 pb-20 md:pb-8 space-y-6">
-      <div>
-        <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.25em] mb-1">Tiempo real</p>
-        <h1 className="text-3xl font-bold text-white text-display tracking-tight">Dashboard global</h1>
-        <p className="text-[#A0A0B8] text-sm mt-1">Vista de la plataforma</p>
+    <div className="relative p-4 md:p-8 pb-20 md:pb-8 space-y-6 overflow-hidden">
+      <div className="absolute -top-32 -right-20 w-[40vw] h-[40vw] rounded-full opacity-25 blur-3xl pointer-events-none bg-[#4F8EF7]/40" />
+      <div className="relative">
+        <p className="eyebrow eyebrow-blue mb-2">Tiempo real</p>
+        <h1 className="text-display-lg text-white">Dashboard global</h1>
+        <p className="text-[#A0A0B8] text-sm mt-2">Vista de la plataforma</p>
       </div>
 
       {/* Alertas */}
@@ -93,16 +94,16 @@ export default function AdminDashboard() {
           { icon: Ticket, label: 'Entradas hoy', value: loading ? '...' : stats!.total_entradas_hoy.toString(), color: '#F39C12' },
           { icon: TrendingUp, label: 'Comisiones hoy', value: loading ? '...' : formatearPrecio(stats!.ingresos_plataforma_hoy), color: '#27AE60' },
         ].map(({ icon: Icon, label, value, color }) => (
-          <div key={label} className="glass rounded-2xl p-4 relative overflow-hidden">
-            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20 blur-2xl" style={{ background: color }} />
+          <div key={label} className="card-premium p-4 relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-30 blur-3xl" style={{ background: color }} />
             <div className="relative">
-              <div className="flex items-center gap-2 mb-2.5">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, border: `1px solid ${color}38` }}>
-                  <Icon size={14} style={{ color }} />
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, border: `1px solid ${color}40`, boxShadow: `0 4px 14px -4px ${color}80` }}>
+                  <Icon size={15} style={{ color }} />
                 </div>
-                <span className="text-[10px] text-[#A0A0B8] font-semibold uppercase tracking-[0.15em]">{label}</span>
+                <span className="text-[10px] text-[#A0A0B8] font-bold uppercase tracking-[0.18em]">{label}</span>
               </div>
-              <p className="text-2xl font-bold text-white text-display tracking-tight">{value}</p>
+              <p className="text-3xl font-bold text-white text-display text-numeric tracking-tight">{value}</p>
             </div>
           </div>
         ))}

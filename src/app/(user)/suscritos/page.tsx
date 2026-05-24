@@ -51,25 +51,32 @@ export default function SuscritosPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="px-5 pt-5 pb-3 safe-top">
-        <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-1">Tu radar</p>
-        <h1 className="text-2xl font-bold text-white text-display tracking-tight">Suscritos</h1>
-        <p className="text-sm text-[#A0A0B8] mt-1">{suscripciones.length} {suscripciones.length === 1 ? 'local seguido' : 'locales seguidos'}</p>
+    <div className="relative min-h-screen overflow-hidden">
+      <div className="hero-halo-violet" />
+      <div className="relative px-5 pt-6 pb-3 safe-top">
+        <p className="eyebrow eyebrow-violet mb-2">Tu radar</p>
+        <h1 className="text-display-lg text-white">Suscritos</h1>
+        <p className="text-[#A0A0B8] mt-2 text-sm">
+          <span className="text-white font-bold text-numeric">{suscripciones.length}</span> {suscripciones.length === 1 ? 'local seguido' : 'locales seguidos'}
+        </p>
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="relative p-4 space-y-3">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-36 glass-subtle rounded-2xl animate-pulse" />
+            <div key={i} className="h-40 skeleton rounded-2xl" />
           ))
         ) : suscripciones.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-            <div className="w-20 h-20 glass rounded-2xl flex items-center justify-center">
-              <Bell size={32} className="text-[#A0A0B8]" />
+          <div className="flex flex-col items-center justify-center py-20 gap-5 text-center px-6">
+            <div className="relative w-24 h-24">
+              <div className="absolute inset-0 rounded-3xl bg-[#7C5CFF] opacity-25 blur-2xl" />
+              <div className="relative w-full h-full card-premium flex items-center justify-center">
+                <Bell size={36} className="text-[#A0A0B8]" />
+              </div>
             </div>
-            <p className="text-[#A0A0B8] max-w-xs">No sigues ningún local todavía. Sigue tus favoritos para no perderte nada.</p>
-            <button onClick={() => router.push('/explorar')} className="text-sm text-[#E94560] font-semibold">
+            <p className="text-[#FAFAFC] text-lg font-semibold text-display max-w-xs">Tu radar está vacío</p>
+            <p className="text-[#A0A0B8] text-sm max-w-xs">Sigue tus locales favoritos para recibir avisos de aforo, eventos y promos sin tener que abrir la app.</p>
+            <button onClick={() => router.push('/explorar')} className="text-sm text-[#E94560] font-semibold mt-2">
               Explorar locales →
             </button>
           </div>

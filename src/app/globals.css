@@ -1,9 +1,10 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@600;700;800&display=swap');
 
 @theme {
   /* Base — Nocturno Premium */
-  --color-bg-base: #08080F;
-  --color-bg-primary: #0D0D1A;
+  --color-bg-base: #06060C;
+  --color-bg-primary: #0B0B16;
   --color-bg-secondary: #14142A;
   --color-bg-tertiary: #1F1F38;
   --color-bg-elevated: #1A1A30;
@@ -35,7 +36,7 @@
 
   /* Fuentes */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Sora', 'Inter', system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -49,9 +50,10 @@ html {
 
 body {
   background:
-    radial-gradient(1200px 600px at 20% -10%, rgba(124, 92, 255, 0.08), transparent 60%),
-    radial-gradient(900px 500px at 100% 10%, rgba(233, 69, 96, 0.06), transparent 60%),
-    #08080F;
+    radial-gradient(1200px 600px at 20% -10%, rgba(124, 92, 255, 0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 10%, rgba(233, 69, 96, 0.08), transparent 60%),
+    radial-gradient(800px 600px at 50% 100%, rgba(79, 142, 247, 0.05), transparent 60%),
+    #06060C;
   color: #FAFAFC;
   overscroll-behavior: none;
   margin: 0;
@@ -72,6 +74,10 @@ body {
 }
 @keyframes slide-up {
   from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes slide-up-sm {
+  from { transform: translateY(16px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 @keyframes fade-in {
@@ -95,37 +101,73 @@ body {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
+@keyframes spotlight-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
 .animate-pulse-heat { animation: pulse-heat 2s ease-in-out infinite; }
 .animate-slide-up { animation: slide-up 0.3s ease-out; }
-.animate-fade-in { animation: fade-in 0.2s ease-out; }
+.animate-slide-up-sm { animation: slide-up-sm 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-fade-in { animation: fade-in 0.25s ease-out; }
 .animate-shimmer { animation: shimmer 2.5s linear infinite; }
 .animate-glow-pulse { animation: glow-pulse 2.5s ease-in-out infinite; }
 .animate-float-soft { animation: float-soft 4s ease-in-out infinite; }
 
+/* Stagger para listas (combinar con --delay style) */
+.stagger-item {
+  opacity: 0;
+  animation: slide-up-sm 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
 /* ---------- Glass cards ---------- */
 .glass {
-  background: linear-gradient(180deg, rgba(26, 26, 48, 0.72), rgba(20, 20, 42, 0.6));
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  background: linear-gradient(180deg, rgba(26, 26, 48, 0.7), rgba(20, 20, 42, 0.55));
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-strong {
-  background: linear-gradient(180deg, rgba(31, 31, 56, 0.85), rgba(22, 22, 42, 0.78));
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  background: linear-gradient(180deg, rgba(31, 31, 56, 0.88), rgba(22, 22, 42, 0.78));
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .glass-subtle {
-  background: rgba(20, 20, 42, 0.5);
+  background: rgba(20, 20, 42, 0.45);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* ---------- Holo gradient (para carta de perfil) ---------- */
+/* Card "premium": glass con borde gradiente sutil */
+.card-premium {
+  position: relative;
+  background: linear-gradient(180deg, rgba(26, 26, 48, 0.72), rgba(20, 20, 42, 0.58));
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  border-radius: 24px;
+  box-shadow:
+    0 30px 60px -25px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+.card-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 40%, transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ---------- Holo gradient ---------- */
 .holo-bg {
   background:
     linear-gradient(135deg,
@@ -161,28 +203,96 @@ body {
 
 /* ---------- Glow accents ---------- */
 .glow-accent {
-  box-shadow: 0 8px 24px -8px rgba(233, 69, 96, 0.45), 0 0 0 1px rgba(233, 69, 96, 0.15) inset;
+  box-shadow: 0 8px 24px -8px rgba(233, 69, 96, 0.55), 0 0 0 1px rgba(233, 69, 96, 0.18) inset;
 }
 .glow-violet {
-  box-shadow: 0 8px 24px -8px rgba(124, 92, 255, 0.45), 0 0 0 1px rgba(124, 92, 255, 0.15) inset;
+  box-shadow: 0 8px 24px -8px rgba(124, 92, 255, 0.55), 0 0 0 1px rgba(124, 92, 255, 0.18) inset;
+}
+.glow-blue {
+  box-shadow: 0 8px 24px -8px rgba(79, 142, 247, 0.55), 0 0 0 1px rgba(79, 142, 247, 0.18) inset;
 }
 .glow-soft {
-  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.65);
 }
 
 /* ---------- Tipografía display ---------- */
 .text-display {
+  font-family: var(--font-display);
   font-feature-settings: 'ss01', 'cv11';
-  letter-spacing: -0.02em;
-}
-.text-display-lg {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   font-weight: 700;
 }
+.text-display-lg {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+.text-mega {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+.text-numeric {
+  font-feature-settings: 'tnum', 'lnum';
+  font-variant-numeric: tabular-nums;
+}
 
-/* ---------- Safe areas iOS ---------- */
+/* Eyebrow / kicker — texto pequeño con tracking */
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #E94560;
+}
+.eyebrow-muted { color: #A0A0B8; }
+.eyebrow-blue { color: #4F8EF7; }
+.eyebrow-violet { color: #7C5CFF; }
+.eyebrow-gold { color: #D4A84B; }
+
+/* Dividers con gradiente */
+.divider-gradient {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+}
+
+/* Halos de fondo grandes para heroes */
+.hero-halo-rose {
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(233, 69, 96, 0.18), transparent 60%);
+  filter: blur(60px);
+  pointer-events: none;
+}
+.hero-halo-violet {
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(circle, rgba(124, 92, 255, 0.18), transparent 60%);
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+/* Skeleton mejorado */
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Safe areas iOS */
 .safe-top { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
@@ -192,4 +302,15 @@ input, textarea, select { outline: none; }
 button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
 
 /* Selección de texto */
-::selection { background: rgba(233, 69, 96, 0.35); color: #fff; }
+::selection { background: rgba(233, 69, 96, 0.4); color: #fff; }
+
+/* Foco accesible */
+:focus-visible {
+  outline: 2px solid rgba(233, 69, 96, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Scrollbar hide para tabs y carruseles horizontales */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { scrollbar-width: none; }

@@ -333,40 +333,57 @@ export default function LocalPerfilPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Galería */}
-      <div className="relative h-80">
+      {/* Hero cinemático */}
+      <div className="relative h-[58vh] min-h-[420px] max-h-[560px]">
         {local.imagenes?.length > 0 ? (
           <img
             src={local.imagenes[imagenActiva]}
             alt={local.nombre}
             className="w-full h-full object-cover"
-            onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800' }}
+            onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=1200' }}
           />
         ) : (
           <div className="w-full h-full bg-[#14142A] flex items-center justify-center">
-            <Music size={48} className="text-white/10" />
+            <Music size={64} className="text-white/10" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#08080F] via-[#08080F]/40 to-[#08080F]/10" />
+        {/* Vignette superior + degradado fuerte abajo */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(180deg, rgba(6,6,12,0.5) 0%, rgba(6,6,12,0.05) 25%, rgba(6,6,12,0.6) 70%, #06060C 100%)'
+        }} />
 
         {/* Nav */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 safe-top">
-          <button onClick={() => router.back()} className="w-10 h-10 glass-strong rounded-xl flex items-center justify-center text-white">
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 safe-top z-20">
+          <button onClick={() => router.back()} className="w-11 h-11 glass-strong rounded-2xl flex items-center justify-center text-white">
             <ChevronLeft size={22} />
           </button>
-          <button onClick={compartir} className="w-10 h-10 glass-strong rounded-xl flex items-center justify-center text-white">
+          <button onClick={compartir} className="w-11 h-11 glass-strong rounded-2xl flex items-center justify-center text-white">
             <Share2 size={18} />
           </button>
         </div>
 
-        {/* Miniaturas galería */}
+        {/* Título sobre la imagen */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 z-[5]">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <Badge variant="default">{getLabelTipoLocal(local.tipo_local)}</Badge>
+            {local.tier === 'destacado' && <Badge variant="gold">★ Destacado</Badge>}
+            {local.num_suscriptores > 0 && (
+              <Badge variant="default">
+                <Bell size={10} /> {local.num_suscriptores.toLocaleString('es-ES')} {local.num_suscriptores === 1 ? 'sigue' : 'siguen'}
+              </Badge>
+            )}
+          </div>
+          <h1 className="text-mega text-white" style={{ textShadow: '0 4px 30px rgba(0,0,0,0.6)' }}>{local.nombre}</h1>
+        </div>
+
+        {/* Miniaturas */}
         {local.imagenes?.length > 1 && (
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5">
+          <div className="absolute top-1/2 -translate-y-1/2 right-3 z-10 flex flex-col gap-1.5">
             {local.imagenes.slice(0, 8).map((_, i) => (
               <button
                 key={i}
                 onClick={() => setImagenActiva(i)}
-                className={cn('rounded-full transition-all', i === imagenActiva ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/40')}
+                className={cn('rounded-full transition-all', i === imagenActiva ? 'w-2 h-6 bg-white shadow-[0_0_8px_white]' : 'w-2 h-2 bg-white/40')}
               />
             ))}
           </div>
@@ -374,24 +391,14 @@ export default function LocalPerfilPage() {
       </div>
 
       {/* Contenido */}
-      <div className="px-5 space-y-5 pb-32 -mt-6">
-        {/* Cabecera */}
+      <div className="px-5 space-y-5 pb-32 -mt-2">
+        {/* Reviews + dirección */}
         <div className="space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-3xl font-bold text-white text-display tracking-tight">{local.nombre}</h1>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge variant="default">{getLabelTipoLocal(local.tipo_local)}</Badge>
-                {local.tier === 'destacado' && <Badge variant="gold">★ Destacado</Badge>}
-                {local.num_suscriptores > 0 && (
-                  <Badge variant="default">
-                    <Bell size={10} /> {local.num_suscriptores.toLocaleString('es-ES')} {local.num_suscriptores === 1 ? 'sigue' : 'siguen'}
-                  </Badge>
-                )}
-              </div>
+          {reviews.length > 0 && (
+            <div className="flex justify-end">
+              <StarDisplay value={mediaReviews} count={reviews.length} />
             </div>
-            {reviews.length > 0 && <StarDisplay value={mediaReviews} count={reviews.length} />}
-          </div>
+          )}
 
           <div className="flex items-center gap-2 text-sm text-[#A0A0B8]">
             <MapPin size={14} className="shrink-0" />

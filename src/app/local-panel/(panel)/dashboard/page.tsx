@@ -134,17 +134,18 @@ export default function LocalPanelDashboard() {
   const colorTemp = getColorTemperatura(temperatura)
 
   return (
-    <div className="p-4 md:p-8 space-y-6 pb-20 md:pb-8">
+    <div className="relative p-4 md:p-8 space-y-6 pb-20 md:pb-8 overflow-hidden">
+      <div className="hero-halo-rose" />
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="relative flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-1">Dashboard</p>
-          <h1 className="text-3xl font-bold text-white text-display tracking-tight">{local.nombre}</h1>
-          <p className="text-[#A0A0B8] text-sm capitalize mt-1">{local.tier} · {local.ciudad}</p>
+          <p className="eyebrow mb-2">Dashboard</p>
+          <h1 className="text-display-lg text-white">{local.nombre}</h1>
+          <p className="text-[#A0A0B8] text-sm capitalize mt-2">{local.tier} · {local.ciudad}</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border backdrop-blur-md"
-          style={{ background: `${colorTemp}20`, borderColor: `${colorTemp}60`, color: colorTemp, boxShadow: `0 0 18px -4px ${colorTemp}40` }}>
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: colorTemp, boxShadow: `0 0 6px ${colorTemp}` }} />
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border backdrop-blur-md mt-1"
+          style={{ background: `${colorTemp}22`, borderColor: `${colorTemp}70`, color: colorTemp, boxShadow: `0 8px 22px -4px ${colorTemp}55` }}>
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: colorTemp, boxShadow: `0 0 8px ${colorTemp}` }} />
           {getLabelTemperatura(temperatura)} · {Math.round(kpis?.aforo_actual || 0)}%
         </div>
       </div>
@@ -366,16 +367,16 @@ function KPICard({ icon: Icon, label, value, color }: {
   icon: React.ElementType; label: string; value: string; color: string
 }) {
   return (
-    <div className="glass rounded-2xl p-4 relative overflow-hidden">
-      <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20 blur-2xl" style={{ background: color }} />
+    <div className="card-premium p-4 relative overflow-hidden">
+      <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-30 blur-3xl" style={{ background: color }} />
       <div className="relative">
-        <div className="flex items-center gap-2 mb-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, border: `1px solid ${color}38` }}>
-            <Icon size={15} style={{ color }} />
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, border: `1px solid ${color}40`, boxShadow: `0 4px 14px -4px ${color}80` }}>
+            <Icon size={16} style={{ color }} />
           </div>
-          <span className="text-[10px] text-[#A0A0B8] font-semibold uppercase tracking-[0.15em]">{label}</span>
+          <span className="text-[10px] text-[#A0A0B8] font-bold uppercase tracking-[0.18em]">{label}</span>
         </div>
-        <p className="text-2xl font-bold text-white text-display tracking-tight">{value}</p>
+        <p className="text-3xl font-bold text-white text-display text-numeric tracking-tight">{value}</p>
       </div>
     </div>
   )
