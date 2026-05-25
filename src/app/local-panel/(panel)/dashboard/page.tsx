@@ -225,18 +225,18 @@ export default function LocalPanelDashboard() {
 
       {/* KPIs secundarios */}
       <div className="grid grid-cols-3 gap-2.5">
-        <KPISecundario icon={Users} label="Suscriptores" value={loading ? '—' : kpis!.suscriptores.toString()} color="#F39C12" />
+        <KPISecundario icon={Users} label="Suscriptores" value={loading ? '—' : kpis!.suscriptores.toString()} color="#9DA0B5" />
         <KPISecundario
           icon={Star} label="Valoración"
           value={loading ? '—' : kpis!.media_reviews > 0 ? kpis!.media_reviews.toFixed(1) : '—'}
           sublabel={!loading && kpis!.num_reviews > 0 ? `${kpis!.num_reviews} reseñas` : undefined}
-          color="#27AE60"
+          color="#D4A84B"
         />
         <KPISecundario
           icon={Ticket} label="Esta semana"
           value={loading ? '—' : kpis!.entradas_semana.toString()}
           sublabel="entradas"
-          color="#7C5CFF"
+          color="#9DA0B5"
         />
       </div>
 
@@ -531,17 +531,16 @@ function DashboardOperador() {
 
       <div className="grid grid-cols-2 gap-3">
         {[
-          { href: '/local-panel/scanner',       color: '#4F8EF7', icon: Zap,          label: 'Scanner',      sublabel: 'Entradas y bar' },
-          { href: '/local-panel/notificaciones', color: '#7C5CFF', icon: Bell,         label: 'Notificación', sublabel: 'A tus seguidores' },
-          { href: '/local-panel/sugerencias',    color: '#27AE60', icon: Check,        label: 'Sugerencias',  sublabel: 'De los clientes' },
-          { href: '/local-panel/concursos',      color: '#D4A84B', icon: BarChart3,    label: 'Concursos',    sublabel: 'Activos esta noche' },
-        ].map(({ href, color, icon: Icon, label, sublabel }) => (
+          { href: '/local-panel/scanner',        icon: Zap,       label: 'Scanner',      sublabel: 'Entradas y bar' },
+          { href: '/local-panel/notificaciones', icon: Bell,      label: 'Notificación', sublabel: 'A tus seguidores' },
+          { href: '/local-panel/sugerencias',    icon: Check,     label: 'Sugerencias',  sublabel: 'De los clientes' },
+          { href: '/local-panel/concursos',      icon: BarChart3, label: 'Concursos',    sublabel: 'Activos esta noche' },
+        ].map(({ href, icon: Icon, label, sublabel }) => (
           <button key={href} onClick={() => router.push(href)}
             className="card-premium relative p-4 text-left overflow-hidden transition-all hover:-translate-y-0.5">
-            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-25 blur-2xl" style={{ background: color }} />
             <div className="relative">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2.5" style={{ background: `${color}20`, border: `1px solid ${color}35` }}>
-                <Icon size={16} style={{ color }} />
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2.5 bg-white/5 border border-white/8">
+                <Icon size={16} className="text-[#B8B8CC]" />
               </div>
               <p className="text-sm font-bold text-white text-display">{label}</p>
               <p className="text-[11px] text-[#B8B8CC] mt-0.5">{sublabel}</p>

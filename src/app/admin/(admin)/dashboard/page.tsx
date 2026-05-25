@@ -101,13 +101,14 @@ export default function AdminDashboard() {
     setLoading(false)
   }
 
+  const NEUTRO = '#9DA0B5'
   const kpis = [
-    { icon: Store,      label: 'Locales activos',    value: stats?.total_locales.toString() ?? '—',       color: '#E94560', sub: `${stats?.locales_pendientes ?? 0} pendientes` },
-    { icon: Users,      label: 'Usuarios',            value: stats?.total_usuarios.toString() ?? '—',       color: '#4F8EF7', sub: `+${stats?.nuevos_usuarios_semana ?? 0} esta semana` },
-    { icon: Ticket,     label: 'Entradas hoy',        value: stats?.total_entradas_hoy.toString() ?? '—',   color: '#F39C12', sub: undefined },
+    { icon: Store,      label: 'Locales activos',    value: stats?.total_locales.toString() ?? '—',       color: NEUTRO,     sub: `${stats?.locales_pendientes ?? 0} pendientes` },
+    { icon: Users,      label: 'Usuarios',            value: stats?.total_usuarios.toString() ?? '—',       color: NEUTRO,     sub: `+${stats?.nuevos_usuarios_semana ?? 0} esta semana` },
+    { icon: Ticket,     label: 'Entradas hoy',        value: stats?.total_entradas_hoy.toString() ?? '—',   color: NEUTRO,     sub: undefined },
     { icon: TrendingUp, label: 'Comisiones hoy',      value: stats ? formatearPrecio(stats.ingresos_plataforma_hoy) : '—', color: '#27AE60', sub: undefined },
     { icon: Star,       label: 'Valoración media',    value: stats ? stats.media_reviews.toFixed(1) : '—', color: '#D4A84B', sub: 'todas las reseñas' },
-    { icon: Activity,   label: 'Tiers (pro+dest.)',   value: stats ? ((stats.tiers.pro || 0) + (stats.tiers.destacado || 0)).toString() : '—', color: '#7C5CFF', sub: undefined },
+    { icon: Activity,   label: 'Tiers (pro+dest.)',   value: stats ? ((stats.tiers.pro || 0) + (stats.tiers.destacado || 0)).toString() : '—', color: NEUTRO, sub: undefined },
   ]
 
   return (
@@ -137,18 +138,15 @@ export default function AdminDashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {kpis.map(({ icon: Icon, label, value, color, sub }) => (
-          <div key={label} className="bg-white/3 border border-white/6 rounded-2xl p-4 relative overflow-hidden">
-            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-15 blur-2xl" style={{ background: color }} />
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
-                  <Icon size={14} style={{ color }} />
-                </div>
-                <span className="text-[10px] text-[#8B8BA8] font-bold uppercase tracking-[0.15em] truncate">{label}</span>
+          <div key={label} className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center">
+                <Icon size={14} style={{ color }} />
               </div>
-              <p className="text-2xl md:text-3xl font-bold text-white text-display text-numeric">{loading ? '—' : value}</p>
-              {sub && <p className="text-[11px] text-[#8B8BA8] mt-1">{sub}</p>}
+              <span className="text-[10px] text-[#8B8BA8] font-bold uppercase tracking-[0.15em] truncate">{label}</span>
             </div>
+            <p className="text-2xl md:text-3xl font-bold text-white text-display text-numeric">{loading ? '—' : value}</p>
+            {sub && <p className="text-[11px] text-[#8B8BA8] mt-1">{sub}</p>}
           </div>
         ))}
       </div>
@@ -239,19 +237,18 @@ export default function AdminDashboard() {
         <p className="text-[10px] font-bold text-[#8B8BA8] uppercase tracking-[0.2em] mb-3">Gestión</p>
         <div className="grid grid-cols-2 gap-2">
           {[
-            { label: 'Gestionar locales',   href: '/admin/locales',     color: '#E94560' },
-            { label: 'Gestionar usuarios',  href: '/admin/usuarios',    color: '#4F8EF7' },
-            { label: 'Moderación',          href: '/admin/moderacion',  color: '#F39C12' },
-            { label: 'Configuración',       href: '/admin/configuracion', color: '#27AE60' },
-            { label: 'Auditoría',           href: '/admin/auditoria',   color: '#7C5CFF' },
-            { label: 'Frases zodiaco',      href: '/admin/frases-zodiaco', color: '#D4A84B' },
-          ].map(({ label, href, color }) => (
+            { label: 'Gestionar locales',   href: '/admin/locales' },
+            { label: 'Gestionar usuarios',  href: '/admin/usuarios' },
+            { label: 'Moderación',          href: '/admin/moderacion' },
+            { label: 'Configuración',       href: '/admin/configuracion' },
+            { label: 'Auditoría',           href: '/admin/auditoria' },
+            { label: 'Frases zodiaco',      href: '/admin/frases-zodiaco' },
+          ].map(({ label, href }) => (
             <button key={href} onClick={() => router.push(href)}
-              className="bg-white/3 border border-white/6 rounded-2xl p-4 text-left hover:bg-white/5 transition-colors group relative overflow-hidden">
-              <div className="absolute left-0 top-3 bottom-3 w-0.5 rounded-r-full" style={{ background: color }} />
-              <div className="ml-3 flex items-center justify-between">
+              className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4 text-left hover:bg-white/[0.06] transition-colors group">
+              <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-white">{label}</p>
-                <ChevronRight size={14} className="text-[#6B6B85] group-hover:text-white transition-colors" />
+                <ChevronRight size={14} className="text-[#6B6B85] group-hover:text-white group-hover:translate-x-0.5 transition-all" />
               </div>
             </button>
           ))}

@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { Concurso, ParticipacionConcurso } from '@/types'
 import { formatearFecha, formatearHora } from '@/lib/utils'
-import { Trophy, Plus, X, Users, Crown, Eye, Check, AtSign, AlertTriangle } from 'lucide-react'
+import { Trophy, Plus, X, Users, Crown, Eye, Check, AtSign, AlertTriangle, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type ConcursoConParticipaciones = Concurso & { participaciones?: ParticipacionConcurso[] }
@@ -27,6 +27,7 @@ export default function ConcursosPage() {
   const [concursos, setConcursos] = useState<ConcursoConParticipaciones[]>([])
   const [loading, setLoading] = useState(true)
   const [showCrear, setShowCrear] = useState(false)
+  const [editando, setEditando] = useState<Concurso | null>(null)
   const [viendo, setViendo] = useState<ConcursoConParticipaciones | null>(null)
 
   useEffect(() => { if (local) cargar() }, [local])
@@ -143,6 +144,11 @@ export default function ConcursosPage() {
               )}
 
               <div className="flex gap-2 flex-wrap">
+                {(c.estado === 'programado' || c.estado === 'activo') && (
+                  <Button size="sm" variant="secondary" onClick={() => setEditando(c)}>
+                    <Pencil size={13} /> Editar
+                  </Button>
+                )}
                 {c.estado === 'programado' && (
                   <Button size="sm" variant="secondary" onClick={() => cambiarEstado(c.id, 'activo')}>
                     Activar
@@ -177,12 +183,13 @@ export default function ConcursosPage() {
         </div>
       )}
 
-      {showCrear && (
-        <CrearConcursoModal
+      {(showCrear || editando) && (
+        <ConcursoModal
           localId={local.id}
           instagramHandle={local.instagram_handle}
-          onClose={() => setShowCrear(false)}
-          onCreado={() => { setShowCrear(false); cargar() }}
+          concurso={editando}
+          onClose={() => { setShowCrear(false); setEditando(null) }}
+          onGuardado={() => { setShowCrear(false); setEditando(null); cargar() }}
         />
       )}
 
@@ -199,16 +206,27 @@ export default function ConcursosPage() {
   )
 }
 
-function CrearConcursoModal({ localId, instagramHandle, onClose, onCreado }: {
-  localId: string; instagramHandle?: string; onClose: () => void; onCreado: () => void
+// Convierte ISO → formato datetime-local (YYYY-MM-DDTHH:mm) en hora local
+function toDatetimeLocal(iso?: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  const off = d.getTimezoneOffset()
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16)
+}
+
+function ConcursoModal({ localId, instagramHandle, concurso, onClose, onGuardado }: {
+  localId: string; instagramHandle?: string; concurso?: Concurso | null
+  onClose: () => void; onGuardado: () => void
 }) {
   const toast = useToast()
+  const esEdicion = !!concurso
   const [form, setForm] = useState({
-    descripcion: '',
-    premio: '',
-    tipo_contenido: 'foto' as 'foto' | 'video' | 'ambos',
-    hora_apertura: '',
-    hora_cierre: '',
+    descripcion: concurso?.descripcion ?? '',
+    premio: concurso?.premio ?? '',
+    tipo_contenido: (concurso?.tipo_contenido ?? 'foto') as 'foto' | 'video' | 'ambos',
+    hora_apertura: toDatetimeLocal(concurso?.hora_apertura),
+    hora_cierre: toDatetimeLocal(concurso?.hora_cierre),
   })
   const [loading, setLoading] = useState(false)
 
@@ -217,27 +235,29 @@ function CrearConcursoModal({ localId, instagramHandle, onClose, onCreado }: {
       toast.error('Completa todos los campos obligatorios'); return
     }
     setLoading(true)
-    const { error } = await supabase.from('concursos').insert({
-      local_id: localId,
+    const payload = {
       descripcion: form.descripcion.trim(),
       premio: form.premio.trim(),
       tipo_contenido: form.tipo_contenido,
-      fuente_contenido: 'directa',
       hora_apertura: form.hora_apertura,
       hora_cierre: form.hora_cierre,
-      estado: 'programado',
-    })
-    if (error) toast.error('Error al crear el concurso')
-    else { toast.success('Concurso creado'); onCreado() }
+    }
+    const { error } = esEdicion
+      ? await supabase.from('concursos').update(payload).eq('id', concurso!.id)
+      : await supabase.from('concursos').insert({
+          ...payload, local_id: localId, fuente_contenido: 'directa', estado: 'programado',
+        })
+    if (error) toast.error(esEdicion ? 'Error al guardar los cambios' : 'Error al crear el concurso')
+    else { toast.success(esEdicion ? 'Concurso actualizado' : 'Concurso creado'); onGuardado() }
     setLoading(false)
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
-      <div className="w-full bg-white/6 rounded-t-3xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end animate-fade-in">
+      <div className="w-full bg-white/6 rounded-t-3xl max-h-[90vh] overflow-y-auto animate-slide-up">
         <div className="p-5 space-y-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white">Nuevo concurso</h2>
+            <h2 className="text-lg font-bold text-white">{esEdicion ? 'Editar concurso' : 'Nuevo concurso'}</h2>
             <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
           </div>
 
@@ -295,7 +315,7 @@ function CrearConcursoModal({ localId, instagramHandle, onClose, onCreado }: {
           </div>
 
           <Button fullWidth loading={loading} onClick={guardar}>
-            <Trophy size={16} /> Crear concurso
+            {esEdicion ? <><Check size={16} /> Guardar cambios</> : <><Trophy size={16} /> Crear concurso</>}
           </Button>
         </div>
       </div>

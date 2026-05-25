@@ -16,6 +16,7 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
 const MADRID_CENTER: [number, number] = [-3.7038, 40.4168]
 const SOURCE_ID = 'pm-locales'
+const HEATMAP_LAYER = 'pm-locales-heat'
 const GLOW_LAYER = 'pm-locales-glow'
 const CIRCLE_LAYER = 'pm-locales-circle'
 const LABEL_LAYER = 'pm-locales-label'
@@ -125,6 +126,31 @@ export default function MapaExplorar() {
         data: { type: 'FeatureCollection', features: [] },
       })
 
+      // ── HEATMAP (mapa de calor de ambiente) ───────────────
+      // Pondera por aforo: los locales más llenos "calientan" más.
+      // Domina al alejar; se desvanece al acercar para dejar ver los puntos.
+      map.addLayer({
+        id: HEATMAP_LAYER,
+        type: 'heatmap',
+        source: SOURCE_ID,
+        maxzoom: 16,
+        paint: {
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'aforo'], 0, 0.35, 100, 1],
+          'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 8, 0.9, 14, 2.2],
+          'heatmap-color': [
+            'interpolate', ['linear'], ['heatmap-density'],
+            0,    'rgba(10,10,24,0)',
+            0.15, 'rgba(79,142,247,0.30)',   // azul tenue
+            0.35, 'rgba(124,92,255,0.45)',   // violeta
+            0.6,  'rgba(224,69,94,0.60)',    // rosa marca
+            0.85, 'rgba(255,77,113,0.80)',   // rosa fuerte
+            1,    'rgba(255,150,175,0.95)',  // núcleo caliente
+          ],
+          'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 8, 16, 14, 42],
+          'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.9, 13, 0.6, 15.5, 0],
+        },
+      })
+
       // ── GLOW bajo el círculo ──────────────────────────────
       map.addLayer({
         id: GLOW_LAYER,
@@ -138,7 +164,7 @@ export default function MapaExplorar() {
           ],
           'circle-color': tipoColorMatch,
           'circle-blur': 1.0,
-          'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.25, 14, 0.6],
+          'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.1, 13, 0.4, 16, 0.6],
         },
       })
 
@@ -158,7 +184,7 @@ export default function MapaExplorar() {
             'case', ['==', ['get', 'destacado'], 1], '#FFFFFF', 'rgba(255,255,255,0.6)'
           ],
           'circle-stroke-width': ['case', ['==', ['get', 'destacado'], 1], 2, 1],
-          'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.7, 14, 1],
+          'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.55, 12, 0.85, 15, 1],
         },
       })
 
