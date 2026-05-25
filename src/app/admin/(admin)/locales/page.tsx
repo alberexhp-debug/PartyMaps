@@ -1,14 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { Local, EstadoLocal, TierLocal } from '@/types'
 import { getLabelTipoLocal, formatearFecha } from '@/lib/utils'
-import { Search, Check, X, Star, AlertCircle, ChevronDown } from 'lucide-react'
+import { Search, Check, X, AlertCircle, ChevronDown, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { registrarAuditoria } from '@/lib/auditoria'
 
 export default function AdminLocalesPage() {
+  const router = useRouter()
   const toast = useToast()
   const [locales, setLocales] = useState<Local[]>([])
   const [loading, setLoading] = useState(true)
@@ -129,6 +131,12 @@ export default function AdminLocalesPage() {
 
             {/* Acciones */}
             <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => router.push(`/admin/locales/${local.id}`)}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-white/15 rounded-xl text-xs text-[#A0A0B8] hover:text-white hover:border-white/25 transition-colors"
+              >
+                <Pencil size={11} /> Editar
+              </button>
               {local.estado === 'pendiente_verificacion' && (
                 <>
                   <button

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 
 type Orden = 'relevancia' | 'precio_asc' | 'precio_desc' | 'aforo_desc' | 'aforo_asc' | 'nombre'
+type FiltroDia = 'hoy' | 'manana' | 'semana' | null
 
 const TIPOS_LABEL: Record<TipoLocal, string> = {
   discoteca: 'Discoteca',
@@ -55,6 +56,7 @@ export default function ExplorarPage() {
   const [orden, setOrden] = useState<Orden>('relevancia')
   const [showFiltros, setShowFiltros] = useState(false)
   const [showOrden, setShowOrden] = useState(false)
+  const [filtroDia, setFiltroDia] = useState<FiltroDia>(null)
 
   const cargar = async () => {
     setLoading(true)
@@ -86,6 +88,21 @@ export default function ExplorarPage() {
     if (filtros.solo_con_evento) r = r.filter(l => l.evento_activo)
     if (filtros.precio_min != null) r = r.filter(l => (l.precio_entrada_min ?? 0) >= filtros.precio_min!)
     if (filtros.precio_max != null) r = r.filter(l => (l.precio_entrada_min ?? 0) <= filtros.precio_max!)
+    // Filtro por día
+    if (filtroDia) {
+      const ahora = new Date()
+      const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate())
+      const manana = new Date(hoy.getTime() + 86400000)
+      const finSemana = new Date(hoy.getTime() + 7 * 86400000)
+      r = r.filter(l => {
+        const horario = l.horario as Record<string, { apertura: string; cierre: string } | null> | null
+        if (!horario) return filtroDia === 'hoy'
+        if (filtroDia === 'hoy') { const dia = hoy.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace('e', 'e'); return Object.values(horario).some(h => h != null) }
+        if (filtroDia === 'manana') { return Object.values(horario).some(h => h != null) }
+        if (filtroDia === 'semana') return true
+        return true
+      })
+    }
 
     // Promoción activa
     const ahora = Date.now()
@@ -117,7 +134,8 @@ export default function ExplorarPage() {
   const numFiltros =
     filtros.tipos.length + filtros.musica.length +
     (filtros.solo_con_evento ? 1 : 0) +
-    (filtros.precio_min != null || filtros.precio_max != null ? 1 : 0)
+    (filtros.precio_min != null || filtros.precio_max != null ? 1 : 0) +
+    (filtroDia != null ? 1 : 0)
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -169,6 +187,24 @@ export default function ExplorarPage() {
           >
             <ArrowUpDown size={11} /> {ORDEN_LABEL[orden]}
           </button>
+          {/* Filtros de día */}
+          {([
+            { id: 'hoy', label: 'Hoy' },
+            { id: 'manana', label: 'Mañana' },
+            { id: 'semana', label: 'Esta semana' },
+          ] as const).map(d => (
+            <button key={d.id}
+              onClick={() => setFiltroDia(filtroDia === d.id ? null : d.id)}
+              className={cn(
+                'shrink-0 inline-flex items-center gap-1 px-3 h-8 rounded-full text-xs font-semibold transition-colors',
+                filtroDia === d.id
+                  ? 'bg-[#4F8EF7] text-white'
+                  : 'bg-white/4 border border-white/8 text-[#B8B8CC] hover:text-white'
+              )}
+            >
+              <Clock size={10} /> {d.label}
+            </button>
+          ))}
           {filtros.tipos.map(t => (
             <ChipActivo key={t} onClick={() => setFiltros({ tipos: filtros.tipos.filter(x => x !== t) })}>
               {TIPOS_LABEL[t]}

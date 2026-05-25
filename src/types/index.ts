@@ -152,6 +152,8 @@ export interface Local {
   precio_dinamico?: PrecioDinamicoConfig
   precio_promocional?: number
   promo_ultima_hora_hasta?: string
+  instagram_handle?: string
+  entradas_disponibles_noche?: number
   created_at: string
   updated_at: string
 }

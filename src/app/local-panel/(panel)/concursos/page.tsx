@@ -1,12 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { Concurso, ParticipacionConcurso } from '@/types'
 import { formatearFecha, formatearHora } from '@/lib/utils'
-import { Trophy, Plus, X, Users, Crown, Eye, Check, Trash2 } from 'lucide-react'
+import { Trophy, Plus, X, Users, Crown, Eye, Check, AtSign, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type ConcursoConParticipaciones = Concurso & { participaciones?: ParticipacionConcurso[] }
@@ -21,6 +22,7 @@ const ESTADO_COLORS: Record<string, string> = {
 
 export default function ConcursosPage() {
   const { local } = useLocalPanelStore()
+  const router = useRouter()
   const toast = useToast()
   const [concursos, setConcursos] = useState<ConcursoConParticipaciones[]>([])
   const [loading, setLoading] = useState(true)
@@ -75,6 +77,8 @@ export default function ConcursosPage() {
 
   if (!local) return null
 
+  const sinInstagram = !local.instagram_handle
+
   return (
     <div className="p-4 md:p-6 space-y-6 pb-20 md:pb-6">
       <div className="flex items-center justify-between">
@@ -82,10 +86,26 @@ export default function ConcursosPage() {
           <h1 className="text-2xl font-black text-white">Concursos</h1>
           <p className="text-[#6B6B85] text-sm">Gestiona los concursos de tu local</p>
         </div>
-        <Button size="sm" onClick={() => setShowCrear(true)}>
+        <Button size="sm" onClick={() => setShowCrear(true)} disabled={sinInstagram}>
           <Plus size={16} /> Nuevo concurso
         </Button>
       </div>
+
+      {/* Aviso sin Instagram */}
+      {sinInstagram && (
+        <button
+          onClick={() => router.push('/local-panel/configuracion?tab=instagram')}
+          className="w-full flex items-center gap-3 p-4 bg-[#F39C12]/8 border border-[#F39C12]/25 rounded-2xl text-left hover:bg-[#F39C12]/12 transition-colors"
+        >
+          <AlertTriangle size={18} className="text-[#F39C12] shrink-0" />
+          <div className="flex-1">
+            <p className="font-semibold text-[#F39C12] text-sm">Configura tu cuenta de Instagram</p>
+            <p className="text-xs text-[#F39C12]/70 mt-0.5">
+              Los concursos requieren una cuenta de Instagram para que los participantes te etiqueten. Toca aquí para configurarla.
+            </p>
+          </div>
+        </button>
+      )}
 
       {loading ? (
         <div className="space-y-3">
@@ -115,6 +135,12 @@ export default function ConcursosPage() {
                 <span>{formatearFecha(c.hora_apertura)} {formatearHora(c.hora_apertura)} → {formatearHora(c.hora_cierre)}</span>
                 <span className="flex items-center gap-1"><Users size={11} /> {c.participaciones?.length || 0} participantes</span>
               </div>
+              {local.instagram_handle && (
+                <div className="flex items-center gap-1.5 text-xs text-[#C13584]">
+                  <AtSign size={10} />
+                  <span>Los participantes deben etiquetar @{local.instagram_handle} en Instagram</span>
+                </div>
+              )}
 
               <div className="flex gap-2 flex-wrap">
                 {c.estado === 'programado' && (
@@ -154,6 +180,7 @@ export default function ConcursosPage() {
       {showCrear && (
         <CrearConcursoModal
           localId={local.id}
+          instagramHandle={local.instagram_handle}
           onClose={() => setShowCrear(false)}
           onCreado={() => { setShowCrear(false); cargar() }}
         />
@@ -172,8 +199,8 @@ export default function ConcursosPage() {
   )
 }
 
-function CrearConcursoModal({ localId, onClose, onCreado }: {
-  localId: string; onClose: () => void; onCreado: () => void
+function CrearConcursoModal({ localId, instagramHandle, onClose, onCreado }: {
+  localId: string; instagramHandle?: string; onClose: () => void; onCreado: () => void
 }) {
   const toast = useToast()
   const [form, setForm] = useState({
@@ -214,10 +241,24 @@ function CrearConcursoModal({ localId, onClose, onCreado }: {
             <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
           </div>
 
+          {/* Cómo funciona */}
+          <div className="p-3 bg-[#C13584]/8 border border-[#C13584]/20 rounded-xl space-y-1.5">
+            <div className="flex items-center gap-2 text-[#C13584] text-xs font-semibold">
+              <AtSign size={13} /> Flujo del concurso vía Instagram
+            </div>
+            <ol className="text-xs text-[#A0A0B8] space-y-1 list-decimal list-inside">
+              <li>Los participantes publican en Instagram etiquetando {instagramHandle ? `@${instagramHandle}` : 'tu cuenta'}</li>
+              <li>Tú reposteas las mejores en tus Stories</li>
+              <li>La publicación con más likes gana</li>
+              <li>Declaras el ganador desde este panel</li>
+            </ol>
+          </div>
+
           <div className="space-y-4">
             <Field label="Descripción *">
               <textarea value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
-                placeholder="Ej: Sube la mejor foto del ambiente y gana..." rows={3} maxLength={300}
+                placeholder={`Ej: Sube tu mejor foto de la noche etiquetando @${instagramHandle || 'nuestracuenta'} y gana...`}
+                rows={3} maxLength={300}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]" />
             </Field>
 

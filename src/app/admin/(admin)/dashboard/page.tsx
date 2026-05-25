@@ -3,156 +3,255 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { formatearPrecio } from '@/lib/utils'
-import { Store, Users, Ticket, TrendingUp, AlertCircle, Clock, ChevronRight } from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import {
+  Store, Users, Ticket, TrendingUp, AlertCircle, ChevronRight,
+  ArrowUpRight, Activity, BarChart3, Star,
+} from 'lucide-react'
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { cn } from '@/lib/utils'
 
 interface GlobalStats {
   total_locales: number
   locales_pendientes: number
   total_usuarios: number
+  nuevos_usuarios_semana: number
   total_entradas_hoy: number
   ingresos_plataforma_hoy: number
-  ingresos_semana: { dia: string; ingresos: number }[]
+  ingresos_semana: { dia: string; ingresos: number; entradas: number }[]
+  top_locales: { id: string; nombre: string; entradas: number; ingresos: number }[]
+  tiers: Record<string, number>
+  media_reviews: number
 }
 
 export default function AdminDashboard() {
   const router = useRouter()
   const [stats, setStats] = useState<GlobalStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState<'semana' | 'locales'>('semana')
 
   useEffect(() => { cargar() }, [])
 
   async function cargar() {
     const hoy = new Date()
     const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).toISOString()
+    const hace7 = new Date(Date.now() - 7 * 86400000).toISOString()
 
-    const [localesRes, localesPendRes, usuariosRes, entradasRes, semanasRes] = await Promise.all([
+    const [localesRes, pendRes, usuariosRes, nuevosRes, entradasRes, semanaRes, reviewsRes, tieresRes] = await Promise.all([
       supabase.from('locales').select('id', { count: 'exact' }).eq('estado', 'activo'),
       supabase.from('locales').select('id', { count: 'exact' }).eq('estado', 'pendiente_verificacion'),
       supabase.from('usuarios').select('id', { count: 'exact' }).eq('estado_cuenta', 'activa'),
+      supabase.from('usuarios').select('id', { count: 'exact' }).gte('created_at', hace7).eq('estado_cuenta', 'activa'),
       supabase.from('entradas').select('comision_plataforma').gte('created_at', inicioHoy).eq('estado', 'activa'),
-      // Últimos 7 días de ingresos
-      supabase.from('entradas').select('created_at, comision_plataforma')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .eq('estado', 'activa'),
+      supabase.from('entradas').select('created_at, comision_plataforma, local_id').gte('created_at', hace7).eq('estado', 'activa'),
+      supabase.from('reviews').select('puntuacion').eq('censurada', false),
+      supabase.from('locales').select('tier').eq('estado', 'activo'),
     ])
 
     const entradas = entradasRes.data || []
-    const semana = semanasRes.data || []
+    const semana = semanaRes.data || []
 
     // Agrupar por día
-    const grouped: Record<string, number> = {}
+    const grouped: Record<string, { ingresos: number; entradas: number }> = {}
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000)
-      grouped[d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })] = 0
+      const d = new Date(Date.now() - i * 86400000)
+      grouped[d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })] = { ingresos: 0, entradas: 0 }
     }
     semana.forEach(e => {
       const key = new Date(e.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })
-      if (grouped[key] !== undefined) grouped[key] += e.comision_plataforma || 0
+      if (grouped[key]) { grouped[key].ingresos += e.comision_plataforma || 0; grouped[key].entradas++ }
     })
+
+    // Top locales por ingresos
+    const localMap: Record<string, { id: string; nombre: string; entradas: number; ingresos: number }> = {}
+    semana.forEach(e => {
+      if (!localMap[e.local_id]) localMap[e.local_id] = { id: e.local_id, nombre: e.local_id.slice(0, 8), entradas: 0, ingresos: 0 }
+      localMap[e.local_id].entradas++
+      localMap[e.local_id].ingresos += e.comision_plataforma || 0
+    })
+    // Intentar resolver nombres
+    if (Object.keys(localMap).length > 0) {
+      const { data: locData } = await supabase.from('locales').select('id, nombre').in('id', Object.keys(localMap))
+      locData?.forEach(l => { if (localMap[l.id]) localMap[l.id].nombre = l.nombre })
+    }
+    const topLocales = Object.values(localMap).sort((a, b) => b.ingresos - a.ingresos).slice(0, 5)
+
+    // Distribución de tiers
+    const tierCounts: Record<string, number> = {}
+    ;(tieresRes.data || []).forEach(l => {
+      tierCounts[l.tier] = (tierCounts[l.tier] || 0) + 1
+    })
+
+    const reviews = reviewsRes.data || []
+    const mediaReviews = reviews.length > 0
+      ? reviews.reduce((s, r) => s + r.puntuacion, 0) / reviews.length
+      : 0
 
     setStats({
       total_locales: localesRes.count || 0,
-      locales_pendientes: localesPendRes.count || 0,
+      locales_pendientes: pendRes.count || 0,
       total_usuarios: usuariosRes.count || 0,
+      nuevos_usuarios_semana: nuevosRes.count || 0,
       total_entradas_hoy: entradas.length,
       ingresos_plataforma_hoy: entradas.reduce((s, e) => s + (e.comision_plataforma || 0), 0),
-      ingresos_semana: Object.entries(grouped).map(([dia, ingresos]) => ({ dia, ingresos })),
+      ingresos_semana: Object.entries(grouped).map(([dia, v]) => ({ dia, ...v })),
+      top_locales: topLocales,
+      tiers: tierCounts,
+      media_reviews: mediaReviews,
     })
     setLoading(false)
   }
 
+  const kpis = [
+    { icon: Store,      label: 'Locales activos',    value: stats?.total_locales.toString() ?? '—',       color: '#E94560', sub: `${stats?.locales_pendientes ?? 0} pendientes` },
+    { icon: Users,      label: 'Usuarios',            value: stats?.total_usuarios.toString() ?? '—',       color: '#4F8EF7', sub: `+${stats?.nuevos_usuarios_semana ?? 0} esta semana` },
+    { icon: Ticket,     label: 'Entradas hoy',        value: stats?.total_entradas_hoy.toString() ?? '—',   color: '#F39C12', sub: undefined },
+    { icon: TrendingUp, label: 'Comisiones hoy',      value: stats ? formatearPrecio(stats.ingresos_plataforma_hoy) : '—', color: '#27AE60', sub: undefined },
+    { icon: Star,       label: 'Valoración media',    value: stats ? stats.media_reviews.toFixed(1) : '—', color: '#D4A84B', sub: 'todas las reseñas' },
+    { icon: Activity,   label: 'Tiers (pro+dest.)',   value: stats ? ((stats.tiers.pro || 0) + (stats.tiers.destacado || 0)).toString() : '—', color: '#7C5CFF', sub: undefined },
+  ]
+
   return (
     <div className="relative p-4 md:p-8 pb-20 md:pb-8 space-y-6 overflow-hidden">
-      <div className="absolute -top-32 -right-20 w-[40vw] h-[40vw] rounded-full opacity-25 blur-3xl pointer-events-none bg-[#4F8EF7]/40" />
+      {/* Header */}
       <div className="relative">
-        <p className="eyebrow eyebrow-blue mb-2">Tiempo real</p>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Dashboard global</h1>
-        <p className="text-[#A0A0B8] text-sm mt-2">Vista de la plataforma</p>
+        <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.25em] mb-1.5">Tiempo real</p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Dashboard</h1>
+        <p className="text-[#A0A0B8] text-sm mt-1.5">Vista global de la plataforma</p>
       </div>
 
-      {/* Alertas */}
+      {/* Alerta locales pendientes */}
       {(stats?.locales_pendientes || 0) > 0 && (
         <button
           onClick={() => router.push('/admin/locales?estado=pendiente_verificacion')}
-          className="w-full flex items-center gap-3 p-4 bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl text-left hover:bg-[#F39C12]/20 transition-colors"
+          className="w-full flex items-center gap-3 p-4 bg-[#F39C12]/8 border border-[#F39C12]/25 rounded-2xl text-left hover:bg-[#F39C12]/12 transition-colors"
         >
           <AlertCircle size={18} className="text-[#F39C12] shrink-0" />
           <div className="flex-1">
             <p className="font-semibold text-[#F39C12] text-sm">{stats?.locales_pendientes} locales pendientes de verificación</p>
-            <p className="text-xs text-[#F39C12]/70">Requieren revisión manual</p>
+            <p className="text-xs text-[#F39C12]/60 mt-0.5">Requieren revisión manual</p>
           </div>
           <ChevronRight size={16} className="text-[#F39C12]" />
         </button>
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { icon: Store, label: 'Locales activos', value: loading ? '...' : stats!.total_locales.toString(), color: '#E94560' },
-          { icon: Users, label: 'Usuarios activos', value: loading ? '...' : stats!.total_usuarios.toString(), color: '#4F8EF7' },
-          { icon: Ticket, label: 'Entradas hoy', value: loading ? '...' : stats!.total_entradas_hoy.toString(), color: '#F39C12' },
-          { icon: TrendingUp, label: 'Comisiones hoy', value: loading ? '...' : formatearPrecio(stats!.ingresos_plataforma_hoy), color: '#27AE60' },
-        ].map(({ icon: Icon, label, value, color }) => (
-          <div key={label} className="card-premium p-4 relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-30 blur-3xl" style={{ background: color }} />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {kpis.map(({ icon: Icon, label, value, color, sub }) => (
+          <div key={label} className="bg-white/3 border border-white/6 rounded-2xl p-4 relative overflow-hidden">
+            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-15 blur-2xl" style={{ background: color }} />
             <div className="relative">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, border: `1px solid ${color}40`, boxShadow: `0 4px 14px -4px ${color}80` }}>
-                  <Icon size={15} style={{ color }} />
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
+                  <Icon size={14} style={{ color }} />
                 </div>
-                <span className="text-[10px] text-[#A0A0B8] font-bold uppercase tracking-[0.18em]">{label}</span>
+                <span className="text-[10px] text-[#8B8BA8] font-bold uppercase tracking-[0.15em] truncate">{label}</span>
               </div>
-              <p className="text-3xl font-bold text-white text-display text-numeric tracking-tight">{value}</p>
+              <p className="text-2xl md:text-3xl font-bold text-white text-display text-numeric">{loading ? '—' : value}</p>
+              {sub && <p className="text-[11px] text-[#8B8BA8] mt-1">{sub}</p>}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Gráfica comisiones */}
+      {/* Gráficas */}
       {!loading && stats && (
-        <div className="glass rounded-2xl p-5">
-          <div className="mb-4">
-            <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.2em]">Últimos 7 días</p>
-            <h2 className="font-bold text-white text-lg text-display">Comisiones de la plataforma</h2>
+        <div className="bg-white/3 border border-white/6 rounded-2xl p-4">
+          {/* Tabs */}
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-sm font-bold text-white flex-1">Actividad últimos 7 días</h2>
+            <div className="flex gap-1 bg-white/6 rounded-lg p-0.5">
+              {(['semana', 'locales'] as const).map(t => (
+                <button key={t} onClick={() => setTab(t)}
+                  className={cn('px-3 py-1.5 rounded-md text-xs font-semibold transition-colors',
+                    tab === t ? 'bg-white/10 text-white' : 'text-[#8B8BA8] hover:text-white')}>
+                  {t === 'semana' ? 'Comisiones' : 'Top locales'}
+                </button>
+              ))}
+            </div>
           </div>
-          <ResponsiveContainer width="100%" height={170}>
-            <AreaChart data={stats.ingresos_semana}>
-              <defs>
-                <linearGradient id="gradAdmin" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4F8EF7" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#4F8EF7" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="dia" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+
+          {tab === 'semana' && (
+            <ResponsiveContainer width="100%" height={180}>
+              <AreaChart data={stats.ingresos_semana}>
+                <defs>
+                  <linearGradient id="gradAdmin" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4F8EF7" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#4F8EF7" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="dia" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ background: 'rgba(14,14,26,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
+                  formatter={(v: unknown, name: unknown) => [name === 'ingresos' ? formatearPrecio(Number(v)) : String(v), name === 'ingresos' ? 'Comisiones' : 'Entradas'] as [string, string]}
+                />
+                <Area type="monotone" dataKey="ingresos" stroke="#4F8EF7" fill="url(#gradAdmin)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+
+          {tab === 'locales' && (
+            stats.top_locales.length === 0 ? (
+              <p className="text-center text-[#6B6B85] py-8 text-sm">Sin datos de locales esta semana</p>
+            ) : (
+              <div className="space-y-2.5">
+                {stats.top_locales.map((l, i) => (
+                  <button key={l.id} onClick={() => router.push(`/admin/locales/${l.id}`)}
+                    className="w-full flex items-center gap-3 hover:bg-white/4 rounded-xl px-2 py-1.5 transition-colors text-left">
+                    <span className="text-xs font-bold text-[#6B6B85] w-4 shrink-0">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{l.nombre}</p>
+                      <p className="text-[11px] text-[#8B8BA8]">{l.entradas} entradas</p>
+                    </div>
+                    <p className="text-sm font-bold text-[#27AE60] text-numeric shrink-0">{formatearPrecio(l.ingresos)}</p>
+                    <ArrowUpRight size={13} className="text-[#6B6B85] shrink-0" />
+                  </button>
+                ))}
+              </div>
+            )
+          )}
+        </div>
+      )}
+
+      {/* Distribución tiers */}
+      {!loading && stats && Object.keys(stats.tiers).length > 0 && (
+        <div className="bg-white/3 border border-white/6 rounded-2xl p-4">
+          <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+            <BarChart3 size={15} className="text-[#7C5CFF]" /> Distribución de tiers
+          </h2>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={Object.entries(stats.tiers).map(([tier, count]) => ({ tier, count }))}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="tier" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip
-                contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
-                formatter={(v: unknown) => [formatearPrecio(Number(v)), 'Comisiones']}
+                contentStyle={{ background: 'rgba(14,14,26,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
               />
-              <Area type="monotone" dataKey="ingresos" stroke="#4F8EF7" fill="url(#gradAdmin)" strokeWidth={2.5} />
-            </AreaChart>
+              <Bar dataKey="count" fill="#7C5CFF" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}
 
       {/* Accesos rápidos */}
       <div>
-        <p className="text-[10px] font-bold text-[#A0A0B8] uppercase tracking-[0.2em] mb-3">Accesos rápidos</p>
-        <div className="grid grid-cols-2 gap-3">
+        <p className="text-[10px] font-bold text-[#8B8BA8] uppercase tracking-[0.2em] mb-3">Gestión</p>
+        <div className="grid grid-cols-2 gap-2">
           {[
-            { label: 'Gestionar locales', href: '/admin/locales', color: '#E94560' },
-            { label: 'Gestionar usuarios', href: '/admin/usuarios', color: '#4F8EF7' },
-            { label: 'Cola moderación', href: '/admin/moderacion', color: '#F39C12' },
-            { label: 'Configuración', href: '/admin/configuracion', color: '#27AE60' },
+            { label: 'Gestionar locales',   href: '/admin/locales',     color: '#E94560' },
+            { label: 'Gestionar usuarios',  href: '/admin/usuarios',    color: '#4F8EF7' },
+            { label: 'Moderación',          href: '/admin/moderacion',  color: '#F39C12' },
+            { label: 'Configuración',       href: '/admin/configuracion', color: '#27AE60' },
+            { label: 'Auditoría',           href: '/admin/auditoria',   color: '#7C5CFF' },
+            { label: 'Frases zodiaco',      href: '/admin/frases-zodiaco', color: '#D4A84B' },
           ].map(({ label, href, color }) => (
             <button key={href} onClick={() => router.push(href)}
-              className="glass rounded-2xl p-4 text-left transition-all hover:-translate-y-0.5 group relative overflow-hidden">
-              <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
-              <div className="ml-2 flex items-center justify-between">
-                <p className="text-sm font-semibold text-white">{label}</p>
-                <ChevronRight size={14} className="text-[#6B6B85] group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+              className="bg-white/3 border border-white/6 rounded-2xl p-4 text-left hover:bg-white/5 transition-colors group relative overflow-hidden">
+              <div className="absolute left-0 top-3 bottom-3 w-0.5 rounded-r-full" style={{ background: color }} />
+              <div className="ml-3 flex items-center justify-between">
+                <p className="text-sm font-medium text-white">{label}</p>
+                <ChevronRight size={14} className="text-[#6B6B85] group-hover:text-white transition-colors" />
               </div>
             </button>
           ))}

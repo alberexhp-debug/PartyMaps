@@ -11,17 +11,18 @@ import {
   Calendar, ChevronRight, BarChart3, AlertCircle, Gauge, Check, X, Beer,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 interface KPIs {
   entradas_hoy: number
   ingresos_hoy: number
+  entradas_semana: number
+  ingresos_semana_serie: { dia: string; ingresos: number; entradas: number }[]
   aforo_actual: number
   suscriptores: number
   media_reviews: number
   num_reviews: number
   evento_activo: { nombre: string; entradas_vendidas: number; aforo_maximo: number } | null
-  historico_aforo: { hora: string; porcentaje: number }[]
   pedidos_bar_hoy: number
   ingresos_bar_hoy: number
   pedidos_bar_pendientes: number
@@ -49,47 +50,52 @@ export default function LocalPanelDashboard() {
     if (!local) return
     const hoy = new Date()
     const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).toISOString()
+    const hace7 = new Date(Date.now() - 7 * 86400000).toISOString()
 
-    const [entradasRes, suscritorRes, reviewsRes, eventoRes, aforoRes, pedidosBarRes, pedidosPendientesRes] = await Promise.all([
+    const [entradasHoyRes, semanaRes, suscritorRes, reviewsRes, eventoRes, pedidosBarRes, pedidosPendientesRes] = await Promise.all([
       supabase.from('entradas').select('precio_total').eq('local_id', local.id)
         .gte('created_at', inicioHoy).eq('estado', 'activa'),
+      supabase.from('entradas').select('created_at, precio_total').eq('local_id', local.id)
+        .gte('created_at', hace7).eq('estado', 'activa'),
       supabase.from('suscripciones').select('id', { count: 'exact' }).eq('local_id', local.id),
       supabase.from('reviews').select('puntuacion').eq('local_id', local.id).eq('censurada', false),
       supabase.from('eventos').select('nombre, entradas_vendidas, aforo_maximo')
         .eq('local_id', local.id).eq('estado', 'publicado')
         .gte('fecha_fin', new Date().toISOString()).single(),
-      supabase.from('historial_aforo').select('registrado_at, porcentaje')
-        .eq('local_id', local.id)
-        .gte('registrado_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order('registrado_at', { ascending: true })
-        .limit(24),
       supabase.from('pedidos_bar').select('precio_total').eq('local_id', local.id)
         .gte('pagado_at', inicioHoy).in('estado', ['pagado', 'entregado']),
       supabase.from('pedidos_bar').select('id', { count: 'exact', head: true }).eq('local_id', local.id).eq('estado', 'pagado'),
     ])
 
-    const entradas = entradasRes.data || []
+    const entradasHoy = entradasHoyRes.data || []
+    const semana = semanaRes.data || []
     const reviews = reviewsRes.data || []
-    const historico = (aforoRes.data || []).map((h: { registrado_at: string; porcentaje: number }) => ({
-      hora: new Date(h.registrado_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-      porcentaje: Math.round(h.porcentaje),
-    }))
-
     const pedidosBar = pedidosBarRes.data || []
+
+    // Serie de 7 días
+    const grouped: Record<string, { ingresos: number; entradas: number }> = {}
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000)
+      grouped[d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })] = { ingresos: 0, entradas: 0 }
+    }
+    semana.forEach(e => {
+      const key = new Date(e.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })
+      if (grouped[key]) { grouped[key].ingresos += e.precio_total || 0; grouped[key].entradas++ }
+    })
+
     setKpis({
-      entradas_hoy: entradas.length,
-      ingresos_hoy: entradas.reduce((sum, e) => sum + (e.precio_total || 0), 0),
+      entradas_hoy: entradasHoy.length,
+      ingresos_hoy: entradasHoy.reduce((s, e) => s + (e.precio_total || 0), 0),
+      entradas_semana: semana.length,
+      ingresos_semana_serie: Object.entries(grouped).map(([dia, v]) => ({ dia, ...v })),
       aforo_actual: local.aforo_estimado_porcentaje || 0,
       suscriptores: suscritorRes.count || 0,
-      media_reviews: reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + r.puntuacion, 0) / reviews.length
-        : 0,
+      media_reviews: reviews.length > 0 ? reviews.reduce((s, r) => s + r.puntuacion, 0) / reviews.length : 0,
       num_reviews: reviews.length,
       pedidos_bar_hoy: pedidosBar.length,
       ingresos_bar_hoy: pedidosBar.reduce((s, p) => s + (p.precio_total || 0), 0),
       pedidos_bar_pendientes: pedidosPendientesRes.count || 0,
       evento_activo: eventoRes.data || null,
-      historico_aforo: historico,
     })
     setLoading(false)
   }
@@ -107,8 +113,7 @@ export default function LocalPanelDashboard() {
     setTimeout(() => setAforoGuardado(false), 3000)
   }
 
-  const promoActiva = local?.promo_ultima_hora_hasta
-    && new Date(local.promo_ultima_hora_hasta) > new Date()
+  const promoActiva = local?.promo_ultima_hora_hasta && new Date(local.promo_ultima_hora_hasta) > new Date()
 
   async function activarPromo() {
     if (!local) return
@@ -143,30 +148,32 @@ export default function LocalPanelDashboard() {
   const temperatura = getTemperaturaAforo(kpis?.aforo_actual || 0)
   const colorTemp = getColorTemperatura(temperatura)
 
-  // Operador de noche: vista enfocada a la operativa "esta noche".
-  // Sin KPIs financieros, sin charts históricos: solo aforo, scanner y cola bar.
   if (trabajador?.rol === 'operador_noche') {
     return <DashboardOperador />
   }
 
+  const capNoche = local.entradas_disponibles_noche
+  const pctEntradas = capNoche && capNoche > 0 ? Math.min(100, Math.round(((kpis?.entradas_hoy || 0) / capNoche) * 100)) : null
+
   return (
-    <div className="relative p-4 md:p-8 space-y-6 pb-20 md:pb-8 overflow-hidden">
+    <div className="relative p-4 md:p-8 space-y-5 pb-20 md:pb-8 overflow-hidden">
       <div className="hero-halo-rose" />
+
       {/* Header */}
       <div className="relative flex items-start justify-between gap-3">
         <div>
           <p className="eyebrow mb-2">Dashboard</p>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{local.nombre}</h1>
-          <p className="text-[#A0A0B8] text-sm capitalize mt-2">{local.tier} · {local.ciudad}</p>
+          <p className="text-[#A0A0B8] text-sm capitalize mt-1">{local.tier} · {local.ciudad}</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border backdrop-blur-md mt-1"
-          style={{ background: `${colorTemp}22`, borderColor: `${colorTemp}70`, color: colorTemp, boxShadow: `0 8px 22px -4px ${colorTemp}55` }}>
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: colorTemp, boxShadow: `0 0 8px ${colorTemp}` }} />
-          {getLabelTemperatura(temperatura)} · {Math.round(kpis?.aforo_actual || 0)}%
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-md mt-1 shrink-0"
+          style={{ background: `${colorTemp}18`, borderColor: `${colorTemp}50`, color: colorTemp }}>
+          <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: colorTemp }} />
+          {Math.round(kpis?.aforo_actual || 0)}%
         </div>
       </div>
 
-      {/* Estado del local */}
+      {/* Alerta estado */}
       {local.estado !== 'activo' && (
         <div className="flex items-center gap-3 p-4 bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl">
           <AlertCircle size={18} className="text-[#F39C12] shrink-0" />
@@ -177,49 +184,90 @@ export default function LocalPanelDashboard() {
         </div>
       )}
 
-      {/* KPI principal — ingresos hoy a tamaño hero */}
-      <div className="card-premium relative overflow-hidden p-6 md:p-8">
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-30 blur-3xl bg-[#4F8EF7]" />
+      {/* Hero — ingresos + entradas hoy */}
+      <div className="card-premium relative overflow-hidden p-5 md:p-7">
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-25 blur-3xl bg-[#4F8EF7]" />
         <div className="relative">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-[#4F8EF7]/22 border border-[#4F8EF7]/40 flex items-center justify-center" style={{ boxShadow: '0 4px 14px -4px rgba(79,142,247,0.7)' }}>
-              <TrendingUp size={18} className="text-[#4F8EF7]" />
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-[#4F8EF7]/20 border border-[#4F8EF7]/35 flex items-center justify-center">
+              <TrendingUp size={15} className="text-[#4F8EF7]" />
             </div>
             <span className="text-[10px] text-[#B8B8CC] font-bold uppercase tracking-[0.2em]">Ingresos hoy</span>
           </div>
           <p className="text-5xl md:text-6xl font-bold text-white text-display text-numeric tracking-tight">
             {loading ? '—' : formatearPrecio(kpis!.ingresos_hoy)}
           </p>
-          <p className="text-sm text-[#B8B8CC] mt-2">
-            {loading ? '' : `${kpis!.entradas_hoy} ${kpis!.entradas_hoy === 1 ? 'entrada vendida' : 'entradas vendidas'} hoy`}
-          </p>
+
+          {/* Entradas hoy + cap */}
+          <div className="mt-3 space-y-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-[#B8B8CC] flex items-center gap-1.5">
+                <Ticket size={12} className="text-[#E94560]" />
+                {loading ? '—' : kpis!.entradas_hoy} {kpis?.entradas_hoy === 1 ? 'entrada vendida' : 'entradas vendidas'} hoy
+              </span>
+              {capNoche && (
+                <span className="text-xs text-[#8B8BA8]">
+                  cap: {capNoche}
+                </span>
+              )}
+            </div>
+            {pctEntradas !== null && (
+              <div className="w-full h-1.5 bg-white/8 rounded-full overflow-hidden">
+                <div
+                  className={cn('h-full rounded-full transition-all', pctEntradas >= 90 ? 'bg-[#E94560]' : pctEntradas >= 60 ? 'bg-[#F39C12]' : 'bg-[#27AE60]')}
+                  style={{ width: `${pctEntradas}%` }}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* KPIs secundarios — pequeños */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* KPIs secundarios */}
+      <div className="grid grid-cols-3 gap-2.5">
+        <KPISecundario icon={Users} label="Suscriptores" value={loading ? '—' : kpis!.suscriptores.toString()} color="#F39C12" />
         <KPISecundario
-          icon={Users}
-          label="Suscriptores"
-          value={loading ? '—' : kpis!.suscriptores.toString()}
-          color="#F39C12"
-        />
-        <KPISecundario
-          icon={Star}
-          label="Valoración"
+          icon={Star} label="Valoración"
           value={loading ? '—' : kpis!.media_reviews > 0 ? kpis!.media_reviews.toFixed(1) : '—'}
-          sublabel={loading || kpis!.num_reviews === 0 ? undefined : `${kpis!.num_reviews} reseñas`}
+          sublabel={!loading && kpis!.num_reviews > 0 ? `${kpis!.num_reviews} reseñas` : undefined}
           color="#27AE60"
         />
         <KPISecundario
-          icon={Ticket}
-          label="Aforo"
-          value={loading ? '—' : `${Math.round(kpis!.aforo_actual)}%`}
-          color={colorTemp}
+          icon={Ticket} label="Esta semana"
+          value={loading ? '—' : kpis!.entradas_semana.toString()}
+          sublabel="entradas"
+          color="#7C5CFF"
         />
       </div>
 
-      {/* Bar — KPI + acceso rápido a cola */}
+      {/* Gráfica ingresos 7 días */}
+      {!loading && kpis && (
+        <div className="bg-white/3 border border-white/6 rounded-2xl p-4">
+          <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+            <BarChart3 size={14} className="text-[#4F8EF7]" /> Ingresos últimos 7 días
+          </h2>
+          <ResponsiveContainer width="100%" height={160}>
+            <AreaChart data={kpis.ingresos_semana_serie}>
+              <defs>
+                <linearGradient id="gradLocal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#E94560" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#E94560" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="dia" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ background: 'rgba(14,14,26,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
+                formatter={(v: unknown) => [formatearPrecio(Number(v)), 'Ingresos'] as [string, string]}
+              />
+              <Area type="monotone" dataKey="ingresos" stroke="#E94560" fill="url(#gradLocal)" strokeWidth={2} dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Bar */}
       {!loading && (kpis!.pedidos_bar_hoy > 0 || kpis!.pedidos_bar_pendientes > 0) && (
         <button
           onClick={() => router.push('/local-panel/pedidos-bar')}
@@ -227,7 +275,7 @@ export default function LocalPanelDashboard() {
         >
           <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full opacity-25 blur-3xl bg-[#F39C12]" />
           <div className="relative flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#F39C12]/15 border border-[#F39C12]/40 flex items-center justify-center shrink-0" style={{ boxShadow: '0 4px 14px -4px rgba(243,156,18,0.7)' }}>
+            <div className="w-12 h-12 rounded-2xl bg-[#F39C12]/15 border border-[#F39C12]/40 flex items-center justify-center shrink-0">
               <Beer size={20} className="text-[#F39C12]" />
             </div>
             <div className="flex-1 min-w-0">
@@ -238,9 +286,7 @@ export default function LocalPanelDashboard() {
               <p className="text-xs text-[#B8B8CC] mt-1">
                 {kpis!.pedidos_bar_hoy} {kpis!.pedidos_bar_hoy === 1 ? 'pedido' : 'pedidos'}
                 {kpis!.pedidos_bar_pendientes > 0 && (
-                  <span className="text-[#E94560] font-bold ml-2">
-                    · {kpis!.pedidos_bar_pendientes} por servir
-                  </span>
+                  <span className="text-[#E94560] font-bold ml-2">· {kpis!.pedidos_bar_pendientes} por servir</span>
                 )}
               </p>
             </div>
@@ -251,23 +297,22 @@ export default function LocalPanelDashboard() {
 
       {/* Evento activo */}
       {kpis?.evento_activo && (
-        <div className="glass rounded-2xl p-4">
+        <div className="bg-white/3 border border-white/6 rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-bold text-white flex items-center gap-2">
-              <Calendar size={16} className="text-[#F39C12]" />
-              Evento activo
+              <Calendar size={15} className="text-[#F39C12]" /> Evento activo
             </h2>
-            <button onClick={() => router.push('/local-panel/eventos')} className="text-xs text-[#A0A0B8]">
-              Ver todos <ChevronRight size={12} className="inline" />
+            <button onClick={() => router.push('/local-panel/eventos')} className="text-xs text-[#8B8BA8] hover:text-white transition-colors">
+              Ver todos <ChevronRight size={11} className="inline" />
             </button>
           </div>
-          <p className="font-semibold text-white">{kpis.evento_activo.nombre}</p>
+          <p className="font-semibold text-white text-sm">{kpis.evento_activo.nombre}</p>
           <div className="mt-3">
-            <div className="flex items-center justify-between text-xs text-[#6B6B85] mb-1">
+            <div className="flex items-center justify-between text-xs text-[#8B8BA8] mb-1.5">
               <span>Entradas vendidas</span>
-              <span>{kpis.evento_activo.entradas_vendidas}/{kpis.evento_activo.aforo_maximo}</span>
+              <span className="text-white font-medium">{kpis.evento_activo.entradas_vendidas}/{kpis.evento_activo.aforo_maximo}</span>
             </div>
-            <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-white/6 rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#E94560] rounded-full transition-all"
                 style={{ width: `${Math.min(100, (kpis.evento_activo.entradas_vendidas / kpis.evento_activo.aforo_maximo) * 100)}%` }}
@@ -277,39 +322,15 @@ export default function LocalPanelDashboard() {
         </div>
       )}
 
-      {/* Gráfica aforo últimas 24h */}
-      {kpis?.historico_aforo && kpis.historico_aforo.length > 1 && (
-        <div className="glass rounded-2xl p-4">
-          <h2 className="font-bold text-white mb-4 flex items-center gap-2">
-            <BarChart3 size={16} className="text-[#4F8EF7]" />
-            Aforo últimas 24h
-          </h2>
-          <ResponsiveContainer width="100%" height={160}>
-            <LineChart data={kpis.historico_aforo}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="hora" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 100]} tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
-                labelStyle={{ color: '#A0A0B8' }}
-                itemStyle={{ color: '#E94560' }}
-              />
-              <Line type="monotone" dataKey="porcentaje" stroke="#E94560" strokeWidth={2.5} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
       {/* Aforo manual */}
-      <div className="glass rounded-2xl p-4 space-y-4">
-        <h2 className="font-bold text-white flex items-center gap-2">
-          <Gauge size={16} className="text-[#E94560]" />
-          Ajuste manual de aforo
+      <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
+        <h2 className="font-bold text-white flex items-center gap-2 text-sm">
+          <Gauge size={15} className="text-[#E94560]" /> Aforo manual
         </h2>
         <p className="text-xs text-[#6B6B85]">
-          Corrige el aforo estimado. Tu valor sobreescribirá la estimación automática y expirará a las 6:00 AM.
+          Corrige el aforo estimado. Expira a las 6:00 AM.
         </p>
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-[#A0A0B8]">Nivel actual</span>
             <span className="text-lg font-black" style={{ color: colorTemp }}>
@@ -317,43 +338,28 @@ export default function LocalPanelDashboard() {
             </span>
           </div>
           <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
+            type="range" min={0} max={100} step={5}
             value={aforoSlider !== null ? aforoSlider : Math.round(kpis?.aforo_actual || 0)}
             onChange={e => setAforoSlider(Number(e.target.value))}
             className="w-full accent-[#E94560]"
           />
           <div className="flex justify-between text-xs text-[#6B6B85]">
-            <span>Vacío</span>
-            <span>Medio</span>
-            <span>Lleno</span>
+            <span>Vacío</span><span>Medio</span><span>Lleno</span>
           </div>
         </div>
-        <Button
-          size="sm"
-          fullWidth
-          loading={guardandoAforo}
-          disabled={aforoSlider === null}
-          onClick={guardarAforo}
-        >
-          {aforoGuardado ? <><Check size={14} /> Guardado</> : <><Gauge size={14} /> Aplicar corrección</>}
+        <Button size="sm" fullWidth loading={guardandoAforo} disabled={aforoSlider === null} onClick={guardarAforo}>
+          {aforoGuardado ? <><Check size={13} /> Guardado</> : <><Gauge size={13} /> Aplicar</>}
         </Button>
       </div>
 
-      {/* Promoción de última hora */}
-      <div className={cn(
-        'bg-white/6 rounded-2xl border p-4 space-y-3',
-        promoActiva ? 'border-[#F39C12]/50' : 'border-white/10'
-      )}>
+      {/* Promo última hora */}
+      <div className={cn('bg-white/3 rounded-2xl border p-4 space-y-3', promoActiva ? 'border-[#F39C12]/40' : 'border-white/6')}>
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-white flex items-center gap-2">
-            <Zap size={16} className="text-[#F39C12]" />
-            Promo de última hora
+          <h2 className="font-bold text-white flex items-center gap-2 text-sm">
+            <Zap size={15} className="text-[#F39C12]" /> Promo última hora
           </h2>
           {promoActiva && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[#F39C12]/20 text-[#F39C12]">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[#F39C12]/15 text-[#F39C12] border border-[#F39C12]/25">
               Activa hasta {new Date(local!.promo_ultima_hora_hasta!).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
@@ -361,59 +367,54 @@ export default function LocalPanelDashboard() {
         {promoActiva ? (
           <>
             <p className="text-sm text-[#A0A0B8]">
-              Precio promocional aplicado: <strong className="text-white">{formatearPrecio(local!.precio_promocional!)}</strong>.
-              Tras la expiración, vuelve al precio según la curva dinámica.
+              Precio promocional: <strong className="text-white">{formatearPrecio(local!.precio_promocional!)}</strong>
             </p>
             <Button size="sm" variant="secondary" fullWidth onClick={cancelarPromo} loading={activandoPromo}>
-              <X size={14} /> Cancelar promo
+              <X size={13} /> Cancelar promo
             </Button>
           </>
         ) : (
           <>
             <p className="text-xs text-[#6B6B85]">
-              Baja temporalmente el precio para atraer más gente. Envía notificación automática a tus suscriptores (no cuenta en tu límite semanal).
+              Baja el precio temporalmente y notifica a tus suscriptores.
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs text-[#6B6B85]">Precio promo (€)</label>
+                <label className="text-xs text-[#6B6B85]">Precio (€)</label>
                 <input type="number" min={local?.precio_entrada_min || 0} step="0.5"
-                  value={promoPrecio}
-                  onChange={e => setPromoPrecio(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none"
-                />
+                  value={promoPrecio} onChange={e => setPromoPrecio(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs text-[#6B6B85]">Duración: {promoHoras}h (máx 4h)</label>
+                <label className="text-xs text-[#6B6B85]">Duración: {promoHoras}h</label>
                 <input type="range" min={1} max={4} step={1}
-                  value={promoHoras}
-                  onChange={e => setPromoHoras(parseInt(e.target.value))}
-                  className="w-full accent-[#F39C12]"
-                />
+                  value={promoHoras} onChange={e => setPromoHoras(parseInt(e.target.value))}
+                  className="w-full accent-[#F39C12] mt-2" />
               </div>
             </div>
             <Button size="sm" fullWidth onClick={activarPromo} loading={activandoPromo}
               disabled={promoPrecio < (local?.precio_entrada_min || 0)}>
-              <Zap size={14} /> Activar promo
+              <Zap size={13} /> Activar promo
             </Button>
           </>
         )}
       </div>
 
       {/* Acciones rápidas */}
-      <div className="glass rounded-2xl p-4 space-y-2">
-        <h2 className="font-bold text-white mb-3">Acciones rápidas</h2>
+      <div className="bg-white/3 border border-white/6 rounded-2xl p-4">
+        <h2 className="text-sm font-bold text-white mb-3">Acciones rápidas</h2>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" size="sm" onClick={() => router.push('/local-panel/eventos')}>
-            <Calendar size={14} /> Nuevo evento
+            <Calendar size={13} /> Nuevo evento
           </Button>
           <Button variant="secondary" size="sm" onClick={() => router.push('/local-panel/notificaciones')}>
-            <Bell size={14} /> Notificación
+            <Bell size={13} /> Notificación
           </Button>
           <Button variant="secondary" size="sm" onClick={() => router.push('/local-panel/scanner')}>
-            <Zap size={14} /> Scanner QR
+            <Zap size={13} /> Scanner QR
           </Button>
           <Button variant="secondary" size="sm" onClick={() => router.push('/local-panel/analytics')}>
-            <BarChart3 size={14} /> Analytics
+            <BarChart3 size={13} /> Analytics
           </Button>
         </div>
       </div>
@@ -421,34 +422,14 @@ export default function LocalPanelDashboard() {
   )
 }
 
-function KPICard({ icon: Icon, label, value, color }: {
-  icon: React.ElementType; label: string; value: string; color: string
-}) {
-  return (
-    <div className="card-premium p-4 relative overflow-hidden">
-      <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-30 blur-3xl" style={{ background: color }} />
-      <div className="relative">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, border: `1px solid ${color}40`, boxShadow: `0 4px 14px -4px ${color}80` }}>
-            <Icon size={16} style={{ color }} />
-          </div>
-          <span className="text-[10px] text-[#B8B8CC] font-bold uppercase tracking-[0.18em]">{label}</span>
-        </div>
-        <p className="text-3xl font-bold text-white text-display text-numeric tracking-tight">{value}</p>
-      </div>
-    </div>
-  )
-}
-
-/** KPI compacto para métricas secundarias bajo el hero */
 function KPISecundario({ icon: Icon, label, value, sublabel, color }: {
   icon: React.ElementType; label: string; value: string; sublabel?: string; color: string
 }) {
   return (
     <div className="card-premium p-3 md:p-4">
       <div className="flex items-center gap-1.5 mb-2">
-        <Icon size={13} style={{ color }} />
-        <span className="text-[9px] text-[#B8B8CC] font-bold uppercase tracking-[0.16em] truncate">{label}</span>
+        <Icon size={12} style={{ color }} />
+        <span className="text-[9px] text-[#B8B8CC] font-bold uppercase tracking-[0.15em] truncate">{label}</span>
       </div>
       <p className="text-xl md:text-2xl font-bold text-white text-display text-numeric tracking-tight leading-none">{value}</p>
       {sublabel && <p className="text-[10px] text-[#8B8BA8] mt-1.5 truncate">{sublabel}</p>}
@@ -456,9 +437,9 @@ function KPISecundario({ icon: Icon, label, value, sublabel, color }: {
   )
 }
 
-// ────────────────────────────────────────────────────────────────────
-// Dashboard del operador de noche — UI mínima, focal, sin charts.
-// ────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Dashboard operador de noche
+// ─────────────────────────────────────────────────────────────
 function DashboardOperador() {
   const router = useRouter()
   const toast = useToast()
@@ -471,17 +452,13 @@ function DashboardOperador() {
     if (!local) return
     const cargar = async () => {
       const { count } = await supabase
-        .from('pedidos_bar')
-        .select('id', { count: 'exact', head: true })
+        .from('pedidos_bar').select('id', { count: 'exact', head: true })
         .eq('local_id', local.id).eq('estado', 'pagado')
       setPedidosPendientes(count ?? 0)
     }
     cargar()
-    // Realtime: nuevos pedidos aparecen al instante
     const ch = supabase.channel(`op-${local.id}`)
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'pedidos_bar', filter: `local_id=eq.${local.id}`,
-      }, cargar)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_bar', filter: `local_id=eq.${local.id}` }, cargar)
       .subscribe()
     return () => { supabase.removeChannel(ch) }
   }, [local])
@@ -510,84 +487,68 @@ function DashboardOperador() {
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{local.nombre}</h1>
       </div>
 
-      {/* Aforo HERO con slider grande */}
       <div className="card-premium relative overflow-hidden p-5">
         <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full opacity-25 blur-3xl" style={{ background: colorTemp }} />
         <div className="relative">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full animate-pulse" style={{ background: colorTemp, boxShadow: `0 0 10px ${colorTemp}` }} />
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: colorTemp }} />
               <p className="eyebrow" style={{ color: colorTemp }}>{getLabelTemperatura(temperatura)}</p>
             </div>
             <p className="text-5xl md:text-6xl font-bold text-display text-numeric" style={{ color: colorTemp }}>{aforoActual}%</p>
           </div>
-          <input
-            type="range" min={0} max={100}
-            value={aforoActual}
-            onChange={e => setAforoSlider(Number(e.target.value))}
-            className="w-full accent-[#E94560]"
-          />
+          <input type="range" min={0} max={100}
+            value={aforoActual} onChange={e => setAforoSlider(Number(e.target.value))}
+            className="w-full accent-[#E94560]" />
           {aforoSlider !== null && (
             <Button fullWidth size="md" className="mt-3" onClick={guardar} loading={guardando}>
               Guardar aforo
             </Button>
           )}
-          <p className="text-xs text-[#8B8BA8] mt-2">Tu valor sobreescribe la estimación hasta las 6 AM.</p>
+          <p className="text-xs text-[#8B8BA8] mt-2">Expira a las 6 AM.</p>
         </div>
       </div>
 
-      {/* Acción Bar — pedidos por servir */}
       <button
         onClick={() => router.push('/local-panel/pedidos-bar')}
         className="card-premium relative w-full overflow-hidden p-5 text-left transition-all hover:-translate-y-0.5"
       >
         <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full opacity-25 blur-3xl bg-[#F39C12]" />
         <div className="relative flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#F39C12]/15 border border-[#F39C12]/40 flex items-center justify-center shrink-0">
-            <Calendar size={22} className="text-[#F39C12]" />
+          <div className="w-12 h-12 rounded-2xl bg-[#F39C12]/15 border border-[#F39C12]/40 flex items-center justify-center shrink-0">
+            <Beer size={20} className="text-[#F39C12]" />
           </div>
           <div className="flex-1">
             <p className="eyebrow" style={{ color: '#F39C12' }}>Bar · cola en vivo</p>
             <p className="text-3xl font-bold text-white text-display text-numeric mt-1">{pedidosPendientes}</p>
             <p className="text-xs text-[#B8B8CC] mt-1">
-              {pedidosPendientes === 0 ? 'Sin pedidos por servir' : pedidosPendientes === 1 ? '1 pedido por servir' : `${pedidosPendientes} pedidos por servir`}
+              {pedidosPendientes === 0 ? 'Sin pedidos por servir' : `${pedidosPendientes} ${pedidosPendientes === 1 ? 'pedido' : 'pedidos'} por servir`}
             </p>
           </div>
           <ChevronRight size={20} className="text-[#B8B8CC]" />
         </div>
       </button>
 
-      {/* Acciones rápidas grandes */}
       <div className="grid grid-cols-2 gap-3">
-        <AccionRapida onClick={() => router.push('/local-panel/scanner')}
-          color="#4F8EF7" icon={Calendar} label="Scanner" sublabel="Entradas y bar" />
-        <AccionRapida onClick={() => router.push('/local-panel/notificaciones')}
-          color="#7C5CFF" icon={AlertCircle} label="Notificación" sublabel="A tus seguidores" />
-        <AccionRapida onClick={() => router.push('/local-panel/sugerencias')}
-          color="#27AE60" icon={Check} label="Sugerencias" sublabel="De los clientes" />
-        <AccionRapida onClick={() => router.push('/local-panel/concursos')}
-          color="#D4A84B" icon={X} label="Concursos" sublabel="Activos esta noche" />
+        {[
+          { href: '/local-panel/scanner',       color: '#4F8EF7', icon: Zap,          label: 'Scanner',      sublabel: 'Entradas y bar' },
+          { href: '/local-panel/notificaciones', color: '#7C5CFF', icon: Bell,         label: 'Notificación', sublabel: 'A tus seguidores' },
+          { href: '/local-panel/sugerencias',    color: '#27AE60', icon: Check,        label: 'Sugerencias',  sublabel: 'De los clientes' },
+          { href: '/local-panel/concursos',      color: '#D4A84B', icon: BarChart3,    label: 'Concursos',    sublabel: 'Activos esta noche' },
+        ].map(({ href, color, icon: Icon, label, sublabel }) => (
+          <button key={href} onClick={() => router.push(href)}
+            className="card-premium relative p-4 text-left overflow-hidden transition-all hover:-translate-y-0.5">
+            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-25 blur-2xl" style={{ background: color }} />
+            <div className="relative">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2.5" style={{ background: `${color}20`, border: `1px solid ${color}35` }}>
+                <Icon size={16} style={{ color }} />
+              </div>
+              <p className="text-sm font-bold text-white text-display">{label}</p>
+              <p className="text-[11px] text-[#B8B8CC] mt-0.5">{sublabel}</p>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
-  )
-}
-
-function AccionRapida({ onClick, color, icon: Icon, label, sublabel }: {
-  onClick: () => void; color: string; icon: React.ElementType; label: string; sublabel: string
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="card-premium relative p-4 text-left overflow-hidden transition-all hover:-translate-y-0.5"
-    >
-      <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-30 blur-2xl" style={{ background: color }} />
-      <div className="relative">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2.5" style={{ background: `${color}22`, border: `1px solid ${color}40` }}>
-          <Icon size={17} style={{ color }} />
-        </div>
-        <p className="text-base font-bold text-white text-display">{label}</p>
-        <p className="text-[11px] text-[#B8B8CC] mt-0.5">{sublabel}</p>
-      </div>
-    </button>
   )
 }

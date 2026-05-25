@@ -4,28 +4,27 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import {
-  LayoutDashboard, Store, Calendar, QrCode, Bell,
+  LayoutDashboard, Settings, Calendar, QrCode, Bell,
   Star, BarChart3, Users, CreditCard, LogOut, Trophy, Target, MessageSquare,
-  Beer, ShoppingBag,
+  Beer,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
 
 const NAV_ITEMS: { zona: ZonaPanel; href: string; icon: React.ElementType; label: string }[] = [
-  { zona: 'dashboard',     href: '/local-panel/dashboard',     icon: LayoutDashboard, label: 'Dashboard' },
-  { zona: 'mi-local',      href: '/local-panel/mi-local',      icon: Store,           label: 'Mi local' },
-  { zona: 'eventos',       href: '/local-panel/eventos',       icon: Calendar,        label: 'Eventos' },
-  { zona: 'scanner',       href: '/local-panel/scanner',       icon: QrCode,          label: 'Scanner' },
-  { zona: 'pedidos-bar',   href: '/local-panel/pedidos-bar',   icon: Beer,            label: 'Bar — Pedidos' },
-  { zona: 'productos',     href: '/local-panel/productos',     icon: ShoppingBag,     label: 'Bar — Carta' },
-  { zona: 'concursos',     href: '/local-panel/concursos',     icon: Trophy,          label: 'Concursos' },
-  { zona: 'retos',         href: '/local-panel/retos',         icon: Target,          label: 'Retos' },
-  { zona: 'sugerencias',   href: '/local-panel/sugerencias',   icon: MessageSquare,   label: 'Sugerencias' },
-  { zona: 'notificaciones',href: '/local-panel/notificaciones',icon: Bell,            label: 'Notificaciones' },
-  { zona: 'reviews',       href: '/local-panel/reviews',       icon: Star,            label: 'Reseñas' },
-  { zona: 'analytics',     href: '/local-panel/analytics',     icon: BarChart3,       label: 'Analytics' },
-  { zona: 'equipo',        href: '/local-panel/equipo',        icon: Users,           label: 'Equipo' },
-  { zona: 'facturacion',   href: '/local-panel/facturacion',   icon: CreditCard,      label: 'Facturación' },
+  { zona: 'dashboard',      href: '/local-panel/dashboard',      icon: LayoutDashboard, label: 'Dashboard' },
+  { zona: 'eventos',        href: '/local-panel/eventos',        icon: Calendar,        label: 'Eventos' },
+  { zona: 'scanner',        href: '/local-panel/scanner',        icon: QrCode,          label: 'Scanner' },
+  { zona: 'pedidos-bar',    href: '/local-panel/pedidos-bar',    icon: Beer,            label: 'Bar — Pedidos' },
+  { zona: 'concursos',      href: '/local-panel/concursos',      icon: Trophy,          label: 'Concursos' },
+  { zona: 'retos',          href: '/local-panel/retos',          icon: Target,          label: 'Retos' },
+  { zona: 'sugerencias',    href: '/local-panel/sugerencias',    icon: MessageSquare,   label: 'Sugerencias' },
+  { zona: 'notificaciones', href: '/local-panel/notificaciones', icon: Bell,            label: 'Notificaciones' },
+  { zona: 'reviews',        href: '/local-panel/reviews',        icon: Star,            label: 'Reseñas' },
+  { zona: 'analytics',      href: '/local-panel/analytics',      icon: BarChart3,       label: 'Analytics' },
+  { zona: 'equipo',         href: '/local-panel/equipo',         icon: Users,           label: 'Equipo' },
+  { zona: 'facturacion',    href: '/local-panel/facturacion',    icon: CreditCard,      label: 'Facturación' },
+  { zona: 'configuracion',  href: '/local-panel/configuracion',  icon: Settings,        label: 'Configuración' },
 ]
 
 /**
