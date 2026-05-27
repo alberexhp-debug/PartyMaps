@@ -69,7 +69,7 @@ export default function EventoEditPage() {
         <button aria-label="Volver" onClick={() => router.back()} className="p-2 text-[#A0A0B8]">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-black text-white flex-1">
+        <h1 className="text-2xl font-bold tracking-tight text-display text-white flex-1">
           {isNuevo ? 'Nuevo evento' : 'Editar evento'}
         </h1>
         <Button loading={loading} onClick={guardar} size="sm">

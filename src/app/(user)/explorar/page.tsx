@@ -18,11 +18,56 @@ import {
 } from '@/lib/utils'
 import {
   Search, SlidersHorizontal, ArrowUpDown, Clock, Flame, MapPin,
-  Ticket, X, Check,
+  Ticket, X, Check, CalendarDays,
 } from 'lucide-react'
 
 type Orden = 'relevancia' | 'precio_asc' | 'precio_desc' | 'aforo_desc' | 'aforo_asc' | 'nombre'
-type FiltroDia = 'hoy' | 'manana' | 'semana' | null
+type FiltroFecha =
+  | { tipo: 'hoy' | 'manana' | 'finde' | 'semana' }
+  | { tipo: 'fecha'; valor: string } // 'YYYY-MM-DD'
+
+const DIAS_SEMANA = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'] as const
+
+// Rango [desde, hasta) en hora local a partir de un FiltroFecha.
+function rangoDeFiltro(f: FiltroFecha): { desde: Date; hasta: Date } {
+  const ahora = new Date()
+  const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate())
+  const dia = 86400000
+  if (f.tipo === 'hoy') return { desde: hoy, hasta: new Date(hoy.getTime() + dia) }
+  if (f.tipo === 'manana') return { desde: new Date(hoy.getTime() + dia), hasta: new Date(hoy.getTime() + 2 * dia) }
+  if (f.tipo === 'semana') return { desde: hoy, hasta: new Date(hoy.getTime() + 7 * dia) }
+  if (f.tipo === 'fecha') {
+    const [y, m, dd] = f.valor.split('-').map(Number)
+    const desde = new Date(y, m - 1, dd)
+    return { desde, hasta: new Date(desde.getTime() + dia) }
+  }
+  // finde: próximo viernes 00:00 → lunes 00:00 (incluye el actual si ya es vie/sáb/dom)
+  const d = hoy.getDay() // 0 dom … 6 sáb
+  let diasHastaViernes = (5 - d + 7) % 7
+  if (d === 6) diasHastaViernes = -1 // sábado
+  else if (d === 0) diasHastaViernes = -2 // domingo
+  const desde = new Date(hoy.getTime() + diasHastaViernes * dia)
+  return { desde, hasta: new Date(desde.getTime() + 3 * dia) }
+}
+
+// Un local "pasa" el filtro de fecha si tiene un evento publicado dentro del
+// rango, o (si no tiene eventos) si su horario indica que abre algún día del rango.
+function localEnRango(l: LocalConAforo, desde: Date, hasta: Date): boolean {
+  const eventos = ((l as unknown as { eventos?: { estado: string; fecha_inicio: string }[] }).eventos) || []
+  const hayEvento = eventos.some(e => {
+    if (e.estado !== 'publicado') return false
+    const t = new Date(e.fecha_inicio).getTime()
+    return t >= desde.getTime() && t < hasta.getTime()
+  })
+  if (hayEvento) return true
+  const horario = l.horario as Record<string, { apertura: string; cierre: string } | null> | null
+  if (!horario) return false
+  for (let t = desde.getTime(); t < hasta.getTime(); t += 86400000) {
+    const key = DIAS_SEMANA[new Date(t).getDay()]
+    if (horario[key]) return true
+  }
+  return false
+}
 
 const TIPOS_LABEL: Record<TipoLocal, string> = {
   discoteca: 'Discoteca',
@@ -56,7 +101,7 @@ export default function ExplorarPage() {
   const [orden, setOrden] = useState<Orden>('relevancia')
   const [showFiltros, setShowFiltros] = useState(false)
   const [showOrden, setShowOrden] = useState(false)
-  const [filtroDia, setFiltroDia] = useState<FiltroDia>(null)
+  const [filtroFecha, setFiltroFecha] = useState<FiltroFecha | null>(null)
 
   const cargar = async () => {
     setLoading(true)
@@ -88,20 +133,10 @@ export default function ExplorarPage() {
     if (filtros.solo_con_evento) r = r.filter(l => l.evento_activo)
     if (filtros.precio_min != null) r = r.filter(l => (l.precio_entrada_min ?? 0) >= filtros.precio_min!)
     if (filtros.precio_max != null) r = r.filter(l => (l.precio_entrada_min ?? 0) <= filtros.precio_max!)
-    // Filtro por día
-    if (filtroDia) {
-      const ahora = new Date()
-      const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate())
-      const manana = new Date(hoy.getTime() + 86400000)
-      const finSemana = new Date(hoy.getTime() + 7 * 86400000)
-      r = r.filter(l => {
-        const horario = l.horario as Record<string, { apertura: string; cierre: string } | null> | null
-        if (!horario) return filtroDia === 'hoy'
-        if (filtroDia === 'hoy') { const dia = hoy.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace('e', 'e'); return Object.values(horario).some(h => h != null) }
-        if (filtroDia === 'manana') { return Object.values(horario).some(h => h != null) }
-        if (filtroDia === 'semana') return true
-        return true
-      })
+    // Filtro por fecha (eventos publicados en el rango, o local abierto ese día)
+    if (filtroFecha) {
+      const { desde, hasta } = rangoDeFiltro(filtroFecha)
+      r = r.filter(l => localEnRango(l, desde, hasta))
     }
 
     // Promoción activa
@@ -129,13 +164,15 @@ export default function ExplorarPage() {
         })
     }
     return sorted
-  }, [locales, filtros, busca, orden])
+  }, [locales, filtros, busca, orden, filtroFecha])
 
   const numFiltros =
     filtros.tipos.length + filtros.musica.length +
     (filtros.solo_con_evento ? 1 : 0) +
     (filtros.precio_min != null || filtros.precio_max != null ? 1 : 0) +
-    (filtroDia != null ? 1 : 0)
+    (filtroFecha != null ? 1 : 0)
+
+  const limpiarTodo = () => { clearFiltros(); setFiltroFecha(null) }
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -187,24 +224,49 @@ export default function ExplorarPage() {
           >
             <ArrowUpDown size={11} /> {ORDEN_LABEL[orden]}
           </button>
-          {/* Filtros de día */}
+          {/* Filtros de fecha */}
           {([
             { id: 'hoy', label: 'Hoy' },
             { id: 'manana', label: 'Mañana' },
-            { id: 'semana', label: 'Esta semana' },
-          ] as const).map(d => (
-            <button key={d.id}
-              onClick={() => setFiltroDia(filtroDia === d.id ? null : d.id)}
-              className={cn(
-                'shrink-0 inline-flex items-center gap-1 px-3 h-8 rounded-full text-xs font-semibold transition-colors',
-                filtroDia === d.id
-                  ? 'bg-[#4F8EF7] text-white'
-                  : 'bg-white/4 border border-white/8 text-[#B8B8CC] hover:text-white'
-              )}
-            >
-              <Clock size={10} /> {d.label}
-            </button>
-          ))}
+            { id: 'finde', label: 'Finde' },
+            { id: 'semana', label: 'Semana' },
+          ] as const).map(d => {
+            const activo = filtroFecha?.tipo === d.id
+            return (
+              <button key={d.id}
+                onClick={() => setFiltroFecha(activo ? null : { tipo: d.id })}
+                className={cn(
+                  'shrink-0 inline-flex items-center gap-1 px-3 h-8 rounded-full text-xs font-semibold transition-colors',
+                  activo
+                    ? 'bg-[#4F8EF7] text-white'
+                    : 'bg-white/4 border border-white/8 text-[#B8B8CC] hover:text-white'
+                )}
+              >
+                <Clock size={10} /> {d.label}
+              </button>
+            )
+          })}
+          {/* Selector de fecha concreta */}
+          <label
+            className={cn(
+              'shrink-0 inline-flex items-center gap-1 px-3 h-8 rounded-full text-xs font-semibold cursor-pointer transition-colors relative',
+              filtroFecha?.tipo === 'fecha'
+                ? 'bg-[#4F8EF7] text-white'
+                : 'bg-white/4 border border-white/8 text-[#B8B8CC] hover:text-white'
+            )}
+          >
+            <CalendarDays size={11} />
+            {filtroFecha?.tipo === 'fecha'
+              ? new Date(filtroFecha.valor + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+              : 'Fecha'}
+            <input
+              type="date"
+              value={filtroFecha?.tipo === 'fecha' ? filtroFecha.valor : ''}
+              onChange={e => setFiltroFecha(e.target.value ? { tipo: 'fecha', valor: e.target.value } : null)}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              aria-label="Filtrar por fecha"
+            />
+          </label>
           {filtros.tipos.map(t => (
             <ChipActivo key={t} onClick={() => setFiltros({ tipos: filtros.tipos.filter(x => x !== t) })}>
               {TIPOS_LABEL[t]}
@@ -224,7 +286,7 @@ export default function ExplorarPage() {
             </ChipActivo>
           )}
           {numFiltros > 0 && (
-            <button onClick={clearFiltros} className="shrink-0 text-xs text-[#E94560] font-semibold hover:underline ml-1">
+            <button onClick={limpiarTodo} className="shrink-0 text-xs text-[#E94560] font-semibold hover:underline ml-1">
               Limpiar
             </button>
           )}
@@ -247,7 +309,7 @@ export default function ExplorarPage() {
                 : 'Aún no hay locales activos. Vuelve esta noche.'}
             </p>
             {numFiltros > 0 && (
-              <Button variant="secondary" onClick={clearFiltros}>Quitar filtros</Button>
+              <Button variant="secondary" onClick={limpiarTodo}>Quitar filtros</Button>
             )}
           </div>
         ) : (
@@ -261,7 +323,7 @@ export default function ExplorarPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white text-display">Filtros</h2>
             {numFiltros > 0 && (
-              <button onClick={clearFiltros} className="text-sm text-[#E94560] font-semibold">Limpiar todo</button>
+              <button onClick={limpiarTodo} className="text-sm text-[#E94560] font-semibold">Limpiar todo</button>
             )}
           </div>
 

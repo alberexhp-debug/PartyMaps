@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { useMapStore } from '@/lib/stores/useMapStore'
 import { supabase } from '@/lib/supabase/client'
 import { LocalConAforo, TipoLocal } from '@/types'
-import { getTemperaturaAforo } from '@/lib/utils'
+import { getTemperaturaAforo, aforoVisible } from '@/lib/utils'
 import { LocalBottomSheet } from './LocalBottomSheet'
 import { FiltrosMapa } from './FiltrosMapa'
 import { BuscadorLocales } from './BuscadorLocales'
@@ -17,22 +17,25 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 const MADRID_CENTER: [number, number] = [-3.7038, 40.4168]
 const SOURCE_ID = 'pm-locales'
 const HEATMAP_LAYER = 'pm-locales-heat'
-const GLOW_LAYER = 'pm-locales-glow'
-const CIRCLE_LAYER = 'pm-locales-circle'
+
+// Capas GL de los locales
+const HALO_LAYER = 'pm-locales-halo'
+const CORE_LAYER = 'pm-locales-core'
 const LABEL_LAYER = 'pm-locales-label'
 
-// Colores por tipo de local
+// El TIPO de local define el color del punto (categórico, legible de un vistazo).
+// El AFORO no usa tono: se expresa con el tamaño y la opacidad del halo, para no
+// saturar el mapa de colores. Paleta sobria, armónica sobre el mapa oscuro.
 const COLOR_POR_TIPO: Record<TipoLocal | 'otro', string> = {
-  discoteca:       '#E94560',  // rosa — baile
-  bar_copas:       '#4F8EF7',  // azul — chill
-  rooftop:         '#7C5CFF',  // violeta — premium
-  sala_conciertos: '#27AE60',  // verde — música en vivo
-  bar_cocteleria:  '#D4A84B',  // dorado — cócteles
+  discoteca:       '#E94560',  // rosa marca — baile
+  bar_copas:       '#4F8EF7',  // azul — copas
+  rooftop:         '#9B7BE8',  // violeta — rooftop
+  sala_conciertos: '#3FB27F',  // verde — directo
+  bar_cocteleria:  '#D4A84B',  // dorado — coctelería
   otro:            '#8B8BA8',  // gris
 }
 
-// Match expression Mapbox GL para asignar color por tipo
-const tipoColorMatch: mapboxgl.Expression = [
+const TIPO_COLOR: mapboxgl.Expression = [
   'match', ['get', 'tipo'],
   'discoteca',       COLOR_POR_TIPO.discoteca,
   'bar_copas',       COLOR_POR_TIPO.bar_copas,
@@ -51,10 +54,13 @@ function buildGeoJSON(locales: LocalConAforo[]): GeoJSON.FeatureCollection {
       properties: {
         id:     l.id,
         nombre: l.nombre,
-        aforo:  l.aforo_estimado_porcentaje || 0,
+        aforo:  aforoVisible(l),
         tipo:   l.tipo_local || 'otro',
         tier:   l.tier || 'visibility',
+        // Punto algo mayor para cualquier plan de pago (pro/destacado).
         destacado: l.tier === 'destacado' || l.tier === 'pro' ? 1 : 0,
+        // Nombre resaltado solo para el plan de visibilidad premium (destacado).
+        top: l.tier === 'destacado' ? 1 : 0,
       },
     })),
   }
@@ -66,22 +72,36 @@ export default function MapaExplorar() {
   const userLocationRef = useRef<mapboxgl.Marker | null>(null)
   const {
     locales, localSeleccionado, setLocales, setLocalSeleccionado,
-    setMapLoaded, filtros, showPlanes, setShowPlanes,
+    setMapLoaded, mapLoaded, filtros, showPlanes, setShowPlanes,
   } = useMapStore()
   const [showFiltros, setShowFiltros] = useState(false)
   const [showBuscador, setShowBuscador] = useState(false)
   const filtrosActivos = filtros.tipos.length > 0 || filtros.musica.length > 0 || filtros.solo_con_evento || filtros.solo_con_planes
 
   const cargarLocales = useCallback(async () => {
-    const { data } = await supabase
+    let { data, error } = await supabase
       .from('locales')
       .select('*, eventos(id, nombre, estado, fecha_inicio)')
       .eq('estado', 'activo')
       .limit(300)
-    if (!data) return
+    // Si el join a eventos falla (relación/RLS), reintentar sin él para no
+    // dejar el mapa vacío.
+    if (error) {
+      const fallback = await supabase
+        .from('locales')
+        .select('*')
+        .eq('estado', 'activo')
+        .limit(300)
+      data = fallback.data
+      error = fallback.error
+    }
+    if (error || !data) {
+      console.error('[mapa] no se pudieron cargar los locales', error)
+      return
+    }
     const conAforo: LocalConAforo[] = data.map(l => ({
       ...l,
-      temperatura: getTemperaturaAforo(l.aforo_estimado_porcentaje || 0),
+      temperatura: getTemperaturaAforo(aforoVisible(l)),
       evento_activo: l.eventos?.find((e: { estado: string }) => e.estado === 'publicado'),
     }))
     setLocales(conAforo)
@@ -137,86 +157,110 @@ export default function MapaExplorar() {
         paint: {
           'heatmap-weight': ['interpolate', ['linear'], ['get', 'aforo'], 0, 0.35, 100, 1],
           'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 8, 0.9, 14, 2.2],
+          // Monocromo y tenue: solo insinúa dónde se concentra el ambiente, sin
+          // competir con los colores por tipo de los puntos.
           'heatmap-color': [
             'interpolate', ['linear'], ['heatmap-density'],
-            0,    'rgba(10,10,24,0)',
-            0.15, 'rgba(79,142,247,0.30)',   // azul tenue
-            0.35, 'rgba(124,92,255,0.45)',   // violeta
-            0.6,  'rgba(224,69,94,0.60)',    // rosa marca
-            0.85, 'rgba(255,77,113,0.80)',   // rosa fuerte
-            1,    'rgba(255,150,175,0.95)',  // núcleo caliente
+            0,   'rgba(10,10,24,0)',
+            0.3, 'rgba(99,102,180,0.12)',
+            0.6, 'rgba(124,110,200,0.20)',
+            1,   'rgba(150,140,220,0.28)',
           ],
           'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 8, 16, 14, 42],
-          'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.9, 13, 0.6, 15.5, 0],
+          // Base ambiental muy sutil; se desvanece pronto al acercar para dejar
+          // los puntos por tipo completamente limpios.
+          'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.5, 11, 0.3, 13.5, 0],
         },
       })
 
-      // ── GLOW bajo el círculo ──────────────────────────────
+      // ── HALO por local — glow difuso, radio/opacidad según aforo ──
       map.addLayer({
-        id: GLOW_LAYER,
+        id: HALO_LAYER,
         type: 'circle',
         source: SOURCE_ID,
         paint: {
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            8,  ['case', ['==', ['get', 'destacado'], 1], 10, 6],
-            14, ['case', ['==', ['get', 'destacado'], 1], 24, 16],
+            9,  ['interpolate', ['linear'], ['get', 'aforo'], 0, 7,  100, 16],
+            13, ['interpolate', ['linear'], ['get', 'aforo'], 0, 15, 100, 34],
+            16, ['interpolate', ['linear'], ['get', 'aforo'], 0, 24, 100, 56],
           ],
-          'circle-color': tipoColorMatch,
-          'circle-blur': 1.0,
-          'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.1, 13, 0.4, 16, 0.6],
+          'circle-color': TIPO_COLOR,
+          'circle-blur': 1,
+          'circle-opacity': ['interpolate', ['linear'], ['get', 'aforo'], 0, 0.16, 50, 0.3, 100, 0.5],
         },
       })
 
-      // ── CÍRCULO principal ─────────────────────────────────
+      // ── NÚCLEO — punto nítido "luz", borde teñido por aforo ──
       map.addLayer({
-        id: CIRCLE_LAYER,
+        id: CORE_LAYER,
         type: 'circle',
         source: SOURCE_ID,
         paint: {
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            8,  ['case', ['==', ['get', 'destacado'], 1], 5,  3],
-            14, ['case', ['==', ['get', 'destacado'], 1], 11, 7],
+            9,  ['case', ['==', ['get', 'destacado'], 1], 3,   2],
+            14, ['case', ['==', ['get', 'destacado'], 1], 5.5, 3.5],
           ],
-          'circle-color': tipoColorMatch,
-          'circle-stroke-color': [
-            'case', ['==', ['get', 'destacado'], 1], '#FFFFFF', 'rgba(255,255,255,0.6)'
-          ],
+          'circle-color': TIPO_COLOR,
+          'circle-opacity': 0.95,
+          // Aro blanco para que el punto recorte nítido sobre el mapa oscuro;
+          // los premium llevan el aro más marcado para resaltar.
+          'circle-stroke-color': '#FFFFFF',
           'circle-stroke-width': ['case', ['==', ['get', 'destacado'], 1], 2, 1],
-          'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.55, 12, 0.85, 15, 1],
+          'circle-stroke-opacity': ['case', ['==', ['get', 'destacado'], 1], 0.9, 0.5],
         },
       })
 
-      // ── LABEL nombre (zoom alto) ──────────────────────────
+      // ── ETIQUETA — sutil. Los locales con plan de visibilidad
+      //    (destacado/pro) llevan el nombre en negrita, algo mayor y
+      //    aparecen un poco antes al hacer zoom. Sin destacar en exceso.
       map.addLayer({
         id: LABEL_LAYER,
         type: 'symbol',
         source: SOURCE_ID,
-        minzoom: 14,
+        minzoom: 13,
         layout: {
           'text-field': ['get', 'nombre'],
-          'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-          'text-size': 11,
-          'text-offset': [0, 1.3],
+          'text-font': [
+            'case', ['==', ['get', 'top'], 1],
+            ['literal', ['Open Sans Bold', 'Arial Unicode MS Bold']],
+            ['literal', ['Open Sans Semibold', 'Arial Unicode MS Bold']],
+          ],
+          'text-size': ['case', ['==', ['get', 'top'], 1], 12.5, 11],
+          'text-offset': [0, 1.4],
           'text-anchor': 'top',
           'text-max-width': 8,
+          // Prioriza la colocación de los locales con plan de visibilidad si hay solape.
+          'symbol-sort-key': ['case', ['==', ['get', 'top'], 1], 0, 1],
         },
         paint: {
-          'text-color': '#FAFAFC',
-          'text-halo-color': 'rgba(6,6,12,0.9)',
-          'text-halo-width': 1.5,
+          'text-color': ['case', ['==', ['get', 'top'], 1], '#FFFFFF', '#D7D7E2'],
+          'text-halo-color': 'rgba(6,6,12,0.95)',
+          'text-halo-width': ['case', ['==', ['get', 'top'], 1], 1.7, 1.3],
+          // Los locales con plan de visibilidad aparecen desde z~13.3; el resto desde z~14.5.
+          // El zoom debe ir en el interpolate de nivel superior (Mapbox no permite
+          // expresiones de zoom anidadas en un 'case'); el 'top' decide el valor en cada parada.
+          'text-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            13.3, 0,
+            14,   ['case', ['==', ['get', 'top'], 1], 1, 0],
+            14.5, ['case', ['==', ['get', 'top'], 1], 1, 0],
+            15.3, 1,
+          ],
         },
       })
 
-      // Cursor y click
+      // Cursor + click sobre los locales
       const setPointer = () => { map.getCanvas().style.cursor = 'pointer' }
       const unsetPointer = () => { map.getCanvas().style.cursor = '' }
-      map.on('mouseenter', CIRCLE_LAYER, setPointer)
-      map.on('mouseleave', CIRCLE_LAYER, unsetPointer)
+      map.on('mouseenter', CORE_LAYER, setPointer)
+      map.on('mouseleave', CORE_LAYER, unsetPointer)
+      map.on('mouseenter', HALO_LAYER, setPointer)
+      map.on('mouseleave', HALO_LAYER, unsetPointer)
 
       map.on('click', (e) => {
-        const features = map.queryRenderedFeatures(e.point, { layers: [CIRCLE_LAYER, GLOW_LAYER] })
+        const features = map.queryRenderedFeatures(e.point, { layers: [CORE_LAYER, HALO_LAYER] })
         if (!features.length) { setLocalSeleccionado(null); return }
         const id = features[0].properties?.id
         const local = useMapStore.getState().locales.find(l => l.id === id)
@@ -239,26 +283,27 @@ export default function MapaExplorar() {
     })
 
     mapRef.current = map
-    return () => { map.remove(); mapRef.current = null }
+    return () => {
+      map.remove()
+      mapRef.current = null
+      // Resetear el flag para que en el próximo montaje el efecto de datos
+      // vuelva a dispararse (false→true) y repinte los locales.
+      setMapLoaded(false)
+    }
   }, [setMapLoaded, setLocalSeleccionado, cargarLocales])
 
   // ─── Actualizar source cuando cambien locales/filtros ───────────
+  // Depende de `mapLoaded`: el flag se activa en el handler `load` justo
+  // después de crear la source y las capas, así que cuando este efecto corre
+  // con mapLoaded=true la source existe garantizado. Esto evita la antigua
+  // condición de carrera (isStyleLoaded + setTimeout) por la que los puntos
+  // no aparecían hasta forzar un cambio de filtro.
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
-    if (!map.isStyleLoaded()) {
-      // Esperar un tick y reintentar
-      const t = setTimeout(() => {
-        const m = mapRef.current
-        if (!m) return
-        const src = m.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource | undefined
-        if (src) src.setData(buildGeoJSON(applyFiltros(locales, filtros)))
-      }, 300)
-      return () => clearTimeout(t)
-    }
+    if (!map || !mapLoaded) return
     const src = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource | undefined
     if (src) src.setData(buildGeoJSON(applyFiltros(locales, filtros)))
-  }, [locales, filtros])
+  }, [locales, filtros, mapLoaded])
 
   const centrarEnUsuario = useCallback(() => {
     if (!mapRef.current) return
@@ -336,22 +381,27 @@ export default function MapaExplorar() {
         </button>
       </div>
 
-      {/* Leyenda tipos */}
-      <div className="absolute bottom-28 left-4 z-10 glass-strong rounded-xl px-3 py-2.5 space-y-1.5">
-        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#A0A0B8] mb-1">Locales</p>
-        {[
-          { color: COLOR_POR_TIPO.discoteca,       label: 'Discoteca' },
-          { color: COLOR_POR_TIPO.bar_copas,        label: 'Bar copas' },
-          { color: COLOR_POR_TIPO.rooftop,          label: 'Rooftop' },
-          { color: COLOR_POR_TIPO.sala_conciertos,  label: 'Conciertos' },
-          { color: COLOR_POR_TIPO.bar_cocteleria,   label: 'Coctelería' },
-        ].map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color, boxShadow: `0 0 6px ${color}` }} />
-            <span className="text-[10px] text-white">{label}</span>
-          </div>
-        ))}
-      </div>
+      {/* Leyenda por tipo de local — opaca y oculta mientras hay un local abierto */}
+      {!localSeleccionado && (
+        <div
+          className="absolute bottom-28 left-4 z-10 rounded-xl px-3 py-2.5 space-y-1.5 border border-white/10 shadow-[0_12px_28px_-16px_rgba(0,0,0,0.8)]"
+          style={{ background: 'rgba(12,12,21,0.94)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+        >
+          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#A0A0B8] mb-1">Tipo</p>
+          {[
+            { color: COLOR_POR_TIPO.discoteca, label: 'Discoteca' },
+            { color: COLOR_POR_TIPO.bar_copas, label: 'Bar de copas' },
+            { color: COLOR_POR_TIPO.rooftop, label: 'Rooftop' },
+            { color: COLOR_POR_TIPO.sala_conciertos, label: 'Conciertos' },
+            { color: COLOR_POR_TIPO.bar_cocteleria, label: 'Coctelería' },
+          ].map(({ color, label }) => (
+            <div key={label} className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
+              <span className="text-[10px] text-white">{label}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {localSeleccionado && <LocalBottomSheet local={localSeleccionado} onClose={() => setLocalSeleccionado(null)} />}
       <FiltrosMapa open={showFiltros} onClose={() => setShowFiltros(false)} />

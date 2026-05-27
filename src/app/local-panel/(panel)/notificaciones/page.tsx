@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { NotificacionEnviada } from '@/types'
 import { Bell, Send, Users, Eye, Clock, Zap } from 'lucide-react'
 import { formatearFecha } from '@/lib/utils'
+import { PageHeader } from '@/components/local-panel/ui'
 
 const LIMITES_TIER: Record<string, number> = {
   basico: 2,
@@ -91,14 +92,16 @@ export default function NotificacionesPage() {
   if (!local) return null
 
   return (
-    <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-white">Notificaciones</h1>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#4F8EF7]/10 border border-[#4F8EF7]/30 rounded-xl">
-          <Users size={14} className="text-[#4F8EF7]" />
-          <span className="text-sm font-semibold text-[#4F8EF7]">{numSuscriptores} suscriptores</span>
-        </div>
-      </div>
+    <div className="relative p-4 md:p-8 pb-24 md:pb-8 space-y-6 overflow-hidden">
+      <PageHeader
+        eyebrow="Crecimiento" titulo="Notificaciones" subtitulo="Avisos y promos a tus seguidores" acento="blue"
+        acciones={
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#4F8EF7]/10 border border-[#4F8EF7]/30 rounded-xl">
+            <Users size={14} className="text-[#4F8EF7]" />
+            <span className="text-sm font-semibold text-[#4F8EF7] text-numeric">{numSuscriptores}</span>
+          </div>
+        }
+      />
 
       {!puedeEnviar && (
         <div className="flex items-center gap-2 p-3 bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl text-sm text-[#F39C12]">

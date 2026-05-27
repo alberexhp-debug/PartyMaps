@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null) as Partial<{
     nombre: string; descripcion: string; categoria: string;
-    precio: number; imagen_url: string; disponible: boolean; orden: number;
+    precio: number; coste: number; imagen_url: string; disponible: boolean; orden: number;
     es_pack: boolean; unidades_pack: number;
   }> | null
   if (!body?.nombre || body.precio == null) {
@@ -54,6 +54,9 @@ export async function POST(req: NextRequest) {
   }
   if (body.precio < 0 || body.precio > 1000) {
     return NextResponse.json({ error: 'Precio fuera de rango' }, { status: 400 })
+  }
+  if (body.coste != null && (body.coste < 0 || body.coste > 1000)) {
+    return NextResponse.json({ error: 'Coste fuera de rango' }, { status: 400 })
   }
 
   const admin = await createAdminSupabaseClient()
@@ -80,6 +83,7 @@ export async function POST(req: NextRequest) {
       descripcion: body.descripcion?.trim().slice(0, 240) || null,
       categoria: body.categoria || 'bebida',
       precio: body.precio,
+      coste: body.coste ?? null,
       imagen_url: body.imagen_url || null,
       disponible: body.disponible ?? true,
       orden: body.orden ?? 0,
@@ -110,7 +114,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const update: Record<string, unknown> = {}
-  for (const k of ['nombre', 'descripcion', 'categoria', 'precio', 'imagen_url', 'disponible', 'orden', 'es_pack', 'unidades_pack']) {
+  for (const k of ['nombre', 'descripcion', 'categoria', 'precio', 'coste', 'imagen_url', 'disponible', 'orden', 'es_pack', 'unidades_pack']) {
     if (k in body) update[k] = body[k]
   }
   if (Object.keys(update).length === 0) return NextResponse.json({ error: 'Sin cambios' }, { status: 400 })

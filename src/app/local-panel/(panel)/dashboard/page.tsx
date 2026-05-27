@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { formatearPrecio, getTemperaturaAforo, getColorTemperatura, getLabelTemperatura } from '@/lib/utils'
+import { formatearPrecio, getTemperaturaAforo, getColorTemperatura, getLabelTemperatura, aforoVisible } from '@/lib/utils'
 import {
   Ticket, Users, TrendingUp, Bell, Star, Zap,
   Calendar, ChevronRight, BarChart3, AlertCircle, Gauge, Check, X, Beer,
@@ -88,7 +88,7 @@ export default function LocalPanelDashboard() {
       ingresos_hoy: entradasHoy.reduce((s, e) => s + (e.precio_total || 0), 0),
       entradas_semana: semana.length,
       ingresos_semana_serie: Object.entries(grouped).map(([dia, v]) => ({ dia, ...v })),
-      aforo_actual: local.aforo_estimado_porcentaje || 0,
+      aforo_actual: aforoVisible(local),
       suscriptores: suscritorRes.count || 0,
       media_reviews: reviews.length > 0 ? reviews.reduce((s, r) => s + r.puntuacion, 0) / reviews.length : 0,
       num_reviews: reviews.length,
@@ -322,13 +322,20 @@ export default function LocalPanelDashboard() {
         </div>
       )}
 
-      {/* Aforo manual */}
+      {/* Aforo — override en vivo (el baseline por día se fija en Configuración) */}
       <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
-        <h2 className="font-bold text-white flex items-center gap-2 text-sm">
-          <Gauge size={15} className="text-[#E94560]" /> Aforo manual
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-white flex items-center gap-2 text-sm">
+            <Gauge size={15} className="text-[#E94560]" /> Aforo ahora mismo
+          </h2>
+          <button onClick={() => router.push('/local-panel/configuracion?tab=aforo')}
+            className="text-xs text-[#8B8BA8] hover:text-white transition-colors">
+            Aforo por día <ChevronRight size={11} className="inline" />
+          </button>
+        </div>
         <p className="text-xs text-[#6B6B85]">
-          Corrige el aforo estimado. Expira a las 6:00 AM.
+          Ajuste puntual de lo lleno que ve la gente esta noche. Expira a las 6:00 AM.
+          El nivel base de cada día se configura en <span className="text-[#A0A0B8]">Aforo por día</span>.
         </p>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -464,9 +471,9 @@ function DashboardOperador() {
   }, [local])
 
   if (!local) return null
-  const temperatura = getTemperaturaAforo(local.aforo_estimado_porcentaje || 0)
+  const temperatura = getTemperaturaAforo(aforoVisible(local))
   const colorTemp = getColorTemperatura(temperatura)
-  const aforoActual = aforoSlider !== null ? aforoSlider : Math.round(local.aforo_estimado_porcentaje || 0)
+  const aforoActual = aforoSlider !== null ? aforoSlider : Math.round(aforoVisible(local))
 
   const guardar = async () => {
     if (aforoSlider === null || !trabajador) return

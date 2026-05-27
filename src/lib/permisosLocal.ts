@@ -12,6 +12,7 @@ export type ZonaPanel =
   | 'eventos'
   | 'scanner'
   | 'pedidos-bar'
+  | 'sala'
   | 'productos'
   | 'concursos'
   | 'retos'
@@ -42,28 +43,28 @@ export const ROLES_HOME: Record<RolLocal, ZonaPanel> = {
 export const ROLES_PERMISOS: Record<RolLocal, ZonaPanel[]> = {
   // Dueño: control total del negocio
   dueno: [
-    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'productos',
+    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'sala', 'productos',
     'concursos', 'retos', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo', 'facturacion',
   ],
   // Gestor: todo menos facturación/tier (decisión financiera del dueño)
   gestor: [
-    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'productos',
+    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'sala', 'productos',
     'concursos', 'retos', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo',
   ],
   // Operador de noche: lo que se usa "esta noche"
   operador_noche: [
-    'dashboard', 'scanner', 'pedidos-bar', 'notificaciones', 'sugerencias',
+    'dashboard', 'scanner', 'pedidos-bar', 'sala', 'notificaciones', 'sugerencias',
     'concursos', 'retos',
   ],
   // Puerta: una sola función — escanear entradas
   puerta: [
     'scanner',
   ],
-  // Barman: una sola función — servir pedidos
+  // Barman: sirve pedidos y ve la sala/mesas
   barman: [
-    'pedidos-bar', 'scanner',
+    'pedidos-bar', 'sala', 'scanner',
   ],
 }
 

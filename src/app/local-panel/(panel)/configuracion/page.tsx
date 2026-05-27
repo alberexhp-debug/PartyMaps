@@ -11,17 +11,19 @@ import { Badge } from '@/components/ui/Badge'
 import { Local, TipoLocal, TipoMusica, ConsumicionBienvenida, PrecioDinamicoConfig, ProductoLocal, CategoriaProducto } from '@/types'
 import { getLabelTipoLocal, formatearPrecio } from '@/lib/utils'
 import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEditor'
+import { AforoSemanal } from '@/components/local-panel/AforoSemanal'
 import {
   Save, Plus, Trash2, Eye, EyeOff, Edit3, AtSign,
   Image as ImageIcon, Clock, Ticket, ShoppingBag, AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type Tab = 'info' | 'horario' | 'entradas' | 'galeria' | 'bienvenida' | 'bar' | 'instagram'
+type Tab = 'info' | 'horario' | 'aforo' | 'entradas' | 'galeria' | 'bienvenida' | 'bar' | 'instagram'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'info',       label: 'Info' },
   { id: 'horario',    label: 'Horario' },
+  { id: 'aforo',      label: 'Aforo' },
   { id: 'entradas',   label: 'Entradas' },
   { id: 'galeria',    label: 'Galería' },
   { id: 'bienvenida', label: 'Bienvenida' },
@@ -49,9 +51,9 @@ const LIMITE_BAR: Record<string, number> = { visibility: 10, basico: 10, venta: 
 interface FormBar {
   id?: string
   nombre: string; descripcion: string; categoria: CategoriaProducto
-  precio: string; disponible: boolean; es_pack: boolean; unidades_pack: string
+  precio: string; coste: string; disponible: boolean; es_pack: boolean; unidades_pack: string
 }
-const barVacio: FormBar = { nombre: '', descripcion: '', categoria: 'cubata', precio: '', disponible: true, es_pack: false, unidades_pack: '' }
+const barVacio: FormBar = { nombre: '', descripcion: '', categoria: 'cubata', precio: '', coste: '', disponible: true, es_pack: false, unidades_pack: '' }
 
 export default function ConfiguracionPage() {
   return (
@@ -122,10 +124,13 @@ function ConfiguracionContent() {
     const precio = parseFloat(editandoBar.precio.replace(',', '.'))
     if (!editandoBar.nombre.trim()) { toast.error('Falta el nombre'); return }
     if (Number.isNaN(precio) || precio < 0) { toast.error('Precio inválido'); return }
+    const costeRaw = editandoBar.coste.trim()
+    const coste = costeRaw ? parseFloat(costeRaw.replace(',', '.')) : null
+    if (coste != null && (Number.isNaN(coste) || coste < 0)) { toast.error('Coste inválido'); return }
     setGuardandoBar(true)
     const body: Record<string, unknown> = {
       nombre: editandoBar.nombre.trim(), descripcion: editandoBar.descripcion.trim() || null,
-      categoria: editandoBar.categoria, precio, disponible: editandoBar.disponible,
+      categoria: editandoBar.categoria, precio, coste, disponible: editandoBar.disponible,
       es_pack: editandoBar.es_pack,
       unidades_pack: editandoBar.es_pack ? parseInt(editandoBar.unidades_pack || '0', 10) || null : null,
     }
@@ -172,7 +177,7 @@ function ConfiguracionContent() {
             <p className="text-xs text-[#8B8BA8] font-medium uppercase tracking-widest mb-0.5">Configuración</p>
             <h1 className="text-lg font-bold text-white truncate">{local.nombre}</h1>
           </div>
-          {tab !== 'bar' && (
+          {tab !== 'bar' && tab !== 'aforo' && (
             <Button size="sm" loading={guardando} onClick={guardar}>
               <Save size={14} /> Guardar
             </Button>
@@ -331,6 +336,13 @@ function ConfiguracionContent() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {/* ── TAB: Aforo ── */}
+        {tab === 'aforo' && (
+          <div className="max-w-2xl">
+            <AforoSemanal local={local} onSaved={setLocal} />
           </div>
         )}
 
@@ -530,13 +542,20 @@ function ConfiguracionContent() {
                       </div>
                       <p className="text-xs text-[#8B8BA8] capitalize">{p.categoria}</p>
                     </div>
-                    <p className="text-sm font-bold text-white text-numeric shrink-0">{formatearPrecio(p.precio)}</p>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-bold text-white text-numeric">{formatearPrecio(p.precio)}</p>
+                      {p.coste != null && (
+                        <p className="text-[10px] text-[#27AE60] text-numeric">
+                          +{formatearPrecio(p.precio - p.coste)}{p.precio > 0 ? ` · ${Math.round(((p.precio - p.coste) / p.precio) * 100)}%` : ''}
+                        </p>
+                      )}
+                    </div>
                     {puedeEditar && (
                       <div className="flex items-center gap-1 shrink-0">
                         <button onClick={() => toggleDisponibleBar(p)} className="w-8 h-8 rounded-lg bg-white/4 flex items-center justify-center text-[#B8B8CC] hover:text-white transition-colors">
                           {p.disponible ? <Eye size={13} /> : <EyeOff size={13} />}
                         </button>
-                        <button onClick={() => setEditandoBar({ id: p.id, nombre: p.nombre, descripcion: p.descripcion ?? '', categoria: p.categoria, precio: p.precio.toString(), disponible: p.disponible, es_pack: p.es_pack, unidades_pack: p.unidades_pack?.toString() ?? '' })} className="w-8 h-8 rounded-lg bg-white/4 flex items-center justify-center text-[#B8B8CC] hover:text-white transition-colors">
+                        <button onClick={() => setEditandoBar({ id: p.id, nombre: p.nombre, descripcion: p.descripcion ?? '', categoria: p.categoria, precio: p.precio.toString(), coste: p.coste?.toString() ?? '', disponible: p.disponible, es_pack: p.es_pack, unidades_pack: p.unidades_pack?.toString() ?? '' })} className="w-8 h-8 rounded-lg bg-white/4 flex items-center justify-center text-[#B8B8CC] hover:text-white transition-colors">
                           <Edit3 size={13} />
                         </button>
                         <button onClick={() => eliminarBar(p)} className="w-8 h-8 rounded-lg bg-[#E94560]/8 border border-[#E94560]/20 flex items-center justify-center text-[#E94560] hover:bg-[#E94560]/15 transition-colors">
@@ -567,6 +586,10 @@ function ConfiguracionContent() {
                       </select>
                     </div>
                     <Input label="Precio (€) *" inputMode="decimal" value={editandoBar.precio} onChange={e => setEditandoBar({ ...editandoBar, precio: e.target.value })} placeholder="8.50" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 items-end">
+                    <Input label="Coste (€)" inputMode="decimal" value={editandoBar.coste} onChange={e => setEditandoBar({ ...editandoBar, coste: e.target.value })} placeholder="2.00" />
+                    <MargenHint precio={editandoBar.precio} coste={editandoBar.coste} />
                   </div>
                   <ToggleSimple label="Es pack" hint="Múltiples unidades en un pedido" value={editandoBar.es_pack} onChange={v => setEditandoBar({ ...editandoBar, es_pack: v })} />
                   {editandoBar.es_pack && <Input label="Unidades del pack" inputMode="numeric" value={editandoBar.unidades_pack} onChange={e => setEditandoBar({ ...editandoBar, unidades_pack: e.target.value })} placeholder="5" />}
@@ -629,6 +652,29 @@ function ConfiguracionContent() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function MargenHint({ precio, coste }: { precio: string; coste: string }) {
+  const p = parseFloat(precio.replace(',', '.'))
+  const c = parseFloat(coste.replace(',', '.'))
+  if (Number.isNaN(p) || Number.isNaN(c) || !coste.trim()) {
+    return (
+      <div className="h-11 flex items-center px-1">
+        <p className="text-xs text-[#6B6B85]">Añade el coste para ver tu beneficio</p>
+      </div>
+    )
+  }
+  const margen = p - c
+  const pct = p > 0 ? Math.round((margen / p) * 100) : 0
+  const color = margen >= 0 ? '#27AE60' : '#E94560'
+  return (
+    <div className="h-11 flex flex-col justify-center px-1">
+      <p className="text-[11px] text-[#8B8BA8]">Beneficio / unidad</p>
+      <p className="text-sm font-bold text-numeric" style={{ color }}>
+        {formatearPrecio(margen)} <span className="text-xs font-medium">· {pct}%</span>
+      </p>
     </div>
   )
 }

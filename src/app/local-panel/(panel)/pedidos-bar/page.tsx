@@ -14,6 +14,22 @@ interface PedidoActivo {
   pedido_items: { id: string; nombre_snapshot: string; cantidad: number; precio_unitario: number }[]
 }
 
+/** Chip de tiempo en cola: se pone ámbar a los 5 min y rojo a los 10 — urgencia para la barra. */
+function EsperaChip({ pagadoAt }: { pagadoAt: string }) {
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => tick(n => n + 1), 30000)
+    return () => clearInterval(t)
+  }, [])
+  const mins = Math.max(0, Math.floor((Date.now() - new Date(pagadoAt).getTime()) / 60000))
+  const color = mins >= 10 ? '#E94560' : mins >= 5 ? '#F39C12' : '#8B8BA8'
+  return (
+    <span className="inline-flex items-center gap-1 mt-0.5 text-[11px] font-semibold text-numeric" style={{ color }}>
+      <Clock size={10} /> {mins < 1 ? 'ahora' : `${mins} min`}
+    </span>
+  )
+}
+
 type Filtro = 'pagado' | 'entregado'
 
 export default function PedidosBarPanelPage() {
@@ -148,7 +164,10 @@ export default function PedidosBarPanelPage() {
                     {filtro === 'pagado' ? `Pagado ${tiempoRelativo(p.pagado_at)}` : `Entregado ${p.entregado_at ? tiempoRelativo(p.entregado_at) : ''}`}
                   </p>
                 </div>
-                <p className="text-lg font-bold text-white text-numeric shrink-0">{formatearPrecio(p.precio_total)}</p>
+                <div className="text-right shrink-0">
+                  <p className="text-lg font-bold text-white text-numeric">{formatearPrecio(p.precio_total)}</p>
+                  {filtro === 'pagado' && <EsperaChip pagadoAt={p.pagado_at} />}
+                </div>
               </div>
 
               {/* Items */}

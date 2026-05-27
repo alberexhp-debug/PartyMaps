@@ -8,6 +8,7 @@ import { Review, Usuario } from '@/types'
 import { Star, MessageSquare, Flag, Check } from 'lucide-react'
 import { tiempoRelativo } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { PageHeader, EmptyState, SkeletonCard } from '@/components/local-panel/ui'
 
 type ReviewConUsuario = Review & { usuarios?: Partial<Usuario> }
 
@@ -63,15 +64,15 @@ export default function ReviewsPage() {
   }))
 
   return (
-    <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-6">
-      <h1 className="text-2xl font-black text-white">Reseñas</h1>
+    <div className="relative p-4 md:p-8 pb-24 md:pb-8 space-y-6 overflow-hidden">
+      <PageHeader eyebrow="Audiencia" titulo="Reseñas" subtitulo="Lo que opinan tus clientes" acento="gold" />
 
       {/* Resumen */}
       {reviews.length > 0 && (
         <div className="glass rounded-2xl p-4">
           <div className="flex items-center gap-6">
             <div className="text-center">
-              <p className="text-5xl font-black text-white">{media.toFixed(1)}</p>
+              <p className="text-5xl font-bold text-display text-numeric text-white">{media.toFixed(1)}</p>
               <div className="flex gap-0.5 mt-1 justify-center">
                 {[1,2,3,4,5].map(n => (
                   <Star key={n} size={12} className={cn(n <= Math.round(media) ? 'text-[#F39C12] fill-current' : 'text-[#2A2A3E]')} />
@@ -97,14 +98,10 @@ export default function ReviewsPage() {
 
       {/* Lista */}
       {loading ? (
-        Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-32 bg-white/6 rounded-2xl animate-pulse" />
-        ))
+        Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} className="h-32" />)
       ) : reviews.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <Star size={40} className="text-[#6B6B85]" />
-          <p className="text-[#6B6B85]">Sin reseñas todavía</p>
-        </div>
+        <EmptyState icon={Star} acento="gold" titulo="Sin reseñas todavía"
+          descripcion="Cuando tus clientes valoren la noche, aparecerán aquí." />
       ) : (
         reviews.map(review => (
           <div key={review.id} className="glass rounded-2xl p-4 space-y-3">

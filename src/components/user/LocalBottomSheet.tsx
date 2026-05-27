@@ -3,18 +3,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LocalConAforo } from '@/types'
 import { Button } from '@/components/ui/Button'
-import { StarDisplay } from '@/components/ui/StarRating'
 import { Badge } from '@/components/ui/Badge'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
-import {
-  X, Bell, BellOff, ChevronRight, TrendingUp, Clock, Ticket, Star, MapPin
-} from 'lucide-react'
+import { X, Bell, ChevronRight, Ticket, Sparkles, MapPin } from 'lucide-react'
 import { LocalImagen } from '@/components/ui/LocalImagen'
 import {
   getLabelTipoLocal, getColorTemperatura, getLabelTemperatura,
-  getDescripcionTemperatura, formatearPrecio, formatearHora
+  getTemperaturaAforo, aforoVisible, formatearPrecio, getLabelMusica,
 } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
@@ -29,14 +26,17 @@ export function LocalBottomSheet({ local, onClose }: Props) {
   const { usuario } = useAuthStore()
   const [suscrito, setSuscrito] = useState(local.esta_suscrito || false)
   const [loadingSub, setLoadingSub] = useState(false)
-  const colorTemp = getColorTemperatura(local.temperatura)
+
+  const aforo = Math.round(aforoVisible(local))
+  const temp = getTemperaturaAforo(aforo)
+  const colorTemp = getColorTemperatura(temp)
+  const precio = local.precio_entrada_min
+  const genero = local.musica?.[0] ? getLabelMusica(local.musica[0]) : null
 
   const toggleSuscripcion = async () => {
     if (!usuario) { router.push('/login'); return }
     setLoadingSub(true)
     if (suscrito) {
-      const ok = window.confirm(`¿Dejar de seguir a ${local.nombre}? Dejarás de recibir sus notificaciones.`)
-      if (!ok) { setLoadingSub(false); return }
       await supabase.from('suscripciones').delete().match({ usuario_id: usuario.id, local_id: local.id })
       setSuscrito(false)
       toast.info(`Dejaste de seguir a ${local.nombre}`)
@@ -50,125 +50,93 @@ export function LocalBottomSheet({ local, onClose }: Props) {
 
   return (
     <div className="absolute bottom-20 left-0 right-0 z-20 animate-slide-up px-3">
-      <div className="glass-strong rounded-3xl overflow-hidden shadow-[0_30px_60px_-20px_rgba(0,0,0,0.7)]">
-        {/* Imagen */}
-        <div className="relative h-44">
+      <div className="card-premium overflow-hidden">
+        {/* ── Hero ── */}
+        <div className="relative h-40">
           <LocalImagen src={local.imagenes?.[0]} nombre={local.nombre} />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#14142A] via-[#14142A]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C15] via-[#0C0C15]/55 to-transparent" />
 
-          {/* Cerrar */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 glass-strong rounded-full flex items-center justify-center text-white"
+            aria-label="Cerrar"
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-colors"
           >
             <X size={16} />
           </button>
 
-          {/* Badge tier destacado */}
           {local.tier === 'destacado' && (
             <div className="absolute top-3 left-3">
               <Badge variant="gold" size="sm">★ Destacado</Badge>
             </div>
           )}
 
-          {/* Temperatura indicator */}
-          <div className="absolute bottom-3 left-3 flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md"
-              style={{ background: `${colorTemp}25`, border: `1px solid ${colorTemp}70`, color: colorTemp }}>
-              <div className={cn('w-2 h-2 rounded-full', local.temperatura === 'caliente' && 'animate-pulse-heat')}
-                style={{ background: colorTemp, boxShadow: `0 0 8px ${colorTemp}` }} />
-              {getLabelTemperatura(local.temperatura)}
-            </div>
+          {/* Nombre sobre la imagen */}
+          <div className="absolute bottom-3 left-4 right-4">
+            <h3 className="text-2xl font-bold text-white leading-tight text-display tracking-tight truncate">{local.nombre}</h3>
+            <p className="text-sm text-[#D7D7E2] mt-0.5 flex items-center gap-1.5 truncate">
+              {getLabelTipoLocal(local.tipo_local)}
+              {local.ciudad && <><span className="text-[#8B8BA8]">·</span><MapPin size={11} className="shrink-0" />{local.ciudad}</>}
+            </p>
           </div>
         </div>
 
-        {/* Contenido */}
+        {/* ── Contenido ── */}
         <div className="p-4 space-y-3">
-          {/* Cabecera */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold text-white leading-tight truncate text-display tracking-tight">{local.nombre}</h3>
-              <p className="text-sm text-[#A0A0B8] mt-0.5">{getLabelTipoLocal(local.tipo_local)}</p>
+          {/* Strip de datos reales: ambiente · entrada · música */}
+          <div className="flex items-stretch rounded-2xl bg-white/[0.03] border border-white/[0.07] divide-x divide-white/[0.06]">
+            <div className="flex-1 px-3 py-2.5 text-center">
+              <div className="flex items-center justify-center gap-1.5">
+                <span className={cn('w-2 h-2 rounded-full', temp === 'caliente' && 'animate-pulse-heat')}
+                  style={{ background: colorTemp, boxShadow: `0 0 8px ${colorTemp}` }} />
+                <span className="text-sm font-bold text-display" style={{ color: colorTemp }}>{getLabelTemperatura(temp)}</span>
+              </div>
+              <p className="text-[10px] text-[#8B8BA8] mt-0.5 uppercase tracking-wide">Ambiente</p>
             </div>
+            <div className="flex-1 px-3 py-2.5 text-center">
+              <p className="text-sm font-bold text-white text-display text-numeric">
+                {precio == null ? '—' : precio === 0 ? 'Gratis' : formatearPrecio(precio)}
+              </p>
+              <p className="text-[10px] text-[#8B8BA8] mt-0.5 uppercase tracking-wide">Entrada</p>
+            </div>
+            {genero && (
+              <div className="flex-1 px-3 py-2.5 text-center">
+                <p className="text-sm font-bold text-white text-display truncate">{genero}</p>
+                <p className="text-[10px] text-[#8B8BA8] mt-0.5 uppercase tracking-wide">Música</p>
+              </div>
+            )}
+          </div>
+
+          {/* Evento de esta noche */}
+          {local.evento_activo && (
+            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-[#E0455E]/[0.08] border border-[#E0455E]/20">
+              <Sparkles size={15} className="text-[#E0455E] shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#E0455E]">Esta noche</p>
+                <p className="text-sm font-semibold text-white truncate">{local.evento_activo.nombre}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Acciones */}
+          <div className="flex gap-2 pt-0.5">
             <button
               onClick={toggleSuscripcion}
               disabled={loadingSub}
+              aria-label={suscrito ? 'Siguiendo' : 'Seguir'}
               className={cn(
-                'flex items-center gap-1.5 px-3 h-10 rounded-xl font-semibold text-sm transition-all shrink-0 active:scale-[0.97]',
+                'w-11 shrink-0 rounded-xl flex items-center justify-center transition-all active:scale-[0.97]',
                 suscrito
-                  ? 'glass border border-white/15 text-white'
-                  : 'bg-[#E94560] text-white shadow-[0_6px_18px_-6px_rgba(233,69,96,0.55)] hover:bg-[#FF3D71]'
+                  ? 'bg-[#E0455E]/12 border border-[#E0455E]/30 text-[#E0455E]'
+                  : 'bg-white/[0.05] border border-white/10 text-[#B8B8CC] hover:text-white',
               )}
             >
-              {suscrito ? <Bell size={16} className="fill-current text-[#E94560]" /> : <BellOff size={16} />}
-              <span>{suscrito ? 'Siguiendo' : 'Seguir'}</span>
+              <Bell size={17} className={suscrito ? 'fill-current' : ''} />
             </button>
-          </div>
-
-          {/* Info rápida */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col items-center p-2.5 bg-white/5 border border-white/8 rounded-xl">
-              <TrendingUp size={16} style={{ color: colorTemp }} />
-              <span className="text-[10px] text-[#6B6B85] mt-1 font-medium uppercase tracking-wide">Aforo</span>
-              <span className="text-xs font-semibold text-white">{Math.round(local.aforo_estimado_porcentaje || 0)}%</span>
-            </div>
-            <div className="flex flex-col items-center p-2.5 bg-white/5 border border-white/8 rounded-xl">
-              <Clock size={16} className="text-[#4F8EF7]" />
-              <span className="text-[10px] text-[#6B6B85] mt-1 font-medium uppercase tracking-wide">Pico</span>
-              <span className="text-xs font-semibold text-white">2:00 AM</span>
-            </div>
-            <div className="flex flex-col items-center p-2.5 bg-white/5 border border-white/8 rounded-xl">
-              <Ticket size={16} className="text-[#F39C12]" />
-              <span className="text-[10px] text-[#6B6B85] mt-1 font-medium uppercase tracking-wide">Entrada</span>
-              <span className="text-xs font-semibold text-white">
-                {local.precio_entrada_min === 0 ? 'Gratis' : formatearPrecio(local.precio_entrada_min || 0)}
-              </span>
-            </div>
-          </div>
-
-          {/* Descripción de temperatura */}
-          <p className="text-xs text-[#A0A0B8] leading-relaxed">
-            {getDescripcionTemperatura(local.temperatura, local.aforo_estimado_porcentaje || 0)}
-          </p>
-
-          {/* Evento activo */}
-          {local.evento_activo && (
-            <div className="flex items-center gap-2 p-2.5 bg-[#F39C12]/10 border border-[#F39C12]/20 rounded-xl">
-              <Star size={14} className="text-[#F39C12] fill-current shrink-0" />
-              <span className="text-xs font-medium text-[#F39C12] truncate">{local.evento_activo.nombre}</span>
-            </div>
-          )}
-
-          {/* Módulos activos */}
-          {local.modulos_activos?.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {local.modulos_activos.includes('concurso') && (
-                <Badge variant="blue" size="sm">📸 Concurso activo</Badge>
-              )}
-              {local.modulos_activos.includes('perfil_noche') && (
-                <Badge variant="gold" size="sm">✨ Perfil de noche</Badge>
-              )}
-              {local.modulos_activos.includes('retos') && (
-                <Badge variant="warning" size="sm">🎯 Retos</Badge>
-              )}
-            </div>
-          )}
-
-          {/* Botones de acción */}
-          <div className="flex gap-2 pt-1">
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={() => router.push(`/local/${local.id}`)}
-            >
+            <Button variant="secondary" className="flex-1" onClick={() => router.push(`/local/${local.id}`)}>
               Ver más <ChevronRight size={16} />
             </Button>
-            <Button
-              className="flex-1"
-              onClick={() => router.push(`/local/${local.id}/comprar`)}
-            >
-              <Ticket size={16} />
-              Comprar entrada
+            <Button className="flex-1" onClick={() => router.push(`/local/${local.id}/comprar`)}>
+              <Ticket size={16} /> Comprar
             </Button>
           </div>
         </div>

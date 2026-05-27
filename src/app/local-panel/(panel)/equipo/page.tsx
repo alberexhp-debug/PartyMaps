@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/Toast'
 import { UsuarioLocal, RolLocal } from '@/types'
 import { Users, Plus, Trash2, Mail, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PageHeader, EmptyState, SkeletonCard } from '@/components/local-panel/ui'
 
 const ROLES: { value: RolLocal; label: string; desc: string }[] = [
   { value: 'dueno', label: 'Dueño', desc: 'Acceso total' },
@@ -71,15 +72,15 @@ export default function EquipoPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-white">Equipo</h1>
-        {puedoGestionar && (
+    <div className="relative p-4 md:p-8 pb-24 md:pb-8 space-y-4 overflow-hidden">
+      <PageHeader
+        eyebrow="Negocio" titulo="Equipo" subtitulo="Quién gestiona tu local" acento="blue"
+        acciones={puedoGestionar && (
           <Button size="sm" onClick={() => setShowForm(!showForm)}>
             <Plus size={14} /> Añadir
           </Button>
         )}
-      </div>
+      />
 
       {/* Form añadir */}
       {showForm && (
@@ -113,12 +114,10 @@ export default function EquipoPage() {
 
       {/* Lista equipo */}
       {loading ? (
-        Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-20 bg-white/6 rounded-2xl animate-pulse" />)
+        Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} className="h-20" />)
       ) : equipo.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <Users size={40} className="text-[#6B6B85]" />
-          <p className="text-[#6B6B85]">No hay miembros en el equipo</p>
-        </div>
+        <EmptyState icon={Users} acento="blue" titulo="Aún no hay equipo"
+          descripcion="Invita a gestores, operadores, puerta o barra para repartir el trabajo." />
       ) : (
         equipo.map(m => {
           const rol = ROLES.find(r => r.value === m.rol)

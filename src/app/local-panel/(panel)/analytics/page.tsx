@@ -3,12 +3,13 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { formatearPrecio, calcularEdad } from '@/lib/utils'
-import { TrendingUp, Users, Ticket, Star, Calendar, UserCircle } from 'lucide-react'
+import { TrendingUp, Users, Ticket, Star, Calendar, UserCircle, Beer, Wallet } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, LineChart, Line,
 } from 'recharts'
 import { cn } from '@/lib/utils'
+import { PageHeader, SectionCard, SectionTitle, StatCard, SkeletonStats, chartTheme, ACENTO } from '@/components/local-panel/ui'
 
 interface Analytics {
   ingresos_semana: { dia: string; ingresos: number; entradas: number }[]
@@ -20,6 +21,12 @@ interface Analytics {
     media_rating: number
     total_suscriptores: number
     clientes_unicos: number
+  }
+  bar: {
+    unidades: number
+    ingresos: number
+    beneficio: number | null   // null = ningún producto tiene coste registrado
+    top_productos: { nombre: string; cantidad: number; ingresos: number }[]
   }
 }
 
@@ -48,17 +55,48 @@ export default function AnalyticsPage() {
     const dias = periodo === '7d' ? 7 : periodo === '30d' ? 30 : 90
     const desde = new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString()
 
-    const [entradasRes, reviewsRes, subRes, eventosRes] = await Promise.all([
+    const [entradasRes, reviewsRes, subRes, eventosRes, barItemsRes, productosRes] = await Promise.all([
       supabase.from('entradas').select('created_at, precio_total, precio_local, usuario_id')
         .eq('local_id', local.id).gte('created_at', desde).eq('estado', 'activa'),
       supabase.from('reviews').select('puntuacion').eq('local_id', local.id).eq('censurada', false),
       supabase.from('suscripciones').select('id', { count: 'exact' }).eq('local_id', local.id),
       supabase.from('eventos').select('nombre, entradas_vendidas').eq('local_id', local.id)
         .order('entradas_vendidas', { ascending: false }).limit(5),
+      supabase.from('pedido_items')
+        .select('cantidad, precio_unitario, producto_id, nombre_snapshot, pedidos_bar!inner(local_id, estado, pagado_at)')
+        .eq('pedidos_bar.local_id', local.id)
+        .gte('pedidos_bar.pagado_at', desde)
+        .in('pedidos_bar.estado', ['pagado', 'entregado']),
+      supabase.from('productos_local').select('id, nombre, coste').eq('local_id', local.id),
     ])
 
     const entradas = entradasRes.data || []
     const reviews = reviewsRes.data || []
+
+    // ── Barra: unidades, ingresos, beneficio y top productos ──
+    type BarItem = { cantidad: number; precio_unitario: number; producto_id: string | null; nombre_snapshot: string }
+    const barItems = (barItemsRes.data || []) as unknown as BarItem[]
+    const productos = (productosRes.data || []) as { id: string; nombre: string; coste: number | null }[]
+    const costePorProducto = new Map(productos.map(p => [p.id, p.coste]))
+    const nombrePorProducto = new Map(productos.map(p => [p.id, p.nombre]))
+
+    let barUnidades = 0, barIngresos = 0, barBeneficio = 0, algunCoste = false
+    const porProducto = new Map<string, { nombre: string; cantidad: number; ingresos: number }>()
+    for (const it of barItems) {
+      const ingreso = it.precio_unitario * it.cantidad
+      barUnidades += it.cantidad
+      barIngresos += ingreso
+      const coste = it.producto_id ? costePorProducto.get(it.producto_id) : null
+      if (coste != null) { algunCoste = true; barBeneficio += (it.precio_unitario - coste) * it.cantidad }
+      const key = it.producto_id ?? it.nombre_snapshot
+      const nombre = (it.producto_id && nombrePorProducto.get(it.producto_id)) || it.nombre_snapshot
+      const acc = porProducto.get(key) ?? { nombre, cantidad: 0, ingresos: 0 }
+      acc.cantidad += it.cantidad
+      acc.ingresos += ingreso
+      porProducto.set(key, acc)
+    }
+    const topProductos = Array.from(porProducto.values())
+      .sort((a, b) => b.cantidad - a.cantidad).slice(0, 6)
 
     // Agrupar ingresos por día
     const grouped: Record<string, { ingresos: number; entradas: number }> = {}
@@ -103,6 +141,12 @@ export default function AnalyticsPage() {
         total_suscriptores: subRes.count || 0,
         clientes_unicos: usuarioIds.length,
       },
+      bar: {
+        unidades: barUnidades,
+        ingresos: barIngresos,
+        beneficio: algunCoste ? barBeneficio : null,
+        top_productos: topProductos,
+      },
     })
     setLoading(false)
   }
@@ -110,112 +154,117 @@ export default function AnalyticsPage() {
   if (!local) return null
 
   return (
-    <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-white">Analytics</h1>
-        <div className="flex gap-1 bg-white/6 rounded-xl p-1 border border-white/10">
-          {(['7d', '30d', '90d'] as const).map(p => (
-            <button key={p} onClick={() => setPeriodo(p)}
-              className={cn('px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
-                periodo === p ? 'bg-[#E94560] text-white' : 'text-[#6B6B85]')}>
-              {p}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="relative p-4 md:p-8 pb-24 md:pb-8 space-y-6 overflow-hidden">
+      <PageHeader
+        eyebrow="Audiencia" titulo="Analítica"
+        subtitulo="Cómo va tu negocio en el tiempo"
+        acciones={
+          <div className="flex gap-1 bg-white/6 rounded-xl p-1 border border-white/10">
+            {(['7d', '30d', '90d'] as const).map(p => (
+              <button key={p} onClick={() => setPeriodo(p)}
+                className={cn('px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
+                  periodo === p ? 'bg-[#E94560] text-white' : 'text-[#8B8BA8] hover:text-white')}>
+                {p}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 bg-white/6 rounded-2xl animate-pulse" />)}
-        </div>
+        <SkeletonStats n={4} />
       ) : data && (
         <>
           {/* KPIs */}
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { icon: TrendingUp, label: 'Ingresos', value: formatearPrecio(data.resumen.total_ingresos), color: '#E94560' },
-              { icon: Ticket, label: 'Entradas', value: data.resumen.total_entradas.toString(), color: '#4F8EF7' },
-              { icon: Star, label: 'Rating', value: data.resumen.media_rating > 0 ? `${data.resumen.media_rating.toFixed(1)} ★` : 'N/A', color: '#F39C12' },
-              { icon: Users, label: 'Suscriptores', value: data.resumen.total_suscriptores.toString(), color: '#27AE60' },
-            ].map(({ icon: Icon, label, value, color }) => (
-              <div key={label} className="glass rounded-2xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${color}20` }}>
-                    <Icon size={12} style={{ color }} />
-                  </div>
-                  <span className="text-xs text-[#6B6B85]">{label}</span>
-                </div>
-                <p className="text-xl font-black text-white">{value}</p>
-              </div>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <StatCard icon={TrendingUp} label="Ingresos" value={formatearPrecio(data.resumen.total_ingresos)} acento="rose" />
+            <StatCard icon={Ticket} label="Entradas" value={data.resumen.total_entradas.toString()} acento="blue" />
+            <StatCard icon={Star} label="Rating" value={data.resumen.media_rating > 0 ? `${data.resumen.media_rating.toFixed(1)} ★` : '—'} acento="gold" />
+            <StatCard icon={Users} label="Suscriptores" value={data.resumen.total_suscriptores.toString()} acento="green" />
           </div>
 
           {/* Gráfica ingresos */}
-          <div className="glass rounded-2xl p-4">
-            <h2 className="font-bold text-white mb-4 flex items-center gap-2">
-              <TrendingUp size={16} className="text-[#E94560]" />
-              Ingresos por día
-            </h2>
+          <SectionCard>
+            <SectionTitle icon={TrendingUp} acento="rose">Ingresos por día</SectionTitle>
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={data.ingresos_semana}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="dia" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
-                  formatter={(v: unknown) => [formatearPrecio(Number(v)), 'Ingresos']}
-                />
-                <Bar dataKey="ingresos" fill="#E94560" radius={[4, 4, 0, 0]} />
+                <CartesianGrid {...chartTheme.grid} />
+                <XAxis dataKey="dia" {...chartTheme.axis} />
+                <YAxis {...chartTheme.axis} />
+                <Tooltip {...chartTheme.tooltip} formatter={(v: unknown) => [formatearPrecio(Number(v)), 'Ingresos']} />
+                <Bar dataKey="ingresos" fill={ACENTO.rose} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </SectionCard>
 
           {/* Entradas por día */}
-          <div className="glass rounded-2xl p-4">
-            <h2 className="font-bold text-white mb-4 flex items-center gap-2">
-              <Ticket size={16} className="text-[#4F8EF7]" />
-              Entradas vendidas
-            </h2>
+          <SectionCard>
+            <SectionTitle icon={Ticket} acento="blue">Entradas vendidas</SectionTitle>
             <ResponsiveContainer width="100%" height={140}>
               <LineChart data={data.ingresos_semana}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="dia" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }} />
-                <Line type="monotone" dataKey="entradas" stroke="#4F8EF7" strokeWidth={2} dot={false} />
+                <CartesianGrid {...chartTheme.grid} />
+                <XAxis dataKey="dia" {...chartTheme.axis} />
+                <YAxis {...chartTheme.axis} />
+                <Tooltip {...chartTheme.tooltip} />
+                <Line type="monotone" dataKey="entradas" stroke={ACENTO.blue} strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
+          </SectionCard>
+
+          {/* ── Barra: bebidas/comida ── */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <StatCard icon={Beer} label="Ingresos barra" value={formatearPrecio(data.bar.ingresos)} acento="gold" />
+              <StatCard icon={Ticket} label="Unidades vendidas" value={data.bar.unidades.toString()} acento="blue" />
+              <StatCard
+                icon={Wallet} label="Beneficio barra"
+                value={data.bar.beneficio != null ? formatearPrecio(data.bar.beneficio) : '—'}
+                sublabel={data.bar.beneficio == null ? 'Añade costes a tus productos' : 'Ingresos − coste'}
+                acento="green"
+              />
+            </div>
+
+            <SectionCard>
+              <SectionTitle icon={Beer} acento="gold">Lo más vendido en barra</SectionTitle>
+              {data.bar.top_productos.length === 0 ? (
+                <p className="text-sm text-[#8B8BA8] py-6 text-center">Sin ventas de barra en este periodo.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={Math.max(140, data.bar.top_productos.length * 38)}>
+                  <BarChart data={data.bar.top_productos} layout="vertical" margin={{ left: 8, right: 8 }}>
+                    <CartesianGrid {...chartTheme.grid} horizontal={false} />
+                    <XAxis type="number" {...chartTheme.axis} allowDecimals={false} />
+                    <YAxis type="category" dataKey="nombre" width={96} {...chartTheme.axis} />
+                    <Tooltip {...chartTheme.tooltip} formatter={(v: unknown) => [`${Number(v)} uds`, 'Vendidas']} />
+                    <Bar dataKey="cantidad" fill={ACENTO.gold} radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </SectionCard>
           </div>
 
           {/* Distribución de edad de clientes */}
           {data.resumen.clientes_unicos > 0 && (
-            <div className="glass rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold text-white flex items-center gap-2">
-                  <UserCircle size={16} className="text-[#27AE60]" />
-                  Edad de tus clientes
-                </h2>
-                <span className="text-xs text-[#6B6B85]">{data.resumen.clientes_unicos} únicos</span>
-              </div>
+            <SectionCard>
+              <SectionTitle icon={UserCircle} acento="green"
+                accion={<span className="text-xs text-[#8B8BA8]">{data.resumen.clientes_unicos} únicos</span>}>
+                Edad de tus clientes
+              </SectionTitle>
               <ResponsiveContainer width="100%" height={140}>
                 <BarChart data={data.distribucion_edad}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="rango" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: 'rgba(20,20,42,0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }} />
-                  <Bar dataKey="count" fill="#27AE60" radius={[4, 4, 0, 0]} />
+                  <CartesianGrid {...chartTheme.grid} />
+                  <XAxis dataKey="rango" {...chartTheme.axis} />
+                  <YAxis {...chartTheme.axis} allowDecimals={false} />
+                  <Tooltip {...chartTheme.tooltip} />
+                  <Bar dataKey="count" fill={ACENTO.green} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </SectionCard>
           )}
 
           {/* Top eventos */}
           {data.top_eventos.length > 0 && (
-            <div className="glass rounded-2xl p-4 space-y-3">
-              <h2 className="font-bold text-white flex items-center gap-2">
-                <Calendar size={16} className="text-[#F39C12]" />
-                Top eventos
-              </h2>
+            <SectionCard className="space-y-3">
+              <SectionTitle icon={Calendar} acento="gold">Top eventos</SectionTitle>
               {data.top_eventos.map((e, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="text-sm font-bold text-[#6B6B85] w-4">{i + 1}</span>
@@ -226,10 +275,10 @@ export default function AnalyticsPage() {
                         style={{ width: `${data.top_eventos[0].entradas > 0 ? (e.entradas / data.top_eventos[0].entradas) * 100 : 0}%` }} />
                     </div>
                   </div>
-                  <span className="text-xs text-[#6B6B85] shrink-0">{e.entradas} entradas</span>
+                  <span className="text-xs text-[#8B8BA8] shrink-0">{e.entradas} entradas</span>
                 </div>
               ))}
-            </div>
+            </SectionCard>
           )}
         </>
       )}

@@ -26,6 +26,7 @@ export interface ProductoLocal {
   descripcion?: string
   categoria: CategoriaProducto
   precio: number
+  coste?: number
   imagen_url?: string
   disponible: boolean
   orden: number
@@ -154,9 +155,16 @@ export interface Local {
   promo_ultima_hora_hasta?: string
   instagram_handle?: string
   entradas_disponibles_noche?: number
+  aforo_por_dia?: AforoPorDia
+  reservas_activas?: boolean
+  reservas_modo?: ModoReservas
   created_at: string
   updated_at: string
 }
+
+/** Perfil semanal de ocupación (%) que ve el usuario. 0-100 por día; ausente = sin preajuste. */
+export type DiaSemana = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes' | 'sabado' | 'domingo'
+export type AforoPorDia = Partial<Record<DiaSemana, number>>
 
 export interface HorarioLocal {
   lunes?: { apertura: string; cierre: string } | null
@@ -173,6 +181,63 @@ export interface ConsumicionBienvenida {
   nombre: string
   descripcion: string
   precio: number
+}
+
+// ── Mesas, plantas y reservas (reservados) ──────────────────────────
+export type ModoReservas = 'solicitud' | 'instantanea'
+export type TipoMesa = 'mesa' | 'reservado' | 'barra' | 'otro'
+export type FormaMesa = 'redonda' | 'cuadrada' | 'rect'
+export type EstadoReserva =
+  | 'solicitada' | 'confirmada' | 'rechazada' | 'sentada' | 'cancelada' | 'no_show'
+
+export interface Planta {
+  id: string
+  local_id: string
+  nombre: string
+  orden: number
+  created_at: string
+  updated_at: string
+}
+
+/** pos_x/pos_y y ancho/alto son fracciones (0..1) del lienzo de la planta. */
+export interface Mesa {
+  id: string
+  local_id: string
+  planta_id: string
+  codigo: string
+  capacidad: number
+  tipo: TipoMesa
+  forma: FormaMesa
+  pos_x: number
+  pos_y: number
+  ancho: number
+  alto: number
+  zona?: string | null
+  reservable: boolean
+  activa: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Reserva {
+  id: string
+  local_id: string
+  mesa_id: string
+  evento_id?: string | null
+  usuario_id?: string | null
+  nombre_contacto: string
+  telefono?: string | null
+  personas: number
+  fecha_noche: string
+  estado: EstadoReserva
+  modo: ModoReservas
+  importe?: number | null
+  pagada: boolean
+  notas?: string | null
+  confirmada_at?: string | null
+  confirmada_por?: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface UsuarioLocal {

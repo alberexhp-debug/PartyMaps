@@ -8,6 +8,7 @@ import { Sugerencia } from '@/types'
 import { tiempoRelativo } from '@/lib/utils'
 import { MessageSquare, CheckCircle2, Clock, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PageHeader, EmptyState, SkeletonCard, StatCard } from '@/components/local-panel/ui'
 
 type SugerenciaConUsuario = Sugerencia & { usuarios?: { nombre: string } }
 
@@ -59,19 +60,17 @@ export default function SugerenciasPage() {
   if (!local) return null
 
   return (
-    <div className="p-4 md:p-6 space-y-6 pb-20 md:pb-6">
-      <div>
-        <h1 className="text-2xl font-black text-white">Sugerencias</h1>
-        <p className="text-[#6B6B85] text-sm">Opiniones y sugerencias de tus clientes</p>
-      </div>
+    <div className="relative p-4 md:p-8 space-y-6 pb-20 md:pb-8 overflow-hidden">
+      <PageHeader eyebrow="Audiencia" titulo="Sugerencias" subtitulo="Opiniones de tus clientes" acento="blue" />
 
       {/* Resumen */}
       <div className="grid grid-cols-3 gap-3">
         {(['nueva', 'leida', 'respondida'] as const).map(e => (
-          <div key={e} className="glass rounded-xl p-3 text-center">
-            <p className="text-2xl font-black text-white">{counts[e]}</p>
-            <p className="text-xs text-[#6B6B85] capitalize">{e === 'nueva' ? 'Nuevas' : e === 'leida' ? 'Leídas' : 'Respondidas'}</p>
-          </div>
+          <StatCard key={e}
+            label={e === 'nueva' ? 'Nuevas' : e === 'leida' ? 'Leídas' : 'Respondidas'}
+            value={counts[e]}
+            acento={e === 'nueva' ? 'rose' : 'neutral'}
+          />
         ))}
       </div>
 
@@ -93,13 +92,12 @@ export default function SugerenciasPage() {
 
       {loading ? (
         <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-20 bg-white/6 rounded-2xl animate-pulse" />)}
+          {[1,2,3].map(i => <SkeletonCard key={i} className="h-20" />)}
         </div>
       ) : filtradas.length === 0 ? (
-        <div className="flex flex-col items-center py-16 gap-3">
-          <MessageSquare size={36} className="text-[#6B6B85]" />
-          <p className="text-[#6B6B85] text-sm">No hay sugerencias {filtro !== 'todas' ? `en estado "${filtro}"` : 'todavía'}</p>
-        </div>
+        <EmptyState icon={MessageSquare} acento="blue"
+          titulo="Sin sugerencias"
+          descripcion={filtro !== 'todas' ? `No hay sugerencias en estado "${filtro}".` : 'Aún no han llegado sugerencias de tus clientes.'} />
       ) : (
         <div className="space-y-3">
           {filtradas.map(s => (

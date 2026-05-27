@@ -10,6 +10,7 @@ import { formatearFecha, formatearHora, formatearPrecio } from '@/lib/utils'
 import { Plus, Calendar, Ticket, Users, Eye, Edit2, Trash2, AlertCircle, Copy, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/Toast'
+import { PageHeader, EmptyState, SkeletonCard } from '@/components/local-panel/ui'
 
 export default function EventosPage() {
   const router = useRouter()
@@ -104,18 +105,22 @@ export default function EventosPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-black text-white">Eventos</h1>
-        <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={exportarCSV} loading={exportando}>
-            <Download size={14} /> CSV
-          </Button>
-          <Button size="sm" onClick={() => router.push('/local-panel/eventos/nuevo')}>
-            <Plus size={14} /> Crear evento
-          </Button>
-        </div>
-      </div>
+    <div className="relative p-4 md:p-8 pb-24 md:pb-8 space-y-4 overflow-hidden">
+      <PageHeader
+        eyebrow="Crecimiento" titulo="Eventos"
+        subtitulo="Tus noches programadas"
+        acento="gold"
+        acciones={
+          <>
+            <Button size="sm" variant="secondary" onClick={exportarCSV} loading={exportando}>
+              <Download size={14} /> CSV
+            </Button>
+            <Button size="sm" onClick={() => router.push('/local-panel/eventos/nuevo')}>
+              <Plus size={14} /> Crear evento
+            </Button>
+          </>
+        }
+      />
 
       {/* Filtros */}
       <div className="flex gap-2 overflow-x-auto pb-1">
@@ -136,17 +141,18 @@ export default function EventosPage() {
       </div>
 
       {loading ? (
-        Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-36 bg-white/6 rounded-2xl animate-pulse" />
-        ))
+        Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} className="h-36" />)
       ) : filtrados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-4">
-          <Calendar size={40} className="text-[#6B6B85]" />
-          <p className="text-[#6B6B85]">No hay eventos</p>
-          <Button size="sm" onClick={() => router.push('/local-panel/eventos/nuevo')}>
-            <Plus size={14} /> Crear el primero
-          </Button>
-        </div>
+        <EmptyState
+          icon={Calendar} acento="gold"
+          titulo={filtro === 'todos' ? 'Aún no hay eventos' : 'Sin eventos en este estado'}
+          descripcion="Crea tu primera noche y empieza a vender entradas."
+          accion={
+            <Button size="sm" onClick={() => router.push('/local-panel/eventos/nuevo')}>
+              <Plus size={14} /> Crear el primero
+            </Button>
+          }
+        />
       ) : (
         filtrados.map(evento => {
           const badge = estadoBadge(evento.estado)

@@ -8,6 +8,7 @@ import { Reto } from '@/types'
 import { formatearHora } from '@/lib/utils'
 import { Target, Plus, X, Crown, Eye, Check, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PageHeader, EmptyState, SkeletonCard } from '@/components/local-panel/ui'
 
 interface ParticipacionReto {
   id: string
@@ -72,27 +73,20 @@ export default function RetosPage() {
   if (!local) return null
 
   return (
-    <div className="p-4 md:p-6 space-y-6 pb-20 md:pb-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-white">Retos</h1>
-          <p className="text-[#6B6B85] text-sm">Desafíos para tus clientes esta noche</p>
-        </div>
-        <Button size="sm" onClick={() => setShowCrear(true)}>
-          <Plus size={16} /> Nuevo reto
-        </Button>
-      </div>
+    <div className="relative p-4 md:p-8 space-y-6 pb-20 md:pb-8 overflow-hidden">
+      <PageHeader
+        eyebrow="Crecimiento" titulo="Retos" subtitulo="Desafíos para dinamizar la noche" acento="violet"
+        acciones={<Button size="sm" onClick={() => setShowCrear(true)}><Plus size={16} /> Nuevo reto</Button>}
+      />
 
       {loading ? (
         <div className="space-y-3">
-          {[1,2].map(i => <div key={i} className="h-24 bg-white/6 rounded-2xl animate-pulse" />)}
+          {[1,2].map(i => <SkeletonCard key={i} className="h-24" />)}
         </div>
       ) : retos.length === 0 ? (
-        <div className="flex flex-col items-center py-20 gap-4">
-          <Target size={40} className="text-[#6B6B85]" />
-          <p className="text-[#6B6B85] text-center">No hay retos activos.<br/>Crea uno para dinamizar la noche.</p>
-          <Button size="sm" onClick={() => setShowCrear(true)}><Plus size={14} /> Crear reto</Button>
-        </div>
+        <EmptyState icon={Target} acento="violet" titulo="No hay retos activos"
+          descripcion="Crea uno para dinamizar la noche y enganchar a tus clientes."
+          accion={<Button size="sm" onClick={() => setShowCrear(true)}><Plus size={14} /> Crear reto</Button>} />
       ) : (
         <div className="space-y-3">
           {retos.map(r => (

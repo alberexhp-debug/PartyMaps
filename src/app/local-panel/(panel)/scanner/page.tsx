@@ -3,12 +3,15 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { ResultadoEscaneoQR, Entrada } from '@/types'
-import { QrCode, CheckCircle2, XCircle, AlertCircle, RefreshCw, Camera, Flashlight } from 'lucide-react'
+import { QrCode, CheckCircle2, XCircle, AlertCircle, RefreshCw, Camera, Flashlight, Gauge, Check } from 'lucide-react'
 import jsQR from 'jsqr'
-import { cn } from '@/lib/utils'
+import { cn, aforoVisible, getTemperaturaAforo, getColorTemperatura, getLabelTemperatura } from '@/lib/utils'
+import { Button } from '@/components/ui/Button'
+import { useToast } from '@/components/ui/Toast'
 
 export default function ScannerPage() {
-  const { local } = useLocalPanelStore()
+  const { local, trabajador, setLocal } = useLocalPanelStore()
+  const toast = useToast()
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -21,6 +24,28 @@ export default function ScannerPage() {
   const [modoConsumicion, setModoConsumicion] = useState(false)
   const [historial, setHistorial] = useState<{ qr: string; resultado: ResultadoEscaneoQR; hora: string }[]>([])
   const [torch, setTorch] = useState(false)
+  const [aforoSlider, setAforoSlider] = useState<number | null>(null)
+  const [guardandoAforo, setGuardandoAforo] = useState(false)
+
+  const aforoActual = aforoSlider ?? Math.round(aforoVisible(local ?? {}))
+  const colorAforo = getColorTemperatura(getTemperaturaAforo(aforoActual))
+
+  const guardarAforo = async () => {
+    if (aforoSlider === null || !local || !trabajador) return
+    setGuardandoAforo(true)
+    await fetch('/api/locales/aforo', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ local_id: local.id, porcentaje: aforoSlider, worker_id: trabajador.usuario_id }),
+    })
+    // Reflejar de inmediato: override en vivo hasta las 6 AM
+    const expira = new Date()
+    if (expira.getHours() >= 6) expira.setDate(expira.getDate() + 1)
+    expira.setHours(6, 0, 0, 0)
+    setLocal({ ...local, aforo_correccion_manual: aforoSlider, aforo_correccion_manual_expires: expira.toISOString() })
+    setGuardandoAforo(false)
+    setAforoSlider(null)
+    toast.success('Aforo actualizado')
+  }
 
   const iniciarCamara = async () => {
     try {
@@ -105,7 +130,7 @@ export default function ScannerPage() {
   return (
     <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-white">Scanner QR</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-display text-white">Scanner</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setModoConsumicion(!modoConsumicion)}
@@ -119,6 +144,33 @@ export default function ScannerPage() {
             {modoConsumicion ? '🍹 Modo consumición' : '🎫 Modo entrada'}
           </button>
         </div>
+      </div>
+
+      {/* Aforo — control rápido en puerta */}
+      <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-4 space-y-3 max-w-sm mx-auto w-full">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-white flex items-center gap-2">
+            <Gauge size={15} className="text-[#E0455E]" /> Aforo ahora
+          </span>
+          <span className="text-2xl font-bold text-display text-numeric" style={{ color: colorAforo }}>
+            {aforoActual}%
+          </span>
+        </div>
+        <input
+          type="range" min={0} max={100} step={5} value={aforoActual}
+          onChange={e => setAforoSlider(Number(e.target.value))}
+          className="w-full accent-[#E0455E]"
+          aria-label="Aforo ahora mismo"
+        />
+        <div className="flex items-center justify-between">
+          <span className="text-xs" style={{ color: colorAforo }}>{getLabelTemperatura(getTemperaturaAforo(aforoActual))}</span>
+          <span className="text-[11px] text-[#6B6B85]">Lo que ve la gente · expira a las 6:00</span>
+        </div>
+        {aforoSlider !== null && (
+          <Button size="sm" fullWidth loading={guardandoAforo} onClick={guardarAforo}>
+            <Check size={14} /> Aplicar aforo
+          </Button>
+        )}
       </div>
 
       {/* Cámara */}

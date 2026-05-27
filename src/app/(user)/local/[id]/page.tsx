@@ -12,15 +12,16 @@ import { useToast } from '@/components/ui/Toast'
 import { useVerificarPresencia } from '@/lib/hooks/useVerificarPresencia'
 import {
   getLabelTipoLocal, getColorTemperatura, getLabelTemperatura,
-  formatearPrecio, getTemperaturaAforo, tiempoRelativo
+  formatearPrecio, getTemperaturaAforo, tiempoRelativo, getLabelMusica
 } from '@/lib/utils'
 import {
   ChevronLeft, Bell, BellOff, MapPin, Clock, Music, Ticket,
   Star, MessageSquare, Lightbulb, Share2, Navigation, PenLine, X,
-  LogIn, LogOut, Trophy, Target, Send, Sparkles, Beer,
+  LogIn, LogOut, Trophy, Target, Send, Sparkles, Beer, Sofa,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LocalImagen } from '@/components/ui/LocalImagen'
+import { ReservarModal } from '@/components/user/ReservarModal'
 
 export default function LocalPerfilPage() {
   const { id } = useParams<{ id: string }>()
@@ -50,6 +51,7 @@ export default function LocalPerfilPage() {
   })
   const [haciendoCheckin, setHaciendoCheckin] = useState(false)
   const [showSugerencia, setShowSugerencia] = useState(false)
+  const [showReservar, setShowReservar] = useState(false)
   const [concursoActivo, setConcursoActivo] = useState<{ id: string; descripcion: string; premio: string; tipo_contenido: string } | null>(null)
   const [retosActivos, setRetosActivos] = useState<{ id: string; nombre: string; descripcion: string; premio?: string }[]>([])
 
@@ -327,10 +329,11 @@ export default function LocalPerfilPage() {
   }
 
   const colorTemp = getColorTemperatura(local.temperatura)
-  const eventoActivo = (local as LocalConAforo & { eventos?: Array<{ id: string; nombre: string; estado: string; imagen_url?: string }> }).eventos?.find((e: { estado: string }) => e.estado === 'publicado')
+  const eventoActivo = (local as LocalConAforo & { eventos?: Array<{ id: string; nombre: string; estado: string; imagen_url?: string; fecha_inicio?: string }> }).eventos?.find((e: { estado: string }) => e.estado === 'publicado')
   const mediaReviews = reviews.length > 0 ? reviews.reduce((a, r) => a + r.puntuacion, 0) / reviews.length : 0
   const diasSemana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
-  const diasLabel = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+  const diasCompleto = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+  const hoyIdx = (new Date().getDay() + 6) % 7
 
   return (
     <div className="min-h-screen">
@@ -365,6 +368,23 @@ export default function LocalPerfilPage() {
             )}
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-display text-white" style={{ textShadow: '0 4px 30px rgba(0,0,0,0.6)' }}>{local.nombre}</h1>
+          {(reviews.length > 0 || local.precio_entrada_min != null) && (
+            <div className="flex items-center gap-2.5 mt-2.5 text-sm">
+              {reviews.length > 0 && (
+                <span className="flex items-center gap-1 text-white">
+                  <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                  <span className="font-semibold">{mediaReviews.toFixed(1)}</span>
+                  <span className="text-white/55">({reviews.length})</span>
+                </span>
+              )}
+              {reviews.length > 0 && local.precio_entrada_min != null && <span className="text-white/30">·</span>}
+              {local.precio_entrada_min != null && (
+                <span className="text-white/85">
+                  {local.precio_entrada_min === 0 ? 'Entrada gratis' : `Desde ${formatearPrecio(local.precio_entrada_min)}`}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Miniaturas */}
@@ -383,63 +403,59 @@ export default function LocalPerfilPage() {
 
       {/* Contenido */}
       <div className="px-5 space-y-5 pb-32 -mt-2">
-        {/* Reviews + dirección */}
-        <div className="space-y-3">
-          {reviews.length > 0 && (
-            <div className="flex justify-end">
-              <StarDisplay value={mediaReviews} count={reviews.length} />
-            </div>
-          )}
-
-          <div className="flex items-center gap-2 text-sm text-[#A0A0B8]">
-            <MapPin size={14} className="shrink-0" />
-            <span className="truncate">{local.direccion}</span>
-            <button className="ml-auto flex items-center gap-1 text-[#4F8EF7] text-xs shrink-0"
-              onClick={() => window.open(`https://maps.google.com/?q=${local.latitud},${local.longitud}`)}>
-              <Navigation size={12} /> Cómo llegar
-            </button>
-          </div>
+        {/* Dirección */}
+        <div className="flex items-center gap-2 text-sm text-[#A0A0B8]">
+          <MapPin size={14} className="shrink-0" />
+          <span className="truncate">{local.direccion}</span>
+          <button className="ml-auto flex items-center gap-1 text-[#4F8EF7] text-xs shrink-0"
+            onClick={() => window.open(`https://maps.google.com/?q=${local.latitud},${local.longitud}`)}>
+            <Navigation size={12} /> Cómo llegar
+          </button>
         </div>
 
-        {/* Suscribirse — botón prominente */}
-        <button
-          onClick={toggleSuscripcion}
-          className={cn(
-            'group relative w-full h-14 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] overflow-hidden',
-            suscrito
-              ? 'glass border border-white/15 text-white hover:border-white/25'
-              : 'bg-[#E94560] text-white shadow-[0_12px_28px_-8px_rgba(233,69,96,0.55)] hover:bg-[#FF3D71] hover:shadow-[0_14px_34px_-6px_rgba(255,61,113,0.65)]'
-          )}
-        >
-          {!suscrito && (
-            <span className="absolute inset-0 holo-bg opacity-0 group-hover:opacity-30 transition-opacity" />
-          )}
-          <span className="relative flex items-center justify-center gap-2.5">
+        {/* Acciones: seguir (primaria) + pedir en barra (secundaria) */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
+            onClick={toggleSuscripcion}
+            className={cn(
+              'group relative h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] overflow-hidden flex items-center justify-center gap-2',
+              suscrito
+                ? 'glass border border-white/15 text-white hover:border-white/25'
+                : 'bg-[#E94560] text-white shadow-[0_12px_28px_-10px_rgba(233,69,96,0.55)] hover:bg-[#FF3D71]'
+            )}
+          >
             {suscrito ? (
               <>
-                <Bell size={20} className="fill-current text-[#E94560]" />
+                <Bell size={18} className="fill-current text-[#E94560]" />
                 <span>Siguiendo</span>
-                <span className="text-xs text-[#A0A0B8] font-normal">· Toca para dejar de seguir</span>
               </>
             ) : (
               <>
-                <BellOff size={20} />
-                <span className="tracking-wide">Seguir local</span>
-                <span className="text-xs opacity-90 font-normal">· Recibe avisos de eventos</span>
+                <BellOff size={18} />
+                <span>Seguir</span>
               </>
             )}
-          </span>
-        </button>
+          </button>
 
-        {/* CTA pedir en barra (módulo bar) */}
-        <button
-          onClick={() => router.push(`/local/${id}/bar`)}
-          className="group relative w-full h-14 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] glass border border-white/15 text-white hover:border-white/25 overflow-hidden flex items-center justify-center gap-2.5"
-        >
-          <Beer size={20} className="text-[#F39C12]" />
-          <span>Pedir en barra</span>
-          <span className="text-xs text-[#B8B8CC] font-normal">· QR para canjear</span>
-        </button>
+          <button
+            onClick={() => router.push(`/local/${id}/bar`)}
+            className="h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] glass border border-white/15 text-white hover:border-white/25 flex items-center justify-center gap-2"
+          >
+            <Beer size={18} className="text-[#F39C12]" />
+            <span>Pedir en barra</span>
+          </button>
+        </div>
+
+        {/* Reservar mesa/reservado */}
+        {local.reservas_activas && (
+          <button
+            onClick={() => { if (!usuario) { router.push('/login'); return } setShowReservar(true) }}
+            className="w-full h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] bg-[#D4A84B]/12 border border-[#D4A84B]/30 text-[#D4A84B] hover:bg-[#D4A84B]/18 flex items-center justify-center gap-2"
+          >
+            <Sofa size={18} />
+            <span>Reservar reservado</span>
+          </button>
+        )}
 
         {/* Estado aforo */}
         <div className="p-4 glass rounded-2xl">
@@ -457,8 +473,12 @@ export default function LocalPerfilPage() {
             <div className="h-full rounded-full transition-all" style={{ width: `${local.aforo_estimado_porcentaje || 0}%`, background: colorTemp }} />
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-[#6B6B85]">Estimación actualizada hace &lt;10 min</span>
-            <span className="text-xs text-[#6B6B85]">Pico: 2:00 AM</span>
+            <span className="text-xs text-[#6B6B85]">Aforo estimado en tiempo real</span>
+            {local.aforo_maximo > 0 && (
+              <span className="text-xs text-[#6B6B85]">
+                ~{Math.round((local.aforo_estimado_porcentaje || 0) / 100 * local.aforo_maximo).toLocaleString('es-ES')} de {local.aforo_maximo.toLocaleString('es-ES')}
+              </span>
+            )}
           </div>
           {local.aforo_correccion_manual != null
             && local.aforo_correccion_manual_expires
@@ -467,39 +487,41 @@ export default function LocalPerfilPage() {
           )}
         </div>
 
-        {/* Evento activo */}
+        {/* Evento de esta noche — banner */}
         {eventoActivo && (
-          <div className="p-4 bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-2xl">
-            <div className="flex items-center gap-2 mb-1">
-              <Star size={16} className="text-[#F39C12] fill-current" />
-              <span className="text-sm font-semibold text-[#F39C12]">Evento esta noche</span>
-            </div>
-            <p className="text-white font-bold">{eventoActivo.nombre}</p>
-          </div>
-        )}
+          <button
+            onClick={() => router.push(`/local/${id}/comprar`)}
+            className="group relative block w-full h-44 rounded-2xl overflow-hidden text-left active:scale-[0.99] transition-transform"
+          >
+            <LocalImagen src={eventoActivo.imagen_url} nombre={eventoActivo.nombre} />
+            <div className="absolute inset-0" style={{
+              background: 'linear-gradient(180deg, rgba(8,8,16,0.10) 0%, rgba(8,8,16,0.35) 45%, rgba(8,8,16,0.94) 100%)'
+            }} />
 
-        {/* Módulos de experiencia */}
-        {local.modulos_activos?.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-[#A0A0B8]">Esta noche</h3>
-            <div className="flex flex-wrap gap-2">
-              {local.modulos_activos.includes('concurso') && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-[#4F8EF7]/10 border border-[#4F8EF7]/20 rounded-xl">
-                  <span>📸</span><span className="text-sm text-[#4F8EF7] font-medium">Concurso activo</span>
-                </div>
-              )}
-              {local.modulos_activos.includes('perfil_noche') && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
-                  <span>✨</span><span className="text-sm text-yellow-400 font-medium">Perfil de noche</span>
-                </div>
-              )}
-              {local.modulos_activos.includes('retos') && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-[#F39C12]/10 border border-[#F39C12]/20 rounded-xl">
-                  <span>🎯</span><span className="text-sm text-[#F39C12] font-medium">Retos activos</span>
-                </div>
-              )}
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full backdrop-blur-md bg-[#F39C12]/20 border border-[#F39C12]/40">
+              <Sparkles size={12} className="text-[#F39C12]" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#F39C12]">Evento esta noche</span>
             </div>
-          </div>
+
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <h3 className="text-xl font-bold text-white leading-tight text-display" style={{ textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>
+                {eventoActivo.nombre}
+              </h3>
+              {eventoActivo.fecha_inicio && (
+                <p className="text-sm text-white/85 mt-1 flex items-center gap-1.5">
+                  <Clock size={13} className="shrink-0" />
+                  <span className="capitalize">
+                    {new Date(eventoActivo.fecha_inicio).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </span>
+                  <span className="text-white/40">·</span>
+                  {new Date(eventoActivo.fecha_inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              )}
+              <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg bg-white/12 backdrop-blur-md border border-white/15 text-sm font-semibold text-white">
+                <Ticket size={14} /> Ver entradas
+              </span>
+            </div>
+          </button>
         )}
 
         {/* Check-in banner */}
@@ -563,7 +585,7 @@ export default function LocalPerfilPage() {
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-white flex items-center gap-2"><Music size={14} /> Música</h3>
                 <div className="flex flex-wrap gap-2">
-                  {local.musica.map(m => <Badge key={m} variant="blue">{m}</Badge>)}
+                  {local.musica.map(m => <Badge key={m} variant="blue">{getLabelMusica(m)}</Badge>)}
                 </div>
               </div>
             )}
@@ -571,13 +593,19 @@ export default function LocalPerfilPage() {
             {local.horario && Object.keys(local.horario).length > 0 && (
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-white flex items-center gap-2"><Clock size={14} /> Horario</h3>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.05] overflow-hidden">
                   {diasSemana.map((dia, i) => {
                     const h = local.horario[dia as keyof typeof local.horario]
+                    const esHoy = i === hoyIdx
                     return (
-                      <div key={dia} className="flex justify-between text-sm p-2.5 bg-white/6 rounded-lg">
-                        <span className="text-[#A0A0B8]">{diasLabel[i]}</span>
-                        <span className="text-white">{h ? `${h.apertura}–${h.cierre}` : 'Cerrado'}</span>
+                      <div key={dia} className={cn('flex items-center justify-between px-4 py-2.5 text-sm', esHoy && 'bg-white/[0.05]')}>
+                        <span className="flex items-center gap-2">
+                          {esHoy && <span className="w-1.5 h-1.5 rounded-full bg-[#E94560] shrink-0" />}
+                          <span className={cn(esHoy ? 'text-white font-semibold' : 'text-[#A0A0B8]')}>{diasCompleto[i]}</span>
+                        </span>
+                        <span className={cn(h ? (esHoy ? 'text-white font-medium' : 'text-[#C8C8D8]') : 'text-[#6B6B85]')}>
+                          {h ? `${h.apertura} – ${h.cierre}` : 'Cerrado'}
+                        </span>
                       </div>
                     )
                   })}
@@ -690,7 +718,6 @@ export default function LocalPerfilPage() {
             )}
           </div>
         )}
-      </div>
 
         {tab === 'modulos' && (
           <div className="space-y-4">
@@ -782,6 +809,7 @@ export default function LocalPerfilPage() {
             </div>
           </div>
         )}
+      </div>
 
       {/* Modal review */}
       {showReviewModal && local && usuario && (
@@ -806,6 +834,16 @@ export default function LocalPerfilPage() {
           userId={usuario.id}
           onClose={() => setShowSugerencia(false)}
           onEnviada={() => { setShowSugerencia(false); toast.success('Sugerencia enviada') }}
+        />
+      )}
+
+      {/* Modal reservar */}
+      {showReservar && local && usuario && (
+        <ReservarModal
+          local={local}
+          usuario={usuario}
+          onClose={() => setShowReservar(false)}
+          onReservado={() => { setShowReservar(false); toast.success('Solicitud de reserva enviada. El local la confirmará pronto.') }}
         />
       )}
 

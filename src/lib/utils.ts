@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { PrecioDinamicoConfig, SignoZodiaco, TemperaturaAforo, TipoLocal } from '@/types'
+import { PrecioDinamicoConfig, SignoZodiaco, TemperaturaAforo, TipoLocal, TipoMusica } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -39,6 +39,38 @@ export function getTemperaturaAforo(porcentaje: number): TemperaturaAforo {
   return 'caliente'
 }
 
+/** Claves de día de la semana en el orden de Date.getDay() (0=domingo). */
+export const DIAS_SEMANA_KEYS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'] as const
+
+/** Clave del día de hoy (o de una fecha dada) para indexar perfiles semanales. */
+export function diaSemanaKey(fecha: Date = new Date()): typeof DIAS_SEMANA_KEYS[number] {
+  return DIAS_SEMANA_KEYS[fecha.getDay()]
+}
+
+/**
+ * Ocupación (%) que ve el usuario, resuelta por prioridad:
+ *   1) corrección manual en vivo no expirada (el operador la tocó esta noche)
+ *   2) perfil semanal del dueño para el día actual (aforo_por_dia)
+ *   3) estimación almacenada
+ */
+export function aforoVisible(local: {
+  aforo_correccion_manual?: number
+  aforo_correccion_manual_expires?: string
+  aforo_por_dia?: Partial<Record<string, number>>
+  aforo_estimado_porcentaje?: number
+}): number {
+  if (
+    local.aforo_correccion_manual != null &&
+    local.aforo_correccion_manual_expires &&
+    new Date(local.aforo_correccion_manual_expires) > new Date()
+  ) {
+    return local.aforo_correccion_manual
+  }
+  const delDia = local.aforo_por_dia?.[diaSemanaKey()]
+  if (delDia != null) return delDia
+  return local.aforo_estimado_porcentaje ?? 0
+}
+
 export function getColorTemperatura(temp: TemperaturaAforo): string {
   if (temp === 'fria') return '#4F8EF7'
   if (temp === 'templada') return '#F39C12'
@@ -67,6 +99,15 @@ export function getLabelTipoLocal(tipo: TipoLocal): string {
     otro: 'Local',
   }
   return labels[tipo]
+}
+
+export function getLabelMusica(genero: TipoMusica | string): string {
+  const labels: Record<TipoMusica, string> = {
+    techno: 'Techno', house: 'House', reggaeton: 'Reggaetón', pop: 'Pop',
+    hip_hop: 'Hip-hop', indie: 'Indie', electronica: 'Electrónica',
+    flamenco: 'Flamenco', otro: 'Variada',
+  }
+  return labels[genero as TipoMusica] ?? genero
 }
 
 export function formatearPrecio(precio: number): string {

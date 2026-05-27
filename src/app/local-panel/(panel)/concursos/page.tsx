@@ -9,6 +9,7 @@ import { Concurso, ParticipacionConcurso } from '@/types'
 import { formatearFecha, formatearHora } from '@/lib/utils'
 import { Trophy, Plus, X, Users, Crown, Eye, Check, AtSign, AlertTriangle, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PageHeader, EmptyState, SkeletonCard } from '@/components/local-panel/ui'
 
 type ConcursoConParticipaciones = Concurso & { participaciones?: ParticipacionConcurso[] }
 
@@ -81,16 +82,17 @@ export default function ConcursosPage() {
   const sinInstagram = !local.instagram_handle
 
   return (
-    <div className="p-4 md:p-6 space-y-6 pb-20 md:pb-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-white">Concursos</h1>
-          <p className="text-[#6B6B85] text-sm">Gestiona los concursos de tu local</p>
-        </div>
-        <Button size="sm" onClick={() => setShowCrear(true)} disabled={sinInstagram}>
-          <Plus size={16} /> Nuevo concurso
-        </Button>
-      </div>
+    <div className="relative p-4 md:p-8 space-y-6 pb-20 md:pb-8 overflow-hidden">
+      <PageHeader
+        eyebrow="Crecimiento" titulo="Concursos"
+        subtitulo="Concursos de foto vía Instagram"
+        acento="violet"
+        acciones={
+          <Button size="sm" onClick={() => setShowCrear(true)} disabled={sinInstagram}>
+            <Plus size={16} /> Nuevo concurso
+          </Button>
+        }
+      />
 
       {/* Aviso sin Instagram */}
       {sinInstagram && (
@@ -110,14 +112,15 @@ export default function ConcursosPage() {
 
       {loading ? (
         <div className="space-y-3">
-          {[1,2].map(i => <div key={i} className="h-28 bg-white/6 rounded-2xl animate-pulse" />)}
+          {[1,2].map(i => <SkeletonCard key={i} className="h-28" />)}
         </div>
       ) : concursos.length === 0 ? (
-        <div className="flex flex-col items-center py-20 gap-4">
-          <Trophy size={40} className="text-[#6B6B85]" />
-          <p className="text-[#6B6B85] text-center">No hay concursos todavía.<br/>Crea el primero para activar el módulo.</p>
-          <Button size="sm" onClick={() => setShowCrear(true)}><Plus size={14} /> Crear concurso</Button>
-        </div>
+        <EmptyState
+          icon={Trophy} acento="violet"
+          titulo="Aún no hay concursos"
+          descripcion="Crea el primero para que tus clientes participen en Instagram."
+          accion={!sinInstagram && <Button size="sm" onClick={() => setShowCrear(true)}><Plus size={14} /> Crear concurso</Button>}
+        />
       ) : (
         <div className="space-y-3">
           {concursos.map(c => (
