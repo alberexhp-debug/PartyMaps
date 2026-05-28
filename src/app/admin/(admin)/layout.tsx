@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useAdminStore } from '@/lib/stores/useAdminStore'
 import {
   LayoutDashboard, Store, Users, Shield, Star,
-  Settings, LogOut, FileText, Sparkles,
+  Settings, LogOut, FileText, Sparkles, Megaphone,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/locales', icon: Store, label: 'Locales' },
   { href: '/admin/usuarios', icon: Users, label: 'Usuarios' },
+  { href: '/admin/rrpp', icon: Megaphone, label: 'RRPPs' },
   { href: '/admin/moderacion', icon: Shield, label: 'Moderación' },
   { href: '/admin/tiers', icon: Star, label: 'Tiers' },
   { href: '/admin/frases-zodiaco', icon: Sparkles, label: 'Frases zodiaco' },
