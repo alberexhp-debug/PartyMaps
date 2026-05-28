@@ -1,12 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, Link as LinkIcon, Users, Wallet, ExternalLink } from 'lucide-react'
+import { Sparkles, Link as LinkIcon, Wallet, ExternalLink, Check, X, ShieldOff } from 'lucide-react'
 
+type LocalInfo = { id: string; nombre: string; foto_url: string | null; tier: string }
 type Venue = {
   id: string; rrpp_id: string; local_id: string;
   comision_pct: number; estado: 'pendiente' | 'activa' | 'pausada' | 'archivada';
-  locales: { id: string; nombre: string; foto_url: string | null; tier: string }
+  locales: LocalInfo
 }
 type Liquidacion = {
   id: string; local_id: string; periodo: string;
@@ -16,6 +17,8 @@ type Liquidacion = {
 type RRPP = {
   id: string; slug: string; nombre_publico: string; foto_url: string | null;
   bio: string | null; instagram: string | null; tiktok: string | null;
+  estado_alta: 'invitado' | 'completo';
+  visible_en_busqueda: boolean;
 }
 
 export default function PanelRRPP() {
@@ -23,119 +26,83 @@ export default function PanelRRPP() {
   const [venues, setVenues] = useState<Venue[]>([])
   const [liqs, setLiqs] = useState<Liquidacion[]>([])
   const [loading, setLoading] = useState(true)
-  const [noActivado, setNoActivado] = useState(false)
+  const [estado, setEstado] = useState<'sin_invitacion' | 'invitado' | 'completo' | 'no_auth'>('no_auth')
 
   useEffect(() => { void cargar() }, [])
 
   async function cargar() {
     setLoading(true)
     const r = await fetch('/api/rrpp/perfil', { credentials: 'include' })
-    if (r.status === 401) { setNoActivado(true); setLoading(false); return }
+    if (r.status === 401) { setEstado('no_auth'); setLoading(false); return }
+    if (!r.ok) {
+      // Si /perfil devuelve 401 con NO_INVITATION sería en /activar — aquí
+      // /perfil simplemente no devuelve datos si no hay rrpp. Distinguimos:
+      const j = await r.json().catch(() => ({}))
+      if (j?.code === 'NO_INVITATION') setEstado('sin_invitacion')
+      else setEstado('sin_invitacion')  // por defecto, sin perfil = sin invitación
+      setLoading(false); return
+    }
     const j = await r.json()
+    if (!j.rrpp) { setEstado('sin_invitacion'); setLoading(false); return }
     setRrpp(j.rrpp); setVenues(j.venues ?? []); setLiqs(j.liquidaciones ?? [])
+    setEstado(j.rrpp.estado_alta === 'invitado' ? 'invitado' : 'completo')
     setLoading(false)
   }
 
   if (loading) return <div className="p-6"><div className="skeleton h-32 rounded-2xl" /></div>
-  if (noActivado || !rrpp) return <ActivarRRPP onActivado={cargar} />
+  if (estado === 'no_auth') return <NoAutenticado />
+  if (estado === 'sin_invitacion') return <SinInvitacion />
+  if (estado === 'invitado' && rrpp) return <CompletarPerfil rrpp={rrpp} onListo={cargar} />
+  if (estado === 'completo' && rrpp) return <Dashboard rrpp={rrpp} venues={venues} liqs={liqs} onRecargar={cargar} />
+  return null
+}
 
-  const pendiente = liqs.filter(l => l.estado === 'pendiente').reduce((s, l) => s + Number(l.monto_total), 0)
-  const ventasMes = liqs.reduce((s, l) => s + l.num_ventas, 0)
-  const totalMes = liqs.reduce((s, l) => s + Number(l.monto_total), 0)
-
+// ════════════════════════════════════════════════════════════════
+// Estado: NO autenticado
+// ════════════════════════════════════════════════════════════════
+function NoAutenticado() {
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6">
-        <header className="flex items-center gap-3">
-          {rrpp.foto_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={rrpp.foto_url} alt="" className="w-14 h-14 rounded-full object-cover" />
-          ) : (
-            <div className="w-14 h-14 rounded-full bg-rose-400/20 flex items-center justify-center text-display">
-              {rrpp.nombre_publico.slice(0, 1)}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-display text-2xl truncate">{rrpp.nombre_publico}</h1>
-            <a href={`/r/${rrpp.slug}`} target="_blank" rel="noreferrer"
-              className="text-secondary text-xs inline-flex items-center gap-1 hover:underline">
-              partymaps.com/r/{rrpp.slug} <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </header>
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
+      <Sparkles className="w-12 h-12 text-rose-400 mb-4" />
+      <h1 className="text-display text-3xl mb-2">Panel de RRPP</h1>
+      <p className="text-secondary text-sm max-w-sm mb-6">
+        Inicia sesión con tu cuenta para acceder. Si aún no tienes invitación, contacta con el local con el que quieras trabajar o con el administrador.
+      </p>
+      <Link href="/login" className="btn-primary">Iniciar sesión</Link>
+    </div>
+  )
+}
 
-        <section className="grid grid-cols-3 gap-2">
-          <Kpi label="Ventas mes" valor={ventasMes.toString()} icon={Sparkles} />
-          <Kpi label="Total mes" valor={`${totalMes.toFixed(0)}€`} icon={Wallet} />
-          <Kpi label="Pendiente" valor={`${pendiente.toFixed(0)}€`} icon={Wallet} accent />
-        </section>
-
-        <section>
-          <h2 className="eyebrow eyebrow-rose mb-3">Locales</h2>
-          {venues.length === 0 ? (
-            <p className="text-tertiary text-sm">Aún no trabajas con ningún local. Pide que te inviten al panel desde tu slug <code>{rrpp.slug}</code>.</p>
-          ) : (
-            <div className="space-y-2">
-              {venues.map(v => (
-                <div key={v.id} className="card-premium p-3 flex items-center gap-3">
-                  {v.locales.foto_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={v.locales.foto_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-white/5" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-display text-base truncate">{v.locales.nombre}</p>
-                    <p className="text-tertiary text-xs">
-                      {v.estado === 'pendiente' ? 'Pendiente de tu aceptación' : `${v.comision_pct}% por venta · ${v.estado}`}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section>
-          <h2 className="eyebrow eyebrow-rose mb-2 flex items-center gap-2">
-            <LinkIcon className="w-4 h-4" /> Acciones
-          </h2>
-          <div className="grid grid-cols-2 gap-2">
-            <Link href="/rrpp/links" className="card-premium p-3 text-center">
-              <p className="text-display text-base">Mis links</p>
-              <p className="text-tertiary text-xs">Generar y compartir</p>
-            </Link>
-            <Link href="/rrpp/listas" className="card-premium p-3 text-center">
-              <p className="text-display text-base">Mis listas</p>
-              <p className="text-tertiary text-xs">Invitar gente</p>
-            </Link>
-          </div>
-        </section>
-
-        <footer className="text-center text-tertiary text-xs pt-6 border-t border-white/5">
-          PartyMaps no procesa el pago entre tú y el local. Las cifras de arriba son
-          lo que el local te debe según las ventas atribuidas. El pago lo gestionáis vosotros.
-        </footer>
+// ════════════════════════════════════════════════════════════════
+// Estado: SIN invitación
+// ════════════════════════════════════════════════════════════════
+function SinInvitacion() {
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
+      <ShieldOff className="w-12 h-12 text-amber-400 mb-4" />
+      <h1 className="text-display text-3xl mb-2">No tienes acceso al modo RRPP</h1>
+      <p className="text-secondary text-sm max-w-md mb-6">
+        Para ser RRPP en PartyMaps debes ser invitado por un local que quiera trabajar contigo
+        o dado de alta por el equipo de PartyMaps. No es un perfil que puedas activar por tu cuenta —
+        así controlamos quién promociona y la calidad de la red.
+      </p>
+      <div className="space-y-2 text-sm">
+        <Link href="/mapa" className="btn-primary inline-flex items-center justify-center w-full sm:w-auto">
+          Volver al mapa
+        </Link>
       </div>
     </div>
   )
 }
 
-function Kpi({ label, valor, icon: Icon, accent }: { label: string; valor: string; icon: React.ElementType; accent?: boolean }) {
-  return (
-    <div className={`card-premium p-3 text-center ${accent ? 'ring-1 ring-rose-400/40' : ''}`}>
-      <Icon className={`w-4 h-4 mx-auto mb-1 ${accent ? 'text-rose-300' : 'text-white/60'}`} />
-      <p className="text-display text-xl">{valor}</p>
-      <p className="text-tertiary text-xs">{label}</p>
-    </div>
-  )
-}
-
-function ActivarRRPP({ onActivado }: { onActivado: () => void }) {
-  const [nombrePublico, setNombrePublico] = useState('')
+// ════════════════════════════════════════════════════════════════
+// Estado: INVITADO (completar perfil)
+// ════════════════════════════════════════════════════════════════
+function CompletarPerfil({ rrpp, onListo }: { rrpp: RRPP; onListo: () => void }) {
+  const [nombrePublico, setNombrePublico] = useState(rrpp.nombre_publico || '')
   const [slug, setSlug] = useState('')
-  const [bio, setBio] = useState('')
-  const [instagram, setInstagram] = useState('')
+  const [bio, setBio] = useState(rrpp.bio || '')
+  const [instagram, setInstagram] = useState(rrpp.instagram || '')
   const [aceptaEdad, setAceptaEdad] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
@@ -156,7 +123,7 @@ function ActivarRRPP({ onActivado }: { onActivado: () => void }) {
     const j = await r.json()
     setEnviando(false)
     if (!r.ok) { setError(j.error || 'Error'); return }
-    onActivado()
+    onListo()
   }
 
   return (
@@ -164,10 +131,10 @@ function ActivarRRPP({ onActivado }: { onActivado: () => void }) {
       <div className="max-w-md mx-auto p-4 sm:p-8 space-y-5">
         <Sparkles className="w-12 h-12 text-rose-400" />
         <div>
-          <h1 className="text-display text-3xl">Activa tu modo RRPP</h1>
+          <h1 className="text-display text-3xl">Completa tu perfil RRPP</h1>
           <p className="text-secondary text-sm mt-1">
-            Tu cartera es tuya. Trabaja con quien quieras. Las cifras son transparentes.
-            El pago lo pactas con cada local — PartyMaps solo lleva la cuenta.
+            Te han invitado al programa. Configura tu nombre público y tu URL personal —
+            después podrás aceptar la invitación del local desde tu panel.
           </p>
         </div>
         <label className="block">
@@ -201,9 +168,165 @@ function ActivarRRPP({ onActivado }: { onActivado: () => void }) {
         {error && <p className="text-rose-300 text-sm">{error}</p>}
         <button onClick={enviar} disabled={!nombrePublico || !aceptaEdad || enviando}
           className="btn-primary w-full">
-          {enviando ? 'Activando...' : 'Activar modo RRPP'}
+          {enviando ? 'Activando...' : 'Activar perfil RRPP'}
         </button>
       </div>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════
+// Estado: COMPLETO (dashboard)
+// ════════════════════════════════════════════════════════════════
+function Dashboard({ rrpp, venues, liqs, onRecargar }: {
+  rrpp: RRPP; venues: Venue[]; liqs: Liquidacion[]; onRecargar: () => void;
+}) {
+  async function responder(venueId: string, decision: 'aceptar' | 'rechazar') {
+    const r = await fetch(`/api/rrpp/venues/${venueId}/respuesta`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decision }),
+    })
+    if (r.ok) onRecargar()
+  }
+
+  async function toggleVisibilidad() {
+    await fetch('/api/rrpp/visibilidad', {
+      method: 'PUT', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visible_en_busqueda: !rrpp.visible_en_busqueda }),
+    })
+    onRecargar()
+  }
+
+  const pendientes = venues.filter(v => v.estado === 'pendiente')
+  const activos = venues.filter(v => v.estado === 'activa')
+  const pendiente = liqs.filter(l => l.estado === 'pendiente').reduce((s, l) => s + Number(l.monto_total), 0)
+  const ventasMes = liqs.reduce((s, l) => s + l.num_ventas, 0)
+  const totalMes = liqs.reduce((s, l) => s + Number(l.monto_total), 0)
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6">
+        <header className="flex items-center gap-3">
+          {rrpp.foto_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={rrpp.foto_url} alt="" className="w-14 h-14 rounded-full object-cover" />
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-rose-400/20 flex items-center justify-center text-display">
+              {rrpp.nombre_publico.slice(0, 1)}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-display text-2xl truncate">{rrpp.nombre_publico}</h1>
+            <a href={`/r/${rrpp.slug}`} target="_blank" rel="noreferrer"
+              className="text-secondary text-xs inline-flex items-center gap-1 hover:underline">
+              partymaps.com/r/{rrpp.slug} <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </header>
+
+        <section className="grid grid-cols-3 gap-2">
+          <Kpi label="Ventas mes" valor={ventasMes.toString()} icon={Sparkles} />
+          <Kpi label="Total mes" valor={`${totalMes.toFixed(0)}€`} icon={Wallet} />
+          <Kpi label="Pendiente" valor={`${pendiente.toFixed(0)}€`} icon={Wallet} accent />
+        </section>
+
+        {pendientes.length > 0 && (
+          <section>
+            <h2 className="eyebrow eyebrow-rose mb-3">Invitaciones pendientes ({pendientes.length})</h2>
+            <div className="space-y-2">
+              {pendientes.map(v => (
+                <div key={v.id} className="card-premium p-3">
+                  <div className="flex items-center gap-3">
+                    {v.locales.foto_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={v.locales.foto_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-white/5" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-display text-base truncate">{v.locales.nombre}</p>
+                      <p className="text-tertiary text-xs">Te ofrece {v.comision_pct}% por venta</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <button onClick={() => responder(v.id, 'aceptar')}
+                      className="btn-primary flex-1 inline-flex items-center justify-center gap-1 text-sm">
+                      <Check className="w-4 h-4" /> Aceptar
+                    </button>
+                    <button onClick={() => responder(v.id, 'rechazar')}
+                      className="btn-ghost text-sm inline-flex items-center gap-1">
+                      <X className="w-4 h-4" /> Rechazar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section>
+          <h2 className="eyebrow eyebrow-rose mb-3">Locales activos ({activos.length})</h2>
+          {activos.length === 0 ? (
+            <p className="text-tertiary text-sm">Aún no trabajas con ningún local activo.</p>
+          ) : (
+            <div className="space-y-2">
+              {activos.map(v => (
+                <div key={v.id} className="card-premium p-3 flex items-center gap-3">
+                  {v.locales.foto_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={v.locales.foto_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-white/5" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-display text-base truncate">{v.locales.nombre}</p>
+                    <p className="text-tertiary text-xs">{v.comision_pct}% por venta</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section>
+          <h2 className="eyebrow eyebrow-rose mb-2 flex items-center gap-2">
+            <LinkIcon className="w-4 h-4" /> Tu cuenta
+          </h2>
+          <div className="card-premium p-3 flex items-center justify-between">
+            <div>
+              <p className="text-display text-base">Visible en el buscador de locales</p>
+              <p className="text-tertiary text-xs">
+                {rrpp.visible_en_busqueda
+                  ? 'Otros locales pueden encontrarte y proponerte trabajar juntos.'
+                  : 'Solo los locales que ya conoces pueden invitarte por su lado.'}
+              </p>
+            </div>
+            <button onClick={toggleVisibilidad}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                rrpp.visible_en_busqueda ? 'bg-emerald-400/20 text-emerald-300' : 'bg-white/10 text-tertiary'
+              }`}>
+              {rrpp.visible_en_busqueda ? 'Visible' : 'Oculto'}
+            </button>
+          </div>
+        </section>
+
+        <footer className="text-center text-tertiary text-xs pt-6 border-t border-white/5">
+          PartyMaps no procesa el pago entre tú y el local. Las cifras de arriba son
+          lo que el local te debe según las ventas atribuidas. El pago lo gestionáis vosotros.
+        </footer>
+      </div>
+    </div>
+  )
+}
+
+function Kpi({ label, valor, icon: Icon, accent }: { label: string; valor: string; icon: React.ElementType; accent?: boolean }) {
+  return (
+    <div className={`card-premium p-3 text-center ${accent ? 'ring-1 ring-rose-400/40' : ''}`}>
+      <Icon className={`w-4 h-4 mx-auto mb-1 ${accent ? 'text-rose-300' : 'text-white/60'}`} />
+      <p className="text-display text-xl">{valor}</p>
+      <p className="text-tertiary text-xs">{label}</p>
     </div>
   )
 }

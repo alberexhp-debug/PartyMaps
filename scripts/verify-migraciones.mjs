@@ -77,6 +77,14 @@ await tabla(anon, 'rrpp', '019 RLS: anon puede SELECT rrpp (página pública)');
 // RLS: link_rrpp activos visibles para anon (necesario para resolver tokens)
 await tabla(anon, 'link_rrpp', '019 RLS: anon puede SELECT link_rrpp (resolver tokens)');
 
+console.log('\n=== 020 Sistema de invitaciones RRPP ===');
+await columna('rrpp', 'visible_en_busqueda', '020: rrpp.visible_en_busqueda existe');
+await columna('rrpp', 'estado_alta', '020: rrpp.estado_alta existe');
+await columna('rrpp', 'invitado_por_local_id', '020: rrpp.invitado_por_local_id existe');
+await columna('rrpp', 'invitado_at', '020: rrpp.invitado_at existe');
+await columna('rrpp', 'completado_at', '020: rrpp.completado_at existe');
+await tabla(svc, 'invitacion_rrpp', '020: tabla invitacion_rrpp existe');
+
 console.log(out.join('\n'));
 const fallos = out.filter(l => l.startsWith('❌')).length;
 console.log(`\n${fallos === 0 ? '🟢 TODO OK' : '🔴 ' + fallos + ' fallo(s)'}`);
