@@ -16,10 +16,11 @@ const out = [];
 const ok = (m) => out.push('✅ ' + m);
 const bad = (m) => out.push('❌ ' + m);
 
-// helper: ¿existe tabla? Selecciona una columna real (id) para que el
-// schema cache de PostgREST se sincere — con head+count daba falso positivo.
-async function tabla(client, t, label) {
-  const { error } = await client.from(t).select('id').limit(1);
+// helper: ¿existe tabla? Selecciona una columna real para que el schema
+// cache de PostgREST se sincere — con head+count daba falso positivo.
+// Si la tabla no tiene `id` (claves compuestas), pasa la columna explícita.
+async function tabla(client, t, label, col = 'id') {
+  const { error } = await client.from(t).select(col).limit(1);
   if (error) { bad(`${label}: ${error.message}`); return false; }
   ok(`${label}`); return true;
 }
@@ -40,8 +41,11 @@ console.log('\n=== 017 Mesas y reservas ===');
 await tabla(svc, 'mesas', '017: tabla mesas existe');
 await tabla(svc, 'reservas', '017: tabla reservas existe');
 
-console.log('\n=== 012 RLS productos_local (anon puede ver carta) ===');
-await tabla(anon, 'productos_local', '012: anon puede SELECT productos_local');
+console.log('\n=== 012 + 018 RLS productos_local (anon puede ver carta) ===');
+// Si anon puede leer productos_local, AMBAS migraciones están aplicadas:
+// la 012 separó el FOR ALL, la 018 quitó el JOIN auth.users de la policy SELECT
+// de trabajadores. Sin la 018 esto fallaría con 42501 permission denied.
+await tabla(anon, 'productos_local', '012+018: anon puede SELECT productos_local (si pasa, 018 está aplicada)');
 
 console.log('\n=== 013 Tiers mixto ===');
 await columna('locales', 'comision_porcentaje_override', '013: locales.comision_porcentaje_override existe');
@@ -57,7 +61,8 @@ await tabla(svc, 'binding_rrpp', '019: tabla binding_rrpp existe');
 await tabla(svc, 'lista_rrpp', '019: tabla lista_rrpp existe');
 await tabla(svc, 'lista_rrpp_item', '019: tabla lista_rrpp_item existe');
 await tabla(svc, 'perk_rrpp', '019: tabla perk_rrpp existe');
-await tabla(svc, 'rrpp_seguidor', '019: tabla rrpp_seguidor existe');
+// rrpp_seguidor tiene clave compuesta (rrpp_id, usuario_id), sin `id`
+await tabla(svc, 'rrpp_seguidor', '019: tabla rrpp_seguidor existe', 'rrpp_id');
 await tabla(svc, 'liquidacion_rrpp', '019: tabla liquidacion_rrpp existe');
 await tabla(svc, 'liquidacion_rrpp_item', '019: tabla liquidacion_rrpp_item existe');
 await tabla(svc, 'audit_log_liquidacion', '019: tabla audit_log_liquidacion existe');

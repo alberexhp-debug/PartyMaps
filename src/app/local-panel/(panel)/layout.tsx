@@ -6,7 +6,7 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import {
   LayoutDashboard, Settings, Calendar, Bell,
   Star, BarChart3, Users, CreditCard, LogOut, Trophy, Target, MessageSquare,
-  Beer, Gauge, MoreHorizontal, X, LayoutGrid,
+  Beer, Gauge, MoreHorizontal, X, LayoutGrid, Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
@@ -33,6 +33,7 @@ const NAV_GROUPS: NavGroup[] = [
     titulo: 'Crecimiento',
     items: [
       { zona: 'eventos',        href: '/local-panel/eventos',        icon: Calendar,    label: 'Eventos' },
+      { zona: 'rrpp',           href: '/local-panel/rrpp',           icon: Sparkles,    label: 'RRPP' },
       { zona: 'concursos',      href: '/local-panel/concursos',      icon: Trophy,      label: 'Concursos' },
       { zona: 'retos',          href: '/local-panel/retos',          icon: Target,      label: 'Retos' },
       { zona: 'notificaciones', href: '/local-panel/notificaciones', icon: Bell,        label: 'Notificaciones' },
