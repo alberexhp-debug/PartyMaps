@@ -469,3 +469,258 @@ export interface ResultadoEscaneoQR {
   mensaje: string
   timestamp?: string
 }
+
+// =============================================
+// MÓDULO RRPP + CRM 3 niveles (migración 019)
+// =============================================
+
+/**
+ * Contacto = CRM de PartyMaps. Identidad de 3 niveles:
+ *   - visitor  → anónimo, no aparece aquí
+ *   - lead     → contacto con email o teléfono, sin cuenta (user_id NULL)
+ *   - usuario  → contacto promocionado, user_id rellenado
+ * Toda atribución (entrada, pedido bar, binding RRPP, lista, perk) viaja
+ * sobre `contacto_id`. Cuando un lead se registra como usuario, su
+ * historial sigue vinculado sin migrar nada.
+ */
+export type FuenteContacto =
+  | 'checkout_entrada' | 'checkout_bar' | 'lista_rrpp'
+  | 'invitacion_sms' | 'invitacion_whatsapp'
+  | 'qr_rrpp' | 'registro_directo' | 'admin' | 'desconocido'
+
+export interface Contacto {
+  id: string
+  email?: string | null
+  telefono?: string | null
+  nombre?: string | null
+  user_id?: string | null
+  primer_rrpp_id?: string | null
+  primer_local_id?: string | null
+  primer_contacto_en: string
+  ultimo_contacto_en: string
+  fuente_origen: FuenteContacto
+  consentimiento_marketing: boolean
+  consentimiento_actualizado_en?: string | null
+  bloqueado: boolean
+  motivo_bloqueo?: string | null
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * RRPP = rol opcional sobre un usuario PartyMaps. Cualquier usuario
+ * activa el modo y obtiene panel multi-venue + página pública /r/[slug]
+ * + followers. La identidad y carta de perfil son los del usuario.
+ */
+export interface RRPP {
+  id: string
+  usuario_id: string
+  slug: string
+  nombre_publico: string
+  foto_url?: string | null
+  bio?: string | null
+  instagram?: string | null
+  tiktok?: string | null
+  activo: boolean
+  terminos_aceptados_en: string
+  edad_declarada_18: boolean
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Relación RRPP ↔ Local con la comisión pactada. MVP usa comisión global
+ * por venue (% sobre bruto, con tope opcional). triggers_activos y
+ * reglas_atribucion quedan abiertos en JSON para evolución sin migrar.
+ */
+export type EstadoRRPPVenue = 'pendiente' | 'activa' | 'pausada' | 'archivada'
+export type IniciadoPor = 'rrpp' | 'venue'
+
+export interface TriggersActivos {
+  entrada_vendida: boolean
+  escaneada_en_puerta: boolean
+  consumo_bar: boolean
+  /** Reservado para v2 */
+  consumo_reservado?: boolean
+}
+
+export interface ReglasAtribucion {
+  modelo: 'last_click' | 'first_click'
+  ventana_dias: number
+}
+
+export interface RRPPVenue {
+  id: string
+  rrpp_id: string
+  local_id: string
+  estado: EstadoRRPPVenue
+  iniciado_por: IniciadoPor
+  comision_pct: number
+  tope_por_venta?: number | null
+  triggers_activos: TriggersActivos
+  reglas_atribucion: ReglasAtribucion
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Link de venta del RRPP. Si evento_id es NULL, es link general del RRPP
+ * en ese local (`partymaps.com/r/leo` para Pacha). Con evento_id, es
+ * específico (`/e/X?r=leo`). codigo_manual permite `?r=leo10` legible.
+ */
+export interface LinkRRPP {
+  id: string
+  rrpp_id: string
+  local_id: string
+  evento_id?: string | null
+  token: string
+  codigo_manual?: string | null
+  activo: boolean
+  clicks: number
+  created_at: string
+}
+
+/**
+ * Binding = la pieza que dice "este contacto, esta noche, es de Leo".
+ * Independiente de si hubo venta de entrada. Nace `pendiente` y se
+ * activa con un evento físico (puerta, barra, compra), o expira sin
+ * pagar comisión. First-binding-wins durante la ventana.
+ */
+export type EstadoBinding = 'pendiente' | 'activo' | 'expirado' | 'cancelado'
+export type MecanismoCreacionBinding =
+  | 'link_compra' | 'lista_rrpp' | 'qr_rrpp'
+  | 'declaracion_bar' | 'pre_binding' | 'venta_taquilla' | 'admin'
+export type MecanismoActivacionBinding =
+  | 'compra_entrada' | 'puerta_scan' | 'barra_pedido'
+  | 'venta_taquilla' | 'auto_link' | 'admin'
+
+export interface BindingRRPP {
+  id: string
+  contacto_id: string
+  rrpp_id: string
+  local_id: string
+  evento_id?: string | null
+  estado: EstadoBinding
+  mecanismo_creacion: MecanismoCreacionBinding
+  mecanismo_activacion?: MecanismoActivacionBinding | null
+  link_id?: string | null
+  created_at: string
+  activado_at?: string | null
+  expira_at: string
+  cancelado_at?: string | null
+  cancelado_motivo?: string | null
+}
+
+/**
+ * Lista de invitados del RRPP para un evento concreto. Puede ser gratis
+ * o con precio (entrada incluida). Tipo abierta/cerrada.
+ */
+export type TipoLista = 'cerrada' | 'abierta'
+
+export interface ListaRRPP {
+  id: string
+  rrpp_id: string
+  local_id: string
+  evento_id: string
+  nombre: string
+  tipo: TipoLista
+  cupo_max?: number | null
+  precio: number
+  hora_limite?: string | null
+  activa: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type EstadoListaItem =
+  | 'invitado' | 'confirmado' | 'entrado' | 'no_show' | 'cancelado'
+
+export interface ListaRRPPItem {
+  id: string
+  lista_id: string
+  contacto_id: string
+  token: string
+  estado: EstadoListaItem
+  invitacion_enviada_en?: string | null
+  confirmado_en?: string | null
+  entrado_en?: string | null
+  entrado_por?: string | null
+  notas?: string | null
+  created_at: string
+}
+
+/**
+ * Perks emitidos por el venue al RRPP, asignados a un contacto concreto.
+ * Cada uno con QR `PMR:<token>` que se canjea en puerta o barra.
+ */
+export type TipoPerk =
+  | 'paso_libre' | 'canje_copas' | 'descuento_pct' | 'acceso_vip' | 'merch'
+export type EstadoPerk =
+  | 'emitido' | 'asignado' | 'canjeado' | 'expirado' | 'revocado'
+
+export interface PerkRRPP {
+  id: string
+  rrpp_id: string
+  local_id: string
+  contacto_id?: string | null
+  tipo: TipoPerk
+  cantidad: number
+  descripcion?: string | null
+  token: string
+  estado: EstadoPerk
+  expira_at: string
+  asignado_at?: string | null
+  canjeado_at?: string | null
+  canjeado_por?: string | null
+  created_at: string
+}
+
+/** Follower de un RRPP (solo usuarios registrados, no leads). */
+export interface RRPPSeguidor {
+  rrpp_id: string
+  usuario_id: string
+  seguido_en: string
+  silenciado: boolean
+}
+
+/**
+ * Liquidación mensual por par RRPP↔venue. PartyMaps NO toca dinero —
+ * solo refleja qué le debe el venue al RRPP. El venue marca como pagado,
+ * el RRPP confirma. A 14 días sin confirmar, tácitamente confirmado.
+ */
+export type EstadoLiquidacion =
+  | 'pendiente' | 'marcado_pagado' | 'confirmado' | 'disputado'
+
+export interface LiquidacionRRPP {
+  id: string
+  rrpp_id: string
+  local_id: string
+  periodo: string  // 'YYYY-MM'
+  monto_total: number
+  num_ventas: number
+  estado: EstadoLiquidacion
+  marcado_pagado_at?: string | null
+  marcado_pagado_por?: string | null
+  marcado_pagado_nota?: string | null
+  confirmado_at?: string | null
+  disputado_at?: string | null
+  disputa_nota?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type TriggerLiquidacionItem =
+  | 'entrada_vendida' | 'escaneada_en_puerta' | 'consumo_bar' | 'manual'
+
+export interface LiquidacionRRPPItem {
+  id: string
+  liquidacion_id: string
+  trigger_tipo: TriggerLiquidacionItem
+  entrada_id?: string | null
+  pedido_bar_id?: string | null
+  monto_base: number
+  comision_pct: number
+  monto_comision: number
+  notas?: string | null
+  created_at: string
+}

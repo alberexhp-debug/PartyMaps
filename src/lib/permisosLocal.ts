@@ -14,6 +14,7 @@ export type ZonaPanel =
   | 'pedidos-bar'
   | 'sala'
   | 'productos'
+  | 'rrpp'
   | 'concursos'
   | 'retos'
   | 'sugerencias'
@@ -44,13 +45,13 @@ export const ROLES_PERMISOS: Record<RolLocal, ZonaPanel[]> = {
   // Dueño: control total del negocio
   dueno: [
     'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'sala', 'productos',
-    'concursos', 'retos', 'sugerencias', 'notificaciones', 'reviews',
+    'rrpp', 'concursos', 'retos', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo', 'facturacion',
   ],
   // Gestor: todo menos facturación/tier (decisión financiera del dueño)
   gestor: [
     'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'sala', 'productos',
-    'concursos', 'retos', 'sugerencias', 'notificaciones', 'reviews',
+    'rrpp', 'concursos', 'retos', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo',
   ],
   // Operador de noche: lo que se usa "esta noche"
