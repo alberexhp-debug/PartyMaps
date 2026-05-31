@@ -40,7 +40,7 @@ export default function GestorDashboardPage() {
             desc="Tu cartera de locales y dar de alta nuevos"
             badge={resumen && resumen.locales_total > 0 ? `${resumen.locales_total} en cartera` : 'Empezar'}
           />
-          <SeccionProximo icon={Megaphone} titulo="RRPP" desc="Alta de RRPP, vincularlos a locales y fijar el %" />
+          <SeccionLink href="/gestor/rrpp" icon={Megaphone} titulo="RRPP" desc="Vincular RRPP a tus locales y fijar el %" badge={resumen && resumen.rrpp_activos > 0 ? `${resumen.rrpp_activos} activos` : 'Gestionar'} />
           <SeccionProximo icon={Tag} titulo="Códigos de descuento" desc="Crear códigos pactados con los locales" />
           <SeccionProximo icon={Ticket} titulo="Entradas gratis" desc="Generar entradas gratis (según el plan del local)" />
         </div>

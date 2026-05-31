@@ -26,10 +26,21 @@ export async function GET(req: NextRequest) {
     .eq('gestor_id', ctx.gestor.id)
     .eq('estado', 'activo')
 
+  // RRPP activos en la cartera: relaciones rrpp_venue 'activa' en sus locales.
+  const { data: misLocales } = await admin
+    .from('locales').select('id').eq('gestor_id', ctx.gestor.id).neq('estado', 'eliminado')
+  const localIds = (misLocales ?? []).map(l => l.id)
+  let rrppActivos = 0
+  if (localIds.length) {
+    const { data: rels } = await admin
+      .from('rrpp_venue').select('rrpp_id').in('local_id', localIds).eq('estado', 'activa')
+    rrppActivos = new Set((rels ?? []).map(r => r.rrpp_id)).size
+  }
+
   return NextResponse.json({
     locales_total: localesTotal ?? 0,
     locales_activos: localesActivos ?? 0,
-    rrpp_activos: 0, // se rellenará al vincular RRPP a la cartera
+    rrpp_activos: rrppActivos,
     incentivo_pct: ctx.gestor.incentivo_pct,
   })
 }

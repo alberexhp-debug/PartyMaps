@@ -24,6 +24,23 @@ export async function getGestorAutenticado(_req?: NextRequest): Promise<{ gestor
   return { gestor: gestor as Gestor, authUserId: user.id }
 }
 
+/**
+ * Comprueba que un local pertenece a la cartera del gestor (gestor_id).
+ * Devuelve true solo si el local existe y es suyo. Úsalo SIEMPRE antes de
+ * operar sobre datos de un local desde el panel del gestor.
+ */
+export async function gestorPoseeLocal(gestorId: string, localId: string): Promise<boolean> {
+  if (!localId) return false
+  const admin = createServiceRoleClient()
+  const { data } = await admin
+    .from('locales')
+    .select('id')
+    .eq('id', localId)
+    .eq('gestor_id', gestorId)
+    .maybeSingle()
+  return !!data
+}
+
 /** Contraseña temporal legible para entregar al dueño en el alta presencial. */
 export function generarPasswordTemporal(): string {
   const adjetivos = ['Rumbo', 'Noche', 'Fiesta', 'Madrid', 'Neon', 'Vibe']
