@@ -2,6 +2,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useGestorStore } from '@/lib/stores/useGestorStore'
+import { supabase } from '@/lib/supabase/client'
 import { LogOut } from 'lucide-react'
 
 export default function GestorPanelLayout({ children }: { children: React.ReactNode }) {
@@ -11,6 +12,25 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
   useEffect(() => {
     if (hydrated && !isAuthenticated) router.push('/gestor/login')
   }, [hydrated, isAuthenticated, router])
+
+  // Verifica que la sesión de Supabase corresponde a este gestor. Las 4
+  // superficies comparten una sola sesión; si entraste a otro panel (admin,
+  // local...) después, el store del gestor sigue diciendo "gestor" pero la
+  // sesión es otra → las APIs del gestor responden "No autorizado". Realineamos.
+  useEffect(() => {
+    if (!hydrated || !isAuthenticated || !gestor?.email) return
+    let cancelado = false
+    ;(async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (cancelado || error) return
+      const sesion = data.user?.email?.trim().toLowerCase()
+      if (sesion !== gestor.email.trim().toLowerCase()) {
+        logout()
+        router.replace('/gestor/login')
+      }
+    })()
+    return () => { cancelado = true }
+  }, [hydrated, isAuthenticated, gestor?.email, logout, router])
 
   if (!hydrated) return null
   if (!isAuthenticated || !gestor) return null

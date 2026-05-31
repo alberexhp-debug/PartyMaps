@@ -29,6 +29,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (hydrated && !isAuthenticated) router.push('/admin/login')
   }, [hydrated, isAuthenticated, router])
 
+  // La sesión de Supabase es única para los 4 paneles; si entraste a otro panel
+  // después, el store del admin persiste pero la sesión real es otra. Realineamos.
+  useEffect(() => {
+    if (!hydrated || !isAuthenticated || !admin?.email) return
+    let cancelado = false
+    ;(async () => {
+      const { supabase } = await import('@/lib/supabase/client')
+      const { data, error } = await supabase.auth.getUser()
+      if (cancelado || error) return
+      const sesion = data.user?.email?.trim().toLowerCase()
+      if (sesion !== admin.email.trim().toLowerCase()) {
+        logout()
+        router.replace('/admin/login')
+      }
+    })()
+    return () => { cancelado = true }
+  }, [hydrated, isAuthenticated, admin?.email, logout, router])
+
   if (!hydrated) return null
   if (!isAuthenticated || !admin) return null
 
