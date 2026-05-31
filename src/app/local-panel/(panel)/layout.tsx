@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
+import { supabase } from '@/lib/supabase/client'
 import {
   LayoutDashboard, Settings, Calendar, Bell,
   Star, BarChart3, Users, CreditCard, LogOut, MessageSquare,
@@ -88,6 +89,28 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
       router.replace(`/local-panel/${homeDeRol(rol)}`)
     }
   }, [hydrated, isAuthenticated, rol, pathname, router])
+
+  // Verifica que la sesión REAL de Supabase corresponde a este trabajador.
+  // Las 4 superficies (PWA/admin/gestor/local) comparten UNA sola sesión de
+  // Supabase; si entraste a otro panel después, el store del local sigue
+  // diciendo "dueño" pero la sesión activa es otra → la RLS bloquea escrituras
+  // (p. ej. "new row violates RLS policy" al añadir una mesa). En ese caso,
+  // forzamos re-login para realinear la sesión.
+  useEffect(() => {
+    if (!hydrated || !isAuthenticated || !trabajador?.email) return
+    let cancelado = false
+    ;(async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (cancelado || error) return // ante fallo transitorio, no echamos a nadie
+      const sesion = data.user?.email?.trim().toLowerCase()
+      const esperado = trabajador.email.trim().toLowerCase()
+      if (sesion !== esperado) {
+        logout()
+        router.replace('/local-panel/login')
+      }
+    })()
+    return () => { cancelado = true }
+  }, [hydrated, isAuthenticated, trabajador?.email, logout, router])
 
   useEffect(() => { setShowMas(false) }, [pathname])
 
