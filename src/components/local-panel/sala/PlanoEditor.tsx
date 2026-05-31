@@ -157,10 +157,12 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
   // ── Mesas ────────────────────────────────────────────────────
   const addMesa = async () => {
     if (!plantaId) return
-    // Código único: mayor número "M<n>" existente + 1 (evita colisión con
-    // UNIQUE(local_id, codigo) tras borrar mesas; antes usaba mesas.length+1).
-    const numsM = mesas.map(m => {
-      const mt = /^M(\d+)$/.exec(m.codigo)
+    // Código único robusto: leemos los códigos FRESCOS de la BD (no del estado
+    // local, que puede estar obsoleto) y tomamos el mayor "M<n>" + 1. Así no
+    // colisiona con UNIQUE(local_id, codigo) aunque el plano haya cambiado.
+    const { data: existentes } = await supabase.from('mesas').select('codigo').eq('local_id', localId)
+    const numsM = (existentes ?? []).map(r => {
+      const mt = /^M(\d+)$/.exec(r.codigo as string)
       return mt ? parseInt(mt[1], 10) : 0
     })
     const codigo = `M${(numsM.length ? Math.max(...numsM) : 0) + 1}`
@@ -171,7 +173,11 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
       reservable: true, activa: true,
     }
     const { data, error } = await supabase.from('mesas').insert(nueva).select('*').single()
-    if (error || !data) { toast.error('No se pudo añadir la mesa (¿código repetido?)'); return }
+    if (error || !data) {
+      console.error('[addMesa] error:', error)
+      toast.error(error?.message ? `No se pudo añadir la mesa: ${error.message}` : 'No se pudo añadir la mesa')
+      return
+    }
     setMesas(prev => [...prev, data as Mesa])
     setSelId(data.id)
     onChange()
