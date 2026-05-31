@@ -68,7 +68,7 @@ function NoAutenticado() {
       <p className="text-secondary text-sm max-w-sm mb-6">
         Inicia sesión con tu cuenta para acceder. Si aún no tienes invitación, contacta con el local con el que quieras trabajar o con el administrador.
       </p>
-      <Link href="/login" className="btn-primary">Iniciar sesión</Link>
+      <Link href="/rrpp/login" className="btn-primary">Iniciar sesión</Link>
     </div>
   )
 }

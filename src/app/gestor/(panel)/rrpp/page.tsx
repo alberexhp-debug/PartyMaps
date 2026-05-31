@@ -33,7 +33,7 @@ export default function GestorRrppPage() {
   const [relaciones, setRelaciones] = useState<Relacion[]>([])
   const [invitaciones, setInvitaciones] = useState<Invitacion[]>([])
   const [loading, setLoading] = useState(true)
-  const [modal, setModal] = useState<null | 'vincular' | 'invitar'>(null)
+  const [modal, setModal] = useState<null | 'alta' | 'vincular' | 'invitar'>(null)
 
   useEffect(() => {
     fetch('/api/gestor/locales').then(r => r.json()).then(d => {
@@ -90,9 +90,12 @@ export default function GestorRrppPage() {
           </div>
 
           {/* Acciones */}
-          <div className="flex gap-2">
-            <Button variant="outline" fullWidth onClick={() => setModal('vincular')}><Search size={16} /> Vincular RRPP</Button>
-            <Button fullWidth onClick={() => setModal('invitar')}><UserPlus size={16} /> Invitar por email</Button>
+          <div className="space-y-2">
+            <Button fullWidth onClick={() => setModal('alta')}><UserPlus size={16} /> Dar de alta un RRPP</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" fullWidth onClick={() => setModal('vincular')}><Search size={16} /> Vincular existente</Button>
+              <Button variant="outline" fullWidth onClick={() => setModal('invitar')}><Mail size={16} /> Invitar por email</Button>
+            </div>
           </div>
 
           {/* Relaciones */}
@@ -121,6 +124,7 @@ export default function GestorRrppPage() {
         </>
       )}
 
+      {modal === 'alta' && <AltaRrppModal localId={localId} onClose={() => setModal(null)} onHecho={() => { setModal(null); cargar() }} />}
       {modal === 'vincular' && <VincularModal localId={localId} onClose={() => setModal(null)} onHecho={() => { setModal(null); cargar() }} />}
       {modal === 'invitar' && <InvitarModal localId={localId} onClose={() => setModal(null)} onHecho={() => { setModal(null); cargar() }} />}
     </div>
@@ -299,6 +303,65 @@ function InvitarModal({ localId, onClose, onHecho }: { localId: string; onClose:
           <Input label="Nombre (opcional)" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Cómo se llama" />
           <Input label="Comisión (%)" type="number" icon={<Percent size={16} />} value={comision} onChange={e => setComision(e.target.value)} />
           <Button fullWidth size="lg" loading={guardando} onClick={invitar}>Enviar invitación</Button>
+        </div>
+      )}
+    </ModalShell>
+  )
+}
+
+/* ── Modal: dar de alta un RRPP nuevo (crea cuenta + credenciales) ───── */
+function AltaRrppModal({ localId, onClose, onHecho }: { localId: string; onClose: () => void; onHecho: () => void }) {
+  const toast = useToast()
+  const [nombre, setNombre] = useState('')
+  const [email, setEmail] = useState('')
+  const [comision, setComision] = useState('10')
+  const [guardando, setGuardando] = useState(false)
+  const [cred, setCred] = useState<{ email: string; password: string } | null>(null)
+  const [copiado, setCopiado] = useState(false)
+
+  const crear = async () => {
+    if (!nombre.trim()) { toast.error('Pon el nombre del RRPP'); return }
+    if (!email.trim()) { toast.error('Pon el email'); return }
+    setGuardando(true)
+    const res = await fetch('/api/gestor/rrpp', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ local_id: localId, crear_cuenta: true, nombre, email, comision_pct: Number(comision) }),
+    })
+    const d = await res.json()
+    setGuardando(false)
+    if (!res.ok) { toast.error(d.error || 'No se pudo crear'); return }
+    toast.success('RRPP creado')
+    if (d.credenciales) setCred(d.credenciales)
+    else onHecho()
+  }
+
+  const copiar = () => {
+    if (!cred) return
+    navigator.clipboard.writeText(`Acceso RRPP Rumbo\nEmail: ${cred.email}\nContraseña: ${cred.password}\nEntra en: ${location.origin}/rrpp/login`)
+    setCopiado(true); setTimeout(() => setCopiado(false), 2000)
+  }
+
+  return (
+    <ModalShell titulo="Dar de alta un RRPP" onClose={onClose}>
+      {cred ? (
+        <div className="space-y-4 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-500/15 text-green-400"><Check size={26} /></div>
+          <p className="text-sm text-[#A0A0B8]">Entrega estas credenciales al RRPP. Que cambie la contraseña al entrar.</p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-sm text-white">
+            <div className="flex items-center gap-2"><Mail size={14} className="text-[#9B82FF]" /> {cred.email}</div>
+            <div className="mt-2 font-mono">{cred.password}</div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" fullWidth onClick={copiar}>{copiado ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar acceso</>}</Button>
+            <Button fullWidth onClick={onHecho}>Hecho</Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <Input label="Nombre del RRPP" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre público" />
+          <Input label="Email del RRPP" type="email" icon={<Mail size={16} />} value={email} onChange={e => setEmail(e.target.value)} placeholder="rrpp@email.com" />
+          <Input label="Comisión (%)" type="number" icon={<Percent size={16} />} value={comision} onChange={e => setComision(e.target.value)} hint="Queda vinculado y activo en este local con esta comisión." />
+          <Button fullWidth size="lg" loading={guardando} onClick={crear}>Crear RRPP</Button>
         </div>
       )}
     </ModalShell>

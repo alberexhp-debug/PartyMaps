@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
-import { getGestorAutenticado, gestorPoseeLocal } from '@/lib/gestor/auth'
+import { getGestorAutenticado, gestorPoseeLocal, generarPasswordTemporal } from '@/lib/gestor/auth'
+import { slugify } from '@/lib/rrpp/auth'
 
 const TRIGGERS_DEFECTO = { entrada_vendida: true, escaneada_en_puerta: false, consumo_bar: false }
 
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null) as Partial<{
     local_id: string
+    crear_cuenta: boolean
     rrpp_slug: string; rrpp_id: string
     email: string; nombre: string; telefono: string; mensaje: string
     comision_pct: number; tope_por_venta: number
@@ -61,6 +63,44 @@ export async function POST(req: NextRequest) {
   const localId = body.local_id
   const comision = body.comision_pct ?? 0
   const tope = body.tope_por_venta ?? null
+
+  // ── Modo 0: dar de alta un RRPP nuevo (crea cuenta + perfil) ─────────
+  if (body.crear_cuenta) {
+    const nombre = (body.nombre || '').trim()
+    const email = (body.email || '').trim().toLowerCase()
+    if (!nombre) return NextResponse.json({ error: 'Pon el nombre del RRPP' }, { status: 400 })
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return NextResponse.json({ error: 'Email no válido' }, { status: 400 })
+
+    const password = generarPasswordTemporal()
+    const { data: created, error: authErr } = await admin.auth.admin.createUser({ email, password, email_confirm: true })
+    if (authErr || !created?.user) return NextResponse.json({ error: 'Ese email ya tiene cuenta o no se pudo crear' }, { status: 409 })
+
+    const { data: usuario, error: uErr } = await admin.from('usuarios').insert({
+      auth_id: created.user.id, nombre, fecha_nacimiento: '2000-01-01',
+      telefono_verificado: false, estado_cuenta: 'activa', reputacion_num_valoraciones: 0,
+      prefs_notificaciones: {}, auth_provider: 'ninguno',
+    }).select('id').single()
+    if (uErr || !usuario) { await admin.auth.admin.deleteUser(created.user.id); return NextResponse.json({ error: 'No se pudo crear el perfil' }, { status: 500 }) }
+
+    let slug = slugify(nombre) || 'rrpp'
+    const { data: existe } = await admin.from('rrpp').select('id').eq('slug', slug).maybeSingle()
+    if (existe) slug = `${slug}-${created.user.id.slice(0, 4)}`
+
+    const { data: rrpp, error: rErr } = await admin.from('rrpp').insert({
+      usuario_id: usuario.id, slug, nombre_publico: nombre, activo: true,
+      estado_alta: 'completo', visible_en_busqueda: true,
+      terminos_aceptados_en: new Date().toISOString(), edad_declarada_18: true,
+    }).select('id, slug').single()
+    if (rErr || !rrpp) return NextResponse.json({ error: 'No se pudo crear el RRPP' }, { status: 500 })
+
+    // Vinculado y ACTIVO directamente (alta de confianza del Gestor).
+    await admin.from('rrpp_venue').insert({
+      rrpp_id: rrpp.id, local_id: localId, estado: 'activa', iniciado_por: 'venue',
+      comision_pct: comision, tope_por_venta: tope, triggers_activos: TRIGGERS_DEFECTO,
+    })
+
+    return NextResponse.json({ credenciales: { email, password }, rrpp, creada: true })
+  }
 
   // ── Modo 1: vincular RRPP existente por slug/id ──────────────────────
   if (body.rrpp_slug || body.rrpp_id) {
