@@ -17,7 +17,7 @@ import {
 import {
   ChevronLeft, ChevronRight, Check, Bell, BellOff, MapPin, Clock, Music, Ticket,
   Star, MessageSquare, Lightbulb, Share2, Navigation, PenLine, X,
-  LogIn, LogOut, Trophy, Target, Send, Sparkles, Beer, Sofa,
+  LogIn, LogOut, Send, Sparkles, Beer, Sofa,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LocalImagen } from '@/components/ui/LocalImagen'
@@ -54,8 +54,6 @@ export default function LocalPerfilPage() {
   const [haciendoCheckin, setHaciendoCheckin] = useState(false)
   const [showSugerencia, setShowSugerencia] = useState(false)
   const [showReservar, setShowReservar] = useState(false)
-  const [concursoActivo, setConcursoActivo] = useState<{ id: string; descripcion: string; premio: string; tipo_contenido: string } | null>(null)
-  const [retosActivos, setRetosActivos] = useState<{ id: string; nombre: string; descripcion: string; premio?: string }[]>([])
 
   useEffect(() => {
     const cargar = async () => {
@@ -79,16 +77,6 @@ export default function LocalPerfilPage() {
         if (myReview) setMiReview(myReview)
         if (checkin) setCheckinActivo(checkin.id)
       }
-
-      // Cargar concurso y retos activos
-      const [{ data: concurso }, { data: retos }] = await Promise.all([
-        supabase.from('concursos').select('id, descripcion, premio, tipo_contenido')
-          .eq('local_id', id).eq('estado', 'activo').single(),
-        supabase.from('retos').select('id, nombre, descripcion, premio')
-          .eq('local_id', id).eq('estado', 'activo'),
-      ])
-      if (concurso) setConcursoActivo(concurso)
-      if (retos) setRetosActivos(retos)
 
       setLoading(false)
     }
@@ -784,56 +772,6 @@ export default function LocalPerfilPage() {
                 >
                   <Sparkles size={14} /> Ver mi carta
                 </Button>
-              </div>
-            )}
-            {concursoActivo && (
-              <div className="bg-[#4F8EF7]/10 border border-[#4F8EF7]/30 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Trophy size={18} className="text-[#4F8EF7]" />
-                  <p className="font-bold text-white">Concurso activo</p>
-                </div>
-                <p className="text-sm text-[#A0A0B8]">{concursoActivo.descripcion}</p>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-[#4F8EF7] font-semibold">🎁 Premio:</span>
-                  <span className="text-white">{concursoActivo.premio}</span>
-                </div>
-                <Button
-                  size="sm"
-                  fullWidth
-                  onClick={() => {
-                    if (!usuario) { router.push('/login'); return }
-                    if (!checkinActivo) { toast.error('Haz check-in primero para participar'); return }
-                    router.push(`/concurso/${concursoActivo.id}`)
-                  }}
-                >
-                  <Trophy size={14} /> Participar en el concurso
-                </Button>
-              </div>
-            )}
-
-            {retosActivos.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-white flex items-center gap-2">
-                  <Target size={15} className="text-[#F39C12]" /> Retos activos
-                </p>
-                {retosActivos.map(r => (
-                  <div key={r.id} className="bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl p-3 space-y-2">
-                    <p className="font-semibold text-white text-sm">{r.nombre}</p>
-                    <p className="text-xs text-[#A0A0B8]">{r.descripcion}</p>
-                    {r.premio && <p className="text-xs text-[#F39C12]">🎁 {r.premio}</p>}
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => {
-                        if (!usuario) { router.push('/login'); return }
-                        if (!checkinActivo) { toast.error('Haz check-in primero para participar'); return }
-                        router.push(`/reto/${r.id}`)
-                      }}
-                    >
-                      Participar en el reto
-                    </Button>
-                  </div>
-                ))}
               </div>
             )}
 

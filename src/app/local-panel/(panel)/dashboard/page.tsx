@@ -537,7 +537,7 @@ function DashboardOperador() {
           { href: '/local-panel/scanner',        icon: Zap,       label: 'Scanner',      sublabel: 'Entradas y bar' },
           { href: '/local-panel/notificaciones', icon: Bell,      label: 'Notificación', sublabel: 'A tus seguidores' },
           { href: '/local-panel/sugerencias',    icon: Check,     label: 'Sugerencias',  sublabel: 'De los clientes' },
-          { href: '/local-panel/concursos',      icon: BarChart3, label: 'Concursos',    sublabel: 'Activos esta noche' },
+          { href: '/local-panel/sala',           icon: BarChart3, label: 'Sala',         sublabel: 'Mesas y reservas' },
         ].map(({ href, icon: Icon, label, sublabel }) => (
           <button key={href} onClick={() => router.push(href)}
             className="card-premium relative p-4 text-left overflow-hidden transition-all hover:-translate-y-0.5">

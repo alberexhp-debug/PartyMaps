@@ -657,7 +657,7 @@ function ConfiguracionContent() {
                 </div>
                 <div>
                   <h2 className="font-semibold text-white text-sm">Cuenta de Instagram</h2>
-                  <p className="text-xs text-[#8B8BA8] mt-0.5">Se usará en los concursos de foto</p>
+                  <p className="text-xs text-[#8B8BA8] mt-0.5">Se mostrará en tu ficha del local</p>
                 </div>
               </div>
 
@@ -673,23 +673,6 @@ function ConfiguracionContent() {
                     className="flex-1 px-4 py-3 bg-white/4 border border-white/8 rounded-r-xl text-white text-sm outline-none focus:border-white/20 transition-colors"
                   />
                 </div>
-              </div>
-            </div>
-
-            <div className="bg-white/3 border border-white/6 rounded-2xl p-5 space-y-3">
-              <h2 className="font-semibold text-white text-sm">Cómo funciona el concurso de Instagram</h2>
-              <div className="space-y-3">
-                {[
-                  { num: '1', text: 'Los usuarios suben su foto a Instagram etiquetando tu cuenta (@' + (form.instagram_handle || 'tucuenta') + ')' },
-                  { num: '2', text: 'Tu cuenta repostea las participaciones en stories para dar visibilidad' },
-                  { num: '3', text: 'La foto con más likes antes del cierre del concurso gana el premio' },
-                  { num: '4', text: 'Tú declaras el ganador manualmente desde la sección Concursos' },
-                ].map(({ num, text }) => (
-                  <div key={num} className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-white/8 flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5">{num}</span>
-                    <p className="text-sm text-[#B8B8CC] leading-relaxed">{text}</p>
-                  </div>
-                ))}
               </div>
             </div>
           </div>

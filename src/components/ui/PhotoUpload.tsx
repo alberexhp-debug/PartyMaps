@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Camera, Upload, X, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type Bucket = 'concursos' | 'retos' | 'reviews' | 'perfiles' | 'locales' | 'eventos'
+type Bucket = 'reviews' | 'perfiles' | 'locales' | 'eventos'
 
 interface PhotoUploadProps {
   bucket: Bucket

@@ -4,23 +4,13 @@ import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { Review } from '@/types'
 import { tiempoRelativo } from '@/lib/utils'
-import { Shield, Check, X, Flag, Star, Image as ImageIcon, AlertCircle } from 'lucide-react'
+import { Shield, Check, X, Flag, Star, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { registrarAuditoria } from '@/lib/auditoria'
 
 type ReviewConExtra = Review & {
   usuarios?: { nombre: string }
   locales?: { nombre: string }
-}
-
-interface ParticipacionPendiente {
-  id: string
-  concurso_id: string
-  usuario_id: string
-  contenido_url: string | null
-  created_at: string
-  usuarios?: { nombre: string }
-  concursos?: { local_id: string }
 }
 
 interface Reporte {
@@ -35,58 +25,27 @@ interface Reporte {
   reportador?: { nombre: string }
 }
 
-type Tab = 'reviews' | 'participaciones' | 'reportes' | 'votos'
-
-interface FlagVoto {
-  participacion_id: string
-  total_votos: number
-  ips_unicas: number
-  porcentaje_ips_unicas: number
-  porcentaje_cuentas_nuevas: number
-  max_votos_por_ip: number
-  motivos: string[]
-  participacion?: { id: string; contenido_url: string; votos: number; usuarios?: { nombre: string; foto_perfil_url?: string } | null }
-}
-interface ConcursoFlag {
-  concurso: { id: string; descripcion: string; premio: string; locales?: { id: string; nombre: string } | null }
-  flags: FlagVoto[]
-}
+type Tab = 'reviews' | 'reportes'
 
 export default function ModeracionPage() {
   const toast = useToast()
   const [tab, setTab] = useState<Tab>('reviews')
   const [reviews, setReviews] = useState<ReviewConExtra[]>([])
-  const [participaciones, setParticipaciones] = useState<ParticipacionPendiente[]>([])
   const [reportes, setReportes] = useState<Reporte[]>([])
-  const [votosFlags, setVotosFlags] = useState<ConcursoFlag[]>([])
   const [loading, setLoading] = useState(true)
 
   async function cargar() {
     setLoading(true)
-    const [revRes, partRes, repRes] = await Promise.all([
+    const [revRes, repRes] = await Promise.all([
       supabase.from('reviews')
         .select('*, usuarios!usuario_id(nombre), locales!local_id(nombre)')
         .eq('censurada', true).order('created_at', { ascending: false }).limit(50),
-      supabase.from('participaciones_concurso')
-        .select('id, concurso_id, usuario_id, contenido_url, created_at, usuarios!usuario_id(nombre), concursos!concurso_id(local_id)')
-        .eq('estado', 'pendiente_moderacion').order('created_at', { ascending: true }).limit(50),
       supabase.from('reportes_contenido')
         .select('id, reportado_por, tipo_contenido, contenido_id, motivo, descripcion, estado, created_at, reportador:usuarios!reportado_por(nombre)')
         .eq('estado', 'pendiente').order('created_at', { ascending: false }).limit(50),
     ])
     if (revRes.data) setReviews(revRes.data as ReviewConExtra[])
-    if (partRes.data) setParticipaciones(partRes.data as unknown as ParticipacionPendiente[])
     if (repRes.data) setReportes(repRes.data as unknown as Reporte[])
-
-    // Votos sospechosos en paralelo (endpoint admin)
-    try {
-      const r = await fetch('/api/admin/votos-sospechosos')
-      if (r.ok) {
-        const json = await r.json()
-        setVotosFlags(json.concursos ?? [])
-      }
-    } catch {}
-
     setLoading(false)
   }
 
@@ -105,24 +64,6 @@ export default function ModeracionPage() {
     setReviews(prev => prev.filter(r => r.id !== id))
   }
 
-  // ── Participaciones de concurso ──────────────────────────
-  const aprobarParticipacion = async (id: string) => {
-    await supabase.from('participaciones_concurso').update({ estado: 'aprobada' }).eq('id', id)
-    await registrarAuditoria({ tipo_accion: 'participacion_aprobada', entidad_tipo: 'participacion_concurso', entidad_id: id })
-    toast.success('Participación aprobada')
-    cargar()
-  }
-  const rechazarParticipacion = async (id: string) => {
-    const motivo = window.prompt('Motivo del rechazo (opcional, solo visible para el equipo):') ?? undefined
-    await supabase.from('participaciones_concurso').update({ estado: 'rechazada' }).eq('id', id)
-    await registrarAuditoria({
-      tipo_accion: 'participacion_rechazada', entidad_tipo: 'participacion_concurso',
-      entidad_id: id, motivo,
-    })
-    toast.success('Participación rechazada')
-    cargar()
-  }
-
   // ── Reportes ─────────────────────────────────────────────
   async function gestionarReporte(id: string, estado: 'aprobado' | 'rechazado') {
     const r = reportes.find(x => x.id === id)
@@ -131,15 +72,9 @@ export default function ModeracionPage() {
       gestionado_at: new Date().toISOString(),
     }).eq('id', id)
 
-    // Si aprobamos el reporte, marcamos el contenido como censurado/eliminado
-    if (estado === 'aprobado' && r) {
-      if (r.tipo_contenido === 'review') {
-        await supabase.from('reviews').update({ censurada: true, motivo_censura: 'Reportada por usuarios' }).eq('id', r.contenido_id)
-      } else if (r.tipo_contenido === 'participacion_concurso') {
-        await supabase.from('participaciones_concurso').update({ estado: 'eliminada' }).eq('id', r.contenido_id)
-      } else if (r.tipo_contenido === 'participacion_reto') {
-        await supabase.from('participaciones_reto').update({ estado: 'eliminada' }).eq('id', r.contenido_id)
-      }
+    // Si aprobamos el reporte, censuramos el contenido reportado.
+    if (estado === 'aprobado' && r && r.tipo_contenido === 'review') {
+      await supabase.from('reviews').update({ censurada: true, motivo_censura: 'Reportada por usuarios' }).eq('id', r.contenido_id)
     }
 
     await registrarAuditoria({
@@ -151,8 +86,6 @@ export default function ModeracionPage() {
     toast.success(estado === 'aprobado' ? 'Reporte aprobado y contenido censurado' : 'Reporte descartado')
     cargar()
   }
-
-  const totalFlagsVotos = votosFlags.reduce((s, c) => s + c.flags.length, 0)
 
   return (
     <div className="p-4 md:p-8 pb-20 md:pb-8 space-y-4">
@@ -166,10 +99,8 @@ export default function ModeracionPage() {
       {/* Tabs */}
       <div className="flex gap-2 border-b border-white/10 overflow-x-auto">
         {[
-          { id: 'reviews' as Tab,        label: 'Reseñas',         count: reviews.length },
-          { id: 'participaciones' as Tab, label: 'Participaciones', count: participaciones.length },
-          { id: 'reportes' as Tab,       label: 'Reportes',         count: reportes.length },
-          { id: 'votos' as Tab,          label: 'Votos sospechosos', count: totalFlagsVotos },
+          { id: 'reviews' as Tab,  label: 'Reseñas',  count: reviews.length },
+          { id: 'reportes' as Tab, label: 'Reportes', count: reportes.length },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={cn('px-3 py-2 text-sm border-b-2 -mb-px transition-colors',
@@ -211,27 +142,6 @@ export default function ModeracionPage() {
           </div>
         )))}
 
-      {!loading && tab === 'participaciones' && (participaciones.length === 0
-        ? <Vacio mensaje="Sin participaciones pendientes" />
-        : participaciones.map(p => (
-          <div key={p.id} className="bg-white/6 rounded-2xl border border-[#F39C12]/30 p-4 space-y-3">
-            <div className="flex items-start gap-3">
-              {p.contenido_url ? (
-                <img src={p.contenido_url} alt="" className="w-20 h-20 object-cover rounded-lg shrink-0" />
-              ) : (
-                <div className="w-20 h-20 bg-white/5 rounded-lg flex items-center justify-center shrink-0">
-                  <ImageIcon size={20} className="text-[#6B6B85]" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-white">{p.usuarios?.nombre || 'Usuario'}</p>
-                <p className="text-xs text-[#6B6B85]">{tiempoRelativo(p.created_at)}</p>
-              </div>
-            </div>
-            <BotonesAprobarRechazar onAprobar={() => aprobarParticipacion(p.id)} onRechazar={() => rechazarParticipacion(p.id)} />
-          </div>
-        )))}
-
       {!loading && tab === 'reportes' && (reportes.length === 0
         ? <Vacio mensaje="Sin reportes pendientes" />
         : reportes.map(r => (
@@ -260,71 +170,6 @@ export default function ModeracionPage() {
             />
           </div>
         )))}
-
-      {!loading && tab === 'votos' && (votosFlags.length === 0
-        ? <Vacio mensaje="Sin votación sospechosa detectada" />
-        : votosFlags.map(c => (
-          <div key={c.concurso.id} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white">
-                {c.concurso.locales?.nombre} <span className="text-[#A0A0B8] font-normal">· {c.concurso.descripcion?.slice(0, 60)}</span>
-              </h3>
-              <span className="text-xs text-[#E94560] font-semibold">{c.flags.length} participaciones flagueadas</span>
-            </div>
-            {c.flags.map(f => (
-              <div key={f.participacion_id} className="glass rounded-2xl border border-[#E94560]/25 p-4 space-y-3">
-                <div className="flex items-start gap-3">
-                  {f.participacion?.contenido_url ? (
-                    <img src={f.participacion.contenido_url} alt="" className="w-20 h-20 object-cover rounded-lg shrink-0" />
-                  ) : (
-                    <div className="w-20 h-20 bg-white/5 rounded-lg flex items-center justify-center shrink-0">
-                      <ImageIcon size={20} className="text-[#6B6B85]" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white">{f.participacion?.usuarios?.nombre || 'Usuario'}</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-[11px]">
-                      <Metric label="Votos" value={f.total_votos.toString()} />
-                      <Metric label="IPs únicas" value={`${f.ips_unicas} (${f.porcentaje_ips_unicas}%)`} />
-                      <Metric label="Cuentas <48h" value={`${f.porcentaje_cuentas_nuevas}%`} accent={f.porcentaje_cuentas_nuevas > 60 ? '#E94560' : undefined} />
-                      <Metric label="Max votos/IP" value={f.max_votos_por_ip.toString()} accent={f.max_votos_por_ip > 3 ? '#E94560' : undefined} />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {f.motivos.map(m => (
-                    <span key={m} className="text-[10px] px-2 py-0.5 rounded-full bg-[#E94560]/15 border border-[#E94560]/30 text-[#E94560] font-semibold uppercase tracking-wider">
-                      {m.replace(/_/g, ' ')}
-                    </span>
-                  ))}
-                </div>
-                <BotonesAprobarRechazar
-                  labelOk="Marcar legítimo"
-                  labelKo="Descalificar participación"
-                  onAprobar={async () => {
-                    toast.success('Marcado como legítimo (sin acción)')
-                  }}
-                  onRechazar={async () => {
-                    if (!confirm('¿Descalificar esta participación? Sus votos no contarán para el ganador.')) return
-                    await supabase.from('participaciones_concurso').update({ estado: 'rechazada' }).eq('id', f.participacion_id)
-                    await registrarAuditoria({ tipo_accion: 'participacion_descalificada', entidad_tipo: 'participacion_concurso', entidad_id: f.participacion_id })
-                    toast.success('Participación descalificada')
-                    cargar()
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )))}
-    </div>
-  )
-}
-
-function Metric({ label, value, accent }: { label: string; value: string; accent?: string }) {
-  return (
-    <div className="bg-white/5 border border-white/8 rounded-lg px-2 py-1.5">
-      <p className="text-[9px] uppercase tracking-wider text-[#6B6B85]">{label}</p>
-      <p className="text-sm font-bold mt-0.5" style={{ color: accent || '#FAFAFC' }}>{value}</p>
     </div>
   )
 }

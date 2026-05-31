@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
         'https://images.unsplash.com/photo-1547592180-85f173990554?w=800',
       ],
       tier: 'pro',
-      modulos_activos: ['concurso', 'perfil_noche', 'retos'],
+      modulos_activos: ['perfil_noche'],
       consumiciones_bienvenida: [
         { id: crypto.randomUUID(), nombre: 'Copa de bienvenida', descripcion: 'Gin tonic o similar', precio: 8 },
         { id: crypto.randomUUID(), nombre: 'Cerveza premium', descripcion: 'Estrella Damm o Voll-Damm', precio: 5 },
@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
         dress_code: 'Smart casual — no deportivo',
         estado: 'publicado',
         entradas_vendidas: 127,
-        modulos_activos: ['concurso'],
+        modulos_activos: [],
       }).select('id').single()
 
       if (evErr) errors.push(`Evento: ${evErr.message}`)
@@ -224,45 +224,6 @@ export async function POST(req: NextRequest) {
     const { error: histErr } = await admin.from('historial_aforo').upsert(aforoData)
     if (histErr) errors.push(`Historial aforo: ${histErr.message}`)
     else log.push('Historial aforo upsert (24 puntos)')
-
-    // ── 6. CONCURSO ACTIVO ───────────────────────────────────────────────────
-    const { data: concursoExistente } = await admin
-      .from('concursos').select('id').eq('local_id', localTestId).eq('estado', 'activo').maybeSingle()
-
-    if (!concursoExistente) {
-      const { error: concErr } = await admin.from('concursos').insert({
-        local_id: localTestId,
-        evento_id: eventoId,
-        descripcion: 'Sube la mejor foto del ambiente de esta noche y gana el premio sorpresa. La foto con más votos del público gana.',
-        tipo_contenido: 'foto',
-        fuente_contenido: 'directa',
-        hora_apertura: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        hora_cierre: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
-        premio: 'Botella de Moët & Chandon para el ganador y su grupo',
-        estado: 'activo',
-      })
-      if (concErr) errors.push(`Concurso: ${concErr.message}`)
-      else log.push('Concurso activo creado')
-    }
-
-    // ── 7. RETO ACTIVO ───────────────────────────────────────────────────────
-    const { data: retoExistente } = await admin
-      .from('retos').select('id').eq('local_id', localTestId).eq('estado', 'activo').maybeSingle()
-
-    if (!retoExistente) {
-      const { error: retoErr } = await admin.from('retos').insert({
-        local_id: localTestId,
-        nombre: 'El selfie más épico de la noche',
-        descripcion: 'Hazte el selfie más original que puedas dentro del club. El más votado gana una consumición gratis.',
-        tipo_contenido: 'foto',
-        metodo_ganador: 'votos',
-        premio: 'Consumición gratis en la barra',
-        hora_cierre: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-        estado: 'activo',
-      })
-      if (retoErr) errors.push(`Reto: ${retoErr.message}`)
-      else log.push('Reto activo creado')
-    }
   }
 
   // ── 8. LOCALES FAMOSOS DE MADRID — trabajadores por local ─────────────────
@@ -324,7 +285,7 @@ export async function POST(req: NextRequest) {
         precio_base: 15,
         precio_maximo: 20,
         estado: 'publicado',
-        modulos_activos: ['concurso'],
+        modulos_activos: [],
       })
       if (evErr) errors.push(`Evento ${venue.nombre}: ${evErr.message}`)
       else log.push(`Evento creado para ${venue.nombre}`)

@@ -24,8 +24,8 @@ const slides = [
     icon: Sparkles,
     color: '#D4A84B',
     eyebrow: 'Dentro del local',
-    title: 'Concursos,\nretos y\ncarta de noche',
-    description: 'Tu noche va más allá de entrar. La app sigue contigo dentro del local.',
+    title: 'Pide en la barra\nsin colas',
+    description: 'Tu noche va más allá de entrar. Pide y paga desde la app, sin esperas.',
   },
 ]
 

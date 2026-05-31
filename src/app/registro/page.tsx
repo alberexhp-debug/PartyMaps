@@ -502,7 +502,7 @@ export default function RegistroPage() {
               {[
                 { icon: '📍', title: 'Ubicación', desc: 'Para centrar el mapa y verificar que estás en el local' },
                 { icon: '🔔', title: 'Notificaciones', desc: 'Para alertas de locales que sigues y del sistema' },
-                { icon: '📷', title: 'Cámara y galería', desc: 'Para participar en concursos de foto' },
+                { icon: '📷', title: 'Cámara y galería', desc: 'Para tu foto de perfil' },
               ].map(p => (
                 <div key={p.title} className="flex gap-4 p-4 glass rounded-xl">
                   <span className="text-2xl">{p.icon}</span>

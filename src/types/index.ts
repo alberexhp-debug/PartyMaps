@@ -72,7 +72,7 @@ export type EstadoConcurso = 'programado' | 'activo' | 'cerrado' | 'finalizado' 
 export type EstadoPlan = 'activo' | 'completado' | 'cancelado'
 export type EstadoSolicitudPlan = 'pendiente' | 'aceptada' | 'rechazada' | 'expirada'
 export type EstadoEntrada = 'activa' | 'usada' | 'cancelada' | 'expirada'
-export type TipoModulo = 'concurso' | 'perfil_noche' | 'retos'
+export type TipoModulo = 'perfil_noche'
 export type EstadoEvento = 'borrador' | 'publicado' | 'cancelado' | 'finalizado'
 export type CurvaPrecio = 'lineal' | 'tramos'
 

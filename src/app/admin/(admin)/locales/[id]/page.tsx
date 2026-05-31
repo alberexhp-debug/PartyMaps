@@ -386,7 +386,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                 </div>
               </Field>
               <p className="text-xs text-[#6B6B85]">
-                Se usa en los concursos para que los participantes etiqueten al local en Instagram.
+                Cuenta de Instagram del local, visible en su ficha.
               </p>
             </Section>
           </>

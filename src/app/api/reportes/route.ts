@@ -5,7 +5,7 @@ import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/sup
 // POST: registra el reporte. Si un mismo contenido acumula >5 reportes, pasa
 // automáticamente a estado pendiente_moderacion / censurada.
 
-const TIPOS_VALIDOS = ['review', 'participacion_concurso', 'participacion_reto', 'plan_publico'] as const
+const TIPOS_VALIDOS = ['review', 'plan_publico'] as const
 const MOTIVOS_VALIDOS = ['inapropiado', 'spam', 'falso', 'otro'] as const
 
 export async function POST(req: NextRequest) {
@@ -57,10 +57,6 @@ export async function POST(req: NextRequest) {
   if ((count ?? 0) >= 5) {
     if (tipo_contenido === 'review') {
       await admin.from('reviews').update({ censurada: true, motivo_censura: 'Múltiples reportes' }).eq('id', contenido_id)
-    } else if (tipo_contenido === 'participacion_concurso') {
-      await admin.from('participaciones_concurso').update({ estado: 'pendiente_moderacion' }).eq('id', contenido_id)
-    } else if (tipo_contenido === 'participacion_reto') {
-      await admin.from('participaciones_reto').update({ estado: 'pendiente_moderacion' }).eq('id', contenido_id)
     }
   }
 
