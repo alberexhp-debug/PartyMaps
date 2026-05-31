@@ -102,6 +102,7 @@ export default function ExplorarPage() {
   const [showFiltros, setShowFiltros] = useState(false)
   const [showOrden, setShowOrden] = useState(false)
   const [filtroFecha, setFiltroFecha] = useState<FiltroFecha | null>(null)
+  const [soloOfertas, setSoloOfertas] = useState(false)
 
   const cargar = async () => {
     setLoading(true)
@@ -133,6 +134,7 @@ export default function ExplorarPage() {
     if (filtros.solo_con_evento) r = r.filter(l => l.evento_activo)
     if (filtros.precio_min != null) r = r.filter(l => (l.precio_entrada_min ?? 0) >= filtros.precio_min!)
     if (filtros.precio_max != null) r = r.filter(l => (l.precio_entrada_min ?? 0) <= filtros.precio_max!)
+    if (soloOfertas) r = r.filter(l => !!l.promo_ultima_hora_hasta && new Date(l.promo_ultima_hora_hasta).getTime() > Date.now())
     // Filtro por fecha (eventos publicados en el rango, o local abierto ese día)
     if (filtroFecha) {
       const { desde, hasta } = rangoDeFiltro(filtroFecha)
@@ -164,15 +166,16 @@ export default function ExplorarPage() {
         })
     }
     return sorted
-  }, [locales, filtros, busca, orden, filtroFecha])
+  }, [locales, filtros, busca, orden, filtroFecha, soloOfertas])
 
   const numFiltros =
     filtros.tipos.length + filtros.musica.length +
     (filtros.solo_con_evento ? 1 : 0) +
     (filtros.precio_min != null || filtros.precio_max != null ? 1 : 0) +
-    (filtroFecha != null ? 1 : 0)
+    (filtroFecha != null ? 1 : 0) +
+    (soloOfertas ? 1 : 0)
 
-  const limpiarTodo = () => { clearFiltros(); setFiltroFecha(null) }
+  const limpiarTodo = () => { clearFiltros(); setFiltroFecha(null); setSoloOfertas(false) }
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -280,10 +283,13 @@ export default function ExplorarPage() {
           {filtros.solo_con_evento && (
             <ChipActivo onClick={() => setFiltros({ solo_con_evento: false })}>Con evento</ChipActivo>
           )}
-          {(filtros.precio_min != null || filtros.precio_max != null) && (
+          {filtros.precio_max != null && (
             <ChipActivo onClick={() => setFiltros({ precio_min: undefined, precio_max: undefined })}>
-              {filtros.precio_min ?? 0}€–{filtros.precio_max ?? '∞'}€
+              Hasta {filtros.precio_max}€
             </ChipActivo>
+          )}
+          {soloOfertas && (
+            <ChipActivo onClick={() => setSoloOfertas(false)}>Ofertas</ChipActivo>
           )}
           {numFiltros > 0 && (
             <button onClick={limpiarTodo} className="shrink-0 text-xs text-[#E94560] font-semibold hover:underline ml-1">
@@ -365,29 +371,29 @@ export default function ExplorarPage() {
             </div>
           </section>
 
-          <section className="space-y-2.5">
-            <p className="eyebrow eyebrow-muted">Precio entrada</p>
-            <div className="grid grid-cols-4 gap-1.5">
-              {[
-                { label: '< 10€', min: undefined, max: 10 },
-                { label: '10-20€', min: 10, max: 20 },
-                { label: '20-30€', min: 20, max: 30 },
-                { label: '> 30€', min: 30, max: undefined },
-              ].map(({ label, min, max }) => {
-                const activo = filtros.precio_min === min && filtros.precio_max === max
-                return (
-                  <ChipToggle
-                    key={label}
-                    activo={activo}
-                    onClick={() => setFiltros({
-                      precio_min: activo ? undefined : min,
-                      precio_max: activo ? undefined : max,
-                    })}
-                  >
-                    {label}
-                  </ChipToggle>
-                )
-              })}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="eyebrow eyebrow-muted">Precio entrada</p>
+              <span className="text-sm font-bold text-white text-numeric">
+                {filtros.precio_max == null ? 'Sin límite' : `Hasta ${filtros.precio_max}€`}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={50}
+              step={5}
+              value={filtros.precio_max ?? 50}
+              onChange={e => {
+                const v = Number(e.target.value)
+                setFiltros({ precio_min: undefined, precio_max: v >= 50 ? undefined : v })
+              }}
+              aria-label="Precio máximo de la entrada"
+              className="w-full accent-[#E94560] cursor-pointer"
+            />
+            <div className="flex justify-between text-[10px] text-[#6B6B85]">
+              <span>Gratis</span>
+              <span>50€+</span>
             </div>
           </section>
 
@@ -397,6 +403,15 @@ export default function ExplorarPage() {
               hint="Locales con un evento publicado"
               value={filtros.solo_con_evento}
               onChange={v => setFiltros({ solo_con_evento: v })}
+            />
+          </section>
+
+          <section>
+            <ToggleRow
+              label="Solo ofertas"
+              hint="Locales con descuento activo"
+              value={soloOfertas}
+              onChange={setSoloOfertas}
             />
           </section>
 
