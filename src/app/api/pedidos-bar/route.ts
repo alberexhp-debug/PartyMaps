@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient, createAdminSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { calcularComision } from '@/lib/utils'
+import { devengarComisionBar, parseCookieRef } from '@/lib/rrpp/atribucion'
 
 interface ItemBody { producto_id: string; cantidad: number }
 
@@ -112,6 +113,22 @@ export async function POST(req: NextRequest) {
     // Rollback: borrar pedido
     await admin.from('pedidos_bar').delete().eq('id', pedido.id)
     return NextResponse.json({ error: 'No se pudo registrar el pedido' }, { status: 500 })
+  }
+
+  // Atribución de comisión RRPP por consumo de barra (disparador opcional,
+  // OFF por defecto). No bloquea el pedido.
+  try {
+    const { data: uFull } = await admin.from('usuarios').select('nombre, telefono').eq('id', usuario.id).maybeSingle()
+    await devengarComisionBar({
+      db: createServiceRoleClient(),
+      usuario: { id: usuario.id, nombre: uFull?.nombre, telefono: uFull?.telefono, email: user.email },
+      localId: body.local_id,
+      pedidoBarId: pedido.id,
+      subtotal,
+      cookieRef: parseCookieRef(req.cookies.get('rumbo_ref')?.value),
+    })
+  } catch (err) {
+    console.error('[atribucion] devengo bar falló', err)
   }
 
   return NextResponse.json({ pedido })

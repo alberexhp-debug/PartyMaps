@@ -23,6 +23,16 @@ export default function ComprarEntradaPage() {
   const [consumicionSeleccionada, setConsumicionSeleccionada] = useState<ConsumicionBienvenida | null>(null)
   const [cantidad, setCantidad] = useState(1)
   const [paso, setPaso] = useState<'resumen' | 'pago' | 'exito'>('resumen')
+  const [rrppAtrib, setRrppAtrib] = useState<{ slug: string; nombre_publico: string; foto_url: string | null } | null>(null)
+
+  // ¿Quién captó esta compra? (cookie de referido o código de registro, 24h)
+  useEffect(() => {
+    if (!id) return
+    fetch(`/api/rrpp/atribucion-activa?local_id=${id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setRrppAtrib(d?.rrpp ?? null))
+      .catch(() => {})
+  }, [id])
 
   useEffect(() => {
     async function cargar() {
@@ -149,6 +159,20 @@ export default function ComprarEntradaPage() {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Atribución RRPP: "estás comprando con X" */}
+        {rrppAtrib && (
+          <div className="flex items-center gap-3 rounded-2xl border border-[#7C5CFF]/30 bg-[#7C5CFF]/10 px-4 py-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#7C5CFF]/20 text-[#9B82FF]">
+              {rrppAtrib.foto_url
+                ? <img src={rrppAtrib.foto_url} alt="" className="h-full w-full object-cover" />
+                : <Users size={16} />}
+            </span>
+            <p className="text-sm text-white">
+              Estás comprando con <span className="font-semibold text-[#9B82FF]">{rrppAtrib.nombre_publico}</span>
+            </p>
+          </div>
+        )}
+
         {/* Local & Evento */}
         <div className="bg-white/6 rounded-2xl p-4 border border-white/10">
           <div className="flex items-start gap-3">
