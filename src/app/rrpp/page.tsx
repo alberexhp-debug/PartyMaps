@@ -199,6 +199,8 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
     onRecargar()
   }
 
+  const [copiado, setCopiado] = useState(false)
+  const codigoRef = (rrpp.slug || '').toUpperCase()
   const pendientes = venues.filter(v => v.estado === 'pendiente')
   const activos = venues.filter(v => v.estado === 'activa')
   const pendiente = liqs.filter(l => l.estado === 'pendiente').reduce((s, l) => s + Number(l.monto_total), 0)
@@ -230,6 +232,25 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
           <Kpi label="Ventas mes" valor={ventasMes.toString()} icon={Sparkles} />
           <Kpi label="Total mes" valor={`${totalMes.toFixed(0)}€`} icon={Wallet} />
           <Kpi label="Pendiente" valor={`${pendiente.toFixed(0)}€`} icon={Wallet} accent />
+        </section>
+
+        {/* Código de referido */}
+        <section className="card-premium p-4">
+          <p className="eyebrow eyebrow-rose mb-2">Tu código de referido</p>
+          <div className="flex items-center gap-3">
+            <code className="flex-1 text-display text-2xl tracking-[0.2em] text-white bg-white/5 rounded-xl px-4 py-3 text-center">
+              {codigoRef}
+            </code>
+            <button
+              onClick={() => { navigator.clipboard?.writeText(codigoRef); setCopiado(true); setTimeout(() => setCopiado(false), 1500) }}
+              className="shrink-0 h-12 px-4 rounded-xl bg-white/8 border border-white/10 text-white text-sm font-semibold hover:bg-white/12 transition-colors"
+            >
+              {copiado ? '¡Copiado!' : 'Copiar'}
+            </button>
+          </div>
+          <p className="text-tertiary text-xs mt-2">
+            Dáselo a la gente: al registrarse en Rumbo con tu código, contamos sus entradas y consumiciones a tu nombre durante 24h.
+          </p>
         </section>
 
         {pendientes.length > 0 && (
