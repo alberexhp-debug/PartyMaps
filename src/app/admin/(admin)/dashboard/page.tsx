@@ -242,7 +242,6 @@ export default function AdminDashboard() {
             { label: 'Moderación',          href: '/admin/moderacion' },
             { label: 'Configuración',       href: '/admin/configuracion' },
             { label: 'Auditoría',           href: '/admin/auditoria' },
-            { label: 'Frases zodiaco',      href: '/admin/frases-zodiaco' },
           ].map(({ label, href }) => (
             <button key={href} onClick={() => router.push(href)}
               className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4 text-left hover:bg-white/[0.06] transition-colors group">

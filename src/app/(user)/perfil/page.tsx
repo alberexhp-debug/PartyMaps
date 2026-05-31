@@ -6,13 +6,12 @@ import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { CartaPerfil } from '@/components/user/CartaPerfil'
 import {
-  calcularSignoZodiaco, calcularEdad, EMOJI_SIGNO, cn,
+  calcularEdad, cn,
 } from '@/lib/utils'
 import {
   User, Star, Bell, BellOff, Shield, LogOut, ChevronRight,
-  Ticket, Users, Edit3, Camera, AlertCircle, Lightbulb, Sparkles, ArrowRight, ClipboardCheck,
+  Ticket, Users, Edit3, Camera, AlertCircle, Lightbulb, ClipboardCheck,
 } from 'lucide-react'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 
@@ -49,9 +48,7 @@ export default function PerfilPage() {
 
   if (!usuario) return null
 
-  const signo = calcularSignoZodiaco(usuario.fecha_nacimiento)
   const edad = calcularEdad(usuario.fecha_nacimiento)
-  const emojiSigno = EMOJI_SIGNO[signo] || '✨'
 
   const logout = async () => {
     setLoggingOut(true)
@@ -123,10 +120,6 @@ export default function PerfilPage() {
                     </button>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full glass text-xs text-white">
-                      <span>{emojiSigno}</span>
-                      <span className="font-semibold">{signo}</span>
-                    </span>
                     <span className="text-sm text-[#A0A0B8]">{edad} años</span>
                   </div>
                   {usuario.reputacion_num_valoraciones > 0 && (
@@ -169,37 +162,6 @@ export default function PerfilPage() {
           />
         </div>
 
-        {/* Carta preview */}
-        <Link href="/perfil/carta" className="block stagger-item" style={{ ['--delay' as string]: '200ms' }}>
-          <div className="card-premium overflow-hidden">
-            <div className="flex items-center gap-4 p-5">
-              <div className="w-24 shrink-0">
-                <CartaPerfil
-                  nombre={usuario.nombre}
-                  apodo={usuario.carta_apodo}
-                  edad={edad}
-                  signo={signo}
-                  foto={usuario.foto_perfil_url}
-                  frase={usuario.carta_frase}
-                  estilo={usuario.carta_estilo ?? 'holo'}
-                  slug={usuario.carta_slug}
-                  tilt={false}
-                  className="!aspect-[5/7]"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="eyebrow mb-1.5">Tu carta</p>
-                <p className="text-base text-white font-semibold leading-tight">Personalízala y compártela</p>
-                <p className="text-xs text-[#A0A0B8] mt-1 leading-snug line-clamp-2">
-                  {usuario.carta_frase || `${signo}, brilla esta noche. Tu carta te identifica en Rumbo.`}
-                </p>
-                <div className="mt-2.5 inline-flex items-center gap-1 text-xs font-semibold text-[#E94560]">
-                  Abrir carta <ArrowRight size={12} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </Link>
 
         {/* Notificaciones push */}
         <div className="card-premium p-5 stagger-item" style={{ ['--delay' as string]: '280ms' }}>
@@ -254,7 +216,6 @@ export default function PerfilPage() {
 
         {/* Opciones */}
         <div className="card-premium overflow-hidden divide-y divide-white/5 stagger-item" style={{ ['--delay' as string]: '360ms' }}>
-          <OpcionPerfil icon={Sparkles} label="Mi carta de perfil" onClick={() => router.push('/perfil/carta')} />
           <OpcionPerfil
             icon={ClipboardCheck}
             label="Valoraciones pendientes"
