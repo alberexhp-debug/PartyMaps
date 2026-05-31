@@ -136,6 +136,7 @@ export interface Local {
   precio_entrada_min?: number
   precio_entrada_max?: number
   imagenes: string[]
+  videos_youtube?: string[]
   tier: TierLocal
   tier_fecha_inicio?: string
   tier_fecha_fin?: string

@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/Toast'
 import { BottomSheet } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
 import { Local, TipoLocal, TipoMusica, ConsumicionBienvenida, PrecioDinamicoConfig, ProductoLocal, CategoriaProducto } from '@/types'
-import { getLabelTipoLocal, formatearPrecio } from '@/lib/utils'
+import { getLabelTipoLocal, formatearPrecio, youtubeId } from '@/lib/utils'
 import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEditor'
 import { AforoSemanal } from '@/components/local-panel/AforoSemanal'
 import {
@@ -110,6 +110,7 @@ function ConfiguracionContent() {
       horario: form.horario,
       consumiciones_bienvenida: form.consumiciones_bienvenida,
       imagenes: form.imagenes,
+      videos_youtube: form.videos_youtube ?? [],
       instagram_handle: form.instagram_handle ?? null,
       entradas_disponibles_noche: form.entradas_disponibles_noche ?? null,
     }).eq('id', local.id).select().single()
@@ -447,6 +448,48 @@ function ConfiguracionContent() {
                   <Plus size={16} />
                 </button>
               </div>
+            </div>
+
+            {/* Vídeos de YouTube */}
+            <div className="space-y-2 pt-3 border-t border-white/6">
+              <label className="text-sm font-medium text-[#A0A0B8]">Vídeos de YouTube (máx. 3)</label>
+              <p className="text-xs text-[#6B6B85]">Se muestran en la página de tu local. Pega el enlace del vídeo.</p>
+              {(form.videos_youtube || []).map((url, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="flex-1 truncate text-sm text-white bg-white/4 border border-white/8 rounded-xl px-3 py-2.5">{url}</span>
+                  <button
+                    onClick={() => setForm(f => ({ ...f, videos_youtube: (f.videos_youtube || []).filter((_, j) => j !== i) }))}
+                    className="w-9 h-9 shrink-0 bg-black/30 rounded-xl flex items-center justify-center text-red-400 hover:bg-black/50"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              {(form.videos_youtube || []).length < 3 && (
+                <div className="flex gap-2">
+                  <input
+                    id="nueva-url-video"
+                    type="url"
+                    placeholder="https://youtube.com/watch?v=…"
+                    className="flex-1 px-4 py-3 bg-white/4 border border-white/8 rounded-xl text-white text-sm outline-none focus:border-white/20 transition-colors"
+                  />
+                  <button
+                    onClick={() => {
+                      const input = document.getElementById('nueva-url-video') as HTMLInputElement
+                      const v = input.value.trim()
+                      if (v && youtubeId(v)) {
+                        setForm(f => ({ ...f, videos_youtube: [...(f.videos_youtube || []), v] }))
+                        input.value = ''
+                      } else if (v) {
+                        toast.error('Ese enlace de YouTube no es válido')
+                      }
+                    }}
+                    className="px-4 py-3 bg-white/8 border border-white/10 rounded-xl text-white text-sm font-semibold hover:bg-white/12 transition-colors"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

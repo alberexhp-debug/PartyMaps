@@ -245,6 +245,13 @@ export function validarTelefono(telefono: string): boolean {
   return /^\+?[0-9]{9,15}$/.test(telefono.replace(/\s/g, ''))
 }
 
+/** Extrae el ID de un vídeo de YouTube de cualquier formato de URL. Null si no es válido. */
+export function youtubeId(url: string): string | null {
+  if (!url) return null
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/)
+  return m ? m[1] : null
+}
+
 export function normalizarTelefono(telefono: string, prefijo: string = '+34'): string {
   const limpio = telefono.replace(/\s/g, '')
   if (limpio.startsWith('+')) return limpio

@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/Toast'
 import { useVerificarPresencia } from '@/lib/hooks/useVerificarPresencia'
 import {
   getLabelTipoLocal, getColorTemperatura, getLabelTemperatura,
-  formatearPrecio, getTemperaturaAforo, tiempoRelativo, getLabelMusica
+  formatearPrecio, getTemperaturaAforo, tiempoRelativo, getLabelMusica, youtubeId
 } from '@/lib/utils'
 import {
   ChevronLeft, ChevronRight, Bell, BellOff, MapPin, Clock, Music, Ticket,
@@ -528,6 +528,31 @@ export default function LocalPerfilPage() {
                   <ChevronRight size={16} className="text-[#6B6B85] shrink-0" />
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Vídeos del local */}
+        {(local.videos_youtube ?? []).some(u => youtubeId(u)) && (
+          <div>
+            <p className="eyebrow mb-2.5">Vídeos</p>
+            <div className="space-y-3">
+              {(local.videos_youtube ?? []).map((url, i) => {
+                const vid = youtubeId(url)
+                if (!vid) return null
+                return (
+                  <div key={i} className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black">
+                    <iframe
+                      src={`https://www.youtube-nocookie.com/embed/${vid}`}
+                      title={`Vídeo ${i + 1} de ${local.nombre}`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      loading="lazy"
+                      className="absolute inset-0 w-full h-full"
+                    />
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
