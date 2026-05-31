@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { calcularComision, calcularPrecioDinamico } from '@/lib/utils'
 import { devengarComisionEntrada, parseCookieRef } from '@/lib/rrpp/atribucion'
+import { validarCodigo, calcularDescuento } from '@/lib/codigos'
 import type { PrecioDinamicoConfig } from '@/types'
 
 export async function POST(req: NextRequest) {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     if (!usuarioRow) return NextResponse.json({ error: 'Perfil de usuario no encontrado' }, { status: 404 })
 
     const body = await req.json()
-    const { local_id, evento_id, consumicion_id, cantidad = 1 } = body
+    const { local_id, evento_id, consumicion_id, cantidad = 1, codigo } = body
 
     const { data: local, error: localError } = await supabase
       .from('locales')
@@ -81,6 +82,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Código de descuento (pactado por el Gestor con el local). Se valida y
+    // aplica sobre el precio_local por entrada antes de calcular la comisión.
+    let codigoAplicado: { codigo_id: string; descuentoPorEntrada: number } | null = null
+    if (codigo && typeof codigo === 'string' && codigo.trim()) {
+      const svc = createServiceRoleClient()
+      const v = await validarCodigo(svc, codigo, local_id)
+      if (!v.valido) return NextResponse.json({ error: v.error }, { status: 400 })
+      // Un usuario no puede reutilizar el mismo código
+      const { data: usado } = await svc.from('codigo_descuento_uso')
+        .select('id').eq('codigo_id', v.codigo_id).eq('usuario_id', usuarioRow.id).maybeSingle()
+      if (usado) return NextResponse.json({ error: 'Ya has usado este código' }, { status: 400 })
+      const descuentoPorEntrada = calcularDescuento(v.tipo, v.valor, precioBase)
+      precioBase = Math.round((precioBase - descuentoPorEntrada) * 100) / 100
+      codigoAplicado = { codigo_id: v.codigo_id, descuentoPorEntrada }
+    }
+
     // Si el admin definió un override personalizado para este local, lo usamos.
     // Si no, la comisión sale del tier (4% venta, 2.5% pro, 1.5% destacado, etc.).
     const comision = local.comision_porcentaje_override != null
@@ -111,6 +128,23 @@ export async function POST(req: NextRequest) {
     // Update event entradas_vendidas if applicable
     if (evento_id) {
       await supabase.rpc('incrementar_entradas_vendidas', { p_evento_id: evento_id, p_cantidad: cantidad })
+    }
+
+    // Registrar el uso del código de descuento (incrementa contador + traza).
+    if (codigoAplicado && created && created.length > 0) {
+      try {
+        const svc = createServiceRoleClient()
+        const { data: c } = await svc.from('codigos_descuento').select('usos_actuales').eq('id', codigoAplicado.codigo_id).maybeSingle()
+        await svc.from('codigos_descuento').update({ usos_actuales: (c?.usos_actuales ?? 0) + 1 }).eq('id', codigoAplicado.codigo_id)
+        await svc.from('codigo_descuento_uso').insert({
+          codigo_id: codigoAplicado.codigo_id,
+          usuario_id: usuarioRow.id,
+          entrada_id: created[0].id,
+          descuento_aplicado: codigoAplicado.descuentoPorEntrada,
+        })
+      } catch (err) {
+        console.error('[codigo] registrar uso falló', err)
+      }
     }
 
     // Atribución de comisión RRPP (last-touch 24h). No bloquea el checkout.

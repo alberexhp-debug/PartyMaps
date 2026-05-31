@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { Local, Evento, ConsumicionBienvenida } from '@/types'
 import { calcularComision, formatearPrecio, formatearFecha, formatearHora } from '@/lib/utils'
-import { ArrowLeft, Ticket, Clock, Users, ChevronRight, Check, AlertCircle, Zap } from 'lucide-react'
+import { ArrowLeft, Ticket, Clock, Users, ChevronRight, Check, AlertCircle, Zap, Tag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function ComprarEntradaPage() {
@@ -24,6 +24,9 @@ export default function ComprarEntradaPage() {
   const [cantidad, setCantidad] = useState(1)
   const [paso, setPaso] = useState<'resumen' | 'pago' | 'exito'>('resumen')
   const [rrppAtrib, setRrppAtrib] = useState<{ slug: string; nombre_publico: string; foto_url: string | null } | null>(null)
+  const [codigo, setCodigo] = useState('')
+  const [codigoAplicado, setCodigoAplicado] = useState<{ codigo: string; descuento: number; descripcion: string } | null>(null)
+  const [validandoCodigo, setValidandoCodigo] = useState(false)
 
   // ¿Quién captó esta compra? (cookie de referido o código de registro, 24h)
   useEffect(() => {
@@ -86,10 +89,29 @@ export default function ComprarEntradaPage() {
     return null
   })()
 
-  const comision = calcularComision(precioBase, local?.tier || 'basico')
-  const subtotal = (precioBase + (consumicionSeleccionada?.precio || 0)) * cantidad
+  // Código de descuento (se valida contra el servidor; descuento por entrada).
+  const descuentoPorEntrada = codigoAplicado?.descuento ?? 0
+  const precioBaseEf = Math.max(0, precioBase - descuentoPorEntrada)
+  const comision = calcularComision(precioBaseEf, local?.tier || 'basico')
+  const subtotal = (precioBaseEf + (consumicionSeleccionada?.precio || 0)) * cantidad
   const comisionTotal = comision * cantidad
+  const descuentoTotal = descuentoPorEntrada * cantidad
   const total = subtotal + comisionTotal
+
+  const aplicarCodigo = async () => {
+    const code = codigo.trim()
+    if (!code) return
+    setValidandoCodigo(true)
+    const res = await fetch('/api/codigos/validar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codigo: code, local_id: id, precio: precioBase }),
+    })
+    const d = await res.json()
+    setValidandoCodigo(false)
+    if (!d.valido) { toast.error(d.error || 'Código no válido'); return }
+    setCodigoAplicado({ codigo: d.codigo, descuento: d.descuento ?? 0, descripcion: d.descripcion })
+    toast.success(`Código aplicado: ${d.descripcion}`)
+  }
 
   const comprar = async () => {
     if (!usuario) { router.push('/login'); return }
@@ -103,6 +125,7 @@ export default function ComprarEntradaPage() {
           evento_id: evento?.id,
           consumicion_id: consumicionSeleccionada?.id,
           cantidad,
+          codigo: codigoAplicado?.codigo,
         }),
       })
       const data = await res.json()
@@ -283,6 +306,32 @@ export default function ComprarEntradaPage() {
           </div>
         )}
 
+        {/* Código de descuento */}
+        <div className="bg-white/6 rounded-2xl p-4 border border-white/10">
+          {codigoAplicado ? (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Tag size={15} className="text-[#7C5CFF] shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white font-mono truncate">{codigoAplicado.codigo}</p>
+                  <p className="text-xs text-[#9B82FF]">{codigoAplicado.descripcion}</p>
+                </div>
+              </div>
+              <button onClick={() => { setCodigoAplicado(null); setCodigo('') }} className="text-xs text-[#8B8BA8] hover:text-white shrink-0">Quitar</button>
+            </div>
+          ) : (
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="text-xs text-[#8B8BA8]">¿Tienes un código de descuento?</label>
+                <input value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase().replace(/\s+/g, ''))}
+                  placeholder="CÓDIGO"
+                  className="mt-1 w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm font-mono uppercase outline-none focus:border-[#7C5CFF]/60 placeholder:text-[#6B6B85]" />
+              </div>
+              <Button variant="outline" loading={validandoCodigo} onClick={aplicarCodigo} disabled={!codigo.trim()}>Aplicar</Button>
+            </div>
+          )}
+        </div>
+
         {/* Desglose precio */}
         <div className="bg-white/6 rounded-2xl p-4 border border-white/10 space-y-2">
           <h3 className="text-sm font-semibold text-[#A0A0B8] uppercase tracking-wider mb-3">Resumen</h3>
@@ -296,6 +345,12 @@ export default function ComprarEntradaPage() {
             <div className="flex justify-between text-sm">
               <span className="text-[#A0A0B8]">Consumición × {cantidad}</span>
               <span className="text-white">{formatearPrecio(consumicionSeleccionada.precio * cantidad)}</span>
+            </div>
+          )}
+          {descuentoTotal > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-[#9B82FF]">Descuento ({codigoAplicado?.codigo})</span>
+              <span className="text-[#9B82FF]">−{formatearPrecio(descuentoTotal)}</span>
             </div>
           )}
           <div className="flex justify-between text-sm">
