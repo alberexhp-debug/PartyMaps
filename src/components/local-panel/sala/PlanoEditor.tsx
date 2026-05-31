@@ -157,7 +157,13 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
   // ── Mesas ────────────────────────────────────────────────────
   const addMesa = async () => {
     if (!plantaId) return
-    const codigo = `M${mesas.length + 1}`
+    // Código único: mayor número "M<n>" existente + 1 (evita colisión con
+    // UNIQUE(local_id, codigo) tras borrar mesas; antes usaba mesas.length+1).
+    const numsM = mesas.map(m => {
+      const mt = /^M(\d+)$/.exec(m.codigo)
+      return mt ? parseInt(mt[1], 10) : 0
+    })
+    const codigo = `M${(numsM.length ? Math.max(...numsM) : 0) + 1}`
     const nueva = {
       local_id: localId, planta_id: plantaId, codigo,
       capacidad: 4, tipo: 'mesa' as TipoMesa, forma: 'redonda' as FormaMesa,
@@ -375,10 +381,7 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
         <div className="glass rounded-2xl p-4 h-fit">
           {seleccionada ? (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-white">Editar mesa</p>
-                <button onClick={() => deleteMesa(seleccionada)} className="text-[#8B8BA8] hover:text-[#E94560]" aria-label="Eliminar mesa"><Trash2 size={15} /></button>
-              </div>
+              <p className="text-sm font-semibold text-white">Editar mesa</p>
 
               <label className="block">
                 <span className="text-xs text-[#8B8BA8]">Código</span>
