@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Sparkles, UserPlus, Pause, Play, Archive, ExternalLink, Search, Mail, Copy, Check } from 'lucide-react'
+import { Sparkles, UserPlus, Pause, Play, Archive, ExternalLink, Search, Mail, Copy, Check, MessageCircle } from 'lucide-react'
+import { ChatRrpp } from '@/components/chat/ChatRrpp'
 
 // Tipos relajados para no atar a la forma exacta del join del endpoint
 type Relacion = {
@@ -27,6 +28,7 @@ export default function RRPPPanelLocal() {
   const [invitaciones, setInvitaciones] = useState<Invitacion[]>([])
   const [loading, setLoading] = useState(true)
   const [showInvitar, setShowInvitar] = useState(false)
+  const [chatCon, setChatCon] = useState<{ id: string; nombre_publico: string; slug: string } | null>(null)
 
   useEffect(() => { void cargar() }, [])
 
@@ -79,15 +81,15 @@ export default function RRPPPanelLocal() {
         <>
           <Grupo titulo={`Activos (${activos.length})`} relaciones={activos}
             onPausar={(id) => cambiarEstado(id, 'pausada')}
-            onArchivar={archivar} />
+            onArchivar={archivar} onChat={setChatCon} />
           {pendientes.length > 0 && (
             <Grupo titulo={`Pendientes de aceptación (${pendientes.length})`} relaciones={pendientes}
-              onArchivar={archivar} />
+              onArchivar={archivar} onChat={setChatCon} />
           )}
           {pausados.length > 0 && (
             <Grupo titulo={`Pausados (${pausados.length})`} relaciones={pausados}
               onReanudar={(id) => cambiarEstado(id, 'activa')}
-              onArchivar={archivar} />
+              onArchivar={archivar} onChat={setChatCon} />
           )}
           {invitaciones.length > 0 && (
             <InvitacionesPendientes invitaciones={invitaciones} />
@@ -106,17 +108,34 @@ export default function RRPPPanelLocal() {
       )}
 
       {showInvitar && (
-        <ModalAnadir onClose={() => setShowInvitar(false)} onCreado={() => { setShowInvitar(false); void cargar() }} />
+        <ModalAnadir
+          onClose={() => setShowInvitar(false)}
+          onCreado={() => { setShowInvitar(false); void cargar() }}
+          onContactar={(r) => { setShowInvitar(false); setChatCon(r) }}
+        />
+      )}
+
+      {chatCon && (
+        <ChatRrpp
+          titulo={chatCon.nombre_publico}
+          subtitulo={`@${chatCon.slug}`}
+          getUrl={`/api/local-panel/rrpp/chat?rrpp_id=${chatCon.id}`}
+          postUrl="/api/local-panel/rrpp/chat"
+          postBody={{ rrpp_id: chatCon.id }}
+          yo="local"
+          onClose={() => setChatCon(null)}
+        />
       )}
     </div>
   )
 }
 
 function Grupo({
-  titulo, relaciones, onPausar, onReanudar, onArchivar,
+  titulo, relaciones, onPausar, onReanudar, onArchivar, onChat,
 }: {
   titulo: string; relaciones: Relacion[];
   onPausar?: (id: string) => void; onReanudar?: (id: string) => void; onArchivar?: (id: string) => void;
+  onChat?: (r: { id: string; nombre_publico: string; slug: string }) => void;
 }) {
   return (
     <section>
@@ -163,6 +182,12 @@ function Grupo({
                 {r.triggers_activos?.consumo_bar && <TriggerChip>Bar</TriggerChip>}
               </div>
               <div className="mt-2 flex gap-1.5">
+                {onChat && (
+                  <button onClick={() => onChat({ id: r.rrpp.id, nombre_publico: r.rrpp.nombre_publico, slug: r.rrpp.slug })}
+                    className="btn-ghost text-xs inline-flex items-center gap-1">
+                    <MessageCircle className="w-3.5 h-3.5" /> Chat
+                  </button>
+                )}
                 {onReanudar && (
                   <button onClick={() => onReanudar(r.id)} className="btn-ghost text-xs inline-flex items-center gap-1">
                     <Play className="w-3.5 h-3.5" /> Reanudar
@@ -224,7 +249,7 @@ function TriggerChip({ children }: { children: React.ReactNode }) {
 // ════════════════════════════════════════════════════════════════
 // Modal "Añadir RRPP" con dos pestañas: Buscar / Crear nuevo
 // ════════════════════════════════════════════════════════════════
-function ModalAnadir({ onClose, onCreado }: { onClose: () => void; onCreado: () => void }) {
+function ModalAnadir({ onClose, onCreado, onContactar }: { onClose: () => void; onCreado: () => void; onContactar: (r: { id: string; nombre_publico: string; slug: string }) => void }) {
   const [tab, setTab] = useState<'buscar' | 'crear'>('buscar')
 
   return (
@@ -246,7 +271,7 @@ function ModalAnadir({ onClose, onCreado }: { onClose: () => void; onCreado: () 
             Crear nuevo
           </button>
         </div>
-        {tab === 'buscar' ? <TabBuscar onCreado={onCreado} /> : <TabCrear onCreado={onCreado} />}
+        {tab === 'buscar' ? <TabBuscar onCreado={onCreado} onContactar={onContactar} /> : <TabCrear onCreado={onCreado} />}
       </div>
     </div>
   )
@@ -257,7 +282,7 @@ type ResultadoBusqueda = {
   foto_url: string | null; bio: string | null; instagram: string | null; tiktok: string | null;
 }
 
-function TabBuscar({ onCreado }: { onCreado: () => void }) {
+function TabBuscar({ onCreado, onContactar }: { onCreado: () => void; onContactar: (r: { id: string; nombre_publico: string; slug: string }) => void }) {
   const [q, setQ] = useState('')
   const [resultados, setResultados] = useState<ResultadoBusqueda[]>([])
   const [seleccionado, setSeleccionado] = useState<ResultadoBusqueda | null>(null)
@@ -268,7 +293,6 @@ function TabBuscar({ onCreado }: { onCreado: () => void }) {
   const [sending, setSending] = useState(false)
 
   useEffect(() => {
-    if (q.trim().length < 2) { setResultados([]); return }
     const ctrl = new AbortController()
     const tid = setTimeout(async () => {
       setBuscando(true)
@@ -279,7 +303,7 @@ function TabBuscar({ onCreado }: { onCreado: () => void }) {
         const j = await r.json()
         setResultados(j.rrpps ?? [])
       } catch { /* abort */ } finally { setBuscando(false) }
-    }, 250)
+    }, q ? 250 : 0)
     return () => { clearTimeout(tid); ctrl.abort() }
   }, [q])
 
@@ -350,31 +374,31 @@ function TabBuscar({ onCreado }: { onCreado: () => void }) {
             className="input pl-9 w-full" />
         </div>
       </label>
-      {q.trim().length < 2 ? (
-        <p className="text-tertiary text-xs">Escribe al menos 2 caracteres.</p>
-      ) : buscando ? (
-        <p className="text-tertiary text-xs">Buscando...</p>
+      {buscando && resultados.length === 0 ? (
+        <p className="text-tertiary text-xs">Cargando directorio...</p>
       ) : resultados.length === 0 ? (
-        <p className="text-tertiary text-xs">No hay coincidencias. Prueba la pestaña <strong>Crear nuevo</strong>.</p>
+        <p className="text-tertiary text-xs">No hay RRPP públicos {q ? 'que coincidan' : 'disponibles'}. Prueba la pestaña <strong>Crear nuevo</strong>.</p>
       ) : (
-        <ul className="space-y-1.5 max-h-64 overflow-y-auto">
+        <ul className="space-y-1.5 max-h-72 overflow-y-auto">
           {resultados.map(r => (
-            <li key={r.id}>
-              <button onClick={() => setSeleccionado(r)}
-                className="w-full card-premium p-2.5 flex items-center gap-3 text-left hover:bg-white/[0.04]">
-                {r.foto_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.foto_url} alt="" className="w-9 h-9 rounded-full object-cover" />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-rose-400/20 flex items-center justify-center text-sm">
-                    {r.nombre_publico.slice(0, 1)}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-display text-sm truncate">{r.nombre_publico}</p>
-                  <p className="text-tertiary text-xs">@{r.slug}{r.instagram ? ` · IG @${r.instagram}` : ''}</p>
+            <li key={r.id} className="card-premium p-2.5 flex items-center gap-3">
+              {r.foto_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={r.foto_url} alt="" className="w-9 h-9 rounded-full object-cover" />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-rose-400/20 flex items-center justify-center text-sm shrink-0">
+                  {r.nombre_publico.slice(0, 1)}
                 </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-display text-sm truncate">{r.nombre_publico}</p>
+                <p className="text-tertiary text-xs truncate">@{r.slug}{r.instagram ? ` · IG @${r.instagram}` : ''}</p>
+              </div>
+              <button onClick={() => onContactar({ id: r.id, nombre_publico: r.nombre_publico, slug: r.slug })}
+                className="btn-ghost text-xs px-2.5 py-1.5 shrink-0" title="Contactar por chat">
+                <MessageCircle className="w-4 h-4" />
               </button>
+              <button onClick={() => setSeleccionado(r)} className="btn-primary text-xs px-3 py-1.5 shrink-0">Invitar</button>
             </li>
           ))}
         </ul>

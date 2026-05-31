@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Sparkles, Link as LinkIcon, Wallet, ExternalLink, Check, X, ShieldOff } from 'lucide-react'
+import { ChatRrpp } from '@/components/chat/ChatRrpp'
 
 type LocalInfo = { id: string; nombre: string; foto_url: string | null; tier: string }
 type Venue = {
@@ -201,6 +202,11 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
 
   const [copiado, setCopiado] = useState(false)
   const [copiadoLink, setCopiadoLink] = useState(false)
+  const [conversaciones, setConversaciones] = useState<{ local_id: string; nombre: string; ultimo: string | null; no_leidos: number }[]>([])
+  const [chatConLocal, setChatConLocal] = useState<{ local_id: string; nombre: string } | null>(null)
+  useEffect(() => {
+    fetch('/api/rrpp/chat').then(r => r.ok ? r.json() : null).then(d => { if (d) setConversaciones(d.conversaciones ?? []) }).catch(() => {})
+  }, [chatConLocal])
   const codigoRef = (rrpp.slug || '').toUpperCase()
   const linkHost = typeof window !== 'undefined' ? window.location.host : 'rumbomap.com'
   const miLink = typeof window !== 'undefined' ? `${window.location.origin}/r/${rrpp.slug}` : `https://rumbomap.com/r/${rrpp.slug}`
@@ -267,6 +273,26 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
             </button>
           </div>
         </section>
+
+        {/* Mensajes con los locales */}
+        {conversaciones.length > 0 && (
+          <section>
+            <h2 className="eyebrow eyebrow-rose mb-3">Mensajes</h2>
+            <div className="space-y-2">
+              {conversaciones.map(c => (
+                <button key={c.local_id} onClick={() => setChatConLocal({ local_id: c.local_id, nombre: c.nombre })}
+                  className="w-full card-premium p-3 flex items-center gap-3 text-left hover:bg-white/[0.04]">
+                  <div className="w-10 h-10 rounded-full bg-rose-400/20 flex items-center justify-center shrink-0">{c.nombre.slice(0, 1)}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-display text-sm truncate">{c.nombre}</p>
+                    <p className="text-tertiary text-xs truncate">{c.ultimo || 'Sin mensajes'}</p>
+                  </div>
+                  {c.no_leidos > 0 && <span className="shrink-0 rounded-full bg-rose-500 px-2 py-0.5 text-xs font-bold text-white">{c.no_leidos}</span>}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         {pendientes.length > 0 && (
           <section>
@@ -353,6 +379,17 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
           lo que el local te debe según las ventas atribuidas. El pago lo gestionáis vosotros.
         </footer>
       </div>
+
+      {chatConLocal && (
+        <ChatRrpp
+          titulo={chatConLocal.nombre}
+          getUrl={`/api/rrpp/chat?local_id=${chatConLocal.local_id}`}
+          postUrl="/api/rrpp/chat"
+          postBody={{ local_id: chatConLocal.local_id }}
+          yo="rrpp"
+          onClose={() => setChatConLocal(null)}
+        />
+      )}
     </div>
   )
 }

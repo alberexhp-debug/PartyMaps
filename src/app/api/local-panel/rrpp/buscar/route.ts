@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminSupabaseClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getTrabajadorLocal } from '@/lib/rrpp/auth'
 
 const ROLES_GESTION = ['dueno', 'gestor'] as const
@@ -7,12 +7,9 @@ const ROLES_GESTION = ['dueno', 'gestor'] as const
 /**
  * GET /api/local-panel/rrpp/buscar?q=<query>
  *
- * Buscador de RRPPs visibles públicamente. Filtra por slug, nombre público
- * o Instagram. Solo muestra RRPPs con visible_en_busqueda=true,
- * estado_alta='completo' y activo=true.
- *
- * Excluye los que ya tienen relación con este local (cualquier estado),
- * para que el panel pueda ofrecer "invitar a otros que no tengas todavía".
+ * Directorio de RRPP con perfil público (visible_en_busqueda=true, completos y
+ * activos). Sin `q` devuelve el listado para navegar; con `q` filtra por slug,
+ * nombre o Instagram. Excluye los ya vinculados a este local.
  */
 export async function GET(req: NextRequest) {
   const t = await getTrabajadorLocal()
@@ -23,11 +20,8 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url)
   const q = (url.searchParams.get('q') || '').trim().toLowerCase()
-  if (q.length < 2) {
-    return NextResponse.json({ rrpps: [] })
-  }
 
-  const admin = await createAdminSupabaseClient()
+  const admin = createServiceRoleClient()
 
   // RRPPs ya vinculados a este local (cualquier estado) — los excluimos
   const { data: yaVinculados } = await admin
@@ -36,15 +30,18 @@ export async function GET(req: NextRequest) {
     .eq('local_id', t.local_id)
   const excluir = new Set((yaVinculados ?? []).map(r => r.rrpp_id))
 
-  // Buscar por slug, nombre o instagram (case-insensitive)
-  const { data, error } = await admin
+  // Directorio de RRPP públicos. Con q filtra; sin q lista los más recientes.
+  let query = admin
     .from('rrpp')
     .select('id, slug, nombre_publico, foto_url, bio, instagram, tiktok')
     .eq('activo', true)
     .eq('visible_en_busqueda', true)
     .eq('estado_alta', 'completo')
-    .or(`slug.ilike.%${q}%,nombre_publico.ilike.%${q}%,instagram.ilike.%${q}%`)
-    .limit(20)
+    .order('created_at', { ascending: false })
+    .limit(q ? 20 : 40)
+  if (q.length >= 2) query = query.or(`slug.ilike.%${q}%,nombre_publico.ilike.%${q}%,instagram.ilike.%${q}%`)
+
+  const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const rrpps = (data ?? []).filter(r => !excluir.has(r.id))
