@@ -326,16 +326,16 @@ export default function LocalPanelDashboard() {
       <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-white flex items-center gap-2 text-sm">
-            <Gauge size={15} className="text-[#E94560]" /> Aforo ahora mismo
+            <Gauge size={15} className="text-[#E94560]" /> Afluencia ahora mismo
           </h2>
           <button onClick={() => router.push('/local-panel/configuracion?tab=aforo')}
             className="text-xs text-[#8B8BA8] hover:text-white transition-colors">
-            Aforo por día <ChevronRight size={11} className="inline" />
+            Afluencia por día <ChevronRight size={11} className="inline" />
           </button>
         </div>
         <p className="text-xs text-[#6B6B85]">
           Ajuste puntual de lo lleno que ve la gente esta noche. Expira a las 6:00 AM.
-          El nivel base de cada día se configura en <span className="text-[#A0A0B8]">Aforo por día</span>.
+          El nivel base de cada día se configura en <span className="text-[#A0A0B8]">Afluencia por día</span>.
         </p>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -483,7 +483,7 @@ function DashboardOperador() {
       body: JSON.stringify({ local_id: local.id, porcentaje: aforoSlider, worker_id: trabajador.usuario_id }),
     })
     setGuardando(false)
-    toast.success('Aforo actualizado')
+    toast.success('Afluencia actualizada')
   }
 
   return (

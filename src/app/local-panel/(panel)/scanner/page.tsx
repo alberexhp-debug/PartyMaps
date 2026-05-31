@@ -44,7 +44,7 @@ export default function ScannerPage() {
     setLocal({ ...local, aforo_correccion_manual: aforoSlider, aforo_correccion_manual_expires: expira.toISOString() })
     setGuardandoAforo(false)
     setAforoSlider(null)
-    toast.success('Aforo actualizado')
+    toast.success('Afluencia actualizada')
   }
 
   const iniciarCamara = async () => {
@@ -150,7 +150,7 @@ export default function ScannerPage() {
       <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-4 space-y-3 max-w-sm mx-auto w-full">
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-white flex items-center gap-2">
-            <Gauge size={15} className="text-[#E0455E]" /> Aforo ahora
+            <Gauge size={15} className="text-[#E0455E]" /> Afluencia ahora
           </span>
           <span className="text-2xl font-bold text-display text-numeric" style={{ color: colorAforo }}>
             {aforoActual}%
@@ -160,7 +160,7 @@ export default function ScannerPage() {
           type="range" min={0} max={100} step={5} value={aforoActual}
           onChange={e => setAforoSlider(Number(e.target.value))}
           className="w-full accent-[#E0455E]"
-          aria-label="Aforo ahora mismo"
+          aria-label="Afluencia ahora mismo"
         />
         <div className="flex items-center justify-between">
           <span className="text-xs" style={{ color: colorAforo }}>{getLabelTemperatura(getTemperaturaAforo(aforoActual))}</span>

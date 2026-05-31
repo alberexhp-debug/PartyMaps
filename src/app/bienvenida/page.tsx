@@ -11,7 +11,7 @@ const slides = [
     color: '#E94560',
     eyebrow: 'Mapa en vivo',
     title: 'La noche\nde Madrid\nen un vistazo',
-    description: 'Mapa de calor en tiempo real con el aforo de cada local. Decide antes de salir.',
+    description: 'Mapa de calor en tiempo real con la afluencia de cada local. Decide antes de salir.',
   },
   {
     icon: Users,

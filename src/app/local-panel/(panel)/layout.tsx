@@ -24,7 +24,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     titulo: 'La noche',
     items: [
-      { zona: 'scanner',     href: '/local-panel/scanner',     icon: Gauge, label: 'Aforo & Puerta' },
+      { zona: 'scanner',     href: '/local-panel/scanner',     icon: Gauge, label: 'Afluencia & Puerta' },
       { zona: 'pedidos-bar', href: '/local-panel/pedidos-bar', icon: Beer,  label: 'Barra' },
       { zona: 'sala',        href: '/local-panel/sala',        icon: LayoutGrid, label: 'Sala & Mesas' },
     ],

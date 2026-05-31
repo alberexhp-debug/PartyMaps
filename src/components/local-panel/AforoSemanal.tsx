@@ -41,7 +41,7 @@ export function AforoSemanal({ local, onSaved }: { local: Local; onSaved?: (l: L
       .single()
     setGuardando(false)
     if (error) { toast.error('No se pudo guardar el aforo'); return }
-    toast.success('Aforo por día guardado')
+    toast.success('Afluencia por día guardada')
     if (data) onSaved?.(data)
   }
 
@@ -92,7 +92,7 @@ export function AforoSemanal({ local, onSaved }: { local: Local; onSaved?: (l: L
       </div>
 
       <Button fullWidth loading={guardando} onClick={guardar}>
-        <Gauge size={15} /> Guardar aforo por día
+        <Gauge size={15} /> Guardar afluencia por día
       </Button>
     </div>
   )

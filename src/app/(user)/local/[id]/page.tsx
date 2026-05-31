@@ -473,7 +473,7 @@ export default function LocalPerfilPage() {
             <div className="h-full rounded-full transition-all" style={{ width: `${local.aforo_estimado_porcentaje || 0}%`, background: colorTemp }} />
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-[#6B6B85]">Aforo estimado en tiempo real</span>
+            <span className="text-xs text-[#6B6B85]">Afluencia estimada en tiempo real</span>
             {local.aforo_maximo > 0 && (
               <span className="text-xs text-[#6B6B85]">
                 ~{Math.round((local.aforo_estimado_porcentaje || 0) / 100 * local.aforo_maximo).toLocaleString('es-ES')} de {local.aforo_maximo.toLocaleString('es-ES')}
