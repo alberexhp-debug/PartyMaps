@@ -300,6 +300,29 @@ async function verificarQR(qrData: string, localId: string, modoConsumicion: boo
     }
   }
 
+  // QR de cortesía (PMK:) — consumición/descuento/entrada gratis regalada
+  if (qrData.startsWith('PMK:')) {
+    try {
+      const res = await fetch('/api/local-panel/cortesias/canjear', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ qr_code: qrData }),
+      })
+      const j = await res.json()
+      if (!res.ok) {
+        return { tipo: 'qr_invalido', mensaje: j.error || 'No se pudo canjear la cortesía' }
+      }
+      const c = j.cortesia
+      const para = c.beneficiario_nombre ? ` · ${c.beneficiario_nombre}` : ''
+      return {
+        tipo: 'consumicion_ok',
+        mensaje: `🎁 Cortesía canjeada: ${c.descripcion}${para}`,
+        timestamp: new Date().toISOString(),
+      } as ResultadoEscaneoQR
+    } catch {
+      return { tipo: 'qr_invalido', mensaje: 'Error de red al canjear la cortesía' }
+    }
+  }
+
   // Format: PM2:<entrada_id>
   if (!qrData.startsWith('PM2:')) {
     return { tipo: 'qr_invalido', mensaje: 'QR no reconocido. No es de Rumbo.' }

@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 import {
   LayoutDashboard, Settings, Calendar, Bell,
   Star, BarChart3, Users, CreditCard, LogOut, MessageSquare,
-  Beer, Gauge, MoreHorizontal, X, LayoutGrid, Sparkles,
+  Beer, Gauge, MoreHorizontal, X, LayoutGrid, Sparkles, Gift,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
@@ -28,6 +28,7 @@ const NAV_GROUPS: NavGroup[] = [
       { zona: 'scanner',     href: '/local-panel/scanner',     icon: Gauge, label: 'Afluencia & Puerta' },
       { zona: 'pedidos-bar', href: '/local-panel/pedidos-bar', icon: Beer,  label: 'Barra' },
       { zona: 'sala',        href: '/local-panel/sala',        icon: LayoutGrid, label: 'Sala & Mesas' },
+      { zona: 'cortesias',   href: '/local-panel/cortesias',   icon: Gift, label: 'Cortesías' },
     ],
   },
   {
