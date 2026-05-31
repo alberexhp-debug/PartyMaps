@@ -9,7 +9,8 @@ interface ItemBody { producto_id: string; cantidad: number }
  * POST /api/pedidos-bar
  * Body: { local_id, items: [{producto_id, cantidad}], notas? }
  * Crea un pedido en estado 'pagado' (de momento sin Stripe), genera QR PMB:...,
- * snapshot de nombres y precios, calcula comisión 8% (sumada al usuario).
+ * snapshot de nombres y precios. La comisión sale del tier del local
+ * (calcularComision, igual que las entradas), no es fija.
  */
 export async function POST(req: NextRequest) {
   const supa = await createServerSupabaseClient()
