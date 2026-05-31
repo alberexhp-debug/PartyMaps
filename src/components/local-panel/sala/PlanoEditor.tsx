@@ -5,7 +5,12 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { Planta, Mesa, TipoMesa, FormaMesa } from '@/types'
-import { Plus, Trash2, Pencil, Move } from 'lucide-react'
+import { Plus, Minus, Trash2, Pencil, Move, Maximize2 } from 'lucide-react'
+
+const ZOOM_MIN = 0.6
+const ZOOM_MAX = 4
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
+const clamp01 = (v: number) => clamp(v, 0, 1)
 
 interface Props {
   localId: string
@@ -41,6 +46,80 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
 
   const mesasPlanta = mesas.filter(m => m.planta_id === plantaId)
   const seleccionada = mesas.find(m => m.id === selId) ?? null
+
+  // ── Zoom / Pan del lienzo ────────────────────────────────────
+  // view = transformación del "mundo": z=escala, x/y=desplazamiento en px.
+  const [view, setView] = useState({ z: 1, x: 0, y: 0 })
+  const viewRef = useRef(view)
+  viewRef.current = view
+  const ptrs = useRef<Map<number, { x: number; y: number }>>(new Map())
+  const panStart = useRef<{ px: number; py: number; vx: number; vy: number } | null>(null)
+  const pinchStart = useRef<{ dist: number; z: number; cx: number; cy: number; vx: number; vy: number } | null>(null)
+
+  /** Aplica un zoom manteniendo fijo el punto (cx,cy) relativo al viewport. */
+  const zoomEn = (cx: number, cy: number, factor: number) => {
+    setView(v => {
+      const nz = clamp(v.z * factor, ZOOM_MIN, ZOOM_MAX)
+      const worldX = (cx - v.x) / v.z
+      const worldY = (cy - v.y) / v.z
+      return { z: nz, x: cx - worldX * nz, y: cy - worldY * nz }
+    })
+  }
+  const resetVista = () => setView({ z: 1, x: 0, y: 0 })
+  /** Zoom desde los botones: mantiene fijo el centro del lienzo. */
+  const zoomBtn = (factor: number) => {
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+    zoomEn(rect.width / 2, rect.height / 2, factor)
+  }
+
+  const onCanvasWheel = (e: React.WheelEvent) => {
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+    zoomEn(e.clientX - rect.left, e.clientY - rect.top, e.deltaY < 0 ? 1.12 : 1 / 1.12)
+  }
+
+  const onCanvasPointerDown = (e: React.PointerEvent) => {
+    // Sólo el fondo (no una mesa, que hace stopPropagation): deselecciona + inicia pan/pinch.
+    setSelId(null)
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (ptrs.current.size === 1) {
+      panStart.current = { px: e.clientX, py: e.clientY, vx: viewRef.current.x, vy: viewRef.current.y }
+    } else if (ptrs.current.size === 2) {
+      const [a, b] = [...ptrs.current.values()]
+      const rect = canvasRef.current!.getBoundingClientRect()
+      pinchStart.current = {
+        dist: Math.hypot(a.x - b.x, a.y - b.y), z: viewRef.current.z,
+        cx: (a.x + b.x) / 2 - rect.left, cy: (a.y + b.y) / 2 - rect.top,
+        vx: viewRef.current.x, vy: viewRef.current.y,
+      }
+      panStart.current = null
+    }
+  }
+
+  const onCanvasPointerMove = (e: React.PointerEvent) => {
+    if (!ptrs.current.has(e.pointerId)) return
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (ptrs.current.size >= 2 && pinchStart.current) {
+      const [a, b] = [...ptrs.current.values()]
+      const d = Math.hypot(a.x - b.x, a.y - b.y)
+      const ps = pinchStart.current
+      const nz = clamp(ps.z * (d / ps.dist), ZOOM_MIN, ZOOM_MAX)
+      const worldX = (ps.cx - ps.vx) / ps.z
+      const worldY = (ps.cy - ps.vy) / ps.z
+      setView({ z: nz, x: ps.cx - worldX * nz, y: ps.cy - worldY * nz })
+    } else if (panStart.current) {
+      const p = panStart.current
+      setView(v => ({ ...v, x: p.vx + (e.clientX - p.px), y: p.vy + (e.clientY - p.py) }))
+    }
+  }
+
+  const onCanvasPointerUp = (e: React.PointerEvent) => {
+    ptrs.current.delete(e.pointerId)
+    if (ptrs.current.size < 2) pinchStart.current = null
+    if (ptrs.current.size === 0) panStart.current = null
+  }
 
   // ── Plantas ──────────────────────────────────────────────────
   const addPlanta = async () => {
@@ -121,8 +200,10 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
     if (!dragRef.current || dragRef.current.id !== m.id) return
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
-    const x = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
-    const y = Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height))
+    // Convertir px de pantalla → coord normalizada del mundo (con zoom/pan).
+    const v = viewRef.current
+    const x = clamp01((e.clientX - rect.left - v.x) / (v.z * rect.width))
+    const y = clamp01((e.clientY - rect.top - v.y) / (v.z * rect.height))
     dragRef.current.moved = true
     setMesas(prev => prev.map(x2 => (x2.id === m.id ? { ...x2, pos_x: x, pos_y: y } : x2)))
   }
@@ -180,54 +261,81 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
         {/* Lienzo */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-[#6B6B85] flex items-center gap-1.5"><Move size={12} /> Arrastra las mesas. Toca una para editarla.</p>
+            <p className="text-xs text-[#6B6B85] flex items-center gap-1.5"><Move size={12} /> Arrastra mesas. Rueda/pellizco para zoom; arrastra el fondo para mover.</p>
             <Button size="sm" variant="secondary" onClick={addMesa}><Plus size={14} /> Mesa</Button>
           </div>
           <div
             ref={canvasRef}
-            onPointerDown={() => setSelId(null)}
-            className="relative w-full aspect-[4/3] rounded-2xl border border-white/10 overflow-hidden select-none"
-            style={{
-              background: '#0C0C15',
-              backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-              backgroundSize: '6.25% 8.33%',
-            }}
+            onPointerDown={onCanvasPointerDown}
+            onPointerMove={onCanvasPointerMove}
+            onPointerUp={onCanvasPointerUp}
+            onPointerCancel={onCanvasPointerUp}
+            onWheel={onCanvasWheel}
+            className="relative w-full aspect-[4/3] rounded-2xl border border-white/10 overflow-hidden select-none cursor-grab active:cursor-grabbing"
+            style={{ background: '#0C0C15', touchAction: 'none' }}
           >
-            {mesasPlanta.map(m => {
-              const c = colorMesa(m.tipo)
-              const sel = m.id === selId
-              return (
-                <div
-                  key={m.id}
-                  onPointerDown={e => onPointerDown(e, m)}
-                  onPointerMove={e => onPointerMove(e, m)}
-                  onPointerUp={e => onPointerUp(e, m)}
-                  className={cn(
-                    'absolute flex flex-col items-center justify-center cursor-grab active:cursor-grabbing',
-                    m.forma === 'redonda' ? 'rounded-full' : m.forma === 'rect' ? 'rounded-lg' : 'rounded-md',
-                  )}
-                  style={{
-                    left: `${m.pos_x * 100}%`,
-                    top: `${m.pos_y * 100}%`,
-                    width: `${m.ancho * 100}%`,
-                    height: `${m.alto * 100}%`,
-                    transform: 'translate(-50%, -50%)',
-                    background: c.bg,
-                    border: `2px solid ${c.border}`,
-                    boxShadow: sel ? `0 0 0 2px #fff, 0 0 18px ${c.border}` : 'none',
-                    touchAction: 'none',
-                  }}
-                >
-                  <span className="text-[10px] font-bold text-white leading-none pointer-events-none">{m.codigo}</span>
-                  <span className="text-[8px] text-white/70 leading-none mt-0.5 pointer-events-none">{m.capacidad}p</span>
-                </div>
-              )
-            })}
+            {/* Mundo transformable (zoom + pan). El grid escala con el contenido. */}
+            <div
+              className="absolute inset-0 origin-top-left"
+              style={{
+                transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})`,
+                backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+                backgroundSize: '6.25% 8.33%',
+              }}
+            >
+              {mesasPlanta.map(m => {
+                const c = colorMesa(m.tipo)
+                const sel = m.id === selId
+                return (
+                  <div
+                    key={m.id}
+                    onPointerDown={e => onPointerDown(e, m)}
+                    onPointerMove={e => onPointerMove(e, m)}
+                    onPointerUp={e => onPointerUp(e, m)}
+                    className={cn(
+                      'absolute flex flex-col items-center justify-center cursor-grab active:cursor-grabbing',
+                      m.forma === 'redonda' ? 'rounded-full' : m.forma === 'rect' ? 'rounded-lg' : 'rounded-md',
+                    )}
+                    style={{
+                      left: `${m.pos_x * 100}%`,
+                      top: `${m.pos_y * 100}%`,
+                      width: `${m.ancho * 100}%`,
+                      height: `${m.alto * 100}%`,
+                      transform: 'translate(-50%, -50%)',
+                      background: c.bg,
+                      border: `2px solid ${c.border}`,
+                      boxShadow: sel ? `0 0 0 2px #fff, 0 0 18px ${c.border}` : 'none',
+                      touchAction: 'none',
+                    }}
+                  >
+                    <span className="text-[10px] font-bold text-white leading-none pointer-events-none">{m.codigo}</span>
+                    <span className="text-[8px] text-white/70 leading-none mt-0.5 pointer-events-none">{m.capacidad}p</span>
+                  </div>
+                )
+              })}
+            </div>
+
             {mesasPlanta.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <p className="text-sm text-[#6B6B85]">Añade mesas con el botón “Mesa”.</p>
               </div>
             )}
+
+            {/* Controles de zoom (no propagan al pan del fondo) */}
+            <div
+              className="absolute bottom-3 right-3 flex flex-col gap-1.5"
+              onPointerDown={e => e.stopPropagation()}
+            >
+              <button onClick={() => zoomBtn(1.25)} aria-label="Acercar"
+                className="h-9 w-9 flex items-center justify-center rounded-xl glass-strong border border-white/10 text-white hover:bg-white/10"><Plus size={16} /></button>
+              <button onClick={() => zoomBtn(0.8)} aria-label="Alejar"
+                className="h-9 w-9 flex items-center justify-center rounded-xl glass-strong border border-white/10 text-white hover:bg-white/10"><Minus size={16} /></button>
+              <button onClick={resetVista} aria-label="Ajustar"
+                className="h-9 w-9 flex items-center justify-center rounded-xl glass-strong border border-white/10 text-[#B8B8CC] hover:bg-white/10 hover:text-white"><Maximize2 size={15} /></button>
+            </div>
+            <span className="absolute bottom-3 left-3 rounded-lg glass-strong border border-white/10 px-2 py-1 text-[10px] font-medium text-[#B8B8CC] pointer-events-none">
+              {Math.round(view.z * 100)}%
+            </span>
           </div>
         </div>
 
