@@ -9,8 +9,6 @@ import { useToast } from '@/components/ui/Toast'
 import { formatearHora, puedeCrearPlan } from '@/lib/utils'
 import { Users, Plus, MapPin, Clock, ChevronRight, Search, UserCheck, Lock } from 'lucide-react'
 import { LocalImagen } from '@/components/ui/LocalImagen'
-import { SkeletonPlanCard } from '@/components/ui/ErrorState'
-import { cn } from '@/lib/utils'
 
 type PlanConLocal = PlanPublico & { locales?: Local }
 
@@ -108,11 +106,13 @@ function PlanesContent() {
         </p>
       )}
 
-      {/* Lista */}
+      {/* Lista — feed compacto de una columna */}
       <div className="px-4 pb-8">
         {loading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => <SkeletonPlanCard key={i} />)}
+          <div className="space-y-2.5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-[84px] rounded-2xl bg-white/5 animate-pulse" />
+            ))}
           </div>
         ) : planesFiltrados.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
@@ -132,7 +132,7 @@ function PlanesContent() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2.5">
             {planesFiltrados.map(plan => (
               <PlanCard
                 key={plan.id}
@@ -168,45 +168,44 @@ function PlanCard({ plan, currentUserId, onUnirse, onVer, loading }: {
   const pct = plan.total_personas > 0 ? Math.round((ocupados / plan.total_personas) * 100) : 0
 
   return (
-    <div className="group flex flex-col card-premium overflow-hidden hover:-translate-y-0.5 transition-transform">
-      {/* Imagen arriba con nombre sobreimpreso */}
-      <button onClick={onVer} className="relative aspect-[4/3] w-full overflow-hidden text-left">
+    <div className="flex items-stretch gap-3 card-premium p-2.5 rounded-2xl">
+      {/* Miniatura del local */}
+      <button onClick={onVer} className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl">
         <LocalImagen src={plan.locales?.imagenes?.[0]} nombre={plan.locales?.nombre || ''} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
         {esMio && (
-          <span className="absolute top-2 right-2 text-[10px] px-2 py-0.5 bg-[#E94560] rounded-full text-white font-semibold shadow-[0_2px_8px_rgba(233,69,96,0.5)]">Mío</span>
+          <span className="absolute left-1 top-1 rounded-full bg-[#E94560] px-1.5 py-px text-[8px] font-bold text-white">Mío</span>
         )}
-        <div className="absolute bottom-0 left-0 right-0 p-2.5">
-          <p className="font-bold text-white text-sm truncate leading-tight">{plan.locales?.nombre}</p>
-          <div className="flex items-center gap-1.5 text-[10px] text-white/75 mt-0.5">
-            <span className="flex items-center gap-1"><Clock size={9} className="shrink-0" /> {formatearHora(plan.hora_llegada)}</span>
-            <span className="text-white/30">·</span>
-            <span className="flex items-center gap-1 truncate"><MapPin size={9} className="shrink-0" /> {plan.locales?.ciudad}</span>
+      </button>
+
+      {/* Info */}
+      <button onClick={onVer} className="min-w-0 flex-1 text-left">
+        <p className="truncate text-sm font-semibold leading-tight text-white">{plan.locales?.nombre}</p>
+        <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[#8B8BA8]">
+          <span className="flex items-center gap-1"><Clock size={10} className="shrink-0" /> {formatearHora(plan.hora_llegada)}</span>
+          <span className="text-white/20">·</span>
+          <span className="flex items-center gap-1 truncate"><MapPin size={10} className="shrink-0" /> {plan.locales?.ciudad}</span>
+        </div>
+        {plan.descripcion
+          ? <p className="mt-1 truncate text-[11px] text-[#8B8BA8]">{plan.descripcion}</p>
+          : <p className="mt-1 text-[11px] text-[#6B6B85]">Únete y salid juntos</p>}
+        {/* Plazas */}
+        <div className="mt-1.5 flex items-center gap-2">
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/8">
+            <div className="h-full rounded-full bg-[#E94560] transition-all" style={{ width: `${pct}%` }} />
           </div>
+          <span className="shrink-0 text-[10px] text-[#8B8BA8]"><span className="font-semibold text-white text-numeric">{ocupados}</span>/{plan.total_personas}</span>
         </div>
       </button>
 
-      {/* Contenido abajo */}
-      <div className="p-2.5 flex flex-col gap-2">
-        {plan.descripcion && (
-          <p className="text-[11px] text-[#8B8BA8] line-clamp-1">{plan.descripcion}</p>
-        )}
-        <div>
-          <div className="flex items-center justify-between text-[10px] mb-1">
-            <span className="text-white font-semibold text-numeric">{ocupados}/{plan.total_personas}</span>
-            <span className="text-[#8B8BA8]">{plan.huecos_disponibles} libres</span>
-          </div>
-          <div className="w-full h-1 bg-white/8 rounded-full overflow-hidden">
-            <div className="h-full bg-[#E94560] rounded-full transition-all" style={{ width: `${pct}%` }} />
-          </div>
-        </div>
+      {/* Acción */}
+      <div className="flex shrink-0 items-center">
         {!esMio ? (
-          <Button size="sm" className="h-8 text-xs w-full" loading={loading} onClick={onUnirse}>
-            <UserCheck size={12} /> Unirse al plan
+          <Button size="sm" className="h-9 px-3 text-xs" loading={loading} onClick={onUnirse}>
+            <UserCheck size={13} /> Unirme
           </Button>
         ) : (
-          <button onClick={onVer} className="flex items-center justify-center gap-1 h-8 text-xs text-[#8B8BA8] hover:text-white transition-colors border border-white/8 rounded-xl">
-            Ver plan <ChevronRight size={11} />
+          <button onClick={onVer} aria-label="Ver plan" className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/8 text-[#8B8BA8] hover:text-white transition-colors">
+            <ChevronRight size={16} />
           </button>
         )}
       </div>
