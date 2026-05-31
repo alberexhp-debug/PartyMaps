@@ -34,6 +34,15 @@ export default function ComprarEntradaPage() {
       if (!localData) { router.push('/mapa'); return }
       setLocal(localData)
 
+      // Pre-selección de la consumición de bienvenida (viene del modal previo en la ficha del local)
+      const bienvenidaId = typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('bienvenida')
+        : null
+      if (bienvenidaId && bienvenidaId !== 'ninguna' && localData.consumiciones_bienvenida) {
+        const c = (localData.consumiciones_bienvenida as ConsumicionBienvenida[]).find((x: ConsumicionBienvenida) => x.id === bienvenidaId)
+        if (c) setConsumicionSeleccionada(c)
+      }
+
       const { data: eventoData } = await supabase
         .from('eventos')
         .select('*')

@@ -15,7 +15,7 @@ import {
   formatearPrecio, getTemperaturaAforo, tiempoRelativo, getLabelMusica, youtubeId
 } from '@/lib/utils'
 import {
-  ChevronLeft, ChevronRight, Bell, BellOff, MapPin, Clock, Music, Ticket,
+  ChevronLeft, ChevronRight, Check, Bell, BellOff, MapPin, Clock, Music, Ticket,
   Star, MessageSquare, Lightbulb, Share2, Navigation, PenLine, X,
   LogIn, LogOut, Trophy, Target, Send, Sparkles, Beer, Sofa,
 } from 'lucide-react'
@@ -34,6 +34,8 @@ export default function LocalPerfilPage() {
   const [loading, setLoading] = useState(true)
   const [imagenActiva, setImagenActiva] = useState(0)
   const [tab, setTab] = useState<'info' | 'reviews' | 'modulos'>('info')
+  const [showBienvenida, setShowBienvenida] = useState(false)
+  const [bienvenidaSel, setBienvenidaSel] = useState<string | null>(null)
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [miReview, setMiReview] = useState<Review | null>(null)
   const [checkinActivo, setCheckinActivo] = useState<string | null>(null)
@@ -334,6 +336,15 @@ export default function LocalPerfilPage() {
     .sort((a, b) => new Date(a.fecha_inicio ?? 0).getTime() - new Date(b.fecha_inicio ?? 0).getTime())
   const eventoActivo = eventosPublicados[0]
   const masEventos = eventosPublicados.slice(1)
+
+  // Antes de comprar, si el local ofrece consumición de bienvenida, la ofrecemos en un modal.
+  const irAComprar = () => {
+    if (local.consumiciones_bienvenida?.length) { setShowBienvenida(true); return }
+    router.push(`/local/${id}/comprar`)
+  }
+  const continuarCompra = () => {
+    router.push(`/local/${id}/comprar?bienvenida=${bienvenidaSel ?? 'ninguna'}`)
+  }
   const mediaReviews = reviews.length > 0 ? reviews.reduce((a, r) => a + r.puntuacion, 0) / reviews.length : 0
   const diasSemana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
   const diasCompleto = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
@@ -464,7 +475,7 @@ export default function LocalPerfilPage() {
         {/* Evento — banner */}
         {eventoActivo && (
           <button
-            onClick={() => router.push(`/local/${id}/comprar`)}
+            onClick={irAComprar}
             className="group relative block w-full h-44 rounded-2xl overflow-hidden text-left active:scale-[0.99] transition-transform"
           >
             <LocalImagen src={eventoActivo.imagen_url} nombre={eventoActivo.nombre} />
@@ -506,7 +517,7 @@ export default function LocalPerfilPage() {
               {masEventos.map(ev => (
                 <button
                   key={ev.id}
-                  onClick={() => router.push(`/local/${id}/comprar`)}
+                  onClick={irAComprar}
                   className="flex items-center gap-3 w-full p-2.5 glass rounded-xl text-left hover:bg-white/8 transition-colors"
                 >
                   <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 relative">
@@ -888,11 +899,50 @@ export default function LocalPerfilPage() {
               {local.precio_entrada_min === 0 ? 'Gratis' : formatearPrecio(local.precio_entrada_min || 0)}
             </p>
           </div>
-          <Button className="flex-1" onClick={() => router.push(`/local/${local.id}/comprar`)}>
+          <Button className="flex-1" onClick={irAComprar}>
             <Ticket size={16} /> Comprar entrada
           </Button>
         </div>
       </div>
+
+      {/* Modal: consumición de bienvenida antes de comprar */}
+      {showBienvenida && local.consumiciones_bienvenida && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={() => setShowBienvenida(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full sm:max-w-md glass-strong rounded-t-3xl sm:rounded-3xl p-5 animate-slide-up safe-bottom" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-1">
+              <Beer size={18} className="text-[#E94560]" />
+              <h3 className="text-lg font-bold text-white text-display">Consumición de bienvenida</h3>
+            </div>
+            <p className="text-sm text-[#8B8BA8] mb-4">Este local te incluye una consumición. Elige la tuya y la verás aplicada en la compra.</p>
+            <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+              {local.consumiciones_bienvenida.map(c => {
+                const sel = bienvenidaSel === c.id
+                return (
+                  <button key={c.id} onClick={() => setBienvenidaSel(c.id)}
+                    className={cn('w-full flex items-center justify-between gap-3 p-3 rounded-xl border text-left transition-colors',
+                      sel ? 'bg-[#E94560]/12 border-[#E94560]/40' : 'bg-white/4 border-white/8 hover:bg-white/8')}>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-white text-sm truncate">{c.nombre || 'Consumición'}</p>
+                      {c.descripcion && <p className="text-xs text-[#8B8BA8] truncate">{c.descripcion}</p>}
+                    </div>
+                    {sel && <Check size={16} className="text-[#E94560] shrink-0" />}
+                  </button>
+                )
+              })}
+              <button onClick={() => setBienvenidaSel(null)}
+                className={cn('w-full flex items-center justify-between gap-3 p-3 rounded-xl border text-left transition-colors',
+                  bienvenidaSel === null ? 'bg-[#E94560]/12 border-[#E94560]/40' : 'bg-white/4 border-white/8 hover:bg-white/8')}>
+                <span className="text-sm text-white">Ninguna, gracias</span>
+                {bienvenidaSel === null && <Check size={16} className="text-[#E94560] shrink-0" />}
+              </button>
+            </div>
+            <Button fullWidth size="lg" className="mt-4" onClick={continuarCompra}>
+              Continuar a la compra <ChevronRight size={16} />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
