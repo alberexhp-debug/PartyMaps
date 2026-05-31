@@ -1,9 +1,18 @@
 'use client'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useGestorStore } from '@/lib/stores/useGestorStore'
-import { Store, Megaphone, Tag, Ticket, Wallet } from 'lucide-react'
+import { Store, Megaphone, Tag, Ticket, Wallet, ChevronRight } from 'lucide-react'
+
+type Resumen = { locales_total: number; locales_activos: number; rrpp_activos: number; incentivo_pct: number }
 
 export default function GestorDashboardPage() {
   const gestor = useGestorStore(s => s.gestor)
+  const [resumen, setResumen] = useState<Resumen | null>(null)
+
+  useEffect(() => {
+    fetch('/api/gestor/resumen').then(r => r.ok ? r.json() : null).then(setResumen).catch(() => {})
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -15,24 +24,28 @@ export default function GestorDashboardPage() {
         <p className="text-[#A0A0B8] mt-1.5">Da de alta locales y RRPP, y gestiona sus comisiones.</p>
       </div>
 
-      {/* KPIs (placeholder hasta el motor de atribución) */}
       <div className="grid grid-cols-3 gap-2">
-        <Kpi label="Locales activos" valor="—" icon={Store} />
-        <Kpi label="RRPP activos" valor="—" icon={Megaphone} />
+        <Kpi label="Locales activos" valor={resumen ? String(resumen.locales_activos) : '—'} icon={Store} />
+        <Kpi label="RRPP activos" valor={resumen ? String(resumen.rrpp_activos) : '—'} icon={Megaphone} />
         <Kpi label="Tu incentivo" valor={`${gestor?.incentivo_pct ?? 0}%`} icon={Wallet} accent />
       </div>
 
-      {/* Secciones del panel (se van construyendo) */}
       <div>
         <p className="eyebrow mb-3">Secciones</p>
         <div className="space-y-2">
-          <Seccion icon={Store} titulo="Locales" desc="Tu cartera de locales y dar de alta nuevos" />
-          <Seccion icon={Megaphone} titulo="RRPP" desc="Alta de RRPP, vincularlos a locales y fijar el %" />
-          <Seccion icon={Tag} titulo="Códigos de descuento" desc="Crear códigos pactados con los locales" />
-          <Seccion icon={Ticket} titulo="Entradas gratis" desc="Generar entradas gratis (según el plan del local)" />
+          <SeccionLink
+            href="/gestor/locales"
+            icon={Store}
+            titulo="Locales"
+            desc="Tu cartera de locales y dar de alta nuevos"
+            badge={resumen && resumen.locales_total > 0 ? `${resumen.locales_total} en cartera` : 'Empezar'}
+          />
+          <SeccionProximo icon={Megaphone} titulo="RRPP" desc="Alta de RRPP, vincularlos a locales y fijar el %" />
+          <SeccionProximo icon={Tag} titulo="Códigos de descuento" desc="Crear códigos pactados con los locales" />
+          <SeccionProximo icon={Ticket} titulo="Entradas gratis" desc="Generar entradas gratis (según el plan del local)" />
         </div>
         <p className="text-xs text-[#6B6B85] mt-3">
-          El panel se está construyendo. Estas secciones se irán activando.
+          Las secciones restantes se irán activando.
         </p>
       </div>
     </div>
@@ -49,10 +62,26 @@ function Kpi({ label, valor, icon: Icon, accent }: { label: string; valor: strin
   )
 }
 
-function Seccion({ icon: Icon, titulo, desc }: { icon: React.ElementType; titulo: string; desc: string }) {
+function SeccionLink({ href, icon: Icon, titulo, desc, badge }: { href: string; icon: React.ElementType; titulo: string; desc: string; badge?: string | null }) {
   return (
-    <div className="flex items-center gap-3.5 rounded-2xl glass px-4 py-3.5 opacity-70">
+    <Link href={href} className="group flex items-center gap-3.5 rounded-2xl glass px-4 py-3.5 transition-colors hover:bg-white/[0.07]">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7C5CFF]/15 text-[#9B82FF] border border-white/10">
+        <Icon size={18} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-white">{titulo}</p>
+        <p className="text-xs text-[#8B8BA8]">{desc}</p>
+      </div>
+      {badge && <span className="text-[10px] font-semibold text-[#9B82FF]">{badge}</span>}
+      <ChevronRight size={16} className="text-[#6B6B85] transition-transform group-hover:translate-x-0.5" />
+    </Link>
+  )
+}
+
+function SeccionProximo({ icon: Icon, titulo, desc }: { icon: React.ElementType; titulo: string; desc: string }) {
+  return (
+    <div className="flex items-center gap-3.5 rounded-2xl glass px-4 py-3.5 opacity-60">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-[#8B8BA8] border border-white/10">
         <Icon size={18} />
       </span>
       <div className="flex-1 min-w-0">
