@@ -109,9 +109,11 @@ function PlanesContent() {
       )}
 
       {/* Lista */}
-      <div className="px-4 pb-8 space-y-2">
+      <div className="px-4 pb-8">
         {loading ? (
-          Array.from({ length: 4 }).map((_, i) => <SkeletonPlanCard key={i} />)
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonPlanCard key={i} />)}
+          </div>
         ) : planesFiltrados.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
             <div className="w-16 h-16 rounded-2xl bg-white/4 border border-white/8 flex items-center justify-center">
@@ -130,16 +132,18 @@ function PlanesContent() {
             )}
           </div>
         ) : (
-          planesFiltrados.map(plan => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              currentUserId={usuario?.id}
-              onUnirse={() => unirse(plan)}
-              onVer={() => router.push(`/planes/${plan.id}`)}
-              loading={uniendose === plan.id}
-            />
-          ))
+          <div className="grid grid-cols-2 gap-3">
+            {planesFiltrados.map(plan => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                currentUserId={usuario?.id}
+                onUnirse={() => unirse(plan)}
+                onVer={() => router.push(`/planes/${plan.id}`)}
+                loading={uniendose === plan.id}
+              />
+            ))}
+          </div>
         )}
       </div>
 
@@ -164,54 +168,47 @@ function PlanCard({ plan, currentUserId, onUnirse, onVer, loading }: {
   const pct = plan.total_personas > 0 ? Math.round((ocupados / plan.total_personas) * 100) : 0
 
   return (
-    <div className="flex items-stretch bg-white/3 border border-white/6 rounded-2xl overflow-hidden hover:bg-white/5 transition-colors">
-      {/* Imagen cuadrada */}
-      <div className="w-20 flex-shrink-0 relative">
+    <div className="group flex flex-col card-premium overflow-hidden hover:-translate-y-0.5 transition-transform">
+      {/* Imagen arriba con nombre sobreimpreso */}
+      <button onClick={onVer} className="relative aspect-[4/3] w-full overflow-hidden text-left">
         <LocalImagen src={plan.locales?.imagenes?.[0]} nombre={plan.locales?.nombre || ''} />
-      </div>
-
-      {/* Contenido */}
-      <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
-        <div>
-          <div className="flex items-start justify-between gap-2">
-            <p className="font-semibold text-white text-sm truncate leading-tight">{plan.locales?.nombre}</p>
-            {esMio && <span className="shrink-0 text-[10px] px-2 py-0.5 bg-[#E94560]/10 border border-[#E94560]/25 rounded-full text-[#E94560] font-semibold">Mío</span>}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
+        {esMio && (
+          <span className="absolute top-2 right-2 text-[10px] px-2 py-0.5 bg-[#E94560] rounded-full text-white font-semibold shadow-[0_2px_8px_rgba(233,69,96,0.5)]">Mío</span>
+        )}
+        <div className="absolute bottom-0 left-0 right-0 p-2.5">
+          <p className="font-bold text-white text-sm truncate leading-tight">{plan.locales?.nombre}</p>
+          <div className="flex items-center gap-1.5 text-[10px] text-white/75 mt-0.5">
+            <span className="flex items-center gap-1"><Clock size={9} className="shrink-0" /> {formatearHora(plan.hora_llegada)}</span>
+            <span className="text-white/30">·</span>
+            <span className="flex items-center gap-1 truncate"><MapPin size={9} className="shrink-0" /> {plan.locales?.ciudad}</span>
           </div>
-          <div className="flex items-center gap-1 mt-0.5 text-[11px] text-[#8B8BA8]">
-            <MapPin size={9} className="shrink-0" />
-            <span className="truncate">{plan.locales?.ciudad}</span>
-          </div>
-          {plan.descripcion && (
-            <p className="text-[11px] text-[#8B8BA8] mt-1 line-clamp-1">{plan.descripcion}</p>
-          )}
         </div>
+      </button>
 
-        <div className="mt-2">
-          {/* Barra progreso */}
-          <div className="flex items-center justify-between text-[11px] mb-1">
-            <span className="text-[#8B8BA8] flex items-center gap-1">
-              <Clock size={9} /> {formatearHora(plan.hora_llegada)}
-            </span>
-            <span className="text-white font-medium">
-              {ocupados}/{plan.total_personas} <span className="text-[#8B8BA8]">personas</span>
-            </span>
+      {/* Contenido abajo */}
+      <div className="p-2.5 flex flex-col gap-2">
+        {plan.descripcion && (
+          <p className="text-[11px] text-[#8B8BA8] line-clamp-1">{plan.descripcion}</p>
+        )}
+        <div>
+          <div className="flex items-center justify-between text-[10px] mb-1">
+            <span className="text-white font-semibold text-numeric">{ocupados}/{plan.total_personas}</span>
+            <span className="text-[#8B8BA8]">{plan.huecos_disponibles} libres</span>
           </div>
-          <div className="w-full h-1 bg-white/8 rounded-full overflow-hidden mb-2">
+          <div className="w-full h-1 bg-white/8 rounded-full overflow-hidden">
             <div className="h-full bg-[#E94560] rounded-full transition-all" style={{ width: `${pct}%` }} />
           </div>
-
-          {/* Acciones */}
-          <div className="flex items-center gap-2">
-            {!esMio && (
-              <Button size="sm" className="h-7 text-xs px-3 flex-1" loading={loading} onClick={onUnirse}>
-                <UserCheck size={12} /> Unirse
-              </Button>
-            )}
-            <button onClick={onVer} className="flex items-center gap-1 px-3 h-7 text-xs text-[#8B8BA8] hover:text-white transition-colors">
-              Ver <ChevronRight size={11} />
-            </button>
-          </div>
         </div>
+        {!esMio ? (
+          <Button size="sm" className="h-8 text-xs w-full" loading={loading} onClick={onUnirse}>
+            <UserCheck size={12} /> Unirse al plan
+          </Button>
+        ) : (
+          <button onClick={onVer} className="flex items-center justify-center gap-1 h-8 text-xs text-[#8B8BA8] hover:text-white transition-colors border border-white/8 rounded-xl">
+            Ver plan <ChevronRight size={11} />
+          </button>
+        )}
       </div>
     </div>
   )
