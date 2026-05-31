@@ -24,12 +24,13 @@ const NAV_ITEMS = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated, admin, logout } = useAdminStore()
+  const { isAuthenticated, admin, hydrated, logout } = useAdminStore()
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/admin/login')
-  }, [isAuthenticated, router])
+    if (hydrated && !isAuthenticated) router.push('/admin/login')
+  }, [hydrated, isAuthenticated, router])
 
+  if (!hydrated) return null
   if (!isAuthenticated || !admin) return null
 
   const handleLogout = async () => {

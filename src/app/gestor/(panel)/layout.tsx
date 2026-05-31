@@ -6,12 +6,13 @@ import { LogOut } from 'lucide-react'
 
 export default function GestorPanelLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { isAuthenticated, gestor, logout } = useGestorStore()
+  const { isAuthenticated, gestor, hydrated, logout } = useGestorStore()
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/gestor/login')
-  }, [isAuthenticated, router])
+    if (hydrated && !isAuthenticated) router.push('/gestor/login')
+  }, [hydrated, isAuthenticated, router])
 
+  if (!hydrated) return null
   if (!isAuthenticated || !gestor) return null
 
   const handleLogout = async () => {

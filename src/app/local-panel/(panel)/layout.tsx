@@ -63,7 +63,7 @@ function zonaActual(pathname: string): ZonaPanel | null {
 export default function LocalPanelLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated, local, trabajador, logout } = useLocalPanelStore()
+  const { isAuthenticated, local, trabajador, hydrated, logout } = useLocalPanelStore()
   const rol = trabajador?.rol
   const [showMas, setShowMas] = useState(false)
 
@@ -80,16 +80,18 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   const itemsPlanos = useMemo(() => grupos.flatMap(g => g.items), [grupos])
 
   useEffect(() => {
+    if (!hydrated) return
     if (!isAuthenticated) { router.push('/local-panel/login'); return }
     if (!rol) return
     const zona = zonaActual(pathname)
     if (zona && !ROLES_PERMISOS[rol].includes(zona)) {
       router.replace(`/local-panel/${homeDeRol(rol)}`)
     }
-  }, [isAuthenticated, rol, pathname, router])
+  }, [hydrated, isAuthenticated, rol, pathname, router])
 
   useEffect(() => { setShowMas(false) }, [pathname])
 
+  if (!hydrated) return null
   if (!isAuthenticated || !local || !rol) return null
 
   const handleLogout = async () => {
