@@ -62,6 +62,7 @@ export function ReservarModal({ local, usuario, onClose, onReservado }: Props) {
       fecha_noche: hoyLocal(),
       estado: 'solicitada',
       modo: local.reservas_modo ?? 'solicitud',
+      notas: notas.trim() || null,
     })
     setEnviando(false)
     if (error) { toast.error('No se pudo enviar la solicitud'); return }
