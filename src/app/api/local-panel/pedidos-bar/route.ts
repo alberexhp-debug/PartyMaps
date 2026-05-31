@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 /**
  * GET /api/local-panel/pedidos-bar?estado=...
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supa.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
-  const admin = await createAdminSupabaseClient()
+  const admin = createServiceRoleClient()
   const { data: trabajador } = await admin
     .from('usuario_local')
     .select('local_id, activo')
