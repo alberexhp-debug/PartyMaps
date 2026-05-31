@@ -15,7 +15,7 @@ import {
   formatearPrecio, getTemperaturaAforo, tiempoRelativo, getLabelMusica
 } from '@/lib/utils'
 import {
-  ChevronLeft, Bell, BellOff, MapPin, Clock, Music, Ticket,
+  ChevronLeft, ChevronRight, Bell, BellOff, MapPin, Clock, Music, Ticket,
   Star, MessageSquare, Lightbulb, Share2, Navigation, PenLine, X,
   LogIn, LogOut, Trophy, Target, Send, Sparkles, Beer, Sofa,
 } from 'lucide-react'
@@ -329,7 +329,11 @@ export default function LocalPerfilPage() {
   }
 
   const colorTemp = getColorTemperatura(local.temperatura)
-  const eventoActivo = (local as LocalConAforo & { eventos?: Array<{ id: string; nombre: string; estado: string; imagen_url?: string; fecha_inicio?: string }> }).eventos?.find((e: { estado: string }) => e.estado === 'publicado')
+  const eventosPublicados = ((local as LocalConAforo & { eventos?: Array<{ id: string; nombre: string; estado: string; imagen_url?: string; fecha_inicio?: string }> }).eventos ?? [])
+    .filter(e => e.estado === 'publicado')
+    .sort((a, b) => new Date(a.fecha_inicio ?? 0).getTime() - new Date(b.fecha_inicio ?? 0).getTime())
+  const eventoActivo = eventosPublicados[0]
+  const masEventos = eventosPublicados.slice(1)
   const mediaReviews = reviews.length > 0 ? reviews.reduce((a, r) => a + r.puntuacion, 0) / reviews.length : 0
   const diasSemana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
   const diasCompleto = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
@@ -492,6 +496,40 @@ export default function LocalPerfilPage() {
               </span>
             </div>
           </button>
+        )}
+
+        {/* Próximos eventos */}
+        {masEventos.length > 0 && (
+          <div>
+            <p className="eyebrow mb-2.5">Próximos eventos</p>
+            <div className="space-y-2">
+              {masEventos.map(ev => (
+                <button
+                  key={ev.id}
+                  onClick={() => router.push(`/local/${id}/comprar`)}
+                  className="flex items-center gap-3 w-full p-2.5 glass rounded-xl text-left hover:bg-white/8 transition-colors"
+                >
+                  <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 relative">
+                    <LocalImagen src={ev.imagen_url} nombre={ev.nombre} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-sm truncate">{ev.nombre}</p>
+                    {ev.fecha_inicio && (
+                      <p className="text-xs text-[#8B8BA8] mt-0.5 flex items-center gap-1.5">
+                        <Clock size={11} className="shrink-0" />
+                        <span className="capitalize truncate">
+                          {new Date(ev.fecha_inicio).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}
+                          {' · '}
+                          {new Date(ev.fecha_inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                  <ChevronRight size={16} className="text-[#6B6B85] shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Check-in banner */}
