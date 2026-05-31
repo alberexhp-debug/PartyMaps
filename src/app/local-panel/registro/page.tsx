@@ -68,9 +68,14 @@ export default function LocalPanelRegistroPage() {
     if (!validarUbicacion()) return
     setLoading(true)
 
+    // Email normalizado: Supabase guarda el email de auth en minúsculas, y la
+    // RLS de mesas/plantas compara `email = auth.email()`. Si guardáramos el
+    // email con mayúsculas en usuario_local, no casaría y RLS bloquearía.
+    const emailNorm = form.email.trim().toLowerCase()
+
     // 1. Crear usuario en Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: form.email,
+      email: emailNorm,
       password: form.password,
     })
 
@@ -107,12 +112,14 @@ export default function LocalPanelRegistroPage() {
       return
     }
 
-    // 3. Crear usuario_local como dueño
+    // 3. Crear usuario_local como dueño. usuario_id = null (es FK a `usuarios`,
+    //    la tabla de clientes PWA; los trabajadores se resuelven por email,
+    //    igual que en el seed). El email DEBE ir normalizado para la RLS.
     const { error: workerError } = await supabase.from('usuario_local').insert({
-      usuario_id: authData.user.id,
+      usuario_id: null,
       local_id: localData.id,
       rol: 'dueno',
-      email: form.email,
+      email: emailNorm,
       nombre: form.nombre_responsable.trim(),
       activo: true,
     })
