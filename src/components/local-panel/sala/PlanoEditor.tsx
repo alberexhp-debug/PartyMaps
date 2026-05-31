@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { Planta, Mesa, TipoMesa, FormaMesa } from '@/types'
-import { Plus, Minus, Trash2, Pencil, Move, Maximize2 } from 'lucide-react'
+import { Plus, Minus, Trash2, Pencil, Move, Maximize2, Save } from 'lucide-react'
 
 const ZOOM_MIN = 0.6
 const ZOOM_MAX = 4
@@ -43,6 +43,10 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
   const [plantaId, setPlantaId] = useState<string | null>(plantas[0]?.id ?? null)
   const [selId, setSelId] = useState<string | null>(null)
   const dragRef = useRef<{ id: string; moved: boolean } | null>(null)
+  // Mesas movidas pero aún sin guardar (para el botón Guardar con estado dirty).
+  const [dirtyIds, setDirtyIds] = useState<Set<string>>(new Set())
+  const [guardando, setGuardando] = useState(false)
+  const hayCambios = dirtyIds.size > 0
 
   const mesasPlanta = mesas.filter(m => m.planta_id === plantaId)
   const seleccionada = mesas.find(m => m.id === selId) ?? null
@@ -167,8 +171,21 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
     onChange()
   }
 
-  const persistirPos = async (m: Mesa) => {
-    await supabase.from('mesas').update({ pos_x: m.pos_x, pos_y: m.pos_y }).eq('id', m.id)
+  // Guarda las posiciones de todas las mesas movidas desde el último guardado.
+  const guardarPosiciones = async () => {
+    if (dirtyIds.size === 0) return
+    setGuardando(true)
+    const ids = [...dirtyIds]
+    const res = await Promise.all(ids.map(id => {
+      const m = mesas.find(x => x.id === id)
+      if (!m) return Promise.resolve({ error: null })
+      return supabase.from('mesas').update({ pos_x: m.pos_x, pos_y: m.pos_y }).eq('id', id)
+    }))
+    setGuardando(false)
+    if (res.some(r => r && r.error)) { toast.error('No se pudo guardar el plano'); return }
+    setDirtyIds(new Set())
+    toast.success('Plano guardado')
+    onChange()
   }
 
   const guardarMesa = async (cambios: Partial<Mesa>) => {
@@ -185,14 +202,16 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
     const { error } = await supabase.from('mesas').delete().eq('id', m.id)
     if (error) { toast.error('No se pudo eliminar'); return }
     setMesas(prev => prev.filter(x => x.id !== m.id))
+    setDirtyIds(prev => { const n = new Set(prev); n.delete(m.id); return n })
     setSelId(null)
+    toast.success(`Mesa ${m.codigo} eliminada`)
     onChange()
   }
 
   // ── Drag ─────────────────────────────────────────────────────
   const onPointerDown = (e: React.PointerEvent, m: Mesa) => {
     e.stopPropagation()
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    try { (e.target as HTMLElement).setPointerCapture(e.pointerId) } catch { /* no-op */ }
     dragRef.current = { id: m.id, moved: false }
   }
 
@@ -213,8 +232,8 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
     const wasDrag = dragRef.current.moved
     dragRef.current = null
     if (wasDrag) {
-      const actual = mesas.find(x => x.id === m.id)
-      if (actual) persistirPos(actual)
+      // No persistimos al instante: marcamos la mesa como pendiente de guardar.
+      setDirtyIds(prev => new Set(prev).add(m.id))
     } else {
       setSelId(m.id)
     }
@@ -260,9 +279,22 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
       <div className="grid md:grid-cols-[1fr_280px] gap-4">
         {/* Lienzo */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-[#6B6B85] flex items-center gap-1.5"><Move size={12} /> Arrastra mesas. Rueda/pellizco para zoom; arrastra el fondo para mover.</p>
-            <Button size="sm" variant="secondary" onClick={addMesa}><Plus size={14} /> Mesa</Button>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <p className="text-xs text-[#6B6B85] flex items-center gap-1.5 min-w-0">
+              <Move size={12} className="shrink-0" /> <span className="truncate">Arrastra mesas. Rueda/pellizco = zoom; arrastra el fondo = mover.</span>
+            </p>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                size="sm"
+                variant={hayCambios ? 'primary' : 'ghost'}
+                loading={guardando}
+                disabled={!hayCambios}
+                onClick={guardarPosiciones}
+              >
+                <Save size={14} /> {hayCambios ? `Guardar${dirtyIds.size > 1 ? ` (${dirtyIds.size})` : ''}` : 'Guardado'}
+              </Button>
+              <Button size="sm" variant="secondary" onClick={addMesa}><Plus size={14} /> Mesa</Button>
+            </div>
           </div>
           <div
             ref={canvasRef}
@@ -396,6 +428,13 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
                   onChange={e => guardarMesa({ reservable: e.target.checked })}
                   className="accent-[#E94560] w-4 h-4" />
               </label>
+
+              <button
+                onClick={() => deleteMesa(seleccionada)}
+                className="mt-1 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-[#E94560]/30 text-[#E94560] text-sm hover:bg-[#E94560]/10 transition-colors"
+              >
+                <Trash2 size={14} /> Eliminar mesa
+              </button>
             </div>
           ) : (
             <p className="text-sm text-[#6B6B85]">Toca una mesa del plano para editar su código, capacidad, tipo y tamaño.</p>
