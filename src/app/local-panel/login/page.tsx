@@ -25,7 +25,9 @@ export default function LocalPanelLoginPage() {
     // Sign in with Supabase Auth (el email es insensible a mayúsculas en auth)
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
     if (authError) {
-      toast.error('Credenciales incorrectas')
+      console.error('[local-panel login]', authError)
+      const rate = /rate limit|too many|429/i.test(authError.message)
+      toast.error(rate ? 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.' : 'Credenciales incorrectas')
       setLoading(false)
       return
     }

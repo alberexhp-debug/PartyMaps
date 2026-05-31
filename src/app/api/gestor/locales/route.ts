@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceRoleClient()
 
-  // 1. Crear el local en la cartera del gestor (pendiente de verificar).
+  // 1. Crear el local en la cartera del gestor (activo, onboarding de confianza).
   const { data: local, error: localErr } = await admin
     .from('locales')
     .insert({
@@ -79,7 +79,10 @@ export async function POST(req: NextRequest) {
       modulos_activos: [],
       consumiciones_bienvenida: [],
       horario: {},
-      estado: 'pendiente_verificacion',
+      // El Gestor es personal de Rumbo (onboarding presencial), así que el
+      // local nace ACTIVO y se ve en el mapa al instante. (El auto-registro de
+      // un dueño desde la web sí queda pendiente de verificación.)
+      estado: 'activo',
       num_suscriptores: 0,
       notificaciones_semana_count: 0,
       gestor_id: ctx.gestor.id,

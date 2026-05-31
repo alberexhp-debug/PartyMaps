@@ -117,7 +117,7 @@ function EmptyState({ onAlta }: { onAlta: () => void }) {
       </div>
       <p className="text-base font-semibold text-white">Tu cartera está vacía</p>
       <p className="mx-auto mt-1 max-w-xs text-sm text-[#8B8BA8]">
-        Da de alta tu primer local. Quedará pendiente de verificar y el dueño podrá completar su ficha.
+        Da de alta tu primer local. Saldrá activo en el mapa al instante y el dueño podrá completar su ficha.
       </p>
       <Button className="mt-5" onClick={onAlta}><Plus size={16} /> Dar de alta un local</Button>
     </div>
