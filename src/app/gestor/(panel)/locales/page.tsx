@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Input } from '@/components/ui/Input'
+import { BuscadorDireccion, type DireccionElegida } from '@/components/ui/BuscadorDireccion'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { getLabelTipoLocal } from '@/lib/utils'
@@ -128,7 +129,7 @@ function AltaLocalModal({ onClose, onCreado }: { onClose: () => void; onCreado: 
   const [nombre, setNombre] = useState('')
   const [tipo, setTipo] = useState<TipoLocal>('discoteca')
   const [ciudad, setCiudad] = useState('Madrid')
-  const [direccion, setDireccion] = useState('')
+  const [ubicacion, setUbicacion] = useState<DireccionElegida | null>(null)
   const [aforo, setAforo] = useState('')
   const [duenoEmail, setDuenoEmail] = useState('')
   const [duenoNombre, setDuenoNombre] = useState('')
@@ -140,12 +141,14 @@ function AltaLocalModal({ onClose, onCreado }: { onClose: () => void; onCreado: 
   const guardar = async () => {
     if (!nombre.trim()) { toast.error('Pon el nombre del local'); return }
     if (!ciudad.trim()) { toast.error('Pon la ciudad'); return }
+    if (!ubicacion) { toast.error('Busca y elige la dirección en la lista'); return }
     setGuardando(true)
     const res = await fetch('/api/gestor/locales', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        nombre, tipo_local: tipo, ciudad, direccion,
+        nombre, tipo_local: tipo, ciudad,
+        direccion: ubicacion.direccion, latitud: ubicacion.latitud, longitud: ubicacion.longitud,
         aforo_maximo: aforo ? Number(aforo) : undefined,
         dueno_email: duenoEmail || undefined,
         dueno_nombre: duenoNombre || undefined,
@@ -229,7 +232,8 @@ function AltaLocalModal({ onClose, onCreado }: { onClose: () => void; onCreado: 
                 <Input label="Aforo" type="number" icon={<Hash size={16} />} value={aforo} onChange={e => setAforo(e.target.value)} placeholder="200" />
               </div>
 
-              <Input label="Dirección (opcional)" icon={<MapPin size={16} />} value={direccion} onChange={e => setDireccion(e.target.value)} placeholder="Calle, número, CP" />
+              <BuscadorDireccion label="Dirección *" placeholder="Calle y número del local"
+                onSelect={setUbicacion} />
 
               <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3.5 space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-[#8B8BA8]">Cuenta del dueño (opcional)</p>

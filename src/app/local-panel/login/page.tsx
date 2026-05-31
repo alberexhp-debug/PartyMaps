@@ -22,21 +22,24 @@ export default function LocalPanelLoginPage() {
     if (!email || !password) { toast.error('Completa todos los campos'); return }
     setLoading(true)
 
-    // Sign in with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    // Sign in with Supabase Auth (el email es insensible a mayúsculas en auth)
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
     if (authError) {
       toast.error('Credenciales incorrectas')
       setLoading(false)
       return
     }
 
-    // Look up usuario_local
+    // Buscar usuario_local por el email CANÓNICO de la sesión (Supabase lo
+    // guarda en minúsculas) e insensible a mayúsculas, para que no falle por
+    // cómo se haya tecleado/copiado el email.
+    const emailLookup = (authData.user?.email ?? email).trim()
     const { data: trabajador, error: trabajadorError } = await supabase
       .from('usuario_local')
       .select('*, locales!inner(*)')
-      .eq('email', email)
+      .ilike('email', emailLookup)
       .eq('activo', true)
-      .single()
+      .maybeSingle()
 
     if (trabajadorError || !trabajador) {
       await supabase.auth.signOut()

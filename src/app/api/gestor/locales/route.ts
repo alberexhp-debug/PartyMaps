@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
 
   if (!nombre) return NextResponse.json({ error: 'El nombre es obligatorio' }, { status: 400 })
   if (!ciudad) return NextResponse.json({ error: 'La ciudad es obligatoria' }, { status: 400 })
+  if (!direccion) return NextResponse.json({ error: 'La dirección es obligatoria' }, { status: 400 })
   if (!TIPOS_VALIDOS.includes(tipo_local)) return NextResponse.json({ error: 'Tipo de local no válido' }, { status: 400 })
   if (duenoEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(duenoEmail)) {
     return NextResponse.json({ error: 'Email del dueño no válido' }, { status: 400 })
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
       nombre,
       tipo_local,
       ciudad,
-      direccion: direccion || ciudad,
+      direccion,
       musica: [],
       latitud,
       longitud,
