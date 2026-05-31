@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { BuscadorDireccion } from '@/components/ui/BuscadorDireccion'
 import { useToast } from '@/components/ui/Toast'
 import { TipoLocal } from '@/types'
 import { Building2, MapPin, Mail, Lock, ChevronLeft, ChevronRight, Check, Store } from 'lucide-react'
@@ -271,28 +272,24 @@ export default function LocalPanelRegistroPage() {
         {step === 'ubicacion' && (
           <div className="space-y-4">
             <p className="text-sm text-[#A0A0B8]">
-              Introduce la dirección exacta del local y sus coordenadas GPS. Los usuarios las usarán para el check-in y para encontrarte en el mapa.
+              Busca la dirección del local y elígela en la lista. Situaremos tu local en el mapa en su calle exacta (los usuarios la usan para el check-in y para encontrarte).
             </p>
 
-            <Input label="Dirección completa *" placeholder="Calle Gran Vía, 45, 28013 Madrid" value={form.direccion}
-              onChange={e => update('direccion', e.target.value)} icon={<MapPin size={16} />} />
+            <BuscadorDireccion
+              label="Dirección *"
+              placeholder="Calle y número del local"
+              onSelect={d => {
+                if (d) setForm(f => ({ ...f, direccion: d.direccion, latitud: String(d.latitud), longitud: String(d.longitud) }))
+                else setForm(f => ({ ...f, direccion: '', latitud: '', longitud: '' }))
+              }}
+            />
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-[#A0A0B8]">Latitud *</label>
-                <Input type="number" step="0.0001" placeholder="40.4168" value={form.latitud}
-                  onChange={e => update('latitud', e.target.value)} />
+            {form.direccion && (
+              <div className="flex items-center gap-2 rounded-xl border border-green-400/25 bg-green-400/[0.06] px-3.5 py-2.5 text-sm text-white">
+                <MapPin size={15} className="shrink-0 text-green-400" />
+                <span className="truncate">{form.direccion}</span>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-[#A0A0B8]">Longitud *</label>
-                <Input type="number" step="0.0001" placeholder="-3.7038" value={form.longitud}
-                  onChange={e => update('longitud', e.target.value)} />
-              </div>
-            </div>
-
-            <div className="p-3 glass rounded-xl text-xs text-[#6B6B85]">
-              💡 Busca tu local en <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="text-[#4F8EF7]">Google Maps</a>, haz clic derecho sobre la ubicación exacta y copia las coordenadas.
-            </div>
+            )}
           </div>
         )}
       </div>
