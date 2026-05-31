@@ -12,7 +12,6 @@ export type EstadoLocal = 'pendiente_verificacion' | 'activo' | 'suspendido' | '
 export type TipoLocal = 'discoteca' | 'bar_copas' | 'rooftop' | 'sala_conciertos' | 'bar_cocteleria' | 'otro'
 export type TipoMusica = 'techno' | 'house' | 'reggaeton' | 'pop' | 'hip_hop' | 'indie' | 'electronica' | 'flamenco' | 'otro'
 export type EstadoUsuario = 'activa' | 'suspendida_temporal' | 'suspendida_permanente' | 'eliminada'
-export type SignoZodiaco = 'Aries' | 'Tauro' | 'Géminis' | 'Cáncer' | 'Leo' | 'Virgo' | 'Libra' | 'Escorpio' | 'Sagitario' | 'Capricornio' | 'Acuario' | 'Piscis'
 export type RolLocal = 'dueno' | 'gestor' | 'puerta' | 'barman'
 
 export type CategoriaProducto =
@@ -72,7 +71,8 @@ export type EstadoConcurso = 'programado' | 'activo' | 'cerrado' | 'finalizado' 
 export type EstadoPlan = 'activo' | 'completado' | 'cancelado'
 export type EstadoSolicitudPlan = 'pendiente' | 'aceptada' | 'rechazada' | 'expirada'
 export type EstadoEntrada = 'activa' | 'usada' | 'cancelada' | 'expirada'
-export type TipoModulo = 'perfil_noche'
+// Sin módulos activos actualmente (concursos/retos/perfil-noche eliminados).
+export type TipoModulo = never
 export type EstadoEvento = 'borrador' | 'publicado' | 'cancelado' | 'finalizado'
 export type CurvaPrecio = 'lineal' | 'tramos'
 
@@ -89,8 +89,6 @@ export interface PrecioDinamicoConfig {
 
 // --- ENTIDADES ---
 
-export type EstiloCarta = 'holo' | 'aurora' | 'oro' | 'noche' | 'rosa'
-
 export interface Usuario {
   id: string
   telefono?: string
@@ -103,11 +101,6 @@ export interface Usuario {
   estado_cuenta: EstadoUsuario
   prefs_notificaciones: PrefsNotificaciones
   auth_provider: 'ninguno' | 'google' | 'apple'
-  carta_frase?: string
-  carta_estilo?: EstiloCarta
-  carta_publica?: boolean
-  carta_slug?: string
-  carta_apodo?: string
   created_at: string
   updated_at: string
 }

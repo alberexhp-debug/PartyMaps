@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
         'https://images.unsplash.com/photo-1547592180-85f173990554?w=800',
       ],
       tier: 'pro',
-      modulos_activos: ['perfil_noche'],
+      modulos_activos: [],
       consumiciones_bienvenida: [
         { id: crypto.randomUUID(), nombre: 'Copa de bienvenida', descripcion: 'Gin tonic o similar', precio: 8 },
         { id: crypto.randomUUID(), nombre: 'Cerveza premium', descripcion: 'Estrella Damm o Voll-Damm', precio: 5 },

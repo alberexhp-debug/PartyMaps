@@ -33,7 +33,7 @@ export default function LocalPerfilPage() {
   const [suscrito, setSuscrito] = useState(false)
   const [loading, setLoading] = useState(true)
   const [imagenActiva, setImagenActiva] = useState(0)
-  const [tab, setTab] = useState<'info' | 'reviews' | 'modulos'>('info')
+  const [tab, setTab] = useState<'info' | 'reviews'>('info')
   const [showBienvenida, setShowBienvenida] = useState(false)
   const [bienvenidaSel, setBienvenidaSel] = useState<string | null>(null)
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -595,7 +595,7 @@ export default function LocalPerfilPage() {
           ].map(({ key, label }) => (
             <button
               key={key}
-              onClick={() => setTab(key as 'info' | 'reviews' | 'modulos')}
+              onClick={() => setTab(key as 'info' | 'reviews')}
               className={cn(
                 'flex-1 py-2 rounded-lg text-sm font-medium transition-colors',
                 tab === key ? 'bg-[#E94560] text-white' : 'text-[#6B6B85]'
@@ -658,6 +658,20 @@ export default function LocalPerfilPage() {
                 ))}
               </div>
             )}
+
+            {/* Sugerencia anónima al local */}
+            <div className="p-4 glass rounded-2xl space-y-2">
+              <p className="text-sm font-semibold text-white flex items-center gap-2">
+                <MessageSquare size={15} className="text-[#A0A0B8]" /> ¿Algo que mejorar?
+              </p>
+              <p className="text-xs text-[#6B6B85]">Manda una sugerencia anónima al local</p>
+              <Button size="sm" variant="secondary" fullWidth onClick={() => {
+                if (!usuario) { router.push('/login'); return }
+                setShowSugerencia(true)
+              }}>
+                <Send size={13} /> Enviar sugerencia
+              </Button>
+            </div>
           </div>
         )}
 
@@ -750,46 +764,6 @@ export default function LocalPerfilPage() {
           </div>
         )}
 
-        {tab === 'modulos' && (
-          <div className="space-y-4">
-            {local.modulos_activos?.includes('perfil_noche') && (
-              <div className="bg-gradient-to-br from-yellow-500/10 to-[#E94560]/10 border border-yellow-500/30 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={18} className="text-yellow-400" />
-                  <p className="font-bold text-white">Tu perfil de noche</p>
-                </div>
-                <p className="text-sm text-[#A0A0B8]">
-                  Una carta única generada para ti, lista para compartir en redes.
-                </p>
-                <Button
-                  size="sm"
-                  fullWidth
-                  onClick={() => {
-                    if (!usuario) { router.push('/login'); return }
-                    if (!checkinActivo) { toast.error('Haz check-in primero para generar tu carta'); return }
-                    router.push(`/perfil-noche/${local.id}`)
-                  }}
-                >
-                  <Sparkles size={14} /> Ver mi carta
-                </Button>
-              </div>
-            )}
-
-            {/* Sugerencia al local */}
-            <div className="p-4 glass rounded-2xl space-y-2">
-              <p className="text-sm font-semibold text-white flex items-center gap-2">
-                <MessageSquare size={15} className="text-[#A0A0B8]" /> ¿Algo que mejorar?
-              </p>
-              <p className="text-xs text-[#6B6B85]">Manda una sugerencia anónima al local</p>
-              <Button size="sm" variant="secondary" fullWidth onClick={() => {
-                if (!usuario) { router.push('/login'); return }
-                setShowSugerencia(true)
-              }}>
-                <Send size={13} /> Enviar sugerencia
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Modal review */}

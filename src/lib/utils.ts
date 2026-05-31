@@ -1,27 +1,9 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { PrecioDinamicoConfig, SignoZodiaco, TemperaturaAforo, TipoLocal, TipoMusica } from '@/types'
+import { PrecioDinamicoConfig, TemperaturaAforo, TipoLocal, TipoMusica } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
-
-export function calcularSignoZodiaco(fechaNacimiento: string): SignoZodiaco {
-  const fecha = new Date(fechaNacimiento)
-  const mes = fecha.getMonth() + 1
-  const dia = fecha.getDate()
-  if ((mes === 3 && dia >= 21) || (mes === 4 && dia <= 19)) return 'Aries'
-  if ((mes === 4 && dia >= 20) || (mes === 5 && dia <= 20)) return 'Tauro'
-  if ((mes === 5 && dia >= 21) || (mes === 6 && dia <= 20)) return 'Géminis'
-  if ((mes === 6 && dia >= 21) || (mes === 7 && dia <= 22)) return 'Cáncer'
-  if ((mes === 7 && dia >= 23) || (mes === 8 && dia <= 22)) return 'Leo'
-  if ((mes === 8 && dia >= 23) || (mes === 9 && dia <= 22)) return 'Virgo'
-  if ((mes === 9 && dia >= 23) || (mes === 10 && dia <= 22)) return 'Libra'
-  if ((mes === 10 && dia >= 23) || (mes === 11 && dia <= 21)) return 'Escorpio'
-  if ((mes === 11 && dia >= 22) || (mes === 12 && dia <= 21)) return 'Sagitario'
-  if ((mes === 12 && dia >= 22) || (mes === 1 && dia <= 19)) return 'Capricornio'
-  if ((mes === 1 && dia >= 20) || (mes === 2 && dia <= 18)) return 'Acuario'
-  return 'Piscis'
 }
 
 export function calcularEdad(fechaNacimiento: string): number {
@@ -256,33 +238,6 @@ export function normalizarTelefono(telefono: string, prefijo: string = '+34'): s
   const limpio = telefono.replace(/\s/g, '')
   if (limpio.startsWith('+')) return limpio
   return `${prefijo}${limpio}`
-}
-
-export const FRASES_ZODIACO: Record<SignoZodiaco, string[]> = {
-  Aries: ['Esta noche vas a arrasar.', 'Tu energía lo cambia todo.', 'Hoy lideras sin dudarlo.', 'Nadie puede con tu fuerza esta noche.', 'Aries en la pista: peligro.'],
-  Tauro: ['Esta noche, todo lo bueno es tuyo.', 'Tu presencia vale oro.', 'Disfruta. Te lo mereces.', 'Hoy nada te detiene.', 'Tu momento ha llegado.'],
-  'Géminis': ['Tu energía lo llena todo.', 'Esta noche eres dos veces más.', 'Brillas en cada conversación.', 'El ambiente te sigue a ti.', 'Hoy, todos quieren conocerte.'],
-  'Cáncer': ['Hoy conectas de verdad.', 'Tu intuición te lleva al sitio correcto.', 'Esta noche algo especial te espera.', 'Corazón abierto, noche perfecta.', 'Hoy creas recuerdos.'],
-  Leo: ['Esta noche el foco es tuyo.', 'Nadie brilla como tú.', 'El rey/la reina ha llegado.', 'Hoy todos te miran.', 'Tu noche, tus reglas.'],
-  Virgo: ['Hoy todo encaja perfectamente.', 'Tu elegancia habla por ti.', 'Esta noche das en el clavo.', 'Perfección en cada movimiento.', 'Lo tuyo es clase pura.'],
-  Libra: ['Esta noche el equilibrio es tuyo.', 'Armonía total. Disfruta.', 'Hoy encantas sin esfuerzo.', 'Tu presencia equilibra la sala.', 'Belleza y carisma, combo ganador.'],
-  Escorpio: ['Esta noche vas a dejar huella.', 'Tu intensidad lo transforma todo.', 'Hoy nadie te olvida.', 'El misterio te hace irresistible.', 'Esta noche, pura magia oscura.'],
-  Sagitario: ['Hoy la aventura comienza aquí.', 'Tu energía contagia a todos.', 'Esta noche, sin límites.', 'El mundo es pequeño para ti.', 'Hoy disparas flechas de fuego.'],
-  Capricornio: ['Esta noche, clase absoluta.', 'Todo con intención, todo con estilo.', 'Tu determinación se nota.', 'Hoy construyes momentos únicos.', 'Ambición y estilo: tu combo.'],
-  Acuario: ['Hoy eres el más único de la sala.', 'Tu originalidad marca tendencia.', 'Esta noche el futuro eres tú.', 'Nadie piensa como tú lo hace.', 'Rompe los esquemas esta noche.'],
-  Piscis: ['Hoy sueñas despierto/a.', 'Tu sensibilidad es tu superpoder.', 'Esta noche el universo está contigo.', 'Magia pura en cada paso.', 'Hoy fluyes sin resistencia.'],
-}
-
-export function getFraseZodiaco(signo: SignoZodiaco, fecha: string): string {
-  const frases = FRASES_ZODIACO[signo]
-  const dia = new Date(fecha).getDate()
-  return frases[dia % frases.length]
-}
-
-export const EMOJI_SIGNO: Record<SignoZodiaco, string> = {
-  Aries: '♈', Tauro: '♉', 'Géminis': '♊', 'Cáncer': '♋',
-  Leo: '♌', Virgo: '♍', Libra: '♎', Escorpio: '♏',
-  Sagitario: '♐', Capricornio: '♑', Acuario: '♒', Piscis: '♓',
 }
 
 const REGEX_TELEFONO = /(?:(?:\+?\d{1,3}[\s\-.]?)?(?:\(?\d{2,4}\)?[\s\-.]?)?\d{2,4}[\s\-.]?\d{2,4}[\s\-.]?\d{0,4})/g
