@@ -457,37 +457,7 @@ export default function LocalPerfilPage() {
           </button>
         )}
 
-        {/* Estado aforo */}
-        <div className="p-4 glass rounded-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className={cn('w-3 h-3 rounded-full', local.temperatura === 'caliente' && 'animate-pulse-heat')}
-                style={{ background: colorTemp }} />
-              <span className="font-semibold text-white">{getLabelTemperatura(local.temperatura)} ahora</span>
-            </div>
-            <span className="text-2xl font-bold" style={{ color: colorTemp }}>
-              {Math.round(local.aforo_estimado_porcentaje || 0)}%
-            </span>
-          </div>
-          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-all" style={{ width: `${local.aforo_estimado_porcentaje || 0}%`, background: colorTemp }} />
-          </div>
-          <div className="flex justify-between mt-2">
-            <span className="text-xs text-[#6B6B85]">Afluencia estimada en tiempo real</span>
-            {local.aforo_maximo > 0 && (
-              <span className="text-xs text-[#6B6B85]">
-                ~{Math.round((local.aforo_estimado_porcentaje || 0) / 100 * local.aforo_maximo).toLocaleString('es-ES')} de {local.aforo_maximo.toLocaleString('es-ES')}
-              </span>
-            )}
-          </div>
-          {local.aforo_correccion_manual != null
-            && local.aforo_correccion_manual_expires
-            && new Date(local.aforo_correccion_manual_expires) > new Date() && (
-            <p className="text-xs text-[#4F8EF7] mt-2">ℹ Información actualizada por el local</p>
-          )}
-        </div>
-
-        {/* Evento de esta noche — banner */}
+        {/* Evento — banner */}
         {eventoActivo && (
           <button
             onClick={() => router.push(`/local/${id}/comprar`)}
@@ -500,7 +470,7 @@ export default function LocalPerfilPage() {
 
             <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full backdrop-blur-md bg-[#F39C12]/20 border border-[#F39C12]/40">
               <Sparkles size={12} className="text-[#F39C12]" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#F39C12]">Evento esta noche</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#F39C12]">Próximo evento</span>
             </div>
 
             <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -560,7 +530,6 @@ export default function LocalPerfilPage() {
           {[
             { key: 'info', label: 'Info' },
             { key: 'reviews', label: `Reviews (${reviews.length})` },
-            ...((concursoActivo || retosActivos.length > 0 || local.modulos_activos?.includes('perfil_noche')) ? [{ key: 'modulos', label: '🎯 Esta noche' }] : []),
           ].map(({ key, label }) => (
             <button
               key={key}
