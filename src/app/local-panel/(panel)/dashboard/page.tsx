@@ -148,10 +148,6 @@ export default function LocalPanelDashboard() {
   const temperatura = getTemperaturaAforo(kpis?.aforo_actual || 0)
   const colorTemp = getColorTemperatura(temperatura)
 
-  if (trabajador?.rol === 'operador_noche') {
-    return <DashboardOperador />
-  }
-
   const capNoche = local.entradas_disponibles_noche
   const pctEntradas = capNoche && capNoche > 0 ? Math.min(100, Math.round(((kpis?.entradas_hoy || 0) / capNoche) * 100)) : null
 

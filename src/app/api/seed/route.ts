@@ -67,7 +67,6 @@ export async function POST(req: NextRequest) {
   const adminAccounts = [
     { email: 'superadmin@partymaps.com', password: 'PM_SuperAdmin2025!', rol: 'super_admin', nombre: 'Super Admin' },
     { email: 'admin@partymaps.com',      password: 'PM_Admin2025!',      rol: 'admin',       nombre: 'Admin Test' },
-    { email: 'soporte@partymaps.com',    password: 'PM_Soporte2025!',    rol: 'soporte',     nombre: 'Soporte Test' },
   ]
 
   for (const acc of adminAccounts) {
@@ -139,8 +138,7 @@ export async function POST(req: NextRequest) {
   if (localTestId) {
     const localAccounts = [
       { email: 'dueno@testlocal.com',     password: 'PM_Dueno2025!',    rol: 'dueno',           nombre: 'Dueño Test' },
-      { email: 'gestor@testlocal.com',    password: 'PM_Gestor2025!',   rol: 'gestor',          nombre: 'Gestor Test' },
-      { email: 'operador@testlocal.com',  password: 'PM_Operador2025!', rol: 'operador_noche',  nombre: 'Operador Noche' },
+      { email: 'gestor@testlocal.com',    password: 'PM_Gestor2025!',   rol: 'gestor',          nombre: 'Encargado Test' },
       { email: 'puerta@testlocal.com',    password: 'PM_Puerta2025!',   rol: 'puerta',          nombre: 'Puerta Test' },
       { email: 'barman@testlocal.com',    password: 'PM_Barman2025!',   rol: 'barman',          nombre: 'Barman Test' },
     ]
@@ -259,10 +257,9 @@ export async function POST(req: NextRequest) {
     { nombre: 'Mondo Disko',    slug: 'mondo-disko' },
   ]
 
-  const rolesPorLocal: { rol: 'dueno' | 'gestor' | 'operador_noche' | 'puerta'; prefijo: string; nombreBase: string; passLabel: string }[] = [
+  const rolesPorLocal: { rol: 'dueno' | 'gestor' | 'puerta'; prefijo: string; nombreBase: string; passLabel: string }[] = [
     { rol: 'dueno',          prefijo: 'dueno',    nombreBase: 'Dueño',          passLabel: 'Dueno' },
-    { rol: 'gestor',         prefijo: 'gestor',   nombreBase: 'Gestor',         passLabel: 'Gestor' },
-    { rol: 'operador_noche', prefijo: 'operador', nombreBase: 'Operador noche', passLabel: 'Operador' },
+    { rol: 'gestor',         prefijo: 'gestor',   nombreBase: 'Encargado',      passLabel: 'Gestor' },
     { rol: 'puerta',         prefijo: 'puerta',   nombreBase: 'Puerta',         passLabel: 'Puerta' },
   ]
 

@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       .eq('local_id', concurso.local_id)
       .eq('activo', true)
       .maybeSingle()
-    if (!trabajador || !['dueno', 'gestor', 'operador_noche'].includes(trabajador.rol)) {
+    if (!trabajador || !['dueno', 'gestor'].includes(trabajador.rol)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
     if (!body.codigo || body.codigo.trim().toUpperCase() !== (concurso.premio_codigo || '')) {

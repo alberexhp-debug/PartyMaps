@@ -11,10 +11,9 @@ import { cn } from '@/lib/utils'
 import { PageHeader, EmptyState, SkeletonCard } from '@/components/local-panel/ui'
 
 const ROLES: { value: RolLocal; label: string; desc: string }[] = [
-  { value: 'dueno', label: 'Dueño', desc: 'Acceso total' },
-  { value: 'gestor', label: 'Gestor', desc: 'Gestión completa sin facturación' },
-  { value: 'operador_noche', label: 'Operador de noche', desc: 'Scanner, notificaciones, reviews' },
-  { value: 'puerta', label: 'Puerta', desc: 'Solo scanner QR' },
+  { value: 'gestor', label: 'Encargado', desc: 'Gestión completa sin facturación' },
+  { value: 'barman', label: 'Barman', desc: 'Barra, mesas y scanner' },
+  { value: 'puerta', label: 'Puerta', desc: 'Solo scanner y afluencia' },
 ]
 
 export default function EquipoPage() {
@@ -25,7 +24,7 @@ export default function EquipoPage() {
   const [showForm, setShowForm] = useState(false)
   const [nuevoEmail, setNuevoEmail] = useState('')
   const [nuevoNombre, setNuevoNombre] = useState('')
-  const [nuevoRol, setNuevoRol] = useState<RolLocal>('operador_noche')
+  const [nuevoRol, setNuevoRol] = useState<RolLocal>('gestor')
   const [guardando, setGuardando] = useState(false)
 
   const puedoGestionar = trabajador?.rol === 'dueno' || trabajador?.rol === 'gestor'
@@ -117,7 +116,7 @@ export default function EquipoPage() {
         Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} className="h-20" />)
       ) : equipo.length === 0 ? (
         <EmptyState icon={Users} acento="blue" titulo="Aún no hay equipo"
-          descripcion="Invita a gestores, operadores, puerta o barra para repartir el trabajo." />
+          descripcion="Invita a encargados, barra o puerta para repartir el trabajo." />
       ) : (
         equipo.map(m => {
           const rol = ROLES.find(r => r.value === m.rol)

@@ -76,7 +76,7 @@ export default function PedidosBarPanelPage() {
     setPedidos(prev => prev.filter(x => x.id !== p.id))
   }
 
-  const puedeCanjear = trabajador && ['dueno', 'gestor', 'operador_noche', 'barman'].includes(trabajador.rol)
+  const puedeCanjear = trabajador && ['dueno', 'gestor', 'barman'].includes(trabajador.rol)
 
   return (
     <div className="p-4 md:p-8 pb-20 md:pb-8 space-y-5">

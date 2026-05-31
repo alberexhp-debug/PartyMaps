@@ -31,7 +31,6 @@ export type ZonaPanel =
 export const ROLES_HOME: Record<RolLocal, ZonaPanel> = {
   dueno:           'dashboard',
   gestor:          'dashboard',
-  operador_noche:  'dashboard',
   puerta:          'scanner',
   barman:          'pedidos-bar',
 }
@@ -53,11 +52,6 @@ export const ROLES_PERMISOS: Record<RolLocal, ZonaPanel[]> = {
     'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'sala', 'productos',
     'rrpp', 'concursos', 'retos', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo',
-  ],
-  // Operador de noche: lo que se usa "esta noche"
-  operador_noche: [
-    'dashboard', 'scanner', 'pedidos-bar', 'sala', 'notificaciones', 'sugerencias',
-    'concursos', 'retos',
   ],
   // Puerta: una sola función — escanear entradas
   puerta: [
@@ -81,8 +75,7 @@ export function homeDeRol(rol: RolLocal | undefined): ZonaPanel {
 /** Etiqueta legible del rol, usada en headers/badges */
 export const ROL_LABEL: Record<RolLocal, string> = {
   dueno: 'Dueño',
-  gestor: 'Gestor',
-  operador_noche: 'Operador de noche',
+  gestor: 'Encargado',
   puerta: 'Puerta',
   barman: 'Barman',
 }

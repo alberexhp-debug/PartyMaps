@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
   const [totp, setTotp] = useState('')
   const [paso, setPaso] = useState<'credentials' | 'totp'>('credentials')
   const [loading, setLoading] = useState(false)
-  const [adminData, setAdminData] = useState<{ id: string; email: string; nombre: string; rol: 'super_admin' | 'admin' | 'soporte' } | null>(null)
+  const [adminData, setAdminData] = useState<{ id: string; email: string; nombre: string; rol: 'super_admin' | 'admin' } | null>(null)
 
   const verificarCredenciales = async () => {
     if (!email || !password) { toast.error('Completa todos los campos'); return }

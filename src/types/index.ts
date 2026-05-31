@@ -13,7 +13,7 @@ export type TipoLocal = 'discoteca' | 'bar_copas' | 'rooftop' | 'sala_conciertos
 export type TipoMusica = 'techno' | 'house' | 'reggaeton' | 'pop' | 'hip_hop' | 'indie' | 'electronica' | 'flamenco' | 'otro'
 export type EstadoUsuario = 'activa' | 'suspendida_temporal' | 'suspendida_permanente' | 'eliminada'
 export type SignoZodiaco = 'Aries' | 'Tauro' | 'Géminis' | 'Cáncer' | 'Leo' | 'Virgo' | 'Libra' | 'Escorpio' | 'Sagitario' | 'Capricornio' | 'Acuario' | 'Piscis'
-export type RolLocal = 'dueno' | 'gestor' | 'operador_noche' | 'puerta' | 'barman'
+export type RolLocal = 'dueno' | 'gestor' | 'puerta' | 'barman'
 
 export type CategoriaProducto =
   | 'cerveza' | 'cubata' | 'copa' | 'cocktail' | 'chupito'
@@ -67,7 +67,7 @@ export interface PedidoBarItem {
   cantidad: number
   created_at: string
 }
-export type RolAdmin = 'super_admin' | 'admin' | 'soporte'
+export type RolAdmin = 'super_admin' | 'admin'
 export type EstadoConcurso = 'programado' | 'activo' | 'cerrado' | 'finalizado' | 'cancelado'
 export type EstadoPlan = 'activo' | 'completado' | 'cancelado'
 export type EstadoSolicitudPlan = 'pendiente' | 'aceptada' | 'rechazada' | 'expirada'

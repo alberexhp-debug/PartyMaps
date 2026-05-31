@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server'
 
-const ROLES_CANJE = ['dueno', 'gestor', 'operador_noche', 'barman'] as const
+const ROLES_CANJE = ['dueno', 'gestor', 'barman'] as const
 
 /**
  * POST /api/pedidos-bar/canjear
