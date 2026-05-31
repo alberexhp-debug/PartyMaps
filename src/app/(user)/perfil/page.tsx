@@ -223,7 +223,7 @@ export default function PerfilPage() {
             onClick={() => router.push('/perfil/valoraciones-pendientes')}
           />
           <OpcionPerfil icon={Lightbulb} label="Mis sugerencias enviadas" onClick={() => router.push('/perfil/sugerencias')} />
-          <OpcionPerfil icon={Shield} label="Privacidad y seguridad" onClick={() => {}} />
+          <OpcionPerfil icon={Shield} label="Privacidad y datos" onClick={() => router.push('/perfil/privacidad')} />
           <OpcionPerfil icon={Star} label="Mis reseñas" onClick={() => {}} />
         </div>
 
