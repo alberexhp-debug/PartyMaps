@@ -243,6 +243,35 @@ export interface UsuarioLocal {
   nombre: string
   activo: boolean
   created_at: string
+  // Permisos de cortesías (migración 024). Los configura solo el dueño.
+  nivel_cortesia?: number
+  cortesia_consumiciones?: boolean
+  cortesia_descuentos?: boolean
+  cortesia_entradas_gratis?: boolean
+  cortesia_max_dia?: number
+}
+
+/** Tipos de cortesía que un trabajador puede regalar. */
+export type TipoCortesia = 'consumicion' | 'descuento' | 'entrada_gratis'
+export type EstadoCortesia = 'emitida' | 'canjeada' | 'expirada' | 'anulada'
+
+export interface Cortesia {
+  id: string
+  local_id: string
+  otorgada_por: string
+  tipo: TipoCortesia
+  producto_id?: string | null
+  descripcion: string
+  descuento_pct?: number | null
+  beneficiario_nombre?: string | null
+  beneficiario_telefono?: string | null
+  contacto_id?: string | null
+  qr_code: string
+  estado: EstadoCortesia
+  canjeada_por?: string | null
+  canjeada_at?: string | null
+  expira_at?: string | null
+  created_at: string
 }
 
 export interface Evento {
