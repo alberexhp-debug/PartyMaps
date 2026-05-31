@@ -423,6 +423,18 @@ export interface Administrador {
   ultimo_acceso?: string
 }
 
+/** RumboGestor: comercial de Rumbo que da de alta locales y RRPP. Login propio. */
+export interface Gestor {
+  id: string
+  auth_id?: string
+  email: string
+  nombre: string
+  incentivo_pct: number
+  activo: boolean
+  created_at: string
+  ultimo_acceso?: string
+}
+
 export interface ConfiguracionSistema {
   id: string
   clave: string

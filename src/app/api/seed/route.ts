@@ -85,6 +85,22 @@ export async function POST(req: NextRequest) {
     else log.push(`Administrador OK: ${acc.email} (${acc.rol})`)
   }
 
+  // ── 1b. CUENTA RUMBOGESTOR ────────────────────────────────────────────────
+  {
+    const g = await crearAuthUserPorEmail('gestor@rumbo.com', 'PM_RumboGestor2025!')
+    if (g) {
+      const { error } = await admin.from('gestores').upsert({
+        auth_id: g.id,
+        nombre: 'RumboGestor',
+        email: 'gestor@rumbo.com',
+        incentivo_pct: 10,
+        activo: true,
+      }, { onConflict: 'email' })
+      if (error) errors.push(`Gestor gestor@rumbo.com: ${error.message}`)
+      else log.push('RumboGestor OK: gestor@rumbo.com')
+    }
+  }
+
   // ── 2. LOCAL DE TEST GENÉRICO ─────────────────────────────────────────────
   let localTestId: string | null = null
   const { data: localExistente } = await admin
