@@ -6,7 +6,8 @@ import { useAdminStore } from '@/lib/stores/useAdminStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
-import { Mail, Lock, Shield } from 'lucide-react'
+import { Mail, Lock, Shield, Briefcase } from 'lucide-react'
+import Link from 'next/link'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -120,6 +121,16 @@ export default function AdminLoginPage() {
           </>
         )}
       </div>
+
+      {/* Acceso al panel de Gestor (antes de iniciar sesión) */}
+      {paso === 'credentials' && (
+        <Link
+          href="/gestor/login"
+          className="relative mt-8 flex items-center gap-2 text-sm text-[#9B82FF] hover:text-white transition-colors"
+        >
+          <Briefcase size={15} /> Acceder como Gestor de Rumbo
+        </Link>
+      )}
     </div>
   )
 }
