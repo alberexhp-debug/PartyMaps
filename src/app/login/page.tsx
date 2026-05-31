@@ -389,7 +389,7 @@ export default function LoginPage() {
             </Link>
 
             <Link
-              href="/rrpp"
+              href="/rrpp/login"
               className="glass group flex items-center gap-3.5 rounded-2xl px-4 py-3.5 transition-all hover:bg-white/10"
             >
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E94560]/15 text-[#FF6B86] border border-white/10">
