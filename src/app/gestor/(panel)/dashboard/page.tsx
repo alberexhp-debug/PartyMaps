@@ -4,7 +4,10 @@ import Link from 'next/link'
 import { useGestorStore } from '@/lib/stores/useGestorStore'
 import { Store, Megaphone, Tag, Ticket, Wallet, ChevronRight } from 'lucide-react'
 
-type Resumen = { locales_total: number; locales_activos: number; rrpp_activos: number; incentivo_pct: number }
+type Resumen = {
+  locales_total: number; locales_activos: number; rrpp_activos: number; incentivo_pct: number
+  comision_generada_mes?: number; incentivo_ganado_mes?: number
+}
 
 export default function GestorDashboardPage() {
   const gestor = useGestorStore(s => s.gestor)
@@ -28,6 +31,22 @@ export default function GestorDashboardPage() {
         <Kpi label="Locales activos" valor={resumen ? String(resumen.locales_activos) : '—'} icon={Store} />
         <Kpi label="RRPP activos" valor={resumen ? String(resumen.rrpp_activos) : '—'} icon={Megaphone} />
         <Kpi label="Tu incentivo" valor={`${gestor?.incentivo_pct ?? 0}%`} icon={Wallet} accent />
+      </div>
+
+      {/* Comisión generada por la cartera este mes + lo que se lleva el gestor */}
+      <div className="card-premium p-4 flex items-center justify-between">
+        <div>
+          <p className="text-[11px] text-[#8B8BA8]">Comisión generada (este mes)</p>
+          <p className="text-2xl font-bold text-white text-numeric mt-0.5">
+            {resumen ? `${(resumen.comision_generada_mes ?? 0).toFixed(2)} €` : '—'}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] text-[#8B8BA8]">Tu incentivo</p>
+          <p className="text-2xl font-bold text-[#E94560] text-numeric mt-0.5">
+            {resumen ? `${(resumen.incentivo_ganado_mes ?? 0).toFixed(2)} €` : '—'}
+          </p>
+        </div>
       </div>
 
       <div>

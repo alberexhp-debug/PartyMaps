@@ -158,5 +158,9 @@ export async function GET(req: NextRequest) {
   const { data: expirados } = await supabase.rpc('expirar_pedidos_bar')
   stats.pedidos_bar_expirados = typeof expirados === 'number' ? expirados : 0
 
+  // 11. Expirar bindings de atribución RRPP vencidos (ventana 24h)
+  const { data: bindingsExpirados } = await supabase.rpc('expirar_bindings_rrpp')
+  stats.bindings_rrpp_expirados = typeof bindingsExpirados === 'number' ? bindingsExpirados : 0
+
   return NextResponse.json({ ok: true, stats, timestamp: nowIso })
 }

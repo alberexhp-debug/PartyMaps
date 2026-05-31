@@ -31,16 +31,28 @@ export async function GET(req: NextRequest) {
     .from('locales').select('id').eq('gestor_id', ctx.gestor.id).neq('estado', 'eliminado')
   const localIds = (misLocales ?? []).map(l => l.id)
   let rrppActivos = 0
+  let comisionGeneradaMes = 0
   if (localIds.length) {
     const { data: rels } = await admin
       .from('rrpp_venue').select('rrpp_id').in('local_id', localIds).eq('estado', 'activa')
     rrppActivos = new Set((rels ?? []).map(r => r.rrpp_id)).size
+
+    // Comisión RRPP generada por la cartera este mes (base del incentivo del gestor).
+    const periodo = new Date().toISOString().slice(0, 7)
+    const { data: liqs } = await admin
+      .from('liquidacion_rrpp').select('monto_total').in('local_id', localIds).eq('periodo', periodo)
+    comisionGeneradaMes = Math.round((liqs ?? []).reduce((s, l) => s + Number(l.monto_total || 0), 0) * 100) / 100
   }
+
+  // Lo que se lleva el gestor: su incentivo % sobre lo generado por la cartera.
+  const incentivoGanadoMes = Math.round(comisionGeneradaMes * (ctx.gestor.incentivo_pct / 100) * 100) / 100
 
   return NextResponse.json({
     locales_total: localesTotal ?? 0,
     locales_activos: localesActivos ?? 0,
     rrpp_activos: rrppActivos,
     incentivo_pct: ctx.gestor.incentivo_pct,
+    comision_generada_mes: comisionGeneradaMes,
+    incentivo_ganado_mes: incentivoGanadoMes,
   })
 }

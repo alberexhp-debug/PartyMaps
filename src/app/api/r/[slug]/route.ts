@@ -50,10 +50,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     .select('*', { head: true, count: 'exact' })
     .eq('rrpp_id', rrpp.id)
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     rrpp,
     venues: venues ?? [],
     eventos,
     num_followers: numFollowers ?? 0,
   })
+
+  // Cookie de referido (last-touch, renovable): la lee el checkout para
+  // atribuir la comisión al RRPP. 24h, httpOnly. Ver lib/rrpp/atribucion.ts.
+  res.cookies.set('rumbo_ref', JSON.stringify({ r: rrpp.id, t: Date.now() }), {
+    maxAge: 24 * 60 * 60,
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+  })
+  return res
 }

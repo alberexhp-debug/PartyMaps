@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { calcularComision, calcularPrecioDinamico } from '@/lib/utils'
+import { devengarComisionEntrada, parseCookieRef } from '@/lib/rrpp/atribucion'
 import type { PrecioDinamicoConfig } from '@/types'
 
 export async function POST(req: NextRequest) {
@@ -110,6 +111,25 @@ export async function POST(req: NextRequest) {
     // Update event entradas_vendidas if applicable
     if (evento_id) {
       await supabase.rpc('incrementar_entradas_vendidas', { p_evento_id: evento_id, p_cantidad: cantidad })
+    }
+
+    // Atribución de comisión RRPP (last-touch 24h). No bloquea el checkout.
+    if (created && created.length > 0) {
+      try {
+        const { data: usuarioFull } = await supabase
+          .from('usuarios').select('nombre, telefono').eq('id', usuarioRow.id).maybeSingle()
+        await devengarComisionEntrada({
+          db: createServiceRoleClient(),
+          usuario: { id: usuarioRow.id, nombre: usuarioFull?.nombre, telefono: usuarioFull?.telefono, email: user.email },
+          localId: local_id,
+          eventoId: evento_id || null,
+          entradaIds: created.map(e => e.id),
+          precioLocalPorEntrada: precioBase,
+          cookieRef: parseCookieRef(req.cookies.get('rumbo_ref')?.value),
+        })
+      } catch (err) {
+        console.error('[atribucion] devengo entrada falló', err)
+      }
     }
 
     // Confirmación por email (no bloquea la respuesta; falla silenciosamente si no hay Resend)
