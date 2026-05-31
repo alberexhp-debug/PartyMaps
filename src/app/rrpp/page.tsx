@@ -146,7 +146,7 @@ function CompletarPerfil({ rrpp, onListo }: { rrpp: RRPP; onListo: () => void })
           <span className="text-xs eyebrow eyebrow-rose">Slug (URL pública)</span>
           <input value={slug} onChange={e => setSlug(e.target.value)}
             placeholder="leo-noches" className="input mt-1 w-full" />
-          <span className="text-tertiary text-xs">partymaps.com/r/{slug || 'leo-noches'}</span>
+          <span className="text-tertiary text-xs">rumbomap.com/r/{slug || 'leo-noches'}</span>
         </label>
         <label className="block">
           <span className="text-xs eyebrow eyebrow-rose">Bio (opcional)</span>
@@ -200,7 +200,10 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
   }
 
   const [copiado, setCopiado] = useState(false)
+  const [copiadoLink, setCopiadoLink] = useState(false)
   const codigoRef = (rrpp.slug || '').toUpperCase()
+  const linkHost = typeof window !== 'undefined' ? window.location.host : 'rumbomap.com'
+  const miLink = typeof window !== 'undefined' ? `${window.location.origin}/r/${rrpp.slug}` : `https://rumbomap.com/r/${rrpp.slug}`
   const pendientes = venues.filter(v => v.estado === 'pendiente')
   const activos = venues.filter(v => v.estado === 'activa')
   const pendiente = liqs.filter(l => l.estado === 'pendiente').reduce((s, l) => s + Number(l.monto_total), 0)
@@ -223,7 +226,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
             <h1 className="text-display text-2xl truncate">{rrpp.nombre_publico}</h1>
             <a href={`/r/${rrpp.slug}`} target="_blank" rel="noreferrer"
               className="text-secondary text-xs inline-flex items-center gap-1 hover:underline">
-              partymaps.com/r/{rrpp.slug} <ExternalLink className="w-3 h-3" />
+              {linkHost}/r/{rrpp.slug} <ExternalLink className="w-3 h-3" />
             </a>
           </div>
         </header>
@@ -251,6 +254,18 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
           <p className="text-tertiary text-xs mt-2">
             Dáselo a la gente: al registrarse en Rumbo con tu código, contamos sus entradas y consumiciones a tu nombre durante 24h.
           </p>
+
+          {/* Link directo (también atribuye al hacer clic) */}
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <LinkIcon className="w-4 h-4 shrink-0 text-secondary" />
+            <span className="flex-1 min-w-0 truncate text-secondary text-xs">{linkHost}/r/{rrpp.slug}</span>
+            <button
+              onClick={() => { navigator.clipboard?.writeText(miLink); setCopiadoLink(true); setTimeout(() => setCopiadoLink(false), 1500) }}
+              className="shrink-0 h-8 px-3 rounded-lg bg-white/8 border border-white/10 text-white text-xs font-semibold hover:bg-white/12 transition-colors"
+            >
+              {copiadoLink ? '¡Copiado!' : 'Copiar link'}
+            </button>
+          </div>
         </section>
 
         {pendientes.length > 0 && (
