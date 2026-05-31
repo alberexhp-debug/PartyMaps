@@ -1,6 +1,6 @@
 /**
  * Ilustraciones SVG abstractas para empty states. Más personalidad que un
- * icono lucide genérico. Todas usan la paleta PartyMaps y se animan.
+ * icono lucide genérico. Todas usan la paleta Rumbo y se animan.
  */
 
 interface IllustrationProps {
@@ -81,7 +81,7 @@ export function IlustracionTickets({ className, size = 120 }: IllustrationProps)
         <circle cx="62" cy="87" r="5" fill="#06060C" />
         <circle cx="98" cy="87" r="5" fill="#06060C" />
         <line x1="62" y1="87" x2="98" y2="87" stroke="rgba(255,255,255,0.5)" strokeDasharray="3 3" />
-        <text x="44" y="79" fill="#fff" fontSize="9" fontWeight="800" fontFamily="Inter, sans-serif" letterSpacing="0.15em">PM</text>
+        <text x="44" y="79" fill="#fff" fontSize="9" fontWeight="800" fontFamily="Inter, sans-serif" letterSpacing="0.15em">R</text>
         <text x="44" y="103" fill="#fff" fontSize="6" fontWeight="600" fontFamily="Inter, sans-serif" letterSpacing="0.15em" opacity="0.7">ADMIT</text>
         <text x="100" y="103" fill="#fff" fontSize="6" fontWeight="600" fontFamily="Inter, sans-serif" letterSpacing="0.15em" opacity="0.7">ONE</text>
       </g>

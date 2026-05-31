@@ -58,7 +58,7 @@ export default function LocalPanelLoginPage() {
 
       <div className="relative mb-8 text-center">
         <div className="w-16 h-16 holo-bg rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-[0_12px_30px_-8px_rgba(124,92,255,0.6)]">
-          <span className="text-xl font-black text-white">PM</span>
+          <span className="text-xl font-black text-white">R</span>
         </div>
         <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-2">Negocio</p>
         <h1 className="text-3xl font-bold text-white text-display tracking-tight">Panel del local</h1>
@@ -97,7 +97,7 @@ export default function LocalPanelLoginPage() {
 
       <div className="relative mt-8 text-center space-y-2">
         <p className="text-sm text-[#A0A0B8]">
-          ¿Tu local aún no está en PartyMaps?{' '}
+          ¿Tu local aún no está en Rumbo?{' '}
           <Link href="/local-panel/registro" className="text-[#E94560] font-semibold">Regístralo gratis</Link>
         </p>
         <p className="text-xs text-[#6B6B85]">

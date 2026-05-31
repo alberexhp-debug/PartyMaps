@@ -74,7 +74,7 @@ export default function AdminLoginPage() {
         </div>
         <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.25em] mb-2">Acceso restringido</p>
         <h1 className="text-3xl font-bold text-white text-display tracking-tight">Panel de administración</h1>
-        <p className="text-[#A0A0B8] text-sm mt-2">Solo para el equipo de PartyMaps</p>
+        <p className="text-[#A0A0B8] text-sm mt-2">Solo para el equipo de Rumbo</p>
       </div>
 
       <div className="relative w-full max-w-sm space-y-4">

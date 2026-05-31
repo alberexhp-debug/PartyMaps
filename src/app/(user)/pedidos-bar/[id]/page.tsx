@@ -186,7 +186,7 @@ export default function PedidoBarPage() {
         </div>
 
         <p className="text-center text-[10px] text-[#8B8BA8] uppercase tracking-[0.18em]">
-          PartyMaps · Pedido {pedido.qr_code.slice(0, 14)}…
+          Rumbo · Pedido {pedido.qr_code.slice(0, 14)}…
         </p>
       </div>
     </div>

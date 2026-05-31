@@ -89,7 +89,7 @@ export default function ComprarEntradaPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setPaso('exito')
-      // Celebración con confeti en la paleta PartyMaps
+      // Celebración con confeti en la paleta Rumbo
       const { dispararConfetiCompra } = await import('@/lib/confeti')
       dispararConfetiCompra()
     } catch (e: unknown) {

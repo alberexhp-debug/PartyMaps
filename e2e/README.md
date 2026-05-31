@@ -1,4 +1,4 @@
-# Tests E2E — PartyMaps
+# Tests E2E — Rumbo
 
 Smoke tests con Playwright. Comprueban que las pantallas críticas (bienvenida, login PWA, login admin, login local-panel, vista pública de carta, banner cookies) renderizan sin crash.
 

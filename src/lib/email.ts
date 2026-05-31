@@ -19,7 +19,7 @@ interface EnviarResult {
   error?: string
 }
 
-const FROM = process.env.RESEND_FROM || 'PartyMaps <noreply@partymaps.es>'
+const FROM = process.env.RESEND_FROM || 'Rumbo <noreply@partymaps.es>'
 const REPLY_TO = process.env.RESEND_REPLY_TO || 'soporte@partymaps.es'
 
 export async function enviarEmail({ to, subject, html, tag }: EnviarOptions): Promise<EnviarResult> {
@@ -51,7 +51,7 @@ export async function enviarEmail({ to, subject, html, tag }: EnviarOptions): Pr
   }
 }
 
-/** Layout HTML común — header/footer PartyMaps. Mantener inline-style por compatibilidad email. */
+/** Layout HTML común — header/footer Rumbo. Mantener inline-style por compatibilidad email. */
 function envolverPlantilla(contenido: string): string {
   return `<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
@@ -62,8 +62,8 @@ function envolverPlantilla(contenido: string): string {
         <tr><td style="padding:28px 28px 0 28px;">
           <table role="presentation" cellpadding="0" cellspacing="0">
             <tr>
-              <td style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#E94560,#7C5CFF,#4F8EF7);text-align:center;vertical-align:middle;color:#fff;font-weight:900;font-size:14px;line-height:40px;">PM</td>
-              <td style="padding-left:12px;color:#FAFAFC;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;font-size:13px;">PartyMaps</td>
+              <td style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#E94560,#7C5CFF,#4F8EF7);text-align:center;vertical-align:middle;color:#fff;font-weight:900;font-size:14px;line-height:40px;">R</td>
+              <td style="padding-left:12px;color:#FAFAFC;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;font-size:13px;">Rumbo</td>
             </tr>
           </table>
         </td></tr>
@@ -72,7 +72,7 @@ function envolverPlantilla(contenido: string): string {
         </td></tr>
         <tr><td style="padding:0 28px 28px 28px;border-top:1px solid rgba(255,255,255,0.06);">
           <p style="margin:18px 0 0 0;color:#6B6B85;font-size:11px;line-height:1.5;">
-            Recibes este email porque tienes una cuenta en PartyMaps.<br />
+            Recibes este email porque tienes una cuenta en Rumbo.<br />
             ¿Dudas? Escribe a <a href="mailto:${REPLY_TO}" style="color:#E94560;text-decoration:none;">${REPLY_TO}</a>.
           </p>
         </td></tr>

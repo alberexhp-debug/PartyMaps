@@ -135,7 +135,7 @@ export default function EditorCartaPage() {
       const blob: Blob = await new Promise(resolve => canvas.toBlob(b => resolve(b!), 'image/png', 0.95))
       const file = new File([blob], `partymaps-${usuario.carta_slug ?? 'carta'}.png`, { type: 'image/png' })
       if (modo === 'share' && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'Mi carta PartyMaps', text: `${apodo || usuario.nombre} en PartyMaps` })
+        await navigator.share({ files: [file], title: 'Mi carta Rumbo', text: `${apodo || usuario.nombre} en Rumbo` })
       } else {
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a'); a.href = url; a.download = file.name

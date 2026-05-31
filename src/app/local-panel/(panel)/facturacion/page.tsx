@@ -298,7 +298,7 @@ export default function FacturacionPage() {
           <li className="flex gap-2 text-[#B8B8CC]"><Zap size={13} className="text-[#F39C12] mt-0.5 shrink-0" />
             <span><strong className="text-white">3 meses gratis</strong> al cambiar a Pro por primera vez (cuota + comisión reducida desde el día 1).</span></li>
           <li className="flex gap-2 text-[#B8B8CC]"><Check size={13} className="text-[#27AE60] mt-0.5 shrink-0" />
-            <span>Sin comisión en reembolsos: si cancelas un evento, PartyMaps no cobra esa comisión.</span></li>
+            <span>Sin comisión en reembolsos: si cancelas un evento, Rumbo no cobra esa comisión.</span></li>
           <li className="flex gap-2 text-[#B8B8CC]"><CreditCard size={13} className="text-[#4F8EF7] mt-0.5 shrink-0" />
             <span>Pago real con Stripe en breve. De momento las solicitudes se registran y te contactamos.</span></li>
         </ul>

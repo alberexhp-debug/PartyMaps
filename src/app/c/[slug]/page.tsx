@@ -46,7 +46,7 @@ export default function CartaPublicaPage() {
         <h1 className="text-2xl font-bold text-white text-display">Carta no encontrada</h1>
         <p className="text-[#A0A0B8] mt-2 max-w-xs">Puede que el enlace esté roto o que su dueño la haya hecho privada.</p>
         <Link href="/" className="mt-6">
-          <Button>Ir a PartyMaps</Button>
+          <Button>Ir a Rumbo</Button>
         </Link>
       </div>
     )
@@ -60,8 +60,8 @@ export default function CartaPublicaPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 pb-32">
         {/* Logo */}
         <Link href="/" className="mb-6 flex items-center gap-2 text-sm font-bold text-[#A0A0B8] hover:text-white transition-colors">
-          <span className="w-7 h-7 rounded-lg holo-bg flex items-center justify-center text-white text-xs font-black">PM</span>
-          <span className="uppercase tracking-[0.2em]">PartyMaps</span>
+          <span className="w-7 h-7 rounded-lg holo-bg flex items-center justify-center text-white text-xs font-black">R</span>
+          <span className="uppercase tracking-[0.2em]">Rumbo</span>
         </Link>
 
         {/* Carta */}

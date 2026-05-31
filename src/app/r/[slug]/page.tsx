@@ -56,11 +56,11 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!data) return { title: 'RRPP no encontrado' }
   const { rrpp } = data
   return {
-    title: `${rrpp.nombre_publico} — RRPP en PartyMaps`,
+    title: `${rrpp.nombre_publico} — RRPP en Rumbo`,
     description: rrpp.bio || `Eventos donde está ${rrpp.nombre_publico} esta semana en Madrid.`,
     openGraph: {
       title: rrpp.nombre_publico,
-      description: rrpp.bio || `Eventos de ${rrpp.nombre_publico} en PartyMaps`,
+      description: rrpp.bio || `Eventos de ${rrpp.nombre_publico} en Rumbo`,
       images: rrpp.foto_url ? [rrpp.foto_url] : undefined,
     },
   }
@@ -169,7 +169,7 @@ export default async function PaginaRRPP({ params }: { params: Promise<Params> }
         <footer className="pt-6 border-t border-white/5 text-center">
           <p className="text-tertiary text-xs">
             Comprar por aquí <strong className="text-rose-300">apoya a {rrpp.nombre_publico}</strong> automáticamente.
-            <br />Las cifras y comisiones las pactan el RRPP y el local — PartyMaps solo lo refleja.
+            <br />Las cifras y comisiones las pactan el RRPP y el local — Rumbo solo lo refleja.
           </p>
         </footer>
       </div>

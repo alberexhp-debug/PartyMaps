@@ -1,5 +1,5 @@
 /**
- * Helpers de confeti — usa canvas-confetti con la paleta de PartyMaps.
+ * Helpers de confeti — usa canvas-confetti con la paleta de Rumbo.
  * Lazy-load para no incluir en el bundle inicial.
  */
 const COLORES_PM = ['#E94560', '#FF3D71', '#7C5CFF', '#4F8EF7', '#FBE08F']

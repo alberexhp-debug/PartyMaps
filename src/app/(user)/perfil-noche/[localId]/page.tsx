@@ -65,7 +65,7 @@ export default function PerfilNochePage() {
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'Mi noche en PartyMaps',
+          title: 'Mi noche en Rumbo',
           text: `Estoy en ${local?.nombre} esta noche.`,
         })
       } else {

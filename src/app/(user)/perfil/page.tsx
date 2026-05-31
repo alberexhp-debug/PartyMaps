@@ -191,7 +191,7 @@ export default function PerfilPage() {
                 <p className="eyebrow mb-1.5">Tu carta</p>
                 <p className="text-base text-white font-semibold leading-tight">Personalízala y compártela</p>
                 <p className="text-xs text-[#A0A0B8] mt-1 leading-snug line-clamp-2">
-                  {usuario.carta_frase || `${signo}, brilla esta noche. Tu carta te identifica en PartyMaps.`}
+                  {usuario.carta_frase || `${signo}, brilla esta noche. Tu carta te identifica en Rumbo.`}
                 </p>
                 <div className="mt-2.5 inline-flex items-center gap-1 text-xs font-semibold text-[#E94560]">
                   Abrir carta <ArrowRight size={12} />
@@ -247,7 +247,7 @@ export default function PerfilPage() {
           {push.estado === 'denegado' && (
             <div className="mt-3 flex items-start gap-2 text-xs text-[#F39C12] bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl p-2.5">
               <AlertCircle size={14} className="shrink-0 mt-0.5" />
-              <span>Ve a los ajustes del navegador → Notificaciones y permite PartyMaps.</span>
+              <span>Ve a los ajustes del navegador → Notificaciones y permite Rumbo.</span>
             </div>
           )}
         </div>
@@ -280,7 +280,7 @@ export default function PerfilPage() {
         </button>
 
         <div className="divider-gradient mt-6" />
-        <p className="text-center text-[10px] text-[#6B6B85] tracking-[0.18em] uppercase pb-2">PartyMaps · v0.1.0</p>
+        <p className="text-center text-[10px] text-[#6B6B85] tracking-[0.18em] uppercase pb-2">Rumbo · v0.1.0</p>
       </div>
     </div>
   )

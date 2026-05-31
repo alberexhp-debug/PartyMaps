@@ -213,7 +213,7 @@ export const CartaPerfil = forwardRef<HTMLDivElement, CartaPerfilProps>(function
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] uppercase tracking-[0.2em] opacity-70 font-semibold">PartyMaps</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] opacity-70 font-semibold">Rumbo</p>
             <p className="text-sm font-bold tracking-wider" style={{ color: tema.sello }}>{numeroCorto}</p>
           </div>
         </div>

@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test'
 
 test('bienvenida muestra el carrusel y CTAs', async ({ page }) => {
   await page.goto('/bienvenida')
-  await expect(page.getByText('PartyMaps').first()).toBeVisible()
+  await expect(page.getByText('Rumbo').first()).toBeVisible()
   await expect(page.getByText('Descubre qué merece la pena')).toBeVisible()
   // Avanzar al último slide
   await page.getByRole('button', { name: /Siguiente/i }).click()
@@ -40,7 +40,7 @@ test('panel local login muestra formulario', async ({ page }) => {
 test('carta pública con slug inválido muestra estado vacío', async ({ page }) => {
   await page.goto('/c/noexiste99')
   await expect(page.getByText('Carta no encontrada')).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByRole('link', { name: /Ir a PartyMaps/i })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Ir a Rumbo/i })).toBeVisible()
 })
 
 test('explorar (PWA) carga el shell sin crash', async ({ page }) => {

@@ -3,13 +3,13 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'PartyMaps — Ocio nocturno en Madrid',
+  title: 'Rumbo — Ocio nocturno',
   description: 'Descubre qué local merece la pena esta noche. Mapa en tiempo real, entradas, planes y más.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'PartyMaps',
+    title: 'Rumbo',
   },
   icons: {
     icon: '/icon-192.png',

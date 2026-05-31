@@ -82,8 +82,8 @@ function SinInvitacion() {
       <ShieldOff className="w-12 h-12 text-amber-400 mb-4" />
       <h1 className="text-display text-3xl mb-2">No tienes acceso al modo RRPP</h1>
       <p className="text-secondary text-sm max-w-md mb-6">
-        Para ser RRPP en PartyMaps debes ser invitado por un local que quiera trabajar contigo
-        o dado de alta por el equipo de PartyMaps. No es un perfil que puedas activar por tu cuenta —
+        Para ser RRPP en Rumbo debes ser invitado por un local que quiera trabajar contigo
+        o dado de alta por el equipo de Rumbo. No es un perfil que puedas activar por tu cuenta —
         así controlamos quién promociona y la calidad de la red.
       </p>
       <div className="space-y-2 text-sm">
@@ -163,7 +163,7 @@ function CompletarPerfil({ rrpp, onListo }: { rrpp: RRPP; onListo: () => void })
           <input type="checkbox" checked={aceptaEdad}
             onChange={e => setAceptaEdad(e.target.checked)} className="mt-1" />
           <span>Confirmo que soy mayor de 18 años y que cualquier obligación fiscal por
-            comisiones cobradas es mía, no de PartyMaps.</span>
+            comisiones cobradas es mía, no de Rumbo.</span>
         </label>
         {error && <p className="text-rose-300 text-sm">{error}</p>}
         <button onClick={enviar} disabled={!nombrePublico || !aceptaEdad || enviando}
@@ -313,7 +313,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
         </section>
 
         <footer className="text-center text-tertiary text-xs pt-6 border-t border-white/5">
-          PartyMaps no procesa el pago entre tú y el local. Las cifras de arriba son
+          Rumbo no procesa el pago entre tú y el local. Las cifras de arriba son
           lo que el local te debe según las ventas atribuidas. El pago lo gestionáis vosotros.
         </footer>
       </div>

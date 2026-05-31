@@ -251,7 +251,7 @@ export default function CartaBarPage() {
               <span className="text-numeric">{formatearPrecio(subtotal)}</span>
             </div>
             <div className="flex justify-between text-[#B8B8CC]">
-              <span>Comisión PartyMaps ({COMISION_PORCENTAJE}%)</span>
+              <span>Comisión Rumbo ({COMISION_PORCENTAJE}%)</span>
               <span className="text-numeric">{formatearPrecio(comision)}</span>
             </div>
             <div className="flex justify-between text-base font-bold text-white pt-1 border-t border-white/8 mt-2">

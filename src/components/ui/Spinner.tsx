@@ -67,7 +67,7 @@ export function BrandLoader({ size = 80 }: { size?: number }) {
         <span className="text-2xl font-black text-white tracking-tight" style={{
           textShadow: '0 2px 8px rgba(0,0,0,0.4)',
           fontFamily: 'var(--font-display)',
-        }}>PM</span>
+        }}>R</span>
       </div>
     </div>
   )

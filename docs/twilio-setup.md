@@ -1,12 +1,12 @@
 # Twilio Verify → Supabase Auth (SMS OTP de producción)
 
-> El SMS OTP de PartyMaps va a través de Supabase Auth, que delega en un provider externo de SMS. En desarrollo usamos el test phone `+34666000001` con código fijo `123456`. Para producción hay que conectar Twilio Verify.
+> El SMS OTP de Rumbo va a través de Supabase Auth, que delega en un provider externo de SMS. En desarrollo usamos el test phone `+34666000001` con código fijo `123456`. Para producción hay que conectar Twilio Verify.
 
 ## 1. Crear cuenta y configurar Verify
 
 1. Crear cuenta en https://twilio.com con la cuenta personal de Albert (luego se traspasa a la empresa).
 2. En la consola → **Verify** → **Services** → **Create new**.
-3. Friendly name: `PartyMaps`.
+3. Friendly name: `Rumbo`.
 4. Code length: **6** (lo que usa nuestra UI).
 5. Default template language: `es` (español).
 6. Activar canal **SMS**. Dejar Email/WhatsApp desactivados de momento.
@@ -68,4 +68,4 @@ Cuando se cree la cuenta corporate de Twilio:
 
 ## 9. Detección runtime desde el código
 
-PartyMaps incluye `/api/dev/check-sms-config` (solo admin) que llama a `supabase.auth.signInWithOtp` con un número inválido y reporta si Supabase responde con error de configuración (provider no configurado) o de validación (provider OK). Útil para confirmar el setup desde la UI.
+Rumbo incluye `/api/dev/check-sms-config` (solo admin) que llama a `supabase.auth.signInWithOtp` con un número inválido y reporta si Supabase responde con error de configuración (provider no configurado) o de validación (provider OK). Útil para confirmar el setup desde la UI.

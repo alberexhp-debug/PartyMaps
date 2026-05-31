@@ -71,7 +71,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ to
     .from('usuarios').select('id').eq('auth_id', user.id).maybeSingle()
   if (!usuario) {
     return NextResponse.json({
-      error: 'Aún no tienes perfil PartyMaps. Completa primero el registro.',
+      error: 'Aún no tienes perfil Rumbo. Completa primero el registro.',
       code: 'NO_USER_PROFILE',
     }, { status: 409 })
   }

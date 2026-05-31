@@ -287,7 +287,7 @@ function ModalCrear({ onClose, onCreado }: { onClose: () => void; onCreado: () =
           <>
             <p className="text-xs text-[#6B6B85]">
               El RRPP nace sin local asociado. Cuando una discoteca lo invite o él se ofrezca por su slug,
-              empezará a trabajar. La cuota legal de PartyMaps es cero — solo facilitamos el contacto.
+              empezará a trabajar. La cuota legal de Rumbo es cero — solo facilitamos el contacto.
             </p>
             <label className="block">
               <span className="text-xs uppercase tracking-wider text-[#A0A0B8] font-semibold">Email *</span>
@@ -304,7 +304,7 @@ function ModalCrear({ onClose, onCreado }: { onClose: () => void; onCreado: () =
             <label className="block">
               <span className="text-xs uppercase tracking-wider text-[#A0A0B8] font-semibold">Mensaje (opcional)</span>
               <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} rows={2}
-                placeholder="Bienvenido a PartyMaps como RRPP..."
+                placeholder="Bienvenido a Rumbo como RRPP..."
                 className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-[#6B6B85]" />
             </label>
             {error && <p className="text-rose-300 text-sm">{error}</p>}

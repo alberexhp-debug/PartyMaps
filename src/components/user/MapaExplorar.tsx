@@ -335,7 +335,7 @@ export default function MapaExplorar() {
       {/* Barra superior */}
       <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center gap-2.5 safe-top">
         <div className="w-9 h-9 rounded-xl bg-[#E94560] flex items-center justify-center shadow-[0_4px_14px_-4px_rgba(233,69,96,0.6)] flex-shrink-0">
-          <span className="text-[10px] font-black text-white tracking-tight">PM</span>
+          <span className="text-[10px] font-black text-white tracking-tight">R</span>
         </div>
         <button
           onClick={() => setShowBuscador(true)}

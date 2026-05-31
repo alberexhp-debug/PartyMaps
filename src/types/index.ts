@@ -475,7 +475,7 @@ export interface ResultadoEscaneoQR {
 // =============================================
 
 /**
- * Contacto = CRM de PartyMaps. Identidad de 3 niveles:
+ * Contacto = CRM de Rumbo. Identidad de 3 niveles:
  *   - visitor  → anónimo, no aparece aquí
  *   - lead     → contacto con email o teléfono, sin cuenta (user_id NULL)
  *   - usuario  → contacto promocionado, user_id rellenado
@@ -508,7 +508,7 @@ export interface Contacto {
 }
 
 /**
- * RRPP = rol opcional sobre un usuario PartyMaps. Cualquier usuario
+ * RRPP = rol opcional sobre un usuario Rumbo. Cualquier usuario
  * activa el modo y obtiene panel multi-venue + página pública /r/[slug]
  * + followers. La identidad y carta de perfil son los del usuario.
  */
@@ -684,7 +684,7 @@ export interface RRPPSeguidor {
 }
 
 /**
- * Liquidación mensual por par RRPP↔venue. PartyMaps NO toca dinero —
+ * Liquidación mensual por par RRPP↔venue. Rumbo NO toca dinero —
  * solo refleja qué le debe el venue al RRPP. El venue marca como pagado,
  * el RRPP confirma. A 14 días sin confirmar, tácitamente confirmado.
  */

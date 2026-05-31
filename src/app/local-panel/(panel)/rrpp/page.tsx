@@ -97,7 +97,7 @@ export default function RRPPPanelLocal() {
               <Sparkles className="w-10 h-10 text-rose-400 mx-auto mb-3" />
               <p className="text-display text-xl mb-1">Aún no tienes RRPPs</p>
               <p className="text-secondary text-sm">
-                Pulsa <strong>Añadir RRPP</strong>: busca a alguien ya en PartyMaps
+                Pulsa <strong>Añadir RRPP</strong>: busca a alguien ya en Rumbo
                 o crea una invitación con su email para mandar por WhatsApp.
               </p>
             </div>
@@ -488,7 +488,7 @@ function TabCrear({ onCreado }: { onCreado: () => void }) {
         {sending ? 'Procesando...' : 'Crear invitación'}
       </button>
       {via === 'usuario_existente' && (
-        <p className="text-emerald-300 text-xs">Esta persona ya está en PartyMaps. Le ha llegado la invitación a su panel.</p>
+        <p className="text-emerald-300 text-xs">Esta persona ya está en Rumbo. Le ha llegado la invitación a su panel.</p>
       )}
     </div>
   )
