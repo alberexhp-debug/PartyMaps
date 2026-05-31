@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 const ROLES_CANJE = ['dueno', 'gestor', 'barman'] as const
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'QR no es de pedido de bar' }, { status: 400 })
   }
 
-  const admin = await createAdminSupabaseClient()
+  const admin = createServiceRoleClient()
 
   // Resolver trabajador
   const { data: trabajador } = await admin

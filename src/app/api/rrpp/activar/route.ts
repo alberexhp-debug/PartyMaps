@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { slugify } from '@/lib/rrpp/auth'
 
 /**
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supa.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
-  const admin = await createAdminSupabaseClient()
+  const admin = createServiceRoleClient()
   const { data: usuario } = await admin
     .from('usuarios').select('id, nombre, foto_perfil_url')
     .eq('auth_id', user.id).maybeSingle()
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
 }
 
 async function resolverSlugUnico(
-  admin: Awaited<ReturnType<typeof createAdminSupabaseClient>>,
+  admin: ReturnType<typeof createServiceRoleClient>,
   base: string,
   excluirId: string,
 ): Promise<string> {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 /**
  * Devuelve los planes en los que el usuario participó cuya hora de llegada
@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest) {
   const { data: { user } } = await supa.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
-  const admin = await createAdminSupabaseClient()
+  const admin = createServiceRoleClient()
   const { data: usuario } = await admin.from('usuarios').select('id').eq('auth_id', user.id).maybeSingle()
   if (!usuario) return NextResponse.json({ error: 'Perfil no encontrado' }, { status: 404 })
 
