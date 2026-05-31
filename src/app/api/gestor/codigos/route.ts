@@ -12,7 +12,9 @@ import { getGestorAutenticado, gestorPoseeLocal } from '@/lib/gestor/auth'
 export async function GET(req: NextRequest) {
   const ctx = await getGestorAutenticado(req)
   if (!ctx) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  const localId = new URL(req.url).searchParams.get('local_id') || ''
+  const url = new URL(req.url)
+  const localId = url.searchParams.get('local_id') || ''
+  const clase = url.searchParams.get('clase') // 'gratis' | 'descuento' | null(todos)
   if (!(await gestorPoseeLocal(ctx.gestor.id, localId))) {
     return NextResponse.json({ error: 'Ese local no está en tu cartera' }, { status: 403 })
   }
@@ -22,7 +24,13 @@ export async function GET(req: NextRequest) {
     .select('id, codigo, tipo, valor, usos_max, usos_actuales, expira_at, activo, created_at')
     .eq('local_id', localId)
     .order('created_at', { ascending: false })
-  return NextResponse.json({ codigos: data ?? [] })
+
+  // Una "entrada gratis" es un código de 100%. Separamos las dos listas.
+  const esGratis = (c: { tipo: string; valor: number }) => c.tipo === 'porcentaje' && Number(c.valor) >= 100
+  let codigos = data ?? []
+  if (clase === 'gratis') codigos = codigos.filter(esGratis)
+  else if (clase === 'descuento') codigos = codigos.filter(c => !esGratis(c))
+  return NextResponse.json({ codigos })
 }
 
 export async function POST(req: NextRequest) {
@@ -46,6 +54,16 @@ export async function POST(req: NextRequest) {
   if (tipo === 'porcentaje' && valor > 100) return NextResponse.json({ error: 'El porcentaje no puede superar 100' }, { status: 400 })
 
   const admin = createServiceRoleClient()
+
+  // Las ENTRADAS GRATIS (código al 100%) requieren plan Pro/Destacado.
+  const esEntradaGratis = tipo === 'porcentaje' && valor >= 100
+  if (esEntradaGratis) {
+    const { data: local } = await admin.from('locales').select('tier').eq('id', body.local_id).maybeSingle()
+    if (local?.tier !== 'pro' && local?.tier !== 'destacado') {
+      return NextResponse.json({ error: 'Las entradas gratis requieren que el local esté en plan Pro o Destacado' }, { status: 403 })
+    }
+  }
+
   const { data, error } = await admin.from('codigos_descuento').insert({
     local_id: body.local_id,
     gestor_id: ctx.gestor.id,

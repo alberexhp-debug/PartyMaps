@@ -61,11 +61,8 @@ export default function GestorDashboardPage() {
           />
           <SeccionLink href="/gestor/rrpp" icon={Megaphone} titulo="RRPP" desc="Vincular RRPP a tus locales y fijar el %" badge={resumen && resumen.rrpp_activos > 0 ? `${resumen.rrpp_activos} activos` : 'Gestionar'} />
           <SeccionLink href="/gestor/codigos" icon={Tag} titulo="Códigos de descuento" desc="Crear códigos pactados con los locales" badge="Gestionar" />
-          <SeccionProximo icon={Ticket} titulo="Entradas gratis" desc="Generar entradas gratis (según el plan del local)" />
+          <SeccionLink href="/gestor/entradas-gratis" icon={Ticket} titulo="Entradas gratis" desc="Generar entradas gratis (Pro/Destacado)" badge="Gestionar" />
         </div>
-        <p className="text-xs text-[#6B6B85] mt-3">
-          Las secciones restantes se irán activando.
-        </p>
       </div>
     </div>
   )
