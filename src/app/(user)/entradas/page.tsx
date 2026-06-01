@@ -17,15 +17,16 @@ type EntradaConInfo = Entrada & { local?: Local; evento?: Evento }
 
 export default function EntradasPage() {
   const router = useRouter()
-  const { usuario } = useAuthStore()
+  const { usuario, isLoading } = useAuthStore()
   const [entradas, setEntradas] = useState<EntradaConInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'activas' | 'historial'>('activas')
 
   useEffect(() => {
+    if (isLoading) return            // esperar a que AuthProvider resuelva la sesión
     if (!usuario) { router.push('/login'); return }
     cargar()
-  }, [usuario])
+  }, [usuario, isLoading])
 
   const ptr = usePullToRefresh({ onRefresh: cargar })
 

@@ -14,16 +14,17 @@ type EntradaConInfo = Entrada & { local?: Local; evento?: Evento; consumicion?: 
 export default function EntradaDetallePage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { usuario } = useAuthStore()
+  const { usuario, isLoading } = useAuthStore()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [entrada, setEntrada] = useState<EntradaConInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [brightness, setBrightness] = useState(false)
 
   useEffect(() => {
+    if (isLoading) return            // esperar a que AuthProvider resuelva la sesión
     if (!usuario) { router.push('/login'); return }
     cargar()
-  }, [usuario])
+  }, [usuario, isLoading])
 
   async function cargar() {
     const { data } = await supabase

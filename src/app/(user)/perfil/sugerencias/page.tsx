@@ -23,11 +23,12 @@ const ESTADO_LABEL: Record<string, { label: string; color: string }> = {
 
 export default function MisSugerenciasPage() {
   const router = useRouter()
-  const { usuario } = useAuthStore()
+  const { usuario, isLoading } = useAuthStore()
   const [sugerencias, setSugerencias] = useState<SugerenciaConLocal[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (isLoading) return            // esperar a que AuthProvider resuelva la sesión
     if (!usuario) { router.push('/login'); return }
     supabase
       .from('sugerencias')
@@ -38,7 +39,7 @@ export default function MisSugerenciasPage() {
         if (data) setSugerencias(data as unknown as SugerenciaConLocal[])
         setLoading(false)
       })
-  }, [usuario, router])
+  }, [usuario, isLoading, router])
 
   return (
     <div className="min-h-screen pb-24">

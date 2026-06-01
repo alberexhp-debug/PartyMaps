@@ -23,14 +23,15 @@ type SuscripcionConLocal = {
 
 export default function SuscritosPage() {
   const router = useRouter()
-  const { usuario } = useAuthStore()
+  const { usuario, isLoading } = useAuthStore()
   const [suscripciones, setSuscripciones] = useState<SuscripcionConLocal[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (isLoading) return            // esperar a que AuthProvider resuelva la sesión
     if (!usuario) { router.push('/login'); return }
     cargar()
-  }, [usuario])
+  }, [usuario, isLoading])
 
   const ptr = usePullToRefresh({ onRefresh: cargar })
 

@@ -18,7 +18,7 @@ import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 export default function PerfilPage() {
   const router = useRouter()
   const toast = useToast()
-  const { usuario, setUsuario } = useAuthStore()
+  const { usuario, setUsuario, isLoading } = useAuthStore()
   const [loggingOut, setLoggingOut] = useState(false)
   const [editandoNombre, setEditandoNombre] = useState(false)
   const [nuevoNombre, setNuevoNombre] = useState(usuario?.nombre || '')
@@ -27,6 +27,7 @@ export default function PerfilPage() {
   const push = usePushSubscription()
 
   useEffect(() => {
+    if (isLoading) return            // esperar a que AuthProvider resuelva la sesión
     if (!usuario) { router.push('/login'); return }
     ;(async () => {
       const [{ count: e }, { count: p }, { count: s }] = await Promise.all([
@@ -44,7 +45,7 @@ export default function PerfilPage() {
         }
       } catch {}
     })()
-  }, [usuario, router])
+  }, [usuario, isLoading, router])
 
   if (!usuario) return null
 

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
@@ -10,12 +10,17 @@ import { ArrowLeft, Download, Trash2, Shield, AlertTriangle } from 'lucide-react
 export default function PrivacidadPage() {
   const router = useRouter()
   const toast = useToast()
-  const { usuario, setUsuario } = useAuthStore()
+  const { usuario, setUsuario, isLoading } = useAuthStore()
   const [descargando, setDescargando] = useState(false)
   const [confirmar, setConfirmar] = useState(false)
   const [eliminando, setEliminando] = useState(false)
 
-  if (!usuario) { router.push('/login'); return null }
+  useEffect(() => {
+    if (isLoading) return            // esperar a que AuthProvider resuelva la sesión
+    if (!usuario) router.push('/login')
+  }, [usuario, isLoading, router])
+
+  if (!usuario) return null
 
   const descargar = async () => {
     setDescargando(true)
