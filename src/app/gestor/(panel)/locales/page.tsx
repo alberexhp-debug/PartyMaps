@@ -1,14 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Input } from '@/components/ui/Input'
 import { BuscadorDireccion, type DireccionElegida } from '@/components/ui/BuscadorDireccion'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
+import { PageHeader } from '@/components/local-panel/ui'
 import { getLabelTipoLocal } from '@/lib/utils'
 import type { TipoLocal, EstadoLocal } from '@/types'
 import {
-  Store, Plus, ArrowLeft, MapPin, Building2, Mail, User, Hash,
+  Store, Plus, MapPin, Building2, Mail, User, Hash,
   Check, Copy, X, KeyRound,
 } from 'lucide-react'
 
@@ -59,18 +59,11 @@ export default function GestorLocalesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <Link href="/gestor/dashboard" className="inline-flex items-center gap-1.5 text-xs text-[#8B8BA8] hover:text-white mb-2 transition-colors">
-            <ArrowLeft size={13} /> Inicio
-          </Link>
-          <p className="eyebrow mb-1">Tu cartera</p>
-          <h1 className="text-2xl font-bold text-white text-display tracking-tight">Locales</h1>
-        </div>
-        <Button size="sm" onClick={() => setAbrirAlta(true)} className="shrink-0">
-          <Plus size={16} /> Dar de alta
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Tu cartera" acento="violet" titulo="Locales"
+        subtitulo="Da de alta locales y revisa su estado y tier."
+        acciones={<Button size="sm" onClick={() => setAbrirAlta(true)}><Plus size={16} /> Dar de alta</Button>}
+      />
 
       {loading ? (
         <div className="space-y-2">

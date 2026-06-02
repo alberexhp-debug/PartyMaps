@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 import {
   LayoutDashboard, Settings, Calendar, Bell,
   Star, BarChart3, Users, CreditCard, LogOut, MessageSquare,
-  Beer, Gauge, MoreHorizontal, X, LayoutGrid, Sparkles, Gift,
+  Beer, Gauge, MoreHorizontal, X, LayoutGrid, Sparkles, Gift, LifeBuoy,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
@@ -53,6 +53,7 @@ const NAV_GROUPS: NavGroup[] = [
       { zona: 'facturacion',   href: '/local-panel/facturacion',   icon: CreditCard, label: 'Facturación' },
       { zona: 'equipo',        href: '/local-panel/equipo',        icon: Users,      label: 'Equipo' },
       { zona: 'configuracion', href: '/local-panel/configuracion', icon: Settings,   label: 'Configuración' },
+      { zona: 'soporte',       href: '/local-panel/soporte',       icon: LifeBuoy,   label: 'Soporte' },
     ],
   },
 ]

@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { ArrowLeft, Plus, Store, ChevronDown, Ticket, X, Power, Lock } from 'lucide-react'
+import { PageHeader } from '@/components/local-panel/ui'
+import { Plus, Store, ChevronDown, Ticket, X, Power, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type LocalMin = { id: string; nombre: string; ciudad: string; tier?: string }
@@ -52,17 +53,9 @@ export default function GestorEntradasGratisPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <Link href="/gestor/dashboard" className="inline-flex items-center gap-1.5 text-xs text-[#8B8BA8] hover:text-white mb-2 transition-colors">
-            <ArrowLeft size={13} /> Inicio
-          </Link>
-          <p className="eyebrow mb-1">Tu cartera</p>
-          <h1 className="text-2xl font-bold text-white text-display tracking-tight">Entradas gratis</h1>
-          <p className="text-[#A0A0B8] mt-1 text-sm">Genera códigos de entrada gratis para tus locales.</p>
-        </div>
-        {locales.length > 0 && planPermite && <Button size="sm" onClick={() => setAbrir(true)} className="shrink-0"><Plus size={16} /> Crear</Button>}
-      </div>
+      <PageHeader eyebrow="Tu cartera" acento="violet" titulo="Entradas gratis"
+        subtitulo="Genera códigos de entrada gratis para tus locales (Pro/Destacado)."
+        acciones={locales.length > 0 && planPermite ? <Button size="sm" onClick={() => setAbrir(true)}><Plus size={16} /> Crear</Button> : undefined} />
 
       {locales.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-white/12 px-6 py-12 text-center">

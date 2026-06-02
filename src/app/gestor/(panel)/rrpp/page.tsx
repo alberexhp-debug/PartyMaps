@@ -4,8 +4,9 @@ import Link from 'next/link'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
+import { PageHeader } from '@/components/local-panel/ui'
 import {
-  Megaphone, ArrowLeft, Plus, Search, Mail, Store, ChevronDown,
+  Megaphone, Plus, Search, Mail, Store, ChevronDown,
   Check, Copy, X, AtSign, Percent, Pause, Play, UserPlus,
 } from 'lucide-react'
 
@@ -58,14 +59,8 @@ export default function GestorRrppPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/gestor/dashboard" className="inline-flex items-center gap-1.5 text-xs text-[#8B8BA8] hover:text-white mb-2 transition-colors">
-          <ArrowLeft size={13} /> Inicio
-        </Link>
-        <p className="eyebrow mb-1">Tu cartera</p>
-        <h1 className="text-2xl font-bold text-white text-display tracking-tight">RRPP</h1>
-        <p className="text-[#A0A0B8] mt-1 text-sm">Vincula RRPP a cada local de tu cartera y fija su comisión.</p>
-      </div>
+      <PageHeader eyebrow="Tu cartera" acento="violet" titulo="RRPP"
+        subtitulo="Vincula RRPP a cada local de tu cartera y fija su comisión." />
 
       {locales.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-white/12 px-6 py-12 text-center">

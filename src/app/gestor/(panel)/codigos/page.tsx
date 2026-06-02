@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { ArrowLeft, Plus, Store, ChevronDown, Tag, Percent, Euro, X, Power } from 'lucide-react'
+import { PageHeader } from '@/components/local-panel/ui'
+import { Plus, Store, ChevronDown, Tag, Percent, Euro, X, Power } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type LocalMin = { id: string; nombre: string; ciudad: string }
@@ -50,16 +51,9 @@ export default function GestorCodigosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <Link href="/gestor/dashboard" className="inline-flex items-center gap-1.5 text-xs text-[#8B8BA8] hover:text-white mb-2 transition-colors">
-            <ArrowLeft size={13} /> Inicio
-          </Link>
-          <p className="eyebrow mb-1">Tu cartera</p>
-          <h1 className="text-2xl font-bold text-white text-display tracking-tight">Códigos de descuento</h1>
-        </div>
-        {locales.length > 0 && <Button size="sm" onClick={() => setAbrir(true)} className="shrink-0"><Plus size={16} /> Crear</Button>}
-      </div>
+      <PageHeader eyebrow="Tu cartera" acento="violet" titulo="Códigos de descuento"
+        subtitulo="Crea códigos pactados con los locales de tu cartera."
+        acciones={locales.length > 0 ? <Button size="sm" onClick={() => setAbrir(true)}><Plus size={16} /> Crear</Button> : undefined} />
 
       {locales.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-white/12 px-6 py-12 text-center">

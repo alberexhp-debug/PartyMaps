@@ -1,8 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, Link as LinkIcon, Wallet, ExternalLink, Check, X, ShieldOff } from 'lucide-react'
+import { Sparkles, Link as LinkIcon, Wallet, ExternalLink, Check, X, ShieldOff, TrendingUp, Ticket, Clock, MessageCircle, Store, Eye, EyeOff } from 'lucide-react'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
+import { StatCard, SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
 
 type LocalInfo = { id: string; nombre: string; foto_url: string | null; tier: string }
 type Venue = {
@@ -179,6 +181,24 @@ function CompletarPerfil({ rrpp, onListo }: { rrpp: RRPP; onListo: () => void })
 // ════════════════════════════════════════════════════════════════
 // Estado: COMPLETO (dashboard)
 // ════════════════════════════════════════════════════════════════
+const MESES_ABREV = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+const eur = (n: number) => `${(n ?? 0).toFixed(2).replace(/\.00$/, '')} €`
+
+/** Serie de los últimos 6 meses con el total ganado por periodo a partir de las liquidaciones. */
+function serieGanancias(liqs: Liquidacion[]): { mes: string; total: number }[] {
+  const hoy = new Date()
+  const ventana: { periodo: string; mes: string; total: number }[] = []
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1)
+    ventana.push({ periodo: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, mes: MESES_ABREV[d.getMonth()], total: 0 })
+  }
+  for (const l of liqs) {
+    const fila = ventana.find(v => v.periodo === l.periodo)
+    if (fila) fila.total += Number(l.monto_total || 0)
+  }
+  return ventana.map(({ mes, total }) => ({ mes, total: Math.round(total * 100) / 100 }))
+}
+
 function Dashboard({ rrpp, venues, liqs, onRecargar }: {
   rrpp: RRPP; venues: Venue[]; liqs: Liquidacion[]; onRecargar: () => void;
 }) {
@@ -215,36 +235,73 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
   const pendiente = liqs.filter(l => l.estado === 'pendiente').reduce((s, l) => s + Number(l.monto_total), 0)
   const ventasMes = liqs.reduce((s, l) => s + l.num_ventas, 0)
   const totalMes = liqs.reduce((s, l) => s + Number(l.monto_total), 0)
+  const serie = serieGanancias(liqs)
+  const hayDatos = serie.some(s => s.total > 0)
+  const noLeidosTotal = conversaciones.reduce((s, c) => s + c.no_leidos, 0)
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6">
-        <header className="flex items-center gap-3">
-          {rrpp.foto_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={rrpp.foto_url} alt="" className="w-14 h-14 rounded-full object-cover" />
-          ) : (
-            <div className="w-14 h-14 rounded-full bg-rose-400/20 flex items-center justify-center text-display">
-              {rrpp.nombre_publico.slice(0, 1)}
+    <div className="min-h-screen bg-[#07070D] text-white">
+      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 pb-10">
+        {/* Cabecera */}
+        <div className="relative">
+          <div className="hero-halo-rose" />
+          <header className="relative flex items-center gap-3.5">
+            {rrpp.foto_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={rrpp.foto_url} alt="" className="w-16 h-16 rounded-2xl object-cover border border-white/10" />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl holo-bg flex items-center justify-center text-display text-2xl font-black">
+                {rrpp.nombre_publico.slice(0, 1).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="eyebrow eyebrow-rose mb-1">Panel RRPP</p>
+              <h1 className="text-display text-2xl md:text-3xl truncate">{rrpp.nombre_publico}</h1>
+              <a href={`/r/${rrpp.slug}`} target="_blank" rel="noreferrer"
+                className="text-[#A0A0B8] text-xs inline-flex items-center gap-1 hover:text-white transition-colors mt-0.5">
+                {linkHost}/r/{rrpp.slug} <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-display text-2xl truncate">{rrpp.nombre_publico}</h1>
-            <a href={`/r/${rrpp.slug}`} target="_blank" rel="noreferrer"
-              className="text-secondary text-xs inline-flex items-center gap-1 hover:underline">
-              {linkHost}/r/{rrpp.slug} <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </header>
+          </header>
+        </div>
 
-        <section className="grid grid-cols-3 gap-2">
-          <Kpi label="Ventas mes" valor={ventasMes.toString()} icon={Sparkles} />
-          <Kpi label="Total mes" valor={`${totalMes.toFixed(0)}€`} icon={Wallet} />
-          <Kpi label="Pendiente" valor={`${pendiente.toFixed(0)}€`} icon={Wallet} accent />
-        </section>
+        {/* KPIs */}
+        <div className="grid grid-cols-3 gap-2.5">
+          <StatCard icon={Ticket} acento="blue" label="Ventas mes" value={ventasMes} sublabel="atribuidas" />
+          <StatCard icon={Wallet} acento="violet" label="Generado mes" value={eur(totalMes)} />
+          <StatCard icon={Clock} acento="rose" label="Pendiente" value={eur(pendiente)} sublabel="por cobrar" />
+        </div>
+
+        {/* Gráfica de ganancias */}
+        <SectionCard>
+          <SectionTitle icon={TrendingUp} acento="rose">Tus ganancias · últimos 6 meses</SectionTitle>
+          {hayDatos ? (
+            <ResponsiveContainer width="100%" height={170}>
+              <AreaChart data={serie}>
+                <defs>
+                  <linearGradient id="gradRrpp" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E0455E" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#E0455E" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="mes" tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6B6B85', fontSize: 10 }} axisLine={false} tickLine={false} width={32} />
+                <Tooltip
+                  contentStyle={{ background: 'rgba(14,14,26,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
+                  formatter={(v: unknown) => [eur(Number(v)), 'Ganado'] as [string, string]}
+                />
+                <Area type="monotone" dataKey="total" stroke="#E0455E" fill="url(#gradRrpp)" strokeWidth={2} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState icon={TrendingUp} acento="rose" titulo="Aún sin ganancias"
+              descripcion="Comparte tu código y tu link. Cuando la gente compre con tu atribución, lo verás aquí." />
+          )}
+        </SectionCard>
 
         {/* Código de referido */}
-        <section className="card-premium p-4">
+        <SectionCard premium>
           <p className="eyebrow eyebrow-rose mb-2">Tu código de referido</p>
           <div className="flex items-center gap-3">
             <code className="flex-1 text-display text-2xl tracking-[0.2em] text-white bg-white/5 rounded-xl px-4 py-3 text-center">
@@ -257,14 +314,12 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
               {copiado ? '¡Copiado!' : 'Copiar'}
             </button>
           </div>
-          <p className="text-tertiary text-xs mt-2">
+          <p className="text-[#8B8BA8] text-xs mt-2">
             Dáselo a la gente: al registrarse en Rumbo con tu código, contamos sus entradas y consumiciones a tu nombre durante 24h.
           </p>
-
-          {/* Link directo (también atribuye al hacer clic) */}
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2">
-            <LinkIcon className="w-4 h-4 shrink-0 text-secondary" />
-            <span className="flex-1 min-w-0 truncate text-secondary text-xs">{linkHost}/r/{rrpp.slug}</span>
+            <LinkIcon className="w-4 h-4 shrink-0 text-[#A0A0B8]" />
+            <span className="flex-1 min-w-0 truncate text-[#A0A0B8] text-xs">{linkHost}/r/{rrpp.slug}</span>
             <button
               onClick={() => { navigator.clipboard?.writeText(miLink); setCopiadoLink(true); setTimeout(() => setCopiadoLink(false), 1500) }}
               className="shrink-0 h-8 px-3 rounded-lg bg-white/8 border border-white/10 text-white text-xs font-semibold hover:bg-white/12 transition-colors"
@@ -272,47 +327,51 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
               {copiadoLink ? '¡Copiado!' : 'Copiar link'}
             </button>
           </div>
-        </section>
+        </SectionCard>
 
         {/* Mensajes con los locales */}
         {conversaciones.length > 0 && (
-          <section>
-            <h2 className="eyebrow eyebrow-rose mb-3">Mensajes</h2>
+          <SectionCard>
+            <SectionTitle icon={MessageCircle} acento="blue"
+              accion={noLeidosTotal > 0 ? <span className="rounded-full bg-rose-500 px-2 py-0.5 text-xs font-bold text-white">{noLeidosTotal}</span> : undefined}>
+              Mensajes
+            </SectionTitle>
             <div className="space-y-2">
               {conversaciones.map(c => (
                 <button key={c.local_id} onClick={() => setChatConLocal({ local_id: c.local_id, nombre: c.nombre })}
-                  className="w-full card-premium p-3 flex items-center gap-3 text-left hover:bg-white/[0.04]">
-                  <div className="w-10 h-10 rounded-full bg-rose-400/20 flex items-center justify-center shrink-0">{c.nombre.slice(0, 1)}</div>
+                  className="w-full rounded-xl bg-white/[0.03] border border-white/[0.07] p-3 flex items-center gap-3 text-left hover:bg-white/[0.06] transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-rose-400/20 flex items-center justify-center shrink-0 font-semibold">{c.nombre.slice(0, 1)}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-display text-sm truncate">{c.nombre}</p>
-                    <p className="text-tertiary text-xs truncate">{c.ultimo || 'Sin mensajes'}</p>
+                    <p className="text-sm font-semibold text-white truncate">{c.nombre}</p>
+                    <p className="text-[#8B8BA8] text-xs truncate">{c.ultimo || 'Sin mensajes'}</p>
                   </div>
                   {c.no_leidos > 0 && <span className="shrink-0 rounded-full bg-rose-500 px-2 py-0.5 text-xs font-bold text-white">{c.no_leidos}</span>}
                 </button>
               ))}
             </div>
-          </section>
+          </SectionCard>
         )}
 
+        {/* Invitaciones pendientes */}
         {pendientes.length > 0 && (
-          <section>
-            <h2 className="eyebrow eyebrow-rose mb-3">Invitaciones pendientes ({pendientes.length})</h2>
+          <SectionCard>
+            <SectionTitle icon={Sparkles} acento="gold">Invitaciones pendientes ({pendientes.length})</SectionTitle>
             <div className="space-y-2">
               {pendientes.map(v => (
-                <div key={v.id} className="card-premium p-3">
+                <div key={v.id} className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-3">
                   <div className="flex items-center gap-3">
                     {v.locales.foto_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={v.locales.foto_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                     ) : (
-                      <div className="w-10 h-10 rounded-lg bg-white/5" />
+                      <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center"><Store size={16} className="text-[#6B6B85]" /></div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-display text-base truncate">{v.locales.nombre}</p>
-                      <p className="text-tertiary text-xs">Te ofrece {v.comision_pct}% por venta</p>
+                      <p className="font-semibold text-white truncate">{v.locales.nombre}</p>
+                      <p className="text-[#8B8BA8] text-xs">Te ofrece <span className="text-[#E0455E] font-semibold">{v.comision_pct}%</span> por venta</p>
                     </div>
                   </div>
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2.5 flex gap-2">
                     <button onClick={() => responder(v.id, 'aceptar')}
                       className="btn-primary flex-1 inline-flex items-center justify-center gap-1 text-sm">
                       <Check className="w-4 h-4" /> Aceptar
@@ -325,56 +384,57 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
                 </div>
               ))}
             </div>
-          </section>
+          </SectionCard>
         )}
 
-        <section>
-          <h2 className="eyebrow eyebrow-rose mb-3">Locales activos ({activos.length})</h2>
+        {/* Locales activos */}
+        <SectionCard>
+          <SectionTitle icon={Store} acento="green">Locales activos ({activos.length})</SectionTitle>
           {activos.length === 0 ? (
-            <p className="text-tertiary text-sm">Aún no trabajas con ningún local activo.</p>
+            <p className="text-[#8B8BA8] text-sm">Aún no trabajas con ningún local activo.</p>
           ) : (
             <div className="space-y-2">
               {activos.map(v => (
-                <div key={v.id} className="card-premium p-3 flex items-center gap-3">
+                <div key={v.id} className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-3 flex items-center gap-3">
                   {v.locales.foto_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={v.locales.foto_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-white/5" />
+                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center"><Store size={16} className="text-[#6B6B85]" /></div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-display text-base truncate">{v.locales.nombre}</p>
-                    <p className="text-tertiary text-xs">{v.comision_pct}% por venta</p>
+                    <p className="font-semibold text-white truncate">{v.locales.nombre}</p>
+                    <p className="text-[#8B8BA8] text-xs">{v.comision_pct}% por venta</p>
                   </div>
+                  <span className="shrink-0 text-[10px] font-semibold text-emerald-300 bg-emerald-400/15 rounded-full px-2 py-0.5">Activo</span>
                 </div>
               ))}
             </div>
           )}
-        </section>
+        </SectionCard>
 
-        <section>
-          <h2 className="eyebrow eyebrow-rose mb-2 flex items-center gap-2">
-            <LinkIcon className="w-4 h-4" /> Tu cuenta
-          </h2>
-          <div className="card-premium p-3 flex items-center justify-between">
-            <div>
-              <p className="text-display text-base">Visible en el buscador de locales</p>
-              <p className="text-tertiary text-xs">
+        {/* Visibilidad */}
+        <SectionCard>
+          <SectionTitle icon={rrpp.visible_en_busqueda ? Eye : EyeOff} acento="violet">Tu cuenta</SectionTitle>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-semibold text-white">Visible en el buscador de locales</p>
+              <p className="text-[#8B8BA8] text-xs mt-0.5">
                 {rrpp.visible_en_busqueda
                   ? 'Otros locales pueden encontrarte y proponerte trabajar juntos.'
                   : 'Solo los locales que ya conoces pueden invitarte por su lado.'}
               </p>
             </div>
             <button onClick={toggleVisibilidad}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                rrpp.visible_en_busqueda ? 'bg-emerald-400/20 text-emerald-300' : 'bg-white/10 text-tertiary'
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                rrpp.visible_en_busqueda ? 'bg-emerald-400/20 text-emerald-300' : 'bg-white/10 text-[#8B8BA8]'
               }`}>
               {rrpp.visible_en_busqueda ? 'Visible' : 'Oculto'}
             </button>
           </div>
-        </section>
+        </SectionCard>
 
-        <footer className="text-center text-tertiary text-xs pt-6 border-t border-white/5">
+        <footer className="text-center text-[#6B6B85] text-xs pt-4 border-t border-white/5">
           Rumbo no procesa el pago entre tú y el local. Las cifras de arriba son
           lo que el local te debe según las ventas atribuidas. El pago lo gestionáis vosotros.
         </footer>
@@ -390,16 +450,6 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
           onClose={() => setChatConLocal(null)}
         />
       )}
-    </div>
-  )
-}
-
-function Kpi({ label, valor, icon: Icon, accent }: { label: string; valor: string; icon: React.ElementType; accent?: boolean }) {
-  return (
-    <div className={`card-premium p-3 text-center ${accent ? 'ring-1 ring-rose-400/40' : ''}`}>
-      <Icon className={`w-4 h-4 mx-auto mb-1 ${accent ? 'text-rose-300' : 'text-white/60'}`} />
-      <p className="text-display text-xl">{valor}</p>
-      <p className="text-tertiary text-xs">{label}</p>
     </div>
   )
 }

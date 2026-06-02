@@ -22,6 +22,7 @@ export type ZonaPanel =
   | 'analytics'
   | 'equipo'
   | 'facturacion'
+  | 'soporte'
 
 /**
  * Para cada rol, su pantalla por defecto al hacer login (o tras pulsar el logo).
@@ -44,13 +45,13 @@ export const ROLES_PERMISOS: Record<RolLocal, ZonaPanel[]> = {
   dueno: [
     'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'sala', 'productos',
     'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
-    'analytics', 'equipo', 'facturacion',
+    'analytics', 'equipo', 'facturacion', 'soporte',
   ],
   // Gestor: todo menos facturación/tier (decisión financiera del dueño)
   gestor: [
     'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'sala', 'productos',
     'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
-    'analytics', 'equipo',
+    'analytics', 'equipo', 'soporte',
   ],
   // Puerta: escanear entradas + emitir/canjear cortesías de su nivel
   puerta: [

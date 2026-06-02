@@ -457,6 +457,32 @@ export interface Gestor {
   ultimo_acceso?: string
 }
 
+// ─── Grupo / Promotora (multi-local) — migración 029 ───
+export type RolGrupo = 'propietario' | 'manager'
+
+export interface Grupo {
+  id: string
+  nombre: string
+  slug?: string
+  activo: boolean
+  created_at: string
+}
+
+export interface GrupoMiembro {
+  id: string
+  grupo_id: string
+  email: string
+  nombre?: string
+  rol: RolGrupo
+  /** Locales que ve el manager. null/[] = todos los del grupo. */
+  locales_asignados?: string[] | null
+  activo: boolean
+  created_at: string
+  ultimo_acceso?: string
+  /** Adjuntado por el login/store para la UI (no es columna de BD). */
+  grupo?: Grupo
+}
+
 export interface ConfiguracionSistema {
   id: string
   clave: string
