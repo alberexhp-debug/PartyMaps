@@ -34,8 +34,8 @@ export async function GET(req: NextRequest) {
   const localIds = [...new Set([...(rels ?? []).map(r => r.local_id), ...(msgs ?? []).map(m => m.local_id)])]
   if (localIds.length === 0) return NextResponse.json({ conversaciones: [] })
 
-  const { data: locales } = await db.from('locales').select('id, nombre, foto_url').in('id', localIds)
-  const nombreById = Object.fromEntries((locales ?? []).map(l => [l.id, l]))
+  const { data: locales } = await db.from('locales').select('id, nombre, imagenes').in('id', localIds)
+  const nombreById = Object.fromEntries((locales ?? []).map(l => [l.id, { nombre: l.nombre, foto_url: l.imagenes?.[0] ?? null }]))
 
   const conversaciones = await Promise.all(localIds.map(async lid => {
     const { data: ult } = await db.from('mensajes_rrpp')

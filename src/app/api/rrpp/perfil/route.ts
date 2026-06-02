@@ -12,11 +12,17 @@ export async function GET() {
   if (!ctx) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const admin = await createAdminSupabaseClient()
-  const { data: venues } = await admin
+  const { data: venuesRaw } = await admin
     .from('rrpp_venue')
-    .select('*, locales!inner(id, nombre, foto_url, tier)')
+    .select('*, locales!inner(id, nombre, imagenes, tier)')
     .eq('rrpp_id', ctx.rrpp.id)
     .in('estado', ['pendiente', 'activa', 'pausada'])
+
+  // locales usa `imagenes` (array), no `foto_url`. Normalizamos para la UI.
+  const venues = (venuesRaw ?? []).map(v => {
+    const loc = v.locales as { id: string; nombre: string; imagenes?: string[]; tier: string } | null
+    return { ...v, locales: loc ? { id: loc.id, nombre: loc.nombre, tier: loc.tier, foto_url: loc.imagenes?.[0] ?? null } : null }
+  })
 
   // Liquidaciones de este mes (formato yyyy-mm)
   const periodo = new Date().toISOString().slice(0, 7)

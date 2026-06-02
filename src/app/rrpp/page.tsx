@@ -5,6 +5,8 @@ import { Sparkles, Link as LinkIcon, Wallet, ExternalLink, Check, X, ShieldOff, 
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { StatCard, SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
+import { RrppNav } from '@/components/rrpp/RrppNav'
+import { LocalDetalleRRPP } from '@/components/rrpp/LocalDetalleRRPP'
 
 type LocalInfo = { id: string; nombre: string; foto_url: string | null; tier: string }
 type Venue = {
@@ -224,6 +226,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
   const [copiadoLink, setCopiadoLink] = useState(false)
   const [conversaciones, setConversaciones] = useState<{ local_id: string; nombre: string; ultimo: string | null; no_leidos: number }[]>([])
   const [chatConLocal, setChatConLocal] = useState<{ local_id: string; nombre: string } | null>(null)
+  const [localDetalle, setLocalDetalle] = useState<string | null>(null)
   useEffect(() => {
     fetch('/api/rrpp/chat').then(r => r.ok ? r.json() : null).then(d => { if (d) setConversaciones(d.conversaciones ?? []) }).catch(() => {})
   }, [chatConLocal])
@@ -241,7 +244,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
 
   return (
     <div className="min-h-screen bg-[#07070D] text-white">
-      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 pb-10">
+      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 pb-24">
         {/* Cabecera */}
         <div className="relative">
           <div className="hero-halo-rose" />
@@ -395,7 +398,8 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
           ) : (
             <div className="space-y-2">
               {activos.map(v => (
-                <div key={v.id} className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-3 flex items-center gap-3">
+                <button key={v.id} onClick={() => setLocalDetalle(v.local_id)}
+                  className="w-full text-left rounded-xl bg-white/[0.03] border border-white/[0.07] p-3 flex items-center gap-3 hover:bg-white/[0.06] transition-colors">
                   {v.locales.foto_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={v.locales.foto_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
@@ -404,10 +408,10 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white truncate">{v.locales.nombre}</p>
-                    <p className="text-[#8B8BA8] text-xs">{v.comision_pct}% por venta</p>
+                    <p className="text-[#8B8BA8] text-xs">{v.comision_pct}% por venta · ver ficha</p>
                   </div>
                   <span className="shrink-0 text-[10px] font-semibold text-emerald-300 bg-emerald-400/15 rounded-full px-2 py-0.5">Activo</span>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -450,6 +454,9 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
           onClose={() => setChatConLocal(null)}
         />
       )}
+
+      {localDetalle && <LocalDetalleRRPP localId={localDetalle} onClose={() => setLocalDetalle(null)} />}
+      <RrppNav />
     </div>
   )
 }

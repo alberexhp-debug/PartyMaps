@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 import { calcularComision, calcularPrecioDinamico } from '@/lib/utils'
 import { devengarComisionEntrada, parseCookieRef } from '@/lib/rrpp/atribucion'
 import { validarCodigo, calcularDescuento } from '@/lib/codigos'
+import { validarRrppCodigo, descuentoCategoria } from '@/lib/rrppCodigos'
 import type { PrecioDinamicoConfig } from '@/types'
 
 export async function POST(req: NextRequest) {
@@ -82,20 +83,35 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Código de descuento (pactado por el Gestor con el local). Se valida y
-    // aplica sobre el precio_local por entrada antes de calcular la comisión.
+    // Código de descuento. Hay dos sistemas:
+    //  a) Código del RRPP (rrpp_codigo): aplica el % de la categoría "entrada"
+    //     que el local fijó para ese RRPP, y atribuye la venta a ese RRPP.
+    //  b) Código del Gestor (codigos_descuento): el de siempre.
+    // Probamos primero el del RRPP; si no es uno, caemos al del gestor.
     let codigoAplicado: { codigo_id: string; descuentoPorEntrada: number } | null = null
+    let rrppCodigoAplicado: { codigo_id: string; rrpp_id: string; descuentoPorEntrada: number } | null = null
     if (codigo && typeof codigo === 'string' && codigo.trim()) {
       const svc = createServiceRoleClient()
-      const v = await validarCodigo(svc, codigo, local_id)
-      if (!v.valido) return NextResponse.json({ error: v.error }, { status: 400 })
-      // Un usuario no puede reutilizar el mismo código
-      const { data: usado } = await svc.from('codigo_descuento_uso')
-        .select('id').eq('codigo_id', v.codigo_id).eq('usuario_id', usuarioRow.id).maybeSingle()
-      if (usado) return NextResponse.json({ error: 'Ya has usado este código' }, { status: 400 })
-      const descuentoPorEntrada = calcularDescuento(v.tipo, v.valor, precioBase)
-      precioBase = Math.round((precioBase - descuentoPorEntrada) * 100) / 100
-      codigoAplicado = { codigo_id: v.codigo_id, descuentoPorEntrada }
+      const rc = await validarRrppCodigo(svc, codigo, local_id)
+      if (rc && !rc.valido) return NextResponse.json({ error: rc.error }, { status: 400 })
+      if (rc && rc.valido) {
+        const { data: usado } = await svc.from('rrpp_codigo_uso')
+          .select('id').eq('codigo_id', rc.codigo_id).eq('usuario_id', usuarioRow.id).maybeSingle()
+        if (usado) return NextResponse.json({ error: 'Ya has usado este código' }, { status: 400 })
+        const descuentoPorEntrada = descuentoCategoria(rc.descuentos, 'entrada', precioBase)
+        precioBase = Math.round((precioBase - descuentoPorEntrada) * 100) / 100
+        rrppCodigoAplicado = { codigo_id: rc.codigo_id, rrpp_id: rc.rrpp_id, descuentoPorEntrada }
+      } else {
+        const v = await validarCodigo(svc, codigo, local_id)
+        if (!v.valido) return NextResponse.json({ error: v.error }, { status: 400 })
+        // Un usuario no puede reutilizar el mismo código
+        const { data: usado } = await svc.from('codigo_descuento_uso')
+          .select('id').eq('codigo_id', v.codigo_id).eq('usuario_id', usuarioRow.id).maybeSingle()
+        if (usado) return NextResponse.json({ error: 'Ya has usado este código' }, { status: 400 })
+        const descuentoPorEntrada = calcularDescuento(v.tipo, v.valor, precioBase)
+        precioBase = Math.round((precioBase - descuentoPorEntrada) * 100) / 100
+        codigoAplicado = { codigo_id: v.codigo_id, descuentoPorEntrada }
+      }
     }
 
     // Si el admin definió un override personalizado para este local, lo usamos.
@@ -147,11 +163,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Registrar el uso del código de RRPP (incrementa contador + traza).
+    if (rrppCodigoAplicado && created && created.length > 0) {
+      try {
+        const svc = createServiceRoleClient()
+        const { data: c } = await svc.from('rrpp_codigo').select('usos_actuales').eq('id', rrppCodigoAplicado.codigo_id).maybeSingle()
+        await svc.from('rrpp_codigo').update({ usos_actuales: (c?.usos_actuales ?? 0) + 1 }).eq('id', rrppCodigoAplicado.codigo_id)
+        await svc.from('rrpp_codigo_uso').insert({
+          codigo_id: rrppCodigoAplicado.codigo_id,
+          usuario_id: usuarioRow.id,
+          entrada_id: created[0].id,
+          descuento_aplicado: rrppCodigoAplicado.descuentoPorEntrada,
+        })
+      } catch (err) {
+        console.error('[rrpp_codigo] registrar uso falló', err)
+      }
+    }
+
     // Atribución de comisión RRPP (last-touch 24h). No bloquea el checkout.
+    // Si se usó un código de RRPP, la venta se atribuye SIEMPRE a ese RRPP
+    // (override del cookieRef de last-touch).
     if (created && created.length > 0) {
       try {
         const { data: usuarioFull } = await supabase
           .from('usuarios').select('nombre, telefono').eq('id', usuarioRow.id).maybeSingle()
+        const cookieRef = rrppCodigoAplicado
+          ? { r: rrppCodigoAplicado.rrpp_id, t: Date.now() }
+          : parseCookieRef(req.cookies.get('rumbo_ref')?.value)
         await devengarComisionEntrada({
           db: createServiceRoleClient(),
           usuario: { id: usuarioRow.id, nombre: usuarioFull?.nombre, telefono: usuarioFull?.telefono, email: user.email },
@@ -159,7 +197,7 @@ export async function POST(req: NextRequest) {
           eventoId: evento_id || null,
           entradaIds: created.map(e => e.id),
           precioLocalPorEntrada: precioBase,
-          cookieRef: parseCookieRef(req.cookies.get('rumbo_ref')?.value),
+          cookieRef,
         })
       } catch (err) {
         console.error('[atribucion] devengo entrada falló', err)

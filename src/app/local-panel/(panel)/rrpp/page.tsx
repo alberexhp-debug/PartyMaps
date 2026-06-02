@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Sparkles, UserPlus, Pause, Play, Archive, ExternalLink, Search, Mail, Copy, Check, MessageCircle } from 'lucide-react'
+import { Sparkles, UserPlus, Pause, Play, Archive, ExternalLink, Search, Mail, Copy, Check, MessageCircle, Percent, Handshake, X } from 'lucide-react'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
+import { CATEGORIAS_DESCUENTO, LABEL_CATEGORIA, type CategoriaDescuento } from '@/lib/rrppCodigos'
 
 // Tipos relajados para no atar a la forma exacta del join del endpoint
 type Relacion = {
@@ -11,11 +12,17 @@ type Relacion = {
   tope_por_venta: number | null
   estado: 'pendiente' | 'activa' | 'pausada' | 'archivada'
   triggers_activos: Record<string, boolean>
+  descuentos?: Record<string, number> | null
   rrpp: {
     id: string; slug: string; nombre_publico: string; foto_url: string | null;
     bio: string | null; instagram: string | null; tiktok: string | null;
     estado_alta: 'invitado' | 'completo';
   }
+}
+
+type Solicitud = {
+  id: string; rrpp_id: string; mensaje: string | null; created_at: string;
+  rrpp: { id: string; slug: string; nombre_publico: string; foto_url: string | null; instagram: string | null; bio: string | null };
 }
 
 type Invitacion = {
@@ -26,19 +33,34 @@ type Invitacion = {
 export default function RRPPPanelLocal() {
   const [relaciones, setRelaciones] = useState<Relacion[]>([])
   const [invitaciones, setInvitaciones] = useState<Invitacion[]>([])
+  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([])
   const [loading, setLoading] = useState(true)
   const [showInvitar, setShowInvitar] = useState(false)
   const [chatCon, setChatCon] = useState<{ id: string; nombre_publico: string; slug: string } | null>(null)
+  const [editarDescuentos, setEditarDescuentos] = useState<Relacion | null>(null)
 
   useEffect(() => { void cargar() }, [])
 
   async function cargar() {
     setLoading(true)
-    const r = await fetch('/api/local-panel/rrpp', { credentials: 'include' })
+    const [r, s] = await Promise.all([
+      fetch('/api/local-panel/rrpp', { credentials: 'include' }),
+      fetch('/api/local-panel/rrpp/solicitudes', { credentials: 'include' }),
+    ])
     const j = await r.json()
     setRelaciones(j.relaciones ?? [])
     setInvitaciones(j.invitaciones ?? [])
+    const js = await s.json().catch(() => ({}))
+    setSolicitudes(js.solicitudes ?? [])
     setLoading(false)
+  }
+
+  async function responderSolicitud(id: string, accion: 'aceptar' | 'rechazar', comision_pct?: number) {
+    await fetch('/api/local-panel/rrpp/solicitudes', {
+      method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, accion, comision_pct }),
+    })
+    void cargar()
   }
 
   async function cambiarEstado(id: string, estado: Relacion['estado']) {
@@ -79,9 +101,12 @@ export default function RRPPPanelLocal() {
         <div className="skeleton h-32 rounded-2xl" />
       ) : (
         <>
+          {solicitudes.length > 0 && (
+            <SolicitudesInteres solicitudes={solicitudes} onResponder={responderSolicitud} />
+          )}
           <Grupo titulo={`Activos (${activos.length})`} relaciones={activos}
             onPausar={(id) => cambiarEstado(id, 'pausada')}
-            onArchivar={archivar} onChat={setChatCon} />
+            onArchivar={archivar} onChat={setChatCon} onDescuentos={setEditarDescuentos} />
           {pendientes.length > 0 && (
             <Grupo titulo={`Pendientes de aceptación (${pendientes.length})`} relaciones={pendientes}
               onArchivar={archivar} onChat={setChatCon} />
@@ -126,16 +151,121 @@ export default function RRPPPanelLocal() {
           onClose={() => setChatCon(null)}
         />
       )}
+
+      {editarDescuentos && (
+        <DescuentosModal relacion={editarDescuentos}
+          onClose={() => setEditarDescuentos(null)}
+          onGuardado={() => { setEditarDescuentos(null); void cargar() }} />
+      )}
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════
+// Solicitudes de RRPP interesados (desde el mapa de descubrimiento)
+// ════════════════════════════════════════════════════════════════
+function SolicitudesInteres({ solicitudes, onResponder }: {
+  solicitudes: Solicitud[]; onResponder: (id: string, accion: 'aceptar' | 'rechazar', comision_pct?: number) => void
+}) {
+  return (
+    <section>
+      <h2 className="eyebrow eyebrow-rose mb-3 flex items-center gap-1.5">
+        <Handshake className="w-4 h-4" /> RRPP interesados en trabajar contigo ({solicitudes.length})
+      </h2>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {solicitudes.map(s => (
+          <div key={s.id} className="card-premium p-4">
+            <div className="flex items-center gap-3">
+              {s.rrpp.foto_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={s.rrpp.foto_url} alt="" className="w-12 h-12 rounded-full object-cover" />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-rose-400/20 flex items-center justify-center text-display">{s.rrpp.nombre_publico.slice(0, 1)}</div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-display text-base truncate">{s.rrpp.nombre_publico}</p>
+                <a href={`/r/${s.rrpp.slug}`} target="_blank" rel="noreferrer" className="text-tertiary text-xs inline-flex items-center gap-1 hover:underline">
+                  @{s.rrpp.slug} <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+            {s.mensaje && <p className="text-secondary text-sm mt-2 line-clamp-2">{s.mensaje}</p>}
+            <div className="mt-3 flex gap-2">
+              <button onClick={() => onResponder(s.id, 'aceptar', 10)} className="btn-primary flex-1 text-sm inline-flex items-center justify-center gap-1">
+                <Check className="w-4 h-4" /> Aceptar (10%)
+              </button>
+              <button onClick={() => onResponder(s.id, 'rechazar')} className="btn-ghost text-sm inline-flex items-center gap-1">
+                <X className="w-4 h-4" /> Rechazar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════
+// Modal: descuentos por RRPP por categoría (entrada/consumición/reservado)
+// ════════════════════════════════════════════════════════════════
+function DescuentosModal({ relacion, onClose, onGuardado }: {
+  relacion: Relacion; onClose: () => void; onGuardado: () => void
+}) {
+  const [vals, setVals] = useState<Record<string, number>>(() => {
+    const d = relacion.descuentos ?? {}
+    return Object.fromEntries(CATEGORIAS_DESCUENTO.map(c => [c, Number(d[c]) || 0]))
+  })
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function guardar() {
+    setGuardando(true); setError(null)
+    const r = await fetch(`/api/local-panel/rrpp/${relacion.id}`, {
+      method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ descuentos: vals }),
+    })
+    setGuardando(false)
+    if (!r.ok) { const j = await r.json().catch(() => ({})); setError(j.error || 'No se pudo guardar (¿migración 030 aplicada?)'); return }
+    onGuardado()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="card-premium w-full max-w-sm p-5 space-y-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-display text-xl">Descuentos para {relacion.rrpp.nombre_publico}</h3>
+            <p className="text-tertiary text-xs">% que aplicarán los códigos de este RRPP.</p>
+          </div>
+          <button onClick={onClose} className="text-secondary hover:text-white"><X size={18} /></button>
+        </div>
+        <div className="space-y-2.5">
+          {(CATEGORIAS_DESCUENTO as CategoriaDescuento[]).map(c => (
+            <label key={c} className="flex items-center justify-between gap-3">
+              <span className="text-sm text-white flex items-center gap-2"><Percent size={13} className="text-[#E0455E]" /> {LABEL_CATEGORIA[c]}</span>
+              <div className="flex items-center gap-1">
+                <input type="number" min={0} max={100} value={vals[c] ?? 0}
+                  onChange={e => setVals(v => ({ ...v, [c]: Math.max(0, Math.min(100, Number(e.target.value) || 0)) }))}
+                  className="w-20 h-10 rounded-lg border border-white/10 bg-white/5 px-3 text-white text-right outline-none focus:border-[#E0455E]/60" />
+                <span className="text-tertiary text-sm">%</span>
+              </div>
+            </label>
+          ))}
+        </div>
+        {error && <p className="text-rose-300 text-sm">{error}</p>}
+        <button onClick={guardar} disabled={guardando} className="btn-primary w-full">{guardando ? 'Guardando…' : 'Guardar descuentos'}</button>
+      </div>
     </div>
   )
 }
 
 function Grupo({
-  titulo, relaciones, onPausar, onReanudar, onArchivar, onChat,
+  titulo, relaciones, onPausar, onReanudar, onArchivar, onChat, onDescuentos,
 }: {
   titulo: string; relaciones: Relacion[];
   onPausar?: (id: string) => void; onReanudar?: (id: string) => void; onArchivar?: (id: string) => void;
   onChat?: (r: { id: string; nombre_publico: string; slug: string }) => void;
+  onDescuentos?: (r: Relacion) => void;
 }) {
   return (
     <section>
@@ -186,6 +316,11 @@ function Grupo({
                   <button onClick={() => onChat({ id: r.rrpp.id, nombre_publico: r.rrpp.nombre_publico, slug: r.rrpp.slug })}
                     className="btn-ghost text-xs inline-flex items-center gap-1">
                     <MessageCircle className="w-3.5 h-3.5" /> Chat
+                  </button>
+                )}
+                {onDescuentos && (
+                  <button onClick={() => onDescuentos(r)} className="btn-ghost text-xs inline-flex items-center gap-1">
+                    <Percent className="w-3.5 h-3.5" /> Descuentos
                   </button>
                 )}
                 {onReanudar && (

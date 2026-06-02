@@ -17,31 +17,36 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     .eq('slug', slug).eq('activo', true).maybeSingle()
   if (!rrpp) return NextResponse.json({ error: 'RRPP no encontrado' }, { status: 404 })
 
-  // Locales donde trabaja
-  const { data: venues } = await admin
+  // Locales donde trabaja (locales usa `imagenes`, no `foto_url`)
+  const { data: venuesRaw } = await admin
     .from('rrpp_venue')
     .select(`
       local_id,
-      locales!inner(id, nombre, foto_url, tier)
+      locales!inner(id, nombre, imagenes, tier)
     `)
     .eq('rrpp_id', rrpp.id).eq('estado', 'activa')
+  const venues = (venuesRaw ?? []).map(v => {
+    const loc = v.locales as unknown as { id: string; nombre: string; imagenes?: string[]; tier: string } | null
+    return { local_id: v.local_id, locales: loc ? { id: loc.id, nombre: loc.nombre, tier: loc.tier, foto_url: loc.imagenes?.[0] ?? null } : null }
+  })
 
   // Próximos eventos en esos locales (en los próximos 30 días)
-  const localIds = (venues ?? []).map(v => v.local_id)
+  const localIds = venues.map(v => v.local_id)
   let eventos: unknown[] = []
   if (localIds.length > 0) {
     const ahora = new Date().toISOString()
     const masTreinta = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     const { data } = await admin
       .from('eventos')
-      .select('id, local_id, nombre, fecha_inicio, fecha_fin, foto_url, precio')
+      .select('id, local_id, nombre, fecha_inicio, fecha_fin, imagen_url')
       .in('local_id', localIds)
       .gte('fecha_inicio', ahora)
       .lte('fecha_inicio', masTreinta)
       .eq('estado', 'publicado')
       .order('fecha_inicio', { ascending: true })
       .limit(20)
-    eventos = data ?? []
+    // El consumidor espera `foto_url`; mapeamos desde imagen_url.
+    eventos = (data ?? []).map(e => ({ ...e, foto_url: e.imagen_url ?? null }))
   }
 
   // Followers count

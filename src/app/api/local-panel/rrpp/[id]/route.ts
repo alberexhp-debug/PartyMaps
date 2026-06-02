@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminSupabaseClient } from '@/lib/supabase/server'
 import { getTrabajadorLocal } from '@/lib/rrpp/auth'
+import { sanearDescuentos } from '@/lib/rrppCodigos'
 
 const ROLES_GESTION = ['dueno', 'gestor'] as const
 
@@ -28,6 +29,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     comision_pct: number; tope_por_venta: number | null;
     triggers_activos: Record<string, boolean>;
     estado: 'pendiente' | 'activa' | 'pausada' | 'archivada';
+    descuentos: Record<string, number>;
   }> | null
   if (!body) return NextResponse.json({ error: 'body vacío' }, { status: 400 })
 
@@ -36,6 +38,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.tope_por_venta !== undefined) patch.tope_por_venta = body.tope_por_venta
   if (body.triggers_activos) patch.triggers_activos = body.triggers_activos
   if (body.estado) patch.estado = body.estado
+  // Descuentos por RRPP por categoría (entrada/consumición/reservado). Requiere
+  // la columna rrpp_venue.descuentos (migración 030).
+  if (body.descuentos) patch.descuentos = sanearDescuentos(body.descuentos)
 
   const { data, error } = await admin
     .from('rrpp_venue').update(patch).eq('id', id).select().single()

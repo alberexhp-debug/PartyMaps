@@ -23,11 +23,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
       id, email, nombre, telefono, estado, expira_at,
       comision_pct_sugerida, tope_por_venta_sugerido, mensaje,
       invitado_por_local_id,
-      locales!invitacion_rrpp_invitado_por_local_id_fkey(id, nombre, foto_url)
+      locales!invitacion_rrpp_invitado_por_local_id_fkey(id, nombre, imagenes)
     `)
     .eq('token', token)
     .maybeSingle()
   if (!inv) return NextResponse.json({ error: 'Invitación no encontrada' }, { status: 404 })
+
+  // locales usa `imagenes`; el consumidor espera `foto_url`.
+  const locInv = inv.locales as unknown as { id: string; nombre: string; imagenes?: string[] } | null
+  if (locInv) (inv as { locales: unknown }).locales = { id: locInv.id, nombre: locInv.nombre, foto_url: locInv.imagenes?.[0] ?? null }
 
   if (inv.estado !== 'pendiente') {
     return NextResponse.json({
