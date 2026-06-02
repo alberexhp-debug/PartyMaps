@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { BuscadorDireccion } from '@/components/ui/BuscadorDireccion'
@@ -69,69 +68,39 @@ export default function LocalPanelRegistroPage() {
     if (!validarUbicacion()) return
     setLoading(true)
 
-    // Email normalizado: Supabase guarda el email de auth en minúsculas, y la
-    // RLS de mesas/plantas compara `email = auth.email()`. Si guardáramos el
-    // email con mayúsculas en usuario_local, no casaría y RLS bloquearía.
-    const emailNorm = form.email.trim().toLowerCase()
-
-    // 1. Crear usuario en Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: emailNorm,
-      password: form.password,
-    })
-
-    if (authError || !authData.user) {
-      toast.error(authError?.message === 'User already registered' ? 'Este email ya está registrado' : 'Error al crear la cuenta')
-      setLoading(false)
-      return
+    // Todo el alta va por el servidor: la RLS no permite a un usuario normal
+    // crear `locales`/`usuario_local` (solo service_role), y allí la cuenta se
+    // crea ya confirmada (alta directa, sin correo). El local nace en
+    // `pendiente_verificacion` → solicitud en el panel de admin de Rumbo.
+    try {
+      const res = await fetch('/api/local-panel/registro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          nombre_responsable: form.nombre_responsable,
+          nombre_local: form.nombre_local,
+          tipo_local: form.tipo_local,
+          ciudad: form.ciudad,
+          direccion: form.direccion,
+          latitud: form.latitud,
+          longitud: form.longitud,
+          aforo_maximo: form.aforo_maximo,
+          descripcion: form.descripcion,
+          cif: form.cif,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.error || 'No se pudo enviar la solicitud')
+        setLoading(false)
+        return
+      }
+      setStep('listo')
+    } catch {
+      toast.error('No se pudo conectar. Inténtalo de nuevo.')
     }
-
-    // 2. Crear el local con estado pendiente_verificacion
-    const { data: localData, error: localError } = await supabase.from('locales').insert({
-      nombre: form.nombre_local.trim(),
-      tipo_local: form.tipo_local,
-      ciudad: form.ciudad,
-      direccion: form.direccion.trim(),
-      latitud: parseFloat(form.latitud),
-      longitud: parseFloat(form.longitud),
-      aforo_maximo: parseInt(form.aforo_maximo) || 200,
-      descripcion: form.descripcion.trim() || null,
-      cif: form.cif.trim() || null,
-      musica: [],
-      imagenes: [],
-      modulos_activos: [],
-      consumiciones_bienvenida: [],
-      estado: 'pendiente_verificacion',
-      tier: 'basico',
-      radio_verificacion_metros: 150,
-      horario: {},
-    }).select('id').single()
-
-    if (localError || !localData) {
-      toast.error('Error al registrar el local')
-      setLoading(false)
-      return
-    }
-
-    // 3. Crear usuario_local como dueño. usuario_id = null (es FK a `usuarios`,
-    //    la tabla de clientes PWA; los trabajadores se resuelven por email,
-    //    igual que en el seed). El email DEBE ir normalizado para la RLS.
-    const { error: workerError } = await supabase.from('usuario_local').insert({
-      usuario_id: null,
-      local_id: localData.id,
-      rol: 'dueno',
-      email: emailNorm,
-      nombre: form.nombre_responsable.trim(),
-      activo: true,
-    })
-
-    if (workerError) {
-      toast.error('Error al vincular la cuenta con el local')
-      setLoading(false)
-      return
-    }
-
-    setStep('listo')
     setLoading(false)
   }
 
@@ -163,9 +132,9 @@ export default function LocalPanelRegistroPage() {
         </div>
         <div className="glass rounded-2xl p-4 text-sm text-[#A0A0B8] text-left w-full max-w-xs space-y-1">
           <p className="text-white font-semibold mb-2">Próximos pasos:</p>
-          <p>1. Revisa tu email para confirmar tu cuenta</p>
-          <p>2. Espera la verificación del equipo</p>
-          <p>3. Accede al panel con tu email y contraseña</p>
+          <p>1. Tu cuenta ya está creada (sin pasos extra)</p>
+          <p>2. El equipo de Rumbo revisa y aprueba tu local</p>
+          <p>3. Cuando se apruebe, accede al panel con tu email y contraseña</p>
         </div>
         <Button onClick={() => router.push('/local-panel/login')}>
           Ir al acceso del panel
