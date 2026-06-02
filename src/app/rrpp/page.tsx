@@ -1,10 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, Link as LinkIcon, Wallet, ExternalLink, Check, X, ShieldOff, TrendingUp, Ticket, Clock, MessageCircle, Store, Eye, EyeOff } from 'lucide-react'
+import { Sparkles, Link as LinkIcon, Wallet, ExternalLink, Check, X, ShieldOff, TrendingUp, Ticket, MessageCircle, Store, Eye, EyeOff } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
-import { StatCard, SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
+import { SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
 import { RrppNav } from '@/components/rrpp/RrppNav'
 import { LocalDetalleRRPP } from '@/components/rrpp/LocalDetalleRRPP'
 
@@ -201,6 +201,20 @@ function serieGanancias(liqs: Liquidacion[]): { mes: string; total: number }[] {
   return ventana.map(({ mes, total }) => ({ mes, total: Math.round(total * 100) / 100 }))
 }
 
+/** KPI con gradiente de color, icono en chip e iluminación — más presencia. */
+function KpiBold({ icon: Icon, color, label, value }: { icon: React.ElementType; color: string; label: string; value: React.ReactNode }) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border p-3.5"
+      style={{ borderColor: `${color}33`, background: `linear-gradient(150deg, ${color}1F, rgba(255,255,255,0.02) 60%)` }}>
+      <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ background: `${color}2E`, boxShadow: `0 4px 14px -6px ${color}` }}>
+        <Icon size={15} style={{ color }} />
+      </div>
+      <p className="text-xl font-bold text-white text-display text-numeric leading-none">{value}</p>
+      <p className="text-[11px] text-[#9DA0B5] mt-1">{label}</p>
+    </div>
+  )
+}
+
 function Dashboard({ rrpp, venues, liqs, onRecargar }: {
   rrpp: RRPP; venues: Venue[]; liqs: Liquidacion[]; onRecargar: () => void;
 }) {
@@ -245,34 +259,56 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
   return (
     <div className="min-h-screen bg-[#07070D] text-white">
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 pb-24">
-        {/* Cabecera */}
-        <div className="relative">
-          <div className="hero-halo-rose" />
-          <header className="relative flex items-center gap-3.5">
-            {rrpp.foto_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={rrpp.foto_url} alt="" className="w-16 h-16 rounded-2xl object-cover border border-white/10" />
-            ) : (
-              <div className="w-16 h-16 rounded-2xl holo-bg flex items-center justify-center text-display text-2xl font-black">
-                {rrpp.nombre_publico.slice(0, 1).toUpperCase()}
+        {/* HERO — cabecera con balance destacado */}
+        <div className="relative -mx-4 sm:-mx-6 -mt-4 sm:-mt-6">
+          <div className="relative overflow-hidden rounded-b-[2rem] px-5 sm:px-7 pt-9 pb-7 border-b border-white/[0.06]"
+            style={{ background: 'radial-gradient(130% 110% at 50% -10%, rgba(224,69,94,0.20), rgba(124,92,255,0.12) 45%, rgba(7,7,13,0) 78%)' }}>
+            <div className="pointer-events-none absolute -top-24 -right-10 w-64 h-64 rounded-full bg-[#7C5CFF]/20 blur-[80px]" />
+            <div className="relative flex items-center gap-4">
+              <div className="relative shrink-0">
+                {rrpp.foto_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={rrpp.foto_url} alt="" className="w-16 h-16 rounded-2xl object-cover ring-2 ring-[#E0455E]/50 shadow-[0_8px_24px_-6px_rgba(224,69,94,0.7)]" />
+                ) : (
+                  <div className="w-16 h-16 rounded-2xl holo-bg flex items-center justify-center text-display text-2xl font-black ring-2 ring-white/20 shadow-[0_8px_24px_-6px_rgba(124,92,255,0.7)]">
+                    {rrpp.nombre_publico.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#27AE60] border-2 border-[#0A0A14] flex items-center justify-center">
+                  <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                </span>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="eyebrow eyebrow-rose mb-1">Panel RRPP</p>
-              <h1 className="text-display text-2xl md:text-3xl truncate">{rrpp.nombre_publico}</h1>
-              <a href={`/r/${rrpp.slug}`} target="_blank" rel="noreferrer"
-                className="text-[#A0A0B8] text-xs inline-flex items-center gap-1 hover:text-white transition-colors mt-0.5">
-                {linkHost}/r/{rrpp.slug} <ExternalLink className="w-3 h-3" />
-              </a>
+              <div className="flex-1 min-w-0">
+                <p className="eyebrow eyebrow-rose mb-1">Panel RRPP</p>
+                <h1 className="text-display text-2xl md:text-3xl font-bold truncate leading-tight">{rrpp.nombre_publico}</h1>
+                <a href={`/r/${rrpp.slug}`} target="_blank" rel="noreferrer"
+                  className="mt-1 inline-flex items-center gap-1 rounded-full bg-white/[0.06] border border-white/10 px-2.5 py-1 text-[11px] text-[#B8B8CC] hover:text-white transition-colors">
+                  {linkHost}/r/{rrpp.slug} <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             </div>
-          </header>
+
+            {/* Balance hero */}
+            <div className="relative mt-7 flex items-end justify-between gap-3">
+              <div>
+                <p className="eyebrow eyebrow-rose mb-1.5">Pendiente de cobrar</p>
+                <p className="text-[3.25rem] leading-none font-bold text-white text-display text-numeric">
+                  {pendiente.toFixed(0)}<span className="text-2xl text-[#B8B8CC] ml-1">€</span>
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-2.5 text-right backdrop-blur-sm">
+                <p className="text-[10px] uppercase tracking-wider text-[#8B8BA8]">Generado este mes</p>
+                <p className="text-xl font-bold text-white text-numeric mt-0.5">{eur(totalMes)}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* KPIs */}
+        {/* KPIs en negrita */}
         <div className="grid grid-cols-3 gap-2.5">
-          <StatCard icon={Ticket} acento="blue" label="Ventas mes" value={ventasMes} sublabel="atribuidas" />
-          <StatCard icon={Wallet} acento="violet" label="Generado mes" value={eur(totalMes)} />
-          <StatCard icon={Clock} acento="rose" label="Pendiente" value={eur(pendiente)} sublabel="por cobrar" />
+          <KpiBold icon={Ticket} color="#4F8EF7" label="Ventas mes" value={ventasMes} />
+          <KpiBold icon={Wallet} color="#7C5CFF" label="Generado" value={eur(totalMes)} />
+          <KpiBold icon={Store} color="#27AE60" label="Locales" value={activos.length} />
         </div>
 
         {/* Gráfica de ganancias */}
@@ -298,8 +334,14 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState icon={TrendingUp} acento="rose" titulo="Aún sin ganancias"
-              descripcion="Comparte tu código y tu link. Cuando la gente compre con tu atribución, lo verás aquí." />
+            <div className="relative overflow-hidden rounded-xl border border-white/[0.06] px-4 py-6 text-center"
+              style={{ background: 'linear-gradient(160deg, rgba(224,69,94,0.10), rgba(124,92,255,0.05) 70%, transparent)' }}>
+              <div className="w-11 h-11 mx-auto rounded-xl bg-[#E0455E]/15 flex items-center justify-center mb-2.5">
+                <TrendingUp className="w-5 h-5 text-[#E0455E]" />
+              </div>
+              <p className="text-white font-semibold text-sm">Aún sin ganancias</p>
+              <p className="text-xs text-[#8B8BA8] mt-1 max-w-[16rem] mx-auto">Comparte tu código y tu link. Cuando la gente compre con tu atribución, lo verás crecer aquí.</p>
+            </div>
           )}
         </SectionCard>
 

@@ -6,7 +6,7 @@ import { Store, Megaphone, Tag, Ticket, Wallet, ChevronRight, TrendingUp, BarCha
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts'
-import { PageHeader, StatCard, SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
+import { SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
 
 type SerieMes = { mes: string; comision: number; incentivo: number }
 type PorLocal = { nombre: string; comision: number }
@@ -38,39 +38,34 @@ export default function GestorDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Tu cartera"
-        acento="violet"
-        titulo={`Hola, ${gestor?.nombre?.split(' ')[0] || 'Gestor'}`}
-        subtitulo="Da de alta locales y RRPP, y sigue las comisiones que genera tu cartera."
-      />
-
-      {/* KPIs */}
-      <div className="grid grid-cols-3 gap-2.5">
-        <StatCard icon={Store} acento="violet" label="Locales activos" loading={cargando}
-          value={resumen ? resumen.locales_activos : '—'}
-          sublabel={resumen ? `${resumen.locales_total} en cartera` : undefined} />
-        <StatCard icon={Megaphone} acento="blue" label="RRPP activos" loading={cargando}
-          value={resumen ? resumen.rrpp_activos : '—'} />
-        <StatCard icon={Wallet} acento="rose" label="Tu incentivo" loading={cargando}
-          value={`${gestor?.incentivo_pct ?? 0}%`} sublabel="de lo generado" />
+      {/* HERO */}
+      <div className="relative -mx-4 -mt-6 md:-mt-8">
+        <div className="relative overflow-hidden rounded-b-[2rem] px-5 sm:px-7 pt-9 pb-7 border-b border-white/[0.06]"
+          style={{ background: 'radial-gradient(130% 110% at 50% -10%, rgba(124,92,255,0.22), rgba(79,142,247,0.10) 45%, rgba(7,7,13,0) 78%)' }}>
+          <div className="pointer-events-none absolute -top-24 -right-10 w-64 h-64 rounded-full bg-[#7C5CFF]/25 blur-[80px]" />
+          <p className="eyebrow eyebrow-violet mb-1">RumboGestor · tu cartera</p>
+          <h1 className="text-display text-2xl md:text-3xl font-bold leading-tight">Hola, {gestor?.nombre?.split(' ')[0] || 'Gestor'}</h1>
+          <div className="relative mt-7 flex items-end justify-between gap-3">
+            <div>
+              <p className="eyebrow eyebrow-violet mb-1.5">Tu incentivo · este mes</p>
+              <p className="text-[3.25rem] leading-none font-bold text-white text-display text-numeric">
+                {(resumen?.incentivo_ganado_mes ?? 0).toFixed(0)}<span className="text-2xl text-[#B8B8CC] ml-1">€</span>
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-2.5 text-right backdrop-blur-sm">
+              <p className="text-[10px] uppercase tracking-wider text-[#8B8BA8]">Generado cartera</p>
+              <p className="text-xl font-bold text-white text-numeric mt-0.5">{eur(resumen?.comision_generada_mes ?? 0)}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Comisión del mes — tarjeta destacada */}
-      <SectionCard premium className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="eyebrow eyebrow-violet mb-1">Comisión generada · este mes</p>
-          <p className="text-3xl md:text-4xl font-bold text-white text-display text-numeric">
-            {resumen ? eur(resumen.comision_generada_mes ?? 0) : '—'}
-          </p>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="text-[11px] text-[#8B8BA8]">Tu incentivo</p>
-          <p className="text-2xl font-bold text-[#E94560] text-numeric mt-0.5">
-            {resumen ? eur(resumen.incentivo_ganado_mes ?? 0) : '—'}
-          </p>
-        </div>
-      </SectionCard>
+      {/* KPIs en negrita */}
+      <div className="grid grid-cols-3 gap-2.5">
+        <KpiBold icon={Store} color="#7C5CFF" label="Locales activos" value={cargando ? '—' : (resumen?.locales_activos ?? 0)} />
+        <KpiBold icon={Megaphone} color="#4F8EF7" label="RRPP activos" value={cargando ? '—' : (resumen?.rrpp_activos ?? 0)} />
+        <KpiBold icon={Wallet} color="#E0455E" label="Tu incentivo" value={`${gestor?.incentivo_pct ?? 0}%`} />
+      </div>
 
       {/* Gráfica: evolución 6 meses */}
       <SectionCard>
@@ -142,6 +137,19 @@ export default function GestorDashboardPage() {
             desc="Generar entradas gratis (Pro/Destacado)" badge="Gestionar" />
         </div>
       </div>
+    </div>
+  )
+}
+
+function KpiBold({ icon: Icon, color, label, value }: { icon: React.ElementType; color: string; label: string; value: React.ReactNode }) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border p-3.5"
+      style={{ borderColor: `${color}33`, background: `linear-gradient(150deg, ${color}1F, rgba(255,255,255,0.02) 60%)` }}>
+      <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ background: `${color}2E`, boxShadow: `0 4px 14px -6px ${color}` }}>
+        <Icon size={15} style={{ color }} />
+      </div>
+      <p className="text-xl font-bold text-white text-display text-numeric leading-none">{value}</p>
+      <p className="text-[11px] text-[#9DA0B5] mt-1">{label}</p>
     </div>
   )
 }
