@@ -323,6 +323,29 @@ async function verificarQR(qrData: string, localId: string, modoConsumicion: boo
     }
   }
 
+  // Código/QR del RRPP (alfanumérico corto, sin prefijo PM): canje en puerta.
+  if (!qrData.startsWith('PM') && /^[A-Za-z0-9]{3,20}$/.test(qrData)) {
+    try {
+      const res = await fetch('/api/local-panel/rrpp/canjear-codigo', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo: qrData }),
+      })
+      const j = await res.json()
+      if (!res.ok) return { tipo: 'qr_invalido', mensaje: j.error || 'Código no válido' }
+      const LBL: Record<string, string> = { entrada: 'Entrada', consumicion: 'Consumición', reservado: 'Reservado' }
+      const desc = Object.entries(j.descuentos || {}).filter(([, v]) => Number(v) > 0).map(([k, v]) => `${LBL[k] || k} −${v}%`).join(' · ')
+      const quien = j.etiqueta ? ` · ${j.etiqueta}` : ''
+      const usos = j.usos_max != null ? ` (${j.usos_actuales}/${j.usos_max})` : ''
+      return {
+        tipo: 'consumicion_ok',
+        mensaje: `✓ RRPP ${j.rrpp_nombre}${quien}${usos}${desc ? ' · ' + desc : ''}`,
+        timestamp: new Date().toISOString(),
+      } as ResultadoEscaneoQR
+    } catch {
+      return { tipo: 'qr_invalido', mensaje: 'Error de red al canjear el código' }
+    }
+  }
+
   // Format: PM2:<entrada_id>
   if (!qrData.startsWith('PM2:')) {
     return { tipo: 'qr_invalido', mensaje: 'QR no reconocido. No es de Rumbo.' }
