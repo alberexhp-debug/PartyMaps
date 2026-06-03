@@ -39,6 +39,23 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       .eq('local_id', id).eq('disponible', true).order('categoria').limit(40),
   ])
 
+  // Mi rendimiento con este local: ventas atribuidas a ESTE RRPP (rrpp_id).
+  const [entradasRes, barRes, liqRes] = await Promise.all([
+    db.from('entradas').select('precio_total', { count: 'exact' })
+      .eq('rrpp_id', ctx.rrpp.id).eq('local_id', id).in('estado', ['activa', 'usada']),
+    db.from('pedidos_bar').select('precio_total', { count: 'exact' })
+      .eq('rrpp_id', ctx.rrpp.id).eq('local_id', id).in('estado', ['pagado', 'entregado']),
+    db.from('liquidacion_rrpp').select('monto_total')
+      .eq('rrpp_id', ctx.rrpp.id).eq('local_id', id),
+  ])
+  const miRendimiento = {
+    entradas: entradasRes.count ?? 0,
+    entradas_eur: (entradasRes.data ?? []).reduce((s, e) => s + Number((e as { precio_total: number }).precio_total || 0), 0),
+    consumiciones: barRes.count ?? 0,
+    consumiciones_eur: (barRes.data ?? []).reduce((s, p) => s + Number((p as { precio_total: number }).precio_total || 0), 0),
+    comision_generada: (liqRes.data ?? []).reduce((s, l) => s + Number((l as { monto_total: number }).monto_total || 0), 0),
+  }
+
   // Interlocutor del chat: manager del grupo si el local pertenece a uno.
   let interlocutor = { tipo: 'local' as 'local' | 'manager', nombre: local.nombre }
   if (local.grupo_id) {
@@ -62,6 +79,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         && new Date(local.promo_ultima_hora_hasta) > new Date(),
       precio_promocional: local.precio_promocional ?? null,
     },
+    mi_rendimiento: miRendimiento,
     interlocutor,
   })
 }

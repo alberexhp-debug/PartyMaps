@@ -8,6 +8,7 @@ type Detalle = {
   local: { id: string; nombre: string; descripcion?: string; tipo_local: string; ciudad: string; foto_url: string | null; aforo_maximo: number; precio_entrada_min?: number; instagram_handle?: string; num_suscriptores: number }
   relacion: { estado: string; comision_pct: number; tope_por_venta: number | null; descuentos: Record<string, number> }
   noche: { eventos: { id: string; nombre: string; fecha_inicio: string; imagen_url?: string }[]; productos: { id: string; nombre: string; categoria: string; precio: number }[]; aforo_maximo: number; promo_activa: boolean; precio_promocional: number | null }
+  mi_rendimiento: { entradas: number; entradas_eur: number; consumiciones: number; consumiciones_eur: number; comision_generada: number }
   interlocutor: { tipo: 'local' | 'manager'; nombre: string }
 }
 
@@ -58,6 +59,19 @@ export function LocalDetalleRRPP({ localId, onClose }: { localId: string; onClos
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Tu rendimiento con este local */}
+              <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-3.5">
+                <p className="eyebrow eyebrow-rose mb-2.5">Tu rendimiento aquí</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Mini icon={Ticket} label="Entradas" valor={d.mi_rendimiento.entradas} />
+                  <Mini icon={Beer} label="Consumiciones" valor={d.mi_rendimiento.consumiciones} />
+                  <Mini icon={Percent} label="Tu comisión" valor={`${(d.mi_rendimiento.comision_generada || 0).toFixed(0)}€`} />
+                </div>
+                <p className="text-[11px] text-[#6B6B85] mt-2">
+                  Entradas y consumiciones atribuidas a ti en este local (por tu código o link).
+                </p>
               </div>
 
               {/* Chat con manager/local */}
