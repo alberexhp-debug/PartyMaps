@@ -17,25 +17,38 @@ export async function GET() {
   if (!ctx) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const db = createServiceRoleClient()
 
-  const { data: codigos, error } = await db
-    .from('rrpp_codigo')
-    .select('id, local_id, codigo, usos_max, usos_actuales, descuentos, activo, expira_at, created_at')
-    .eq('rrpp_id', ctx.rrpp.id)
-    .order('created_at', { ascending: false })
-  if (error) return NextResponse.json({ codigos: [], pendiente_migracion: true })
+  const COLS = 'id, local_id, codigo, usos_max, usos_actuales, descuentos, activo, expira_at, created_at'
+  // Intenta incluir `etiqueta` (migración 031); si la columna aún no existe,
+  // reintenta sin ella para no romper la lista.
+  let codigos: Record<string, unknown>[] | null = null
+  const conEtiqueta = await db.from('rrpp_codigo').select(`${COLS}, etiqueta`)
+    .eq('rrpp_id', ctx.rrpp.id).order('created_at', { ascending: false })
+  if (!conEtiqueta.error) {
+    codigos = conEtiqueta.data
+  } else {
+    const sinEtiqueta = await db.from('rrpp_codigo').select(COLS)
+      .eq('rrpp_id', ctx.rrpp.id).order('created_at', { ascending: false })
+    if (sinEtiqueta.error) return NextResponse.json({ codigos: [], pendiente_migracion: true })
+    codigos = (sinEtiqueta.data ?? []).map(c => ({ ...c, etiqueta: null }))
+  }
 
-  const ids = [...new Set((codigos ?? []).map(c => c.local_id))]
+  const ids = [...new Set((codigos ?? []).map(c => c.local_id as string))]
   const { data: locales } = ids.length
     ? await db.from('locales').select('id, nombre').in('id', ids)
     : { data: [] as { id: string; nombre: string }[] }
-  const nombre = Object.fromEntries((locales ?? []).map(l => [l.id, l.nombre]))
-  return NextResponse.json({ codigos: (codigos ?? []).map(c => ({ ...c, local_nombre: nombre[c.local_id] ?? 'Local' })) })
+  const nombre: Record<string, string> = Object.fromEntries((locales ?? []).map(l => [l.id, l.nombre]))
+  return NextResponse.json({ codigos: (codigos ?? []).map(c => ({ ...c, local_nombre: nombre[c.local_id as string] ?? 'Local' })) })
 }
 
+/** Horas de validez del código de una persona desde que se genera. */
+const VALIDEZ_HORAS = 24
+
 /**
- * POST /api/rrpp/codigos — el RRPP genera un código para un local de su lista.
- * El descuento se congela desde rrpp_venue.descuentos (lo fija el local/manager).
- * Body: { local_id, usos_max?, codigo? }
+ * POST /api/rrpp/codigos — el RRPP genera un código/QR para UNA persona en un
+ * local de su lista. Cada código es único, caduca a las 24h de generarse y
+ * tiene un nº de usos configurable. El descuento se congela desde
+ * rrpp_venue.descuentos (lo fija el local/manager).
+ * Body: { local_id, etiqueta?, usos_max?, codigo? }
  */
 export async function POST(req: NextRequest) {
   const ctx = await getRRPPAutenticado()
@@ -44,7 +57,9 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}))
   const localId = String(body.local_id || '')
-  const usosMax = body.usos_max != null && Number(body.usos_max) > 0 ? Math.floor(Number(body.usos_max)) : null
+  const usosMax = body.usos_max != null && Number(body.usos_max) > 0 ? Math.floor(Number(body.usos_max)) : 1
+  const etiqueta = String(body.etiqueta || '').trim().slice(0, 60) || null
+  const expiraAt = new Date(Date.now() + VALIDEZ_HORAS * 3600 * 1000).toISOString()
   if (!localId) return NextResponse.json({ error: 'Elige un local' }, { status: 400 })
 
   // El RRPP debe tener relación ACTIVA con ese local.
@@ -64,10 +79,26 @@ export async function POST(req: NextRequest) {
     const cand = codigo || generarCodigo(ctx.rrpp.slug || ctx.rrpp.nombre_publico)
     const { data: existe } = await db.from('rrpp_codigo').select('id').eq('local_id', localId).ilike('codigo', cand).maybeSingle()
     if (existe) { if (codigo) return NextResponse.json({ error: 'Ese código ya existe para este local' }, { status: 409 }); continue }
-    const { data: creado, error } = await db.from('rrpp_codigo').insert({
+    const base = {
       rrpp_id: ctx.rrpp.id, local_id: localId, codigo: cand,
-      usos_max: usosMax, usos_actuales: 0, descuentos, activo: true,
-    }).select('id, codigo, local_id, usos_max, usos_actuales, descuentos, activo, created_at').single()
+      usos_max: usosMax, usos_actuales: 0, descuentos, activo: true, expira_at: expiraAt,
+    }
+    const SEL = 'id, codigo, local_id, usos_max, usos_actuales, descuentos, activo, expira_at, created_at'
+
+    // Intenta con `etiqueta` (031); si esa columna aún no existe, sin ella.
+    let creado: Record<string, unknown> | null = null
+    let error = null
+    const conEt = await db.from('rrpp_codigo').insert({ ...base, etiqueta }).select(`${SEL}, etiqueta`).single()
+    if (!conEt.error) {
+      creado = conEt.data
+    } else if (/etiqueta/i.test(conEt.error.message)) {
+      const sinEt = await db.from('rrpp_codigo').insert(base).select(SEL).single()
+      creado = sinEt.data ? { ...sinEt.data, etiqueta: null } : null
+      error = sinEt.error
+    } else {
+      error = conEt.error
+    }
+
     if (error) {
       if (intento === 5) return NextResponse.json({ error: 'No se pudo crear el código. ¿Está aplicada la migración 030?' }, { status: 500 })
       continue
