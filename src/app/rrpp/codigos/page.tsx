@@ -13,12 +13,14 @@ type Codigo = {
   activo: boolean; expira_at: string | null; created_at: string
 }
 
-/** Estado derivado de un código para mostrar al RRPP. */
+/** Estado derivado de un código para mostrar al RRPP (vocabulario de canje). */
 function estadoCodigo(c: Codigo): { label: string; color: string; vivo: boolean } {
+  const agotado = c.usos_max != null && c.usos_actuales >= c.usos_max
+  if (agotado) return { label: 'Canjeado', color: '#27AE60', vivo: false }
   if (!c.activo) return { label: 'Desactivado', color: '#6B6B85', vivo: false }
   if (c.expira_at && new Date(c.expira_at) < new Date()) return { label: 'Caducado', color: '#E94560', vivo: false }
-  if (c.usos_max != null && c.usos_actuales >= c.usos_max) return { label: 'Agotado', color: '#F39C12', vivo: false }
-  return { label: 'Activo', color: '#27AE60', vivo: true }
+  if (c.usos_actuales > 0) return { label: 'Canjeado en parte', color: '#F39C12', vivo: true }
+  return { label: 'Pendiente de canje', color: '#4F8EF7', vivo: true }
 }
 
 /** "caduca en 5 h 12 min" / "caducó". */

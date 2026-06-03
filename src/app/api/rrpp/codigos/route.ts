@@ -11,25 +11,29 @@ function generarCodigo(seed: string): string {
   return `${base}${n}`
 }
 
-/** GET /api/rrpp/codigos — códigos del RRPP autenticado (con nombre del local). */
-export async function GET() {
+/** GET /api/rrpp/codigos[?local_id=] — códigos del RRPP (con nombre del local). */
+export async function GET(req: NextRequest) {
   const ctx = await getRRPPAutenticado()
   if (!ctx) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const db = createServiceRoleClient()
+  const localFiltro = new URL(req.url).searchParams.get('local_id')
 
   const COLS = 'id, local_id, codigo, usos_max, usos_actuales, descuentos, activo, expira_at, created_at'
+  const base = (cols: string) => {
+    let q = db.from('rrpp_codigo').select(cols).eq('rrpp_id', ctx.rrpp.id)
+    if (localFiltro) q = q.eq('local_id', localFiltro)
+    return q.order('created_at', { ascending: false })
+  }
   // Intenta incluir `etiqueta` (migración 031); si la columna aún no existe,
   // reintenta sin ella para no romper la lista.
   let codigos: Record<string, unknown>[] | null = null
-  const conEtiqueta = await db.from('rrpp_codigo').select(`${COLS}, etiqueta`)
-    .eq('rrpp_id', ctx.rrpp.id).order('created_at', { ascending: false })
+  const conEtiqueta = await base(`${COLS}, etiqueta`)
   if (!conEtiqueta.error) {
-    codigos = conEtiqueta.data
+    codigos = conEtiqueta.data as unknown as Record<string, unknown>[]
   } else {
-    const sinEtiqueta = await db.from('rrpp_codigo').select(COLS)
-      .eq('rrpp_id', ctx.rrpp.id).order('created_at', { ascending: false })
+    const sinEtiqueta = await base(COLS)
     if (sinEtiqueta.error) return NextResponse.json({ codigos: [], pendiente_migracion: true })
-    codigos = (sinEtiqueta.data ?? []).map(c => ({ ...c, etiqueta: null }))
+    codigos = ((sinEtiqueta.data ?? []) as unknown as Record<string, unknown>[]).map(c => ({ ...c, etiqueta: null }))
   }
 
   const ids = [...new Set((codigos ?? []).map(c => c.local_id as string))]

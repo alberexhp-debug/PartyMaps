@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { X, MessageCircle, MapPin, Users, Ticket, Calendar, Beer, Percent, Sparkles } from 'lucide-react'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
+import { CodigosLocal } from '@/components/rrpp/CodigosLocal'
 import { LABEL_CATEGORIA, CATEGORIAS_DESCUENTO, type CategoriaDescuento } from '@/lib/rrppCodigos'
 
 type Detalle = {
@@ -24,7 +25,7 @@ export function LocalDetalleRRPP({ localId, onClose }: { localId: string; onClos
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl glass-strong border border-white/10 animate-slide-up" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-2xl max-h-[94vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl glass-strong border border-white/10 animate-slide-up" onClick={e => e.stopPropagation()}>
         {!d ? (
           <div className="p-8 text-center text-[#8B8BA8]">{error || 'Cargando…'}
             <button onClick={onClose} className="block mx-auto mt-4 text-sm text-white underline">Cerrar</button>
@@ -73,6 +74,9 @@ export function LocalDetalleRRPP({ localId, onClose }: { localId: string; onClos
                   Entradas y consumiciones atribuidas a ti en este local (por tu código o link).
                 </p>
               </div>
+
+              {/* Generador de códigos QR por persona para este local */}
+              <CodigosLocal localId={localId} descuentos={d.relacion.descuentos} />
 
               {/* Chat con manager/local */}
               <button onClick={() => setChat(true)}
