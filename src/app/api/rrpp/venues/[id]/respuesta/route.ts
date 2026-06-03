@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminSupabaseClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getRRPPAutenticado } from '@/lib/rrpp/auth'
 
 /**
@@ -18,7 +18,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "decision: 'aceptar' o 'rechazar'" }, { status: 400 })
   }
 
-  const admin = await createAdminSupabaseClient()
+  // service_role: la autorización ya se valida abajo (rel.rrpp_id === ctx.rrpp.id).
+  // La RLS de rrpp_venue solo deja UPDATE a los trabajadores del local, no al
+  // RRPP, así que con el cliente por-usuario el aceptar/rechazar fallaba en silencio.
+  const admin = createServiceRoleClient()
   const { data: rel } = await admin
     .from('rrpp_venue')
     .select('id, rrpp_id, estado')
