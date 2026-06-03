@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { RrppNav } from '@/components/rrpp/RrppNav'
+import { HeroBanner } from '@/components/local-panel/ui'
 import { LABEL_CATEGORIA, CATEGORIAS_DESCUENTO, type CategoriaDescuento } from '@/lib/rrppCodigos'
 import { Ticket, Plus, X, Copy, Check, Power, Store } from 'lucide-react'
 
@@ -41,15 +42,15 @@ export default function RrppCodigosPage() {
   return (
     <div className="min-h-screen bg-[#07070D] text-white pb-24">
       <div className="max-w-md mx-auto p-4 sm:p-6 space-y-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="eyebrow eyebrow-rose mb-1">Tus códigos</p>
-            <h1 className="text-display text-2xl">Códigos de referido</h1>
-            <p className="text-[#8B8BA8] text-sm mt-1">Genera un código por local. El descuento lo fija cada local.</p>
-          </div>
-          <button onClick={() => setAbrir(true)} disabled={activos.length === 0}
-            className="shrink-0 btn-primary inline-flex items-center gap-1.5 text-sm disabled:opacity-40"><Plus size={16} /> Crear</button>
-        </div>
+        <HeroBanner acento="rose" bleed="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6"
+          eyebrow="Tus códigos" titulo="Códigos de referido"
+          subtitulo="Genera un código por local. El descuento lo fija cada local."
+          heroLabel="Códigos activos" heroValue={codigos.filter(c => c.activo).length} heroUnit=""
+          pillLabel="Locales" pillValue={activos.length} />
+        {activos.length > 0 && (
+          <button onClick={() => setAbrir(true)}
+            className="w-full btn-primary inline-flex items-center justify-center gap-1.5"><Plus size={16} /> Crear código</button>
+        )}
 
         {loading ? (
           <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-20 rounded-2xl skeleton" />)}</div>

@@ -1,12 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, Link as LinkIcon, Wallet, ExternalLink, Check, X, ShieldOff, TrendingUp, Ticket, MessageCircle, Store, Eye, EyeOff } from 'lucide-react'
+import { Sparkles, Link as LinkIcon, Wallet, ExternalLink, Check, X, ShieldOff, TrendingUp, Ticket, MessageCircle, Store, Eye, EyeOff, Pencil } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
 import { RrppNav } from '@/components/rrpp/RrppNav'
 import { LocalDetalleRRPP } from '@/components/rrpp/LocalDetalleRRPP'
+import { EditarPerfilRRPP } from '@/components/rrpp/EditarPerfilRRPP'
 
 type LocalInfo = { id: string; nombre: string; foto_url: string | null; tier: string }
 type Venue = {
@@ -241,6 +242,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
   const [conversaciones, setConversaciones] = useState<{ local_id: string; nombre: string; ultimo: string | null; no_leidos: number }[]>([])
   const [chatConLocal, setChatConLocal] = useState<{ local_id: string; nombre: string } | null>(null)
   const [localDetalle, setLocalDetalle] = useState<string | null>(null)
+  const [editarPerfil, setEditarPerfil] = useState(false)
   useEffect(() => {
     fetch('/api/rrpp/chat').then(r => r.ok ? r.json() : null).then(d => { if (d) setConversaciones(d.conversaciones ?? []) }).catch(() => {})
   }, [chatConLocal])
@@ -264,6 +266,10 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
           <div className="relative overflow-hidden rounded-b-[2rem] px-5 sm:px-7 pt-9 pb-7 border-b border-white/[0.06]"
             style={{ background: 'radial-gradient(130% 110% at 50% -10%, rgba(224,69,94,0.20), rgba(124,92,255,0.12) 45%, rgba(7,7,13,0) 78%)' }}>
             <div className="pointer-events-none absolute -top-24 -right-10 w-64 h-64 rounded-full bg-[#7C5CFF]/20 blur-[80px]" />
+            <button onClick={() => setEditarPerfil(true)} aria-label="Editar perfil"
+              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+              <Pencil size={15} />
+            </button>
             <div className="relative flex items-center gap-4">
               <div className="relative shrink-0">
                 {rrpp.foto_url ? (
@@ -344,6 +350,34 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
             </div>
           )}
         </SectionCard>
+
+        {/* Pendiente por local */}
+        {(() => {
+          const nombreLocal: Record<string, string> = Object.fromEntries(venues.map(v => [v.local_id, v.locales?.nombre ?? 'Local']))
+          const porLocal = Object.values(liqs.filter(l => l.estado === 'pendiente').reduce((acc, l) => {
+            const k = l.local_id
+            acc[k] = acc[k] || { nombre: nombreLocal[k] ?? 'Local', monto: 0, ventas: 0 }
+            acc[k].monto += Number(l.monto_total); acc[k].ventas += l.num_ventas
+            return acc
+          }, {} as Record<string, { nombre: string; monto: number; ventas: number }>))
+          if (porLocal.length === 0) return null
+          return (
+            <SectionCard>
+              <SectionTitle icon={Wallet} acento="rose">Pendiente de cobrar · por local</SectionTitle>
+              <div className="space-y-2">
+                {porLocal.sort((a, b) => b.monto - a.monto).map((p, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-xl bg-white/[0.03] border border-white/[0.06] px-3.5 py-2.5">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">{p.nombre}</p>
+                      <p className="text-[11px] text-[#8B8BA8]">{p.ventas} {p.ventas === 1 ? 'venta' : 'ventas'}</p>
+                    </div>
+                    <p className="text-base font-bold text-[#E0455E] text-numeric shrink-0">{eur(p.monto)}</p>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )
+        })()}
 
         {/* Código de referido */}
         <SectionCard premium>
@@ -498,6 +532,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
       )}
 
       {localDetalle && <LocalDetalleRRPP localId={localDetalle} onClose={() => setLocalDetalle(null)} />}
+      {editarPerfil && <EditarPerfilRRPP rrpp={rrpp} onClose={() => setEditarPerfil(false)} onSaved={() => { setEditarPerfil(false); onRecargar() }} />}
       <RrppNav />
     </div>
   )
