@@ -83,16 +83,24 @@ async function resolverContacto(
 
 type TriggerKey = 'entrada_vendida' | 'consumo_bar'
 
-/** rrpp_venue activa con el disparador pedido habilitado (con su valor por defecto). */
-async function relacionActiva(db: SupabaseClient, rrppId: string, localId: string, trigger: TriggerKey, porDefecto: boolean) {
+/**
+ * rrpp_venue activa con el disparador pedido habilitado (con su valor por defecto).
+ * `forzar`: ignora el disparador (lo usa el canje por CÓDIGO del RRPP, que es un
+ * vínculo explícito por compra: si la persona usó el código, el RRPP comisiona
+ * aunque el disparador automático del local esté apagado). Sigue exigiendo
+ * relación activa.
+ */
+async function relacionActiva(db: SupabaseClient, rrppId: string, localId: string, trigger: TriggerKey, porDefecto: boolean, forzar = false) {
   const { data } = await db
     .from('rrpp_venue')
     .select('comision_pct, tope_por_venta, triggers_activos')
     .eq('rrpp_id', rrppId).eq('local_id', localId).eq('estado', 'activa').maybeSingle()
   if (!data) return null
-  const triggers = (data.triggers_activos ?? {}) as Record<string, boolean | undefined>
-  const on = triggers[trigger] === undefined ? porDefecto : !!triggers[trigger]
-  if (!on) return null
+  if (!forzar) {
+    const triggers = (data.triggers_activos ?? {}) as Record<string, boolean | undefined>
+    const on = triggers[trigger] === undefined ? porDefecto : !!triggers[trigger]
+    if (!on) return null
+  }
   return { comision_pct: Number(data.comision_pct) || 0, tope: data.tope_por_venta != null ? Number(data.tope_por_venta) : null }
 }
 
@@ -128,6 +136,7 @@ async function resolverAtribucion(
   usuario: { id: string; nombre?: string | null; telefono?: string | null; email?: string | null },
   localId: string, eventoId: string | null, cookieRef: CookieRef,
   trigger: TriggerKey, porDefecto: boolean, mecanismoActivacion: 'compra_entrada' | 'barra_pedido',
+  forzar = false,
 ): Promise<{ rrppId: string; comisionPct: number; tope: number | null } | null> {
   const contactoId = await resolverContacto(db, usuario)
   if (!contactoId) return null
@@ -149,7 +158,7 @@ async function resolverAtribucion(
     const señal = await resolverSeñal(db, usuario.id, cookieRef)
     if (!señal) return null
     rrppId = señal.rrpp_id
-    const rel0 = await relacionActiva(db, rrppId, localId, trigger, porDefecto)
+    const rel0 = await relacionActiva(db, rrppId, localId, trigger, porDefecto, forzar)
     if (!rel0) return null // sin relación activa o disparador apagado: no creamos binding
     await db.from('binding_rrpp').insert({
       contacto_id: contactoId, rrpp_id: rrppId, local_id: localId, evento_id: eventoId,
@@ -158,7 +167,7 @@ async function resolverAtribucion(
     })
   }
 
-  const rel = await relacionActiva(db, rrppId, localId, trigger, porDefecto)
+  const rel = await relacionActiva(db, rrppId, localId, trigger, porDefecto, forzar)
   if (!rel) return null
   return { rrppId, comisionPct: rel.comision_pct, tope: rel.tope }
 }
@@ -224,10 +233,11 @@ interface DevengoBar {
   db: SupabaseClient
   usuario: { id: string; nombre?: string | null; telefono?: string | null; email?: string | null }
   localId: string; pedidoBarId: string; subtotal: number; cookieRef: CookieRef
+  forzar?: boolean   // true cuando se usó un código del RRPP (vínculo explícito)
 }
 export async function devengarComisionBar(p: DevengoBar): Promise<{ rrpp_id: string; monto_comision: number } | null> {
   if (!p.pedidoBarId || p.subtotal <= 0) return null
-  const at = await resolverAtribucion(p.db, p.usuario, p.localId, null, p.cookieRef, 'consumo_bar', false, 'barra_pedido')
+  const at = await resolverAtribucion(p.db, p.usuario, p.localId, null, p.cookieRef, 'consumo_bar', false, 'barra_pedido', p.forzar ?? false)
   if (!at) return null
   if (await yaDevengado(p.db, 'pedido_bar_id', [p.pedidoBarId])) return null
 

@@ -34,6 +34,7 @@ export default function CartaBarPage() {
   const [carrito, setCarrito] = useState<Record<string, number>>({})
   const [showCheckout, setShowCheckout] = useState(false)
   const [notas, setNotas] = useState('')
+  const [codigo, setCodigo] = useState('')
   const [comprando, setComprando] = useState(false)
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function CartaBarPage() {
     const res = await fetch('/api/pedidos-bar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ local_id: id, items, notas: notas.trim() || undefined }),
+      body: JSON.stringify({ local_id: id, items, notas: notas.trim() || undefined, codigo: codigo.trim() || undefined }),
     })
     const j = await res.json()
     setComprando(false)
@@ -243,6 +244,17 @@ export default function CartaBarPage() {
               rows={2}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-[#8B8BA8] focus:border-[#E94560]/60 outline-none resize-none"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-[0.15em] text-[#B8B8CC]">Código de RRPP (opcional)</label>
+            <input
+              value={codigo}
+              onChange={e => setCodigo(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20))}
+              placeholder="Ej. LEO123"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-[#8B8BA8] focus:border-[#E94560]/60 outline-none tracking-[0.1em]"
+            />
+            <p className="text-[10px] text-[#8B8BA8]">Si tienes el código de un promotor, el descuento se aplica al confirmar.</p>
           </div>
 
           <div className="border-t border-white/8 pt-3 space-y-1.5 text-sm">
