@@ -131,6 +131,89 @@ export function StatCard({
   )
 }
 
+/** KPI con presencia: gradiente de color, icono en chip iluminado, número grande. */
+export function KpiBold({
+  icon: Icon, acento = 'neutral', label, value, color,
+}: {
+  icon: React.ElementType
+  acento?: AcentoColor
+  label: string
+  value: React.ReactNode
+  color?: string
+}) {
+  const c = color ?? ACENTO[acento]
+  return (
+    <div className="relative overflow-hidden rounded-2xl border p-3.5"
+      style={{ borderColor: `${c}33`, background: `linear-gradient(150deg, ${c}1F, rgba(255,255,255,0.02) 60%)` }}>
+      <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ background: `${c}2E`, boxShadow: `0 4px 14px -6px ${c}` }}>
+        <Icon size={15} style={{ color: c }} />
+      </div>
+      <p className="text-xl font-bold text-white text-display text-numeric leading-none">{value}</p>
+      <p className="text-[11px] text-[#9DA0B5] mt-1">{label}</p>
+    </div>
+  )
+}
+
+/* ───────────────────────────  Hero de panel  ──────────────────────────── */
+
+/**
+ * Cabecera con balance protagonista (gradiente + halo + número grande).
+ * Pensada para sangrar a los bordes del contenedor: pasa `bleed` con las
+ * clases de margen negativo del contenedor de cada panel.
+ */
+export function HeroBanner({
+  acento = 'rose', eyebrow, titulo, subtitulo, heroLabel, heroValue, heroUnit = '€',
+  pillLabel, pillValue, izquierda, bleed = '-mx-4 -mt-6 md:-mt-8',
+}: {
+  acento?: AcentoColor
+  eyebrow?: string
+  titulo: string
+  subtitulo?: string
+  heroLabel?: string
+  heroValue?: React.ReactNode
+  heroUnit?: string
+  pillLabel?: string
+  pillValue?: React.ReactNode
+  izquierda?: React.ReactNode
+  bleed?: string
+}) {
+  const c = ACENTO[acento]
+  return (
+    <div className={cn('relative', bleed)}>
+      <div className="relative overflow-hidden rounded-b-[2rem] px-5 sm:px-7 pt-9 pb-7 border-b border-white/[0.06]"
+        style={{ background: `radial-gradient(130% 110% at 50% -10%, ${c}33, rgba(124,92,255,0.10) 45%, rgba(7,7,13,0) 78%)` }}>
+        <div className="pointer-events-none absolute -top-24 -right-10 w-64 h-64 rounded-full blur-[80px]" style={{ background: `${c}38` }} />
+        <div className="relative flex items-start gap-4">
+          {izquierda}
+          <div className="flex-1 min-w-0">
+            {eyebrow && <p className={cn(EYEBROW_CLASS[acento], 'mb-1')}>{eyebrow}</p>}
+            <h1 className="text-display text-2xl md:text-3xl font-bold leading-tight truncate">{titulo}</h1>
+            {subtitulo && <p className="text-sm text-[#A0A0B8] mt-1">{subtitulo}</p>}
+          </div>
+        </div>
+        {(heroValue !== undefined || pillValue !== undefined) && (
+          <div className="relative mt-7 flex items-end justify-between gap-3">
+            {heroValue !== undefined && (
+              <div>
+                {heroLabel && <p className={cn(EYEBROW_CLASS[acento], 'mb-1.5')}>{heroLabel}</p>}
+                <p className="text-[3.25rem] leading-none font-bold text-white text-display text-numeric">
+                  {heroValue}<span className="text-2xl text-[#B8B8CC] ml-1">{heroUnit}</span>
+                </p>
+              </div>
+            )}
+            {pillValue !== undefined && (
+              <div className="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-2.5 text-right backdrop-blur-sm">
+                {pillLabel && <p className="text-[10px] uppercase tracking-wider text-[#8B8BA8]">{pillLabel}</p>}
+                <p className="text-xl font-bold text-white text-numeric mt-0.5">{pillValue}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ───────────────────────────  Acción rápida  ──────────────────────────── */
 
 export function QuickAction({

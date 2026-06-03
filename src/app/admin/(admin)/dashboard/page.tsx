@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { cn } from '@/lib/utils'
+import { HeroBanner } from '@/components/local-panel/ui'
 
 interface GlobalStats {
   total_locales: number
@@ -113,12 +114,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="relative p-4 md:p-8 pb-20 md:pb-8 space-y-6 overflow-hidden">
-      {/* Header */}
-      <div className="relative">
-        <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.25em] mb-1.5">Tiempo real</p>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Dashboard</h1>
-        <p className="text-[#A0A0B8] text-sm mt-1.5">Vista global de la plataforma</p>
-      </div>
+      {/* Header con hero */}
+      <HeroBanner acento="blue" bleed="-mx-4 md:-mx-8 -mt-4 md:-mt-8"
+        eyebrow="Tiempo real" titulo="Dashboard" subtitulo="Vista global de la plataforma"
+        heroLabel="Comisiones · hoy" heroValue={stats ? Math.round(stats.ingresos_plataforma_hoy) : '—'} heroUnit="€"
+        pillLabel="Entradas hoy" pillValue={stats ? stats.total_entradas_hoy : '—'} />
 
       {/* Alerta locales pendientes */}
       {(stats?.locales_pendientes || 0) > 0 && (

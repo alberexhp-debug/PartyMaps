@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useGrupoStore } from '@/lib/stores/useGrupoStore'
 import { supabase } from '@/lib/supabase/client'
-import { LayoutDashboard, Store, Users, LogOut, Building } from 'lucide-react'
+import { LayoutDashboard, Store, Users, LogOut, Building, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function GrupoPanelLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +17,7 @@ export default function GrupoPanelLayout({ children }: { children: React.ReactNo
     const base = [
       { href: '/grupo/dashboard', icon: LayoutDashboard, label: 'Resumen' },
       { href: '/grupo/locales', icon: Store, label: 'Locales' },
+      { href: '/grupo/rrpp', icon: Megaphone, label: 'RRPP' },
     ]
     if (esPropietario) base.push({ href: '/grupo/equipo', icon: Users, label: 'Equipo' })
     return base

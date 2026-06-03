@@ -1,9 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useGrupoStore } from '@/lib/stores/useGrupoStore'
-import { Store, Users, Ticket, Wallet, TrendingUp, BarChart3 } from 'lucide-react'
+import { Store, Users, Ticket, TrendingUp, BarChart3 } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { PageHeader, StatCard, SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
+import { HeroBanner, KpiBold, SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
 
 type Resumen = {
   grupo: string; rol: 'propietario' | 'manager'
@@ -32,23 +32,23 @@ export default function GrupoDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow={esManager ? 'Manager' : 'Propietario'} acento="blue"
+      <HeroBanner
+        acento="blue"
+        eyebrow={esManager ? 'Manager' : 'Propietario'}
         titulo={r?.grupo || miembro?.grupo?.nombre || 'Tu grupo'}
         subtitulo={esManager
           ? 'Métricas operativas de los locales que tienes asignados.'
           : 'Visión agregada de todos los locales de tu grupo.'}
+        heroLabel="Ingresos del grupo · este mes"
+        heroValue={r ? (r.ingresos_mes ?? 0).toFixed(0) : '—'}
+        pillLabel="Locales"
+        pillValue={r ? `${r.locales_total}` : '—'}
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-        <StatCard icon={Store} acento="blue" label="Locales" loading={cargando}
-          value={r ? r.locales_total : '—'} sublabel={r ? `${r.locales_activos} activos` : undefined} />
-        <StatCard icon={Users} acento="violet" label="Suscriptores" loading={cargando}
-          value={r ? r.suscriptores.toLocaleString('es-ES') : '—'} />
-        <StatCard icon={Ticket} acento="rose" label="Entradas mes" loading={cargando}
-          value={r ? r.entradas_mes : '—'} />
-        <StatCard icon={Wallet} acento="green" label="Ingresos mes" loading={cargando}
-          value={r ? eur(r.ingresos_mes) : '—'} />
+      <div className="grid grid-cols-3 gap-2.5">
+        <KpiBold icon={Store} color="#4F8EF7" label="Locales activos" value={cargando ? '—' : (r?.locales_activos ?? 0)} />
+        <KpiBold icon={Users} color="#7C5CFF" label="Suscriptores" value={cargando ? '—' : (r?.suscriptores ?? 0).toLocaleString('es-ES')} />
+        <KpiBold icon={Ticket} color="#E0455E" label="Entradas mes" value={cargando ? '—' : (r?.entradas_mes ?? 0)} />
       </div>
 
       <SectionCard>
