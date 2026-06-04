@@ -6,7 +6,7 @@ import { useToast } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase/client'
 import { formatearPrecio, cn } from '@/lib/utils'
 import {
-  Check, Sparkles, Star, Zap, Eye, CreditCard, TrendingDown,
+  Check, Sparkles, Star, Zap, Eye, CreditCard, TrendingDown, FileText, Printer, X,
 } from 'lucide-react'
 import type { TierLocal } from '@/types'
 
@@ -105,8 +105,10 @@ export default function FacturacionPage() {
   const [volumenMensual, setVolumenMensual] = useState(3000)
   const [ingresosUltMes, setIngresosUltMes] = useState<number | null>(null)
   const [solicitando, setSolicitando] = useState<TierLocal | null>(null)
+  const [verFactura, setVerFactura] = useState(false)
 
   const tierActual = local?.tier ?? 'visibility'
+  const cuotaActual = TIERS.find(t => t.id === tierActual)?.cuota ?? 0
   const puedeCambiar = trabajador?.rol === 'dueno'
 
   useEffect(() => {
@@ -289,6 +291,32 @@ export default function FacturacionPage() {
         })}
       </div>
 
+      {/* Factura del mes */}
+      <div className="card-premium p-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#4F8EF7]/15 border border-[#4F8EF7]/30 flex items-center justify-center">
+            <FileText size={18} className="text-[#4F8EF7]" />
+          </div>
+          <div>
+            <p className="font-bold text-white">Factura del mes</p>
+            <p className="text-xs text-[#B8B8CC]">Cuota + comisiones de este periodo. Descárgala en PDF.</p>
+          </div>
+        </div>
+        <Button variant="secondary" onClick={() => setVerFactura(true)}>
+          <FileText size={15} /> Ver factura
+        </Button>
+      </div>
+
+      {verFactura && local && (
+        <FacturaModal
+          localId={local.id} localNombre={local.nombre}
+          localCif={(local as { cif?: string | null }).cif ?? null}
+          localDireccion={(local as { direccion?: string | null }).direccion ?? null}
+          tier={tierActual} cuota={cuotaActual}
+          onClose={() => setVerFactura(false)}
+        />
+      )}
+
       {/* Detalles legales/modelo */}
       <div className="card-premium p-5 space-y-3">
         <h2 className="text-base font-bold text-display text-white">Detalles del modelo</h2>
@@ -309,6 +337,121 @@ export default function FacturacionPage() {
           Solo el dueño puede cambiar el plan.
         </div>
       )}
+    </div>
+  )
+}
+
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+
+/** Factura del mes en curso (cuota + comisiones reales), imprimible a PDF. */
+function FacturaModal({ localId, localNombre, localCif, localDireccion, tier, cuota, onClose }: {
+  localId: string; localNombre: string; localCif: string | null; localDireccion: string | null
+  tier: string; cuota: number; onClose: () => void
+}) {
+  const [comisiones, setComisiones] = useState<number | null>(null)
+  const [operaciones, setOperaciones] = useState(0)
+  const ahora = new Date()
+  const periodo = `${MESES[ahora.getMonth()]} ${ahora.getFullYear()}`
+  const numFactura = `RMB-${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${localId.slice(0, 6).toUpperCase()}`
+
+  useEffect(() => {
+    const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString()
+    Promise.all([
+      supabase.from('entradas').select('comision_plataforma').eq('local_id', localId).gte('created_at', inicio).neq('estado', 'cancelada'),
+      supabase.from('pedidos_bar').select('comision_plataforma').eq('local_id', localId).gte('created_at', inicio).in('estado', ['pagado', 'entregado']),
+    ]).then(([e, p]) => {
+      const filas = [...(e.data ?? []), ...(p.data ?? [])]
+      const total = filas.reduce((s, x) => s + (Number(x.comision_plataforma) || 0), 0)
+      setComisiones(Math.round(total * 100) / 100)
+      setOperaciones(filas.filter(x => (Number(x.comision_plataforma) || 0) > 0).length)
+    }).catch(() => setComisiones(0))
+  }, [localId])
+
+  const com = comisiones ?? 0
+  const subtotal = cuota + com
+  const iva = Math.round(subtotal * 0.21 * 100) / 100
+  const total = Math.round((subtotal + iva) * 100) / 100
+  const e = (n: number) => `${n.toFixed(2)} €`
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto" onClick={onClose}>
+      <style>{`@media print {
+        body { background: #fff !important; }
+        body * { visibility: hidden !important; }
+        #factura-doc, #factura-doc * { visibility: visible !important; }
+        #factura-doc { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; border-radius: 0 !important; }
+        .no-print { display: none !important; }
+      }`}</style>
+      <div className="w-full max-w-lg" onClick={ev => ev.stopPropagation()}>
+        {/* Documento blanco */}
+        <div id="factura-doc" className="bg-white text-gray-900 rounded-xl p-7 sm:p-9">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <p className="text-2xl font-black tracking-tight" style={{ color: '#E94560' }}>RUMBO</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Rumbo · plataforma de ocio nocturno</p>
+            </div>
+            <div className="text-right text-xs text-gray-500">
+              <p className="font-bold text-gray-900">Factura {numFactura}</p>
+              <p>Emitida: {ahora.toLocaleDateString('es-ES')}</p>
+              <p className="capitalize">Periodo: {periodo}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-6 text-xs">
+            <div>
+              <p className="font-bold text-gray-400 uppercase tracking-wide mb-1">De</p>
+              <p className="font-semibold text-gray-900">Rumbo</p>
+              <p className="text-gray-500">rumbomap.com</p>
+            </div>
+            <div>
+              <p className="font-bold text-gray-400 uppercase tracking-wide mb-1">Para</p>
+              <p className="font-semibold text-gray-900">{localNombre}</p>
+              {localCif && <p className="text-gray-500">CIF/NIF: {localCif}</p>}
+              {localDireccion && <p className="text-gray-500">{localDireccion}</p>}
+            </div>
+          </div>
+
+          <table className="w-full text-sm mb-5">
+            <thead>
+              <tr className="border-b border-gray-200 text-gray-400 text-[11px] uppercase tracking-wide">
+                <th className="text-left font-semibold py-2">Concepto</th>
+                <th className="text-right font-semibold py-2">Importe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-gray-100">
+                <td className="py-2.5 text-gray-700">Cuota mensual · plan <span className="capitalize">{tier}</span></td>
+                <td className="py-2.5 text-right text-gray-900 font-medium">{e(cuota)}</td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-2.5 text-gray-700">Comisiones por ventas online {comisiones == null ? '…' : `(${operaciones} operaciones)`}</td>
+                <td className="py-2.5 text-right text-gray-900 font-medium">{e(com)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="ml-auto w-56 text-sm space-y-1.5">
+            <div className="flex justify-between text-gray-600"><span>Base imponible</span><span>{e(subtotal)}</span></div>
+            <div className="flex justify-between text-gray-600"><span>IVA (21%)</span><span>{e(iva)}</span></div>
+            <div className="flex justify-between font-bold text-gray-900 text-base border-t border-gray-200 pt-1.5 mt-1.5"><span>Total</span><span>{e(total)}</span></div>
+          </div>
+
+          <p className="text-[10px] text-gray-400 mt-7 leading-relaxed border-t border-gray-100 pt-3">
+            Documento informativo generado por Rumbo. La venta en taquilla (efectivo) no genera comisión. El cobro real se
+            gestionará vía Stripe próximamente. Las comisiones reflejadas corresponden a operaciones del periodo indicado.
+          </p>
+        </div>
+
+        {/* Acciones (no se imprimen) */}
+        <div className="no-print flex gap-2 mt-3">
+          <button onClick={() => window.print()} className="flex-1 btn-primary inline-flex items-center justify-center gap-2">
+            <Printer size={16} /> Imprimir / Guardar PDF
+          </button>
+          <button onClick={onClose} className="px-4 rounded-xl border border-white/15 text-white inline-flex items-center gap-1.5 hover:bg-white/5">
+            <X size={16} /> Cerrar
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
