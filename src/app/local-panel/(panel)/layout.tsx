@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Settings, Calendar, Bell,
   Star, BarChart3, Users, CreditCard, LogOut, MessageSquare,
   Beer, Gauge, MoreHorizontal, X, LayoutGrid, Sparkles, Gift, LifeBuoy,
+  TicketPlus, Contact,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
@@ -26,6 +27,7 @@ const NAV_GROUPS: NavGroup[] = [
     titulo: 'La noche',
     items: [
       { zona: 'scanner',     href: '/local-panel/scanner',     icon: Gauge, label: 'Afluencia & Puerta' },
+      { zona: 'taquilla',    href: '/local-panel/taquilla',    icon: TicketPlus, label: 'Taquilla' },
       { zona: 'pedidos-bar', href: '/local-panel/pedidos-bar', icon: Beer,  label: 'Barra' },
       { zona: 'sala',        href: '/local-panel/sala',        icon: LayoutGrid, label: 'Sala & Mesas' },
       { zona: 'cortesias',   href: '/local-panel/cortesias',   icon: Gift, label: 'Cortesías' },
@@ -42,6 +44,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     titulo: 'Audiencia',
     items: [
+      { zona: 'clientes',    href: '/local-panel/clientes',    icon: Contact,       label: 'Clientes' },
       { zona: 'analytics',   href: '/local-panel/analytics',   icon: BarChart3,     label: 'Analítica' },
       { zona: 'reviews',     href: '/local-panel/reviews',     icon: Star,          label: 'Reseñas' },
       { zona: 'sugerencias', href: '/local-panel/sugerencias', icon: MessageSquare, label: 'Sugerencias' },

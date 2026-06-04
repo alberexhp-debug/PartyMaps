@@ -11,9 +11,11 @@ export type ZonaPanel =
   | 'mi-local'
   | 'eventos'
   | 'scanner'
+  | 'taquilla'
   | 'pedidos-bar'
   | 'sala'
   | 'productos'
+  | 'clientes'
   | 'rrpp'
   | 'cortesias'
   | 'sugerencias'
@@ -43,19 +45,19 @@ export const ROLES_HOME: Record<RolLocal, ZonaPanel> = {
 export const ROLES_PERMISOS: Record<RolLocal, ZonaPanel[]> = {
   // Dueño: control total del negocio
   dueno: [
-    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'sala', 'productos',
-    'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
+    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'taquilla', 'pedidos-bar', 'sala', 'productos',
+    'clientes', 'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo', 'facturacion', 'soporte',
   ],
   // Gestor: todo menos facturación/tier (decisión financiera del dueño)
   gestor: [
-    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'pedidos-bar', 'sala', 'productos',
-    'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
+    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'taquilla', 'pedidos-bar', 'sala', 'productos',
+    'clientes', 'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo', 'soporte',
   ],
-  // Puerta: escanear entradas + emitir/canjear cortesías de su nivel
+  // Puerta: escanear entradas, vender en taquilla + emitir/canjear cortesías
   puerta: [
-    'scanner', 'cortesias',
+    'scanner', 'taquilla', 'cortesias',
   ],
   // Barman: sirve pedidos, ve la sala/mesas y emite cortesías de su nivel
   barman: [
