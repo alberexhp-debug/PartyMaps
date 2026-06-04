@@ -1,13 +1,14 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, MapPinned, Ticket } from 'lucide-react'
+import { Home, MapPinned, Ticket, ClipboardList } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const ITEMS = [
   { href: '/rrpp', icon: Home, label: 'Inicio' },
   { href: '/rrpp/descubrir', icon: MapPinned, label: 'Descubrir' },
   { href: '/rrpp/codigos', icon: Ticket, label: 'Códigos' },
+  { href: '/rrpp/listas', icon: ClipboardList, label: 'Listas' },
 ]
 
 /** Barra inferior del panel RRPP. Solo se muestra con perfil completo. */
