@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Sparkles, UserPlus, Pause, Play, Archive, ExternalLink, Search, Mail, Copy, Check, MessageCircle, Percent, Handshake, X } from 'lucide-react'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
+import { PagosRRPP } from '@/components/local-panel/PagosRRPP'
 import { CATEGORIAS_DESCUENTO, LABEL_CATEGORIA, type CategoriaDescuento } from '@/lib/rrppCodigos'
 
 // Tipos relajados para no atar a la forma exacta del join del endpoint
@@ -119,6 +120,10 @@ export default function RRPPPanelLocal() {
           {invitaciones.length > 0 && (
             <InvitacionesPendientes invitaciones={invitaciones} />
           )}
+
+          {/* Pagos a RRPP (liquidaciones por mes; marcar pagado) */}
+          <PagosRRPP />
+
           {relaciones.length === 0 && invitaciones.length === 0 && (
             <div className="card-premium p-8 text-center">
               <Sparkles className="w-10 h-10 text-rose-400 mx-auto mb-3" />

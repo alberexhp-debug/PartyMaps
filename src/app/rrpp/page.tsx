@@ -8,6 +8,7 @@ import { SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/
 import { RrppNav } from '@/components/rrpp/RrppNav'
 import { LocalDetalleRRPP } from '@/components/rrpp/LocalDetalleRRPP'
 import { EditarPerfilRRPP } from '@/components/rrpp/EditarPerfilRRPP'
+import { CobrosRRPP } from '@/components/rrpp/CobrosRRPP'
 
 type LocalInfo = { id: string; nombre: string; foto_url: string | null; tier: string }
 type Venue = {
@@ -378,6 +379,9 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
             </SectionCard>
           )
         })()}
+
+        {/* Cobros por mes — confirmar/disputar lo que el local marca como pagado */}
+        <CobrosRRPP liqs={liqs} localNombre={(id) => venues.find(v => v.local_id === id)?.locales?.nombre ?? 'Local'} onChange={onRecargar} />
 
         {/* Código de referido */}
         <SectionCard premium>
