@@ -9,6 +9,7 @@ import { RrppNav } from '@/components/rrpp/RrppNav'
 import { LocalDetalleRRPP } from '@/components/rrpp/LocalDetalleRRPP'
 import { EditarPerfilRRPP } from '@/components/rrpp/EditarPerfilRRPP'
 import { CobrosRRPP } from '@/components/rrpp/CobrosRRPP'
+import { ActivarPushRRPP } from '@/components/rrpp/ActivarPush'
 
 type LocalInfo = { id: string; nombre: string; foto_url: string | null; tier: string }
 type Venue = {
@@ -496,6 +497,9 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
             </div>
           )}
         </SectionCard>
+
+        {/* Notificaciones push */}
+        <ActivarPushRRPP />
 
         {/* Visibilidad */}
         <SectionCard>

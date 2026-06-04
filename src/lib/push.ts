@@ -74,6 +74,30 @@ export async function enviarPush(
   return { enviadas, falladas, eliminadas }
 }
 
+// Envía un push a TODAS las suscripciones de un usuario concreto (sus dispositivos).
+export async function enviarPushAUsuario(usuarioId: string, payload: PushPayload) {
+  if (!usuarioId) return { enviadas: 0, falladas: 0, eliminadas: 0 }
+  const admin = await createAdminSupabaseClient()
+  const { data: subs } = await admin
+    .from('push_subscriptions')
+    .select('id, endpoint, p256dh, auth')
+    .eq('usuario_id', usuarioId)
+  return enviarPush((subs ?? []) as PushSubscriptionRow[], payload)
+}
+
+// Envía un push a un RRPP (resuelve su usuario). No lanza: notificar nunca debe
+// romper la acción que lo dispara.
+export async function enviarPushARRPP(rrppId: string, payload: PushPayload) {
+  try {
+    const admin = await createAdminSupabaseClient()
+    const { data: rrpp } = await admin.from('rrpp').select('usuario_id').eq('id', rrppId).maybeSingle()
+    if (!rrpp?.usuario_id) return
+    await enviarPushAUsuario(rrpp.usuario_id, payload)
+  } catch (e) {
+    console.error('[push] enviarPushARRPP', e)
+  }
+}
+
 // Helper que envía a todos los suscriptores de un local.
 export async function enviarPushASuscriptoresDeLocal(
   localId: string,

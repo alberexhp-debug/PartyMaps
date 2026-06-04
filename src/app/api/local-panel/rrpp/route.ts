@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminSupabaseClient } from '@/lib/supabase/server'
 import { getTrabajadorLocal } from '@/lib/rrpp/auth'
+import { enviarPushARRPP } from '@/lib/push'
 
 const ROLES_GESTION = ['dueno', 'gestor'] as const
 
@@ -108,6 +109,14 @@ export async function POST(req: NextRequest) {
       })
       .select().single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Avisar al RRPP de la invitación.
+    const { data: local } = await admin.from('locales').select('nombre').eq('id', t.local_id).maybeSingle()
+    await enviarPushARRPP(rrpp.id, {
+      title: '¡Te han invitado a trabajar!',
+      body: local?.nombre ? `${local.nombre} quiere trabajar contigo. Acéptalo en tu panel.` : 'Un local quiere trabajar contigo.',
+      url: '/rrpp',
+    })
     return NextResponse.json({ relacion: data, creada: true })
   }
 

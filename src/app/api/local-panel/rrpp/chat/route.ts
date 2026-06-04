@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getTrabajadorLocal } from '@/lib/rrpp/auth'
+import { enviarPushARRPP } from '@/lib/push'
 
 const ROLES = ['dueno', 'gestor']
 
@@ -43,5 +44,13 @@ export async function POST(req: NextRequest) {
     .insert({ local_id: t.local_id, rrpp_id: body.rrpp_id, emisor: 'local', mensaje })
     .select('id, emisor, mensaje, created_at').single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Avisar al RRPP del nuevo mensaje.
+  const { data: local } = await db.from('locales').select('nombre').eq('id', t.local_id).maybeSingle()
+  await enviarPushARRPP(body.rrpp_id, {
+    title: local?.nombre ? `Mensaje de ${local.nombre}` : 'Nuevo mensaje de un local',
+    body: mensaje.slice(0, 120),
+    url: '/rrpp',
+  })
   return NextResponse.json({ mensaje: data })
 }

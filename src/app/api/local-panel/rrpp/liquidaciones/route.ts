@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getTrabajadorLocal } from '@/lib/rrpp/auth'
+import { enviarPushARRPP } from '@/lib/push'
 
 const GESTION = ['dueno', 'gestor']
 
@@ -40,7 +41,7 @@ export async function PATCH(req: NextRequest) {
   const db = createServiceRoleClient()
 
   // La liquidación debe ser de este local y estar pendiente o disputada (re-marcable).
-  const { data: liq } = await db.from('liquidacion_rrpp').select('id, local_id, estado').eq('id', body.id).maybeSingle()
+  const { data: liq } = await db.from('liquidacion_rrpp').select('id, local_id, rrpp_id, monto_total, estado').eq('id', body.id).maybeSingle()
   if (!liq || liq.local_id !== t.local_id) return NextResponse.json({ error: 'Liquidación no encontrada' }, { status: 404 })
   if (liq.estado === 'confirmado') return NextResponse.json({ error: 'Ya confirmada por el RRPP' }, { status: 409 })
 
@@ -53,5 +54,9 @@ export async function PATCH(req: NextRequest) {
     updated_at: new Date().toISOString(),
   }).eq('id', body.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Avisar al RRPP para que confirme el cobro.
+  const eur = `${(Number(liq.monto_total) || 0).toFixed(2).replace(/\.00$/, '')} €`
+  await enviarPushARRPP(liq.rrpp_id, { title: 'Un local te marcó un pago', body: `Te han marcado como pagado ${eur}. Confírmalo en tu panel.`, url: '/rrpp' })
   return NextResponse.json({ ok: true })
 }
