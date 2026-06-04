@@ -55,6 +55,20 @@ export default function RegistroPage() {
   })
   const [errores, setErrores] = useState<Record<string, string>>({})
   const [authIdPreRegistro, setAuthIdPreRegistro] = useState<string | null>(null)
+  const [refInfo, setRefInfo] = useState<{ valido: boolean; nombre?: string } | null>(null)
+
+  // Valida el código de referido (slug del RRPP) con debounce, para dar feedback.
+  useEffect(() => {
+    const code = form.referido.trim()
+    if (code.length < 2) { setRefInfo(null); return }
+    const t = setTimeout(() => {
+      fetch(`/api/rrpp/referido?codigo=${encodeURIComponent(code)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(j => setRefInfo(j ? { valido: !!j.valido, nombre: j.nombre_publico } : null))
+        .catch(() => setRefInfo(null))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [form.referido])
 
   // Tras verificar el SMS, Supabase ya da sesión auth. Capturamos auth.uid()
   // para usarlo como path en Storage al subir la foto del paso 5.
@@ -300,13 +314,20 @@ export default function RegistroPage() {
               }
               onKeyDown={e => { if (e.key === 'Enter') registroCorreo() }}
             />
-            <Input
-              placeholder="Código de referido (opcional)"
-              value={form.referido}
-              onChange={e => setForm(f => ({ ...f, referido: e.target.value.trim().toUpperCase() }))}
-              icon={<Gift size={16} />}
-              hint="¿Te invitó un RRPP? Pon su código."
-            />
+            <div>
+              <Input
+                placeholder="Código de referido (opcional)"
+                value={form.referido}
+                onChange={e => setForm(f => ({ ...f, referido: e.target.value.trim().toUpperCase() }))}
+                icon={<Gift size={16} />}
+                hint={refInfo ? undefined : '¿Te invitó un RRPP? Pon su código.'}
+              />
+              {refInfo && (
+                <p className={`mt-1 text-xs ${refInfo.valido ? 'text-emerald-400' : 'text-[#E94560]'}`}>
+                  {refInfo.valido ? `✓ Te invita ${refInfo.nombre}` : 'Ese código de referido no existe'}
+                </p>
+              )}
+            </div>
             <Button fullWidth size="lg" onClick={registroCorreo} loading={loading}>
               Crear cuenta
             </Button>
