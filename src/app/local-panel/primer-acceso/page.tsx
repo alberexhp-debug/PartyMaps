@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
@@ -59,10 +59,13 @@ export default function PrimerAccesoPage() {
     })()
   }, [router, entrar])
 
-  // Genera el QR del authenticator al entrar en esa fase.
+  // Genera el QR del authenticator al entrar en esa fase (una sola vez:
+  // el efecto puede re-dispararse por deps, pero el secreto se pide una vez).
+  const iniciado = useRef(false)
   useEffect(() => {
-    if (fase !== 'totp' || !trab || trab.totp_activado) return
-    (async () => {
+    if (fase !== 'totp' || !trab || trab.totp_activado || iniciado.current) return
+    iniciado.current = true
+    ;(async () => {
       const res = await fetch('/api/local-panel/cuenta/totp/iniciar', { method: 'POST' })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) { toast.error(data.error || 'No se pudo iniciar el authenticator'); return }

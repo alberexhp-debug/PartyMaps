@@ -39,6 +39,13 @@ export function ChatRrpp({
 
   useEffect(() => { finRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [mensajes.length])
 
+  // Cerrar con Escape.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
   const enviar = async () => {
     const m = texto.trim()
     if (!m) return
@@ -59,7 +66,7 @@ export function ChatRrpp({
             <p className="truncate text-sm font-bold text-white">{titulo}</p>
             {subtitulo && <p className="truncate text-xs text-[#8B8BA8]">{subtitulo}</p>}
           </div>
-          <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar" className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
         </header>
 
         <div className="flex-1 space-y-2 overflow-y-auto p-4">

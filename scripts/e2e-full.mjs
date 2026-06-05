@@ -1,6 +1,6 @@
-// E2E completo contra Vercel: crea un dueño fresco (API), prueba dar de alta,
-// recorre el primer acceso del trabajador (con TOTP real), chat y resets.
-// Captura todos los 4xx. Limpia al final.
+// E2E completo contra Vercel: dueño fresco → alta → primer acceso (TOTP real)
+// → chat trabajador → re-login con 2FA → ficha del dueño (chat, editar, resets).
+// Cada fase en try/catch (un fallo no aborta el resto). Limpia al final.
 import { chromium } from 'playwright'
 import { generateSync } from 'otplib'
 import { createClient } from '@supabase/supabase-js'
@@ -12,131 +12,145 @@ const svc = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE
 mkdirSync('e2e-shots', { recursive: true })
 
 const rnd = Date.now().toString().slice(-6)
-const duenoEmail = `e2edueno${rnd}@example.com`
-const duenoPass = `Dueno${rnd}!`
-let localId = null, workerAuthId = null, workerUser = null, workerPass = null, totpSecret = null, altaStatus = null, altaBody = null
+const duenoEmail = `e2edueno${rnd}@example.com`, duenoPass = `Dueno${rnd}!`
+const workerUser = `wkr${rnd}`
+let localId = null, workerAuthId = null, workerPass = null, nuevaPass = `Wkr${rnd}!nueva`, totpSecret = null
 
-const errs = []
+const apiLog = [], errs = []
+const ok = m => console.log('  ✅', m), bad = m => console.log('  ❌', m)
 function watch(page, tag) {
+  page.on('dialog', d => d.accept().catch(() => {}))
   page.on('response', async r => {
-    const u = r.url(); const s = r.status()
-    if ((u.includes('/api/local-panel/') || u.includes('/rest/v1/')) && s >= 400) {
-      let b = ''; try { b = (await r.text()).slice(0, 160) } catch {}
-      errs.push(`[${tag}] ${s} ${r.request().method()} ${u.replace(BASE, '').replace(env.NEXT_PUBLIC_SUPABASE_URL, '')}  ${b}`)
-    }
-    if (u.endsWith('/api/local-panel/equipo') && r.request().method() === 'POST') { altaStatus = s; try { altaBody = await r.json() } catch {} }
-    if (u.includes('/cuenta/totp/iniciar')) { try { totpSecret = (await r.json()).secret } catch {} }
+    const u = r.url(), s = r.status()
+    if (u.includes('/cuenta/totp/iniciar')) { try { const j = await r.json(); if (j?.secret) totpSecret = j.secret } catch {} }
+    if (u.includes('/api/local-panel/')) { let b = null; try { b = await r.json() } catch {}; apiLog.push({ tag, m: r.request().method(), path: u.replace(BASE, ''), s, b }) }
+    if ((u.includes('/api/local-panel/') || u.includes('/rest/v1/')) && s >= 400) { let t = ''; try { t = (await r.text()).slice(0, 120) } catch {}; errs.push(`[${tag}] ${s} ${r.request().method()} ${u.replace(BASE, '').replace(env.NEXT_PUBLIC_SUPABASE_URL, '')} ${t}`) }
   })
 }
 const shot = (p, n) => p.screenshot({ path: `e2e-shots/${n}.png`, fullPage: true }).catch(() => {})
-const ok = (m) => console.log('  ✅', m), bad = (m) => console.log('  ❌', m)
+const last = (path, m) => [...apiLog].reverse().find(x => x.path.includes(path) && (!m || x.m === m))
+async function dismissCookies(p) { for (const re of [/aceptar/i, /esenciales/i]) { try { await p.getByRole('button', { name: re }).first().click({ timeout: 1000 }); break } catch {} } }
+async function loginPanel(p, user, pass) {
+  await p.goto(`${BASE}/local-panel/login`, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(1200); await dismissCookies(p)
+  await p.locator('input[autocomplete="username"]').fill(user)
+  await p.locator('input[autocomplete="current-password"]').fill(pass)
+  await p.getByRole('button', { name: 'Acceder al panel' }).click(); await p.waitForTimeout(3500)
+}
 
 const browser = await chromium.launch({ headless: true })
+const ctxD = await browser.newContext({ viewport: { width: 1280, height: 900 } })
+const pD = await ctxD.newPage(); watch(pD, 'dueño')
 try {
-  // 0) Crear dueño fresco vía API (como el formulario de registro) ----------
-  console.log('\n0) Crear dueño fresco vía /api/local-panel/registro')
-  const reg = await fetch(`${BASE}/api/local-panel/registro`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: duenoEmail, password: duenoPass, nombre_responsable: 'Dueño E2E', nombre_local: `Local E2E ${rnd}`, tipo_local: 'discoteca', ciudad: 'Madrid', direccion: 'Gran Vía 1, Madrid', latitud: '40.4203', longitud: '-3.7058', aforo_maximo: '200' }),
-  })
-  const regBody = await reg.json().catch(() => ({}))
-  if (!reg.ok) { bad(`registro falló: ${reg.status} ${JSON.stringify(regBody)}`); throw new Error('registro') }
-  localId = regBody.local_id; ok(`dueño creado (${duenoEmail}), local ${localId}`)
+  console.log('\n0) Crear dueño fresco vía API')
+  const reg = await fetch(`${BASE}/api/local-panel/registro`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: duenoEmail, password: duenoPass, nombre_responsable: 'Dueño E2E', nombre_local: `Local E2E ${rnd}`, tipo_local: 'discoteca', ciudad: 'Madrid', direccion: 'Gran Vía 1', latitud: '40.4203', longitud: '-3.7058', aforo_maximo: '200' }) })
+  const rb = await reg.json().catch(() => ({})); localId = rb.local_id
+  reg.ok ? ok(`dueño ${duenoEmail}`) : bad(`registro ${reg.status} ${JSON.stringify(rb)}`)
 
-  // 1) Login dueño fresco + dar de alta -------------------------------------
-  console.log('\n1) Login dueño fresco → dar de alta')
-  const ctxD = await browser.newContext({ viewport: { width: 1280, height: 900 } })
-  const pD = await ctxD.newPage(); watch(pD, 'dueño')
-  await pD.goto(`${BASE}/local-panel/login`, { waitUntil: 'domcontentloaded' }); await pD.waitForTimeout(1200)
-  for (const re of [/aceptar/i, /esenciales/i]) { try { await pD.getByRole('button', { name: re }).first().click({ timeout: 1000 }); break } catch {} }
-  await pD.locator('input[autocomplete="username"]').fill(duenoEmail)
-  await pD.locator('input[autocomplete="current-password"]').fill(duenoPass)
-  await pD.getByRole('button', { name: 'Acceder al panel' }).click()
-  await pD.waitForTimeout(3500); console.log('   URL:', pD.url())
-  if (!pD.url().includes('/local-panel/')) { bad('login dueño no entró al panel'); await shot(pD, 'D-login-fail') }
-  await pD.goto(`${BASE}/local-panel/equipo`, { waitUntil: 'domcontentloaded' }); await pD.waitForTimeout(2000)
-  await pD.getByRole('button', { name: 'Dar de alta' }).first().click(); await pD.waitForTimeout(600)
-  workerUser = `wkr${rnd}`
-  await pD.getByPlaceholder('Nombre completo').fill('Trabajador E2E')
-  await pD.getByPlaceholder('p.ej. juan.barra').fill(workerUser)
-  await pD.getByRole('button', { name: 'Dar de alta' }).nth(1).click()
-  await pD.waitForTimeout(3500); await shot(pD, 'D-alta')
-  console.log(`   POST alta → ${altaStatus}`)
-  if (altaStatus === 200 && altaBody?.credenciales) { workerPass = altaBody.credenciales.password; ok(`alta OK, credenciales: ${altaBody.credenciales.username} / ${workerPass}`) }
-  else { bad(`alta NO ok (status ${altaStatus}): ${JSON.stringify(altaBody)}`) }
-  workerAuthId = altaBody?.trabajador?.auth_id || null
+  try {
+    console.log('\n1) Login dueño + dar de alta')
+    await loginPanel(pD, duenoEmail, duenoPass); console.log('   URL:', pD.url())
+    await pD.goto(`${BASE}/local-panel/equipo`, { waitUntil: 'domcontentloaded' }); await pD.waitForTimeout(2000)
+    await pD.getByRole('button', { name: 'Dar de alta' }).first().click(); await pD.waitForTimeout(600)
+    await pD.getByPlaceholder('Nombre completo').fill('Trabajador E2E')
+    await pD.getByPlaceholder('p.ej. juan.barra').fill(workerUser)
+    await pD.getByRole('button', { name: 'Dar de alta' }).nth(1).click(); await pD.waitForTimeout(3500); await shot(pD, 'D-alta')
+    const a = last('/api/local-panel/equipo', 'POST')
+    if (a?.s === 200 && a.b?.credenciales) { workerPass = a.b.credenciales.password; workerAuthId = a.b.trabajador?.auth_id; ok(`alta OK → ${a.b.credenciales.username} / ${workerPass}`) }
+    else bad(`alta status ${a?.s}: ${JSON.stringify(a?.b)}`)
+  } catch (e) { bad('fase 1: ' + e.message) }
 
-  // 2) Primer acceso del trabajador (password + TOTP real) ------------------
   if (workerPass) {
-    console.log('\n2) Primer acceso del trabajador')
-    const ctxW = await browser.newContext({ viewport: { width: 420, height: 880 } })
-    const pW = await ctxW.newPage(); watch(pW, 'worker')
-    await pW.goto(`${BASE}/local-panel/login`, { waitUntil: 'domcontentloaded' }); await pW.waitForTimeout(1000)
-    for (const re of [/aceptar/i, /esenciales/i]) { try { await pW.getByRole('button', { name: re }).first().click({ timeout: 1000 }); break } catch {} }
-    await pW.locator('input[autocomplete="username"]').fill(workerUser)
-    await pW.locator('input[autocomplete="current-password"]').fill(workerPass)
-    await pW.getByRole('button', { name: 'Acceder al panel' }).click()
-    await pW.waitForTimeout(3500); console.log('   URL tras login worker:', pW.url())
-    if (!pW.url().includes('primer-acceso')) bad('no redirigió a primer-acceso'); else ok('redirigió a primer-acceso')
-    await shot(pW, 'W-primer-acceso')
-    // Paso contraseña
-    const nuevaPass = `Wkr${rnd}!nueva`
-    await pW.getByPlaceholder('Mínimo 8 caracteres').fill(nuevaPass)
-    await pW.getByPlaceholder('••••••••').fill(nuevaPass)
-    await pW.getByRole('button', { name: 'Continuar' }).click()
-    await pW.waitForTimeout(3000)
-    // Esperar secreto TOTP
-    for (let i = 0; i < 20 && !totpSecret; i++) await pW.waitForTimeout(400)
-    if (!totpSecret) { bad('no llegó el secreto TOTP'); await shot(pW, 'W-totp-nosecret') }
-    else {
-      ok('QR/secreto TOTP recibido')
-      await shot(pW, 'W-totp-qr')
-      const code = generateSync({ secret: totpSecret })
-      await pW.getByPlaceholder('000000').fill(code)
-      await pW.getByRole('button', { name: /Activar y entrar/i }).click()
-      await pW.waitForTimeout(3500); console.log('   URL tras activar:', pW.url())
-      if (/\/local-panel\/(scanner|dashboard|pedidos-bar|taquilla|cortesias)/.test(pW.url())) ok('trabajador entró al panel')
-      else bad('no entró al panel tras TOTP')
-      await shot(pW, 'W-panel')
+    try {
+      console.log('\n2) Primer acceso del trabajador (password + TOTP)')
+      const ctxW = await browser.newContext({ viewport: { width: 420, height: 880 } })
+      const pW = await ctxW.newPage(); watch(pW, 'worker')
+      await loginPanel(pW, workerUser, workerPass); console.log('   URL:', pW.url())
+      pW.url().includes('primer-acceso') ? ok('redirige a primer-acceso') : bad('no fue a primer-acceso')
+      await pW.getByPlaceholder('Mínimo 8 caracteres').fill(nuevaPass)
+      await pW.getByPlaceholder('••••••••').fill(nuevaPass)
+      await pW.getByRole('button', { name: 'Continuar' }).click(); await pW.waitForTimeout(2500)
+      for (let i = 0; i < 20 && !totpSecret; i++) await pW.waitForTimeout(400)
+      if (!totpSecret) { bad('sin secreto TOTP'); await shot(pW, 'W-nosecret') }
+      else {
+        ok('secreto TOTP recibido'); await shot(pW, 'W-qr')
+        await pW.getByPlaceholder('000000').fill(generateSync({ secret: totpSecret }))
+        await pW.getByRole('button', { name: /Activar y entrar/i }).click(); await pW.waitForTimeout(3500)
+        console.log('   URL:', pW.url());
+        /\/local-panel\/(scanner|dashboard|pedidos-bar|taquilla|cortesias)/.test(pW.url()) ? ok('trabajador entró al panel') : bad('no entró tras TOTP')
+        await shot(pW, 'W-panel')
+        try {
+          console.log('\n3) Chat lado trabajador')
+          await pW.goto(`${BASE}/local-panel/mensajes`, { waitUntil: 'domcontentloaded' }); await pW.waitForTimeout(2500)
+          const inp = pW.getByPlaceholder('Escribe un mensaje…')
+          if (await inp.count()) {
+            await inp.fill('Hola jefe, soy el trabajador')
+            const sb = pW.getByRole('button', { name: 'Enviar' })
+            if (await sb.count()) await sb.click(); else await pW.locator('input[placeholder="Escribe un mensaje…"] + button').click()
+            await pW.waitForTimeout(1800); ok('worker envió mensaje'); await shot(pW, 'W-chat')
+          } else bad('no apareció el chat del trabajador')
+        } catch (e) { bad('fase 3: ' + e.message) }
+      }
+      await ctxW.close()
+    } catch (e) { bad('fase 2: ' + e.message) }
 
-      // 3) Worker → Mensajes → enviar
-      console.log('\n3) Chat lado trabajador')
-      await pW.goto(`${BASE}/local-panel/mensajes`, { waitUntil: 'domcontentloaded' }); await pW.waitForTimeout(2000)
-      const inp = pW.getByPlaceholder('Escribe un mensaje…')
-      if (await inp.count()) { await inp.fill('Hola jefe, soy el trabajador'); await pW.getByRole('button').last().click(); await pW.waitForTimeout(1500); ok('worker envió mensaje') }
-      else bad('no apareció el chat del trabajador')
-      await shot(pW, 'W-chat')
-    }
-    await ctxW.close()
+    try {
+      console.log('\n3b) Re-login del trabajador con 2FA')
+      const ctxW2 = await browser.newContext({ viewport: { width: 420, height: 880 } })
+      const pW2 = await ctxW2.newPage(); watch(pW2, 'worker2')
+      await loginPanel(pW2, workerUser, nuevaPass); await pW2.waitForTimeout(1500)
+      const codeInp = pW2.getByPlaceholder('000000')
+      if (await codeInp.count()) {
+        ok('pide código 2FA')
+        await codeInp.fill(generateSync({ secret: totpSecret }))
+        await pW2.getByRole('button', { name: /Verificar y entrar/i }).click(); await pW2.waitForTimeout(3500);
+        (/\/local-panel\/(scanner|dashboard|pedidos-bar|taquilla|cortesias)/.test(pW2.url())) ? ok('2FA OK, entró') : bad('2FA no entró: ' + pW2.url())
+      } else bad('no pidió código 2FA en el re-login (URL ' + pW2.url() + ')')
+      await shot(pW2, 'W2-2fa'); await ctxW2.close()
+    } catch (e) { bad('fase 3b: ' + e.message) }
   }
 
-  // 4) Dueño → ficha del trabajador → chat + edición ------------------------
-  console.log('\n4) Dueño: ficha del trabajador')
-  await pD.goto(`${BASE}/local-panel/equipo`, { waitUntil: 'domcontentloaded' }); await pD.waitForTimeout(2000)
-  const fila = pD.getByText('Trabajador E2E').first()
-  if (await fila.count()) { await fila.click(); await pD.waitForTimeout(2000); ok('abrió la ficha') } else bad('no encontró la fila del trabajador')
-  await shot(pD, 'D-ficha')
-  // Abrir chat y leer
-  const btnChat = pD.getByRole('button', { name: /Abrir chat/i })
-  if (await btnChat.count()) { await btnChat.click(); await pD.waitForTimeout(2000); const body = await pD.locator('body').innerText(); ok(body.includes('Hola jefe') ? 'el dueño ve el mensaje del trabajador' : 'chat abierto (sin mensaje aún)'); const ci = pD.getByPlaceholder('Escribe un mensaje…'); if (await ci.count()) { await ci.fill('Recibido, bienvenido'); await pD.getByRole('button').last().click(); await pD.waitForTimeout(1200) } await shot(pD, 'D-chat'); await pD.keyboard.press('Escape').catch(() => {}) }
-  else bad('no apareció el botón de chat en la ficha')
+  try {
+    console.log('\n4) Dueño: ficha del trabajador (chat, editar, resets)')
+    await pD.goto(`${BASE}/local-panel/equipo`, { waitUntil: 'domcontentloaded' }); await pD.waitForTimeout(2000)
+    const fila = pD.getByText('Trabajador E2E').first()
+    if (!await fila.count()) { bad('no encontró la fila'); } else {
+      await fila.click(); await pD.waitForTimeout(2000); ok('abrió la ficha'); await shot(pD, 'D-ficha')
+      // chat
+      const bc = pD.getByRole('button', { name: /Abrir chat/i })
+      if (await bc.count()) {
+        await bc.click(); await pD.waitForTimeout(2000)
+        const body = await pD.locator('body').innerText()
+        ok(body.includes('Hola jefe') ? 'el dueño ve el mensaje del trabajador' : 'chat abierto (sin msg)')
+        const ci = pD.getByPlaceholder('Escribe un mensaje…')
+        if (await ci.count()) { await ci.fill('Recibido, bienvenido'); const sb = pD.getByRole('button', { name: 'Enviar' }); if (await sb.count()) await sb.click(); await pD.waitForTimeout(1200) }
+        await shot(pD, 'D-chat'); await pD.keyboard.press('Escape').catch(() => {}); await pD.waitForTimeout(500)
+      } else bad('sin botón de chat')
+      // editar
+      const tel = pD.getByPlaceholder('600 000 000')
+      if (await tel.count()) { await tel.fill('611223344'); await pD.getByRole('button', { name: /Guardar cambios/i }).click(); await pD.waitForTimeout(2000); const g = last('/api/local-panel/equipo', 'PATCH'); g?.s === 200 ? ok('editar datos OK') : bad('editar PATCH ' + g?.s) }
+      // reset password
+      const rp = pD.getByRole('button', { name: /Resetear contraseña/i })
+      if (await rp.count()) { await rp.click(); await pD.waitForTimeout(2000); const r = last('/reset-password', 'POST'); r?.s === 200 ? ok('reset contraseña OK') : bad('reset-password ' + r?.s); await pD.keyboard.press('Escape').catch(() => {}); await pD.waitForTimeout(500) }
+      // reset totp
+      const rt = pD.getByRole('button', { name: /Reiniciar authenticator/i })
+      if (await rt.count()) { await rt.click(); await pD.waitForTimeout(2000); const r = last('/reset-totp', 'POST'); r?.s === 200 ? ok('reset authenticator OK') : bad('reset-totp ' + r?.s) }
+    }
+  } catch (e) { bad('fase 4: ' + e.message) }
 
-  console.log('\n=== ERRORES 4xx capturados ===')
-  if (!errs.length) console.log('  (ninguno)')
-  for (const e of [...new Set(errs)]) console.log('  ', e)
-} catch (e) {
-  console.log('ERROR e2e:', e.message)
-} finally {
-  // Limpieza
+  console.log('\n=== ERRORES 4xx ===')
+  const uniq = [...new Set(errs)]
+  uniq.length ? uniq.forEach(e => console.log('  ', e)) : console.log('  (ninguno)')
+} catch (e) { console.log('ERROR e2e:', e.message) }
+finally {
   console.log('\n5) Limpieza')
   try {
-    if (workerAuthId) await svc.auth.admin.deleteUser(workerAuthId)
-    if (localId) await svc.from('locales').delete().eq('id', localId) // cascada usuario_local
-    // borra cuenta auth del dueño (buscando por email)
+    if (workerAuthId) await svc.auth.admin.deleteUser(workerAuthId).catch(() => {})
+    if (localId) await svc.from('locales').delete().eq('id', localId)
     const { data: list } = await svc.auth.admin.listUsers({ page: 1, perPage: 200 })
-    const du = list?.users?.find(u => u.email === duenoEmail)
-    if (du) await svc.auth.admin.deleteUser(du.id)
-    console.log('  limpieza hecha')
-  } catch (e) { console.log('  limpieza parcial:', e.message) }
+    for (const e of [duenoEmail]) { const u = list?.users?.find(x => x.email === e); if (u) await svc.auth.admin.deleteUser(u.id).catch(() => {}) }
+    // por si el reset cambió el auth del worker y quedó huérfano: bórralo por email sintético
+    const wu = list?.users?.find(x => x.email === `${workerUser}@trabajadores.rumbomap.com`); if (wu) await svc.auth.admin.deleteUser(wu.id).catch(() => {})
+    console.log('  ok')
+  } catch (e) { console.log('  parcial:', e.message) }
   await browser.close()
 }
