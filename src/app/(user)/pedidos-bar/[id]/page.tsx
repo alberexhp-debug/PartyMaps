@@ -28,16 +28,10 @@ export default function PedidoBarPage() {
     if (!id) return
     if (!usuario) { router.push('/login'); return }
     ;(async () => {
-      const { data } = await supabase
-        .from('pedidos_bar')
-        .select(`
-          id, qr_code, estado, precio_total, notas, pagado_at, expira_at, entregado_at,
-          locales(id, nombre, imagenes),
-          pedido_items(id, nombre_snapshot, cantidad, precio_unitario)
-        `)
-        .eq('id', id)
-        .maybeSingle()
-      if (data) setPedido(data as unknown as PedidoCompleto)
+      // Lectura por endpoint con service_role: leer pedidos_bar desde el cliente
+      // evalúa una policy que toca auth.users (42501) hasta aplicar la 036.
+      const res = await fetch(`/api/pedidos-bar/${id}`)
+      if (res.ok) { const j = await res.json(); if (j.pedido) setPedido(j.pedido as PedidoCompleto) }
       setLoading(false)
     })()
   }, [id, usuario, router])

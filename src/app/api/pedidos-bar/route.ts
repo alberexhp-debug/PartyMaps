@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient, createAdminSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { calcularComision } from '@/lib/utils'
 import { devengarComisionBar, parseCookieRef } from '@/lib/rrpp/atribucion'
 import { validarRrppCodigo, descuentoCategoria } from '@/lib/rrppCodigos'
@@ -34,7 +34,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const admin = await createAdminSupabaseClient()
+  // service_role: el INSERT en pedidos_bar va por endpoint privilegiado (no hay
+  // policy de INSERT) y, además, devolver la fila con .select() evaluaría la
+  // policy de lectura que toca auth.users → 42501. La identidad ya está
+  // verificada arriba (getUser) y todas las queries llevan filtros explícitos.
+  const admin = createServiceRoleClient()
 
   // Resolver usuario
   const { data: usuario } = await admin
@@ -181,7 +185,9 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   const estado = url.searchParams.get('estado')
 
-  const admin = await createAdminSupabaseClient()
+  // service_role + filtro explícito por usuario_id (leer pedidos_bar como el
+  // usuario evalúa una policy que toca auth.users → 42501 hasta aplicar la 036).
+  const admin = createServiceRoleClient()
   const { data: usuario } = await admin
     .from('usuarios').select('id').eq('auth_id', user.id).maybeSingle()
   if (!usuario) return NextResponse.json({ error: 'Perfil no encontrado' }, { status: 404 })
