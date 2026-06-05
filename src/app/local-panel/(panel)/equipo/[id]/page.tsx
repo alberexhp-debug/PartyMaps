@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { CortesiasModal } from '@/components/local-panel/CortesiasModal'
 import { CredencialesModal } from '@/components/local-panel/CredencialesModal'
+import { fetchLocal } from '@/lib/local-panel/fetchLocal'
 
 const ROLES: { value: RolLocal; label: string; desc: string }[] = [
   { value: 'gestor', label: 'Encargado', desc: 'Gestión completa sin facturación' },
@@ -57,7 +58,7 @@ export default function FichaTrabajadorPage() {
   const guardar = async () => {
     if (!form.nombre?.trim()) { toast.error('El nombre no puede estar vacío'); return }
     setGuardando(true)
-    const res = await fetch('/api/local-panel/equipo', {
+    const res = await fetchLocal('/api/local-panel/equipo', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id, nombre: form.nombre, rol: form.rol,
@@ -74,7 +75,7 @@ export default function FichaTrabajadorPage() {
 
   const resetPassword = async () => {
     if (!confirm('¿Generar una nueva contraseña por defecto? La contraseña actual dejará de funcionar.')) return
-    const res = await fetch('/api/local-panel/equipo/reset-password', {
+    const res = await fetchLocal('/api/local-panel/equipo/reset-password', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }),
     })
     const data = await res.json().catch(() => ({}))
@@ -85,7 +86,7 @@ export default function FichaTrabajadorPage() {
 
   const resetTotp = async () => {
     if (!confirm('¿Reiniciar el authenticator? En su próximo acceso tendrá que volver a escanear el QR.')) return
-    const res = await fetch('/api/local-panel/equipo/reset-totp', {
+    const res = await fetchLocal('/api/local-panel/equipo/reset-totp', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }),
     })
     if (!res.ok) { toast.error('No se pudo reiniciar'); return }
@@ -95,7 +96,7 @@ export default function FichaTrabajadorPage() {
 
   const toggleActivo = async () => {
     const nuevo = !worker?.activo
-    const res = await fetch('/api/local-panel/equipo', {
+    const res = await fetchLocal('/api/local-panel/equipo', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, activo: nuevo }),
     })
     if (!res.ok) { toast.error('No se pudo cambiar el estado'); return }
@@ -105,7 +106,7 @@ export default function FichaTrabajadorPage() {
 
   const eliminar = async () => {
     if (!confirm(`¿Eliminar a ${worker?.nombre}? Se borrará su cuenta y dejará de poder acceder.`)) return
-    const res = await fetch(`/api/local-panel/equipo?id=${id}`, { method: 'DELETE' })
+    const res = await fetchLocal(`/api/local-panel/equipo?id=${id}`, { method: 'DELETE' })
     if (!res.ok) { const d = await res.json().catch(() => ({})); toast.error(d.error || 'No se pudo eliminar'); return }
     toast.success('Trabajador eliminado')
     router.push('/local-panel/equipo')

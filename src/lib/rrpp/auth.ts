@@ -42,7 +42,7 @@ export async function getTrabajadorLocal(_req?: NextRequest) {
   const { data } = await admin
     .from('usuario_local')
     .select('id, local_id, rol, activo, email')
-    .eq('email', user.email)
+    .ilike('email', user.email ?? '') // insensible a mayúsculas: el login usa ilike, aquí también
     .eq('activo', true)
     .maybeSingle()
   return data

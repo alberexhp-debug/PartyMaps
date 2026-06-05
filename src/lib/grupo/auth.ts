@@ -27,7 +27,7 @@ export async function getMiembroGrupoAutenticado(_req?: NextRequest): Promise<Co
   const { data: miembro } = await svc
     .from('grupo_miembros')
     .select('*')
-    .eq('email', user.email)
+    .ilike('email', user.email) // insensible a mayúsculas (consistente con el login)
     .eq('activo', true)
     .maybeSingle()
   if (!miembro) return null

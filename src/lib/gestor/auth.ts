@@ -16,7 +16,7 @@ export async function getGestorAutenticado(_req?: NextRequest): Promise<{ gestor
   const { data: gestor } = await admin
     .from('gestores')
     .select('*')
-    .eq('email', user.email)
+    .ilike('email', user.email) // insensible a mayúsculas (consistente con el login)
     .eq('activo', true)
     .maybeSingle()
 

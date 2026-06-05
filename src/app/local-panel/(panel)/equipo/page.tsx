@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { PageHeader, EmptyState, SkeletonCard } from '@/components/local-panel/ui'
 import { CredencialesModal } from '@/components/local-panel/CredencialesModal'
 import { DOMINIO_TRABAJADOR, normalizarUsername, esUsernameValido } from '@/lib/equipo'
+import { fetchLocal } from '@/lib/local-panel/fetchLocal'
 
 const ROLES: { value: RolLocal; label: string; desc: string }[] = [
   { value: 'gestor', label: 'Encargado', desc: 'Gestión completa sin facturación' },
@@ -57,7 +58,7 @@ export default function EquipoPage() {
     if (!nombre.trim()) { toast.error('El nombre es obligatorio'); return }
     if (!esUsernameValido(userNorm)) { toast.error('Usuario no válido: 3-30 caracteres (letras, números, . _ -)'); return }
     setGuardando(true)
-    const res = await fetch('/api/local-panel/equipo', {
+    const res = await fetchLocal('/api/local-panel/equipo', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         nombre: nombre.trim(), username: userNorm, rol,

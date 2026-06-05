@@ -87,7 +87,7 @@ export function ChatRrpp({
             placeholder="Escribe un mensaje…"
             className="h-11 flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 text-sm text-white outline-none focus:border-[#E94560]/60 placeholder:text-[#6B6B85]"
           />
-          <button onClick={enviar} disabled={enviando || !texto.trim()}
+          <button onClick={enviar} disabled={enviando || !texto.trim()} aria-label="Enviar"
             className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E94560] text-white disabled:opacity-40">
             <Send size={17} />
           </button>

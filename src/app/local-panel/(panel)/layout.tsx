@@ -106,11 +106,15 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
     if (!hydrated || !isAuthenticated || !trabajador?.email) return
     let cancelado = false
     ;(async () => {
-      const { data, error } = await supabase.auth.getUser()
-      if (cancelado || error) return // ante fallo transitorio, no echamos a nadie
-      const sesion = data.user?.email?.trim().toLowerCase()
+      // getSession lee la sesión persistida (cookies) SIN llamada de red, así
+      // que no da falsos positivos por un fallo transitorio. Si no hay sesión
+      // (caducó o se cerró al entrar en otro panel) o es de otra identidad,
+      // forzamos re-login: evita el "No autorizado" sin salida al operar.
+      const { data: { session } } = await supabase.auth.getSession()
+      if (cancelado) return
+      const sesion = session?.user?.email?.trim().toLowerCase()
       const esperado = trabajador.email.trim().toLowerCase()
-      if (sesion !== esperado) {
+      if (!sesion || sesion !== esperado) {
         logout()
         router.replace('/local-panel/login')
       }

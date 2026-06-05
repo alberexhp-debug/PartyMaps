@@ -150,9 +150,12 @@ export default function PrimerAccesoPage() {
               ? <img src={qrSrc} alt="Código QR del authenticator" className="mx-auto h-48 w-48 rounded-xl bg-white p-2" />
               : <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-xl bg-white/5"><div className="h-7 w-7 animate-spin rounded-full border-2 border-white/20 border-t-[#7C5CFF]" /></div>}
             {secret && (
-              <button onClick={copiarSecret} className="mx-auto mt-3 flex items-center gap-1.5 text-xs text-[#8B8BA8] hover:text-white">
-                <Copy size={12} /> ¿No puedes escanear? Copia la clave
-              </button>
+              <div className="mt-3">
+                <p className="mb-1 text-[10px] text-[#6B6B85]">¿No puedes escanear? Introduce esta clave a mano:</p>
+                <button onClick={copiarSecret} className="mx-auto flex max-w-full items-center gap-1.5 break-all rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-xs text-white hover:bg-white/10">
+                  <Copy size={12} className="shrink-0" /> {secret}
+                </button>
+              </div>
             )}
           </div>
           <div>
