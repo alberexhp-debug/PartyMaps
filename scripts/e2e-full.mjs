@@ -130,10 +130,13 @@ try {
       if (await tel.count()) { await tel.fill('611223344'); await pD.getByRole('button', { name: /Guardar cambios/i }).click(); await pD.waitForTimeout(2000); const g = last('/api/local-panel/equipo', 'PATCH'); g?.s === 200 ? ok('editar datos OK') : bad('editar PATCH ' + g?.s) }
       // reset password
       const rp = pD.getByRole('button', { name: /Resetear contraseña/i })
-      if (await rp.count()) { await rp.click(); await pD.waitForTimeout(2000); const r = last('/reset-password', 'POST'); r?.s === 200 ? ok('reset contraseña OK') : bad('reset-password ' + r?.s); await pD.keyboard.press('Escape').catch(() => {}); await pD.waitForTimeout(500) }
+      if (await rp.count()) { await rp.click(); await pD.waitForTimeout(2000); const r = last('/reset-password', 'POST'); r?.s === 200 ? ok('reset contraseña OK') : bad('reset-password ' + r?.s); const hecho = pD.getByRole('button', { name: 'Hecho' }); if (await hecho.count()) await hecho.click().catch(() => {}); await pD.waitForTimeout(700) }
       // reset totp
       const rt = pD.getByRole('button', { name: /Reiniciar authenticator/i })
       if (await rt.count()) { await rt.click(); await pD.waitForTimeout(2000); const r = last('/reset-totp', 'POST'); r?.s === 200 ? ok('reset authenticator OK') : bad('reset-totp ' + r?.s) }
+      // desactivar
+      const da = pD.getByRole('button', { name: /Desactivar/i })
+      if (await da.count()) { await da.click(); await pD.waitForTimeout(1800); const g = last('/api/local-panel/equipo', 'PATCH'); g?.s === 200 ? ok('desactivar OK') : bad('desactivar ' + g?.s) }
     }
   } catch (e) { bad('fase 4: ' + e.message) }
 

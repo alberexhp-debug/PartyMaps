@@ -1,4 +1,5 @@
 'use client'
+import { useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { X, Copy, KeyRound, ShieldCheck } from 'lucide-react'
@@ -14,6 +15,10 @@ export function CredencialesModal({ titulo, username, password, onClose }: {
   onClose: () => void
 }) {
   const toast = useToast()
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h)
+  }, [onClose])
   const copiar = async (txt: string, que: string) => {
     try { await navigator.clipboard.writeText(txt); toast.success(`${que} copiado`) }
     catch { toast.error('No se pudo copiar') }
@@ -26,7 +31,7 @@ export function CredencialesModal({ titulo, username, password, onClose }: {
             <KeyRound size={18} className="text-[#E94560]" />
             <h2 className="text-lg font-bold text-white">{titulo || 'Acceso del trabajador'}</h2>
           </div>
-          <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar" className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
         </div>
         <p className="mb-4 text-sm text-[#A0A0B8]">Entrégale estos datos. Son de un solo uso: cambiará la contraseña y configurará su authenticator en el primer acceso.</p>
 

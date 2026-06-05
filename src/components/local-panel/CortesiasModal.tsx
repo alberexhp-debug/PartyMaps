@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
@@ -27,6 +27,10 @@ export function CortesiasModal({ worker, tier, onClose, onSaved }: {
   const [nivel, setNivel] = useState<number>(worker.nivel_cortesia ?? 0)
   const [maxDia, setMaxDia] = useState<string>(String(worker.cortesia_max_dia ?? 0))
   const [guardando, setGuardando] = useState(false)
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h)
+  }, [onClose])
 
   const tipos = [
     { key: 'cortesia_consumiciones' as const, tipo: 'consumicion' as const },
@@ -74,7 +78,7 @@ export function CortesiasModal({ worker, tier, onClose, onSaved }: {
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9B82FF]">Cortesías</p>
             <h2 className="text-lg font-bold text-white">{worker.nombre}</h2>
           </div>
-          <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar" className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
         </div>
 
         {/* Niveles preset */}
