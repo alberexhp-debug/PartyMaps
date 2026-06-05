@@ -6,7 +6,7 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { supabase } from '@/lib/supabase/client'
 import {
   LayoutDashboard, Settings, Calendar, Bell,
-  Star, BarChart3, Users, CreditCard, LogOut, MessageSquare,
+  Star, BarChart3, Users, CreditCard, LogOut, MessageSquare, MessagesSquare,
   Beer, Gauge, MoreHorizontal, X, LayoutGrid, Sparkles, Gift, LifeBuoy,
   TicketPlus, Contact,
 } from 'lucide-react'
@@ -31,6 +31,7 @@ const NAV_GROUPS: NavGroup[] = [
       { zona: 'pedidos-bar', href: '/local-panel/pedidos-bar', icon: Beer,  label: 'Barra' },
       { zona: 'sala',        href: '/local-panel/sala',        icon: LayoutGrid, label: 'Sala & Mesas' },
       { zona: 'cortesias',   href: '/local-panel/cortesias',   icon: Gift, label: 'Cortesías' },
+      { zona: 'mensajes',    href: '/local-panel/mensajes',    icon: MessagesSquare, label: 'Mensajes' },
     ],
   },
   {

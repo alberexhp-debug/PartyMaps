@@ -23,6 +23,7 @@ export type ZonaPanel =
   | 'reviews'
   | 'analytics'
   | 'equipo'
+  | 'mensajes'
   | 'facturacion'
   | 'soporte'
 
@@ -53,15 +54,15 @@ export const ROLES_PERMISOS: Record<RolLocal, ZonaPanel[]> = {
   gestor: [
     'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'taquilla', 'pedidos-bar', 'sala', 'productos',
     'clientes', 'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
-    'analytics', 'equipo', 'soporte',
+    'analytics', 'equipo', 'mensajes', 'soporte',
   ],
   // Puerta: escanear entradas, vender en taquilla + emitir/canjear cortesías
   puerta: [
-    'scanner', 'taquilla', 'cortesias',
+    'scanner', 'taquilla', 'cortesias', 'mensajes',
   ],
   // Barman: sirve pedidos, ve la sala/mesas y emite cortesías de su nivel
   barman: [
-    'pedidos-bar', 'sala', 'scanner', 'cortesias',
+    'pedidos-bar', 'sala', 'scanner', 'cortesias', 'mensajes',
   ],
 }
 

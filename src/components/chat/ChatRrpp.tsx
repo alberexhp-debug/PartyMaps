@@ -3,11 +3,12 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Send, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type Mensaje = { id: string; emisor: 'local' | 'rrpp'; mensaje: string; created_at: string }
+type Mensaje = { id: string; emisor: string; mensaje: string; created_at: string }
 
 /**
- * Hilo de chat reutilizable (local↔RRPP). Funciona para ambos lados según las
- * URLs y el `yo` que se pasen. Carga al abrir + sondeo cada 5s.
+ * Hilo de chat reutilizable. Sirve para local↔RRPP y para local↔trabajador
+ * según las URLs y el `yo` que se pasen (p.ej. 'local'/'rrpp' o
+ * 'local'/'trabajador'). Carga al abrir + sondeo cada 5s.
  */
 export function ChatRrpp({
   titulo, subtitulo, getUrl, postUrl, postBody, yo, onClose,
@@ -17,7 +18,7 @@ export function ChatRrpp({
   getUrl: string
   postUrl: string
   postBody: Record<string, string>
-  yo: 'local' | 'rrpp'
+  yo: string
   onClose: () => void
 }) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([])

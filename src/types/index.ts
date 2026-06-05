@@ -243,6 +243,16 @@ export interface UsuarioLocal {
   nombre: string
   activo: boolean
   created_at: string
+  // Acceso y ficha del trabajador (migración 035)
+  username?: string | null
+  email_contacto?: string | null
+  telefono?: string | null
+  dni?: string | null
+  fecha_nacimiento?: string | null
+  fecha_alta?: string | null
+  auth_id?: string | null
+  totp_activado?: boolean
+  debe_cambiar_password?: boolean
   // Permisos de cortesías (migración 024). Los configura solo el dueño.
   nivel_cortesia?: number
   cortesia_consumiciones?: boolean
