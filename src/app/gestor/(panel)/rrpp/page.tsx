@@ -57,7 +57,11 @@ export default function GestorRrppPage() {
     setLoading(false)
   }, [localId, toast])
 
-  useEffect(() => { if (localId) cargar() }, [localId, cargar])
+  // Recarga al cambiar de local. NO dependemos de `cargar`: su identidad cambia
+  // en cada render (deps con `toast`) y eso provocaba un bucle de fetch que dejaba
+  // la lista parpadeando en "cargando".
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (localId) cargar() }, [localId])
 
   return (
     <div className="space-y-6">
