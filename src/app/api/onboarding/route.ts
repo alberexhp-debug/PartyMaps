@@ -46,7 +46,7 @@ async function onboardingLocal(db: SupabaseClient) {
     db.from('eventos').select('id', { count: 'exact', head: true }).eq('local_id', localId).eq('estado', 'publicado'),
     db.from('mesas').select('id', { count: 'exact', head: true }).eq('local_id', localId).eq('activa', true),
     db.from('rrpp_venue').select('id', { count: 'exact', head: true }).eq('local_id', localId).in('estado', ['activa', 'pendiente']),
-    db.from('onboarding_estado').select('pasos_visitados').eq('perfil_tipo', perfil).eq('perfil_id', t.id).eq('local_id', localId).maybeSingle(),
+    db.from('onboarding_estado').select('pasos_visitados, tour_visto_at').eq('perfil_tipo', perfil).eq('perfil_id', t.id).eq('local_id', localId).maybeSingle(),
   ])
 
   const ctx: OnboardingCtx = {
@@ -58,7 +58,7 @@ async function onboardingLocal(db: SupabaseClient) {
     rrppCount: rrpp.count ?? 0,
     pasosVisitados: est.data?.pasos_visitados ?? [],
   }
-  return NextResponse.json(resolverOnboarding(perfil, ctx))
+  return NextResponse.json({ ...resolverOnboarding(perfil, ctx), tourVisto: !!est.data?.tour_visto_at })
 }
 
 async function onboardingRrpp(db: SupabaseClient) {
@@ -112,9 +112,10 @@ export async function POST(req: NextRequest) {
   if (!t) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   if (t.rol !== 'dueno' && t.rol !== 'gestor') return NextResponse.json({ ok: true })
 
-  const body = await req.json().catch(() => null) as { paso?: string } | null
+  const body = await req.json().catch(() => null) as { paso?: string; tour?: boolean } | null
   const paso = body?.paso?.trim()
-  if (!paso) return NextResponse.json({ error: 'Falta el paso' }, { status: 400 })
+  const marcaTour = body?.tour === true
+  if (!paso && !marcaTour) return NextResponse.json({ error: 'Falta el paso' }, { status: 400 })
 
   const db = createServiceRoleClient()
   const { data: existing } = await db.from('onboarding_estado')
@@ -123,14 +124,14 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
 
   if (existing) {
-    if (!existing.pasos_visitados.includes(paso)) {
-      await db.from('onboarding_estado')
-        .update({ pasos_visitados: [...existing.pasos_visitados, paso], updated_at: new Date().toISOString() })
-        .eq('id', existing.id)
-    }
+    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
+    if (paso && !existing.pasos_visitados.includes(paso)) patch.pasos_visitados = [...existing.pasos_visitados, paso]
+    if (marcaTour) patch.tour_visto_at = new Date().toISOString()
+    await db.from('onboarding_estado').update(patch).eq('id', existing.id)
   } else {
     await db.from('onboarding_estado').insert({
-      perfil_tipo: t.rol, perfil_id: t.id, local_id: t.local_id, pasos_visitados: [paso],
+      perfil_tipo: t.rol, perfil_id: t.id, local_id: t.local_id,
+      pasos_visitados: paso ? [paso] : [], tour_visto_at: marcaTour ? new Date().toISOString() : null,
     })
   }
   return NextResponse.json({ ok: true })

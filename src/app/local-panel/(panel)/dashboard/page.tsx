@@ -9,9 +9,17 @@ import { formatearPrecio, getTemperaturaAforo, getColorTemperatura, getLabelTemp
 import {
   Ticket, Users, TrendingUp, Bell, Star, Zap,
   Calendar, ChevronRight, BarChart3, AlertCircle, Gauge, Check, X, Beer,
-  DoorClosed, MoonStar, AlertTriangle,
+  DoorClosed, MoonStar, AlertTriangle, HelpCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Tour, type PasoTour } from '@/components/onboarding/Tour'
+
+// Tour del dueño/gestor: 3 globos sobre el propio dashboard (doc 01 §6.1, versión por panel).
+const TOUR_DASHBOARD: PasoTour[] = [
+  { sel: 'ingresos', texto: 'Aquí ves tu noche en un vistazo: ingresos y entradas de hoy.' },
+  { sel: 'kpis', texto: 'Tus números clave: suscriptores, valoración y entradas de la semana.' },
+  { sel: 'acciones', texto: 'Desde aquí creas eventos, envías notificaciones y cierras la noche.' },
+]
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 interface KPIs {
@@ -43,6 +51,19 @@ export default function LocalPanelDashboard() {
   const [activandoPromo, setActivandoPromo] = useState(false)
   const [cerrandoNoche, setCerrandoNoche] = useState(false)
   const [showCerrarModal, setShowCerrarModal] = useState(false)
+  const [tourActivo, setTourActivo] = useState(false)
+  const [tourVisto, setTourVisto] = useState(true) // optimista: no parpadea si ya lo vio
+
+  // Auto-lanza el tour la primera vez (dueño/gestor); luego se relanza desde "Guía".
+  useEffect(() => {
+    fetch('/api/onboarding').then(r => r.ok ? r.json() : null).then(d => {
+      if (d && typeof d.tourVisto === 'boolean') { setTourVisto(d.tourVisto); if (!d.tourVisto) setTourActivo(true) }
+    }).catch(() => {})
+  }, [])
+  const cerrarTour = () => {
+    setTourActivo(false)
+    if (!tourVisto) { fetch('/api/onboarding', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tour: true }) }).catch(() => {}); setTourVisto(true) }
+  }
 
   useEffect(() => {
     if (!local) return
@@ -182,10 +203,16 @@ export default function LocalPanelDashboard() {
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{local.nombre}</h1>
           <p className="text-[#A0A0B8] text-sm capitalize mt-1">{local.tier} · {local.ciudad}</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-md mt-1 shrink-0"
-          style={{ background: `${colorTemp}18`, borderColor: `${colorTemp}50`, color: colorTemp }}>
-          <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: colorTemp }} />
-          {Math.round(kpis?.aforo_actual || 0)}%
+        <div className="flex items-center gap-2 mt-1 shrink-0">
+          <button onClick={() => setTourActivo(true)} aria-label="Guía"
+            className="w-8 h-8 rounded-full glass-strong flex items-center justify-center text-[#B8B8CC] hover:text-white transition-colors">
+            <HelpCircle size={16} />
+          </button>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-md"
+            style={{ background: `${colorTemp}18`, borderColor: `${colorTemp}50`, color: colorTemp }}>
+            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: colorTemp }} />
+            {Math.round(kpis?.aforo_actual || 0)}%
+          </div>
         </div>
       </div>
 
@@ -214,7 +241,7 @@ export default function LocalPanelDashboard() {
       )}
 
       {/* Hero — ingresos + entradas hoy */}
-      <div className="card-premium relative overflow-hidden p-5 md:p-7">
+      <div data-tour-id="ingresos" className="card-premium relative overflow-hidden p-5 md:p-7">
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-25 blur-3xl bg-[#4F8EF7]" />
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
@@ -253,7 +280,7 @@ export default function LocalPanelDashboard() {
       </div>
 
       {/* KPIs secundarios */}
-      <div className="grid grid-cols-3 gap-2.5">
+      <div data-tour-id="kpis" className="grid grid-cols-3 gap-2.5">
         <KPISecundario icon={Users} label="Suscriptores" value={loading ? '—' : kpis!.suscriptores.toString()} color="#9DA0B5" />
         <KPISecundario
           icon={Star} label="Valoración"
@@ -437,7 +464,7 @@ export default function LocalPanelDashboard() {
       </div>
 
       {/* Acciones rápidas */}
-      <div className="bg-white/3 border border-white/6 rounded-2xl p-4">
+      <div data-tour-id="acciones" className="bg-white/3 border border-white/6 rounded-2xl p-4">
         <h2 className="text-sm font-bold text-white mb-3">Acciones rápidas</h2>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" size="sm" onClick={() => router.push('/local-panel/eventos')}>
@@ -484,6 +511,8 @@ export default function LocalPanelDashboard() {
           </div>
         </div>
       )}
+
+      <Tour steps={TOUR_DASHBOARD} active={tourActivo} onDone={cerrarTour} />
     </div>
   )
 }
