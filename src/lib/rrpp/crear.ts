@@ -99,6 +99,14 @@ export async function resetPasswordRrpp(svc: SupabaseClient, rrppId: string):
   return { ok: true, credenciales: { username: rr.username ?? '', password } }
 }
 
+/** ¿El RRPP está vinculado a este local (hay rrpp_venue)? Autoriza que un
+ * local/gestor gestione (resetee) a sus propios RRPP. */
+export async function rrppVinculadoALocal(svc: SupabaseClient, rrppId: string, localId: string): Promise<boolean> {
+  if (!rrppId || !localId) return false
+  const { data } = await svc.from('rrpp_venue').select('id').eq('rrpp_id', rrppId).eq('local_id', localId).maybeSingle()
+  return !!data
+}
+
 /** Reinicia el authenticator de un RRPP: en su próximo acceso lo reconfigura. */
 export async function resetTotpRrpp(svc: SupabaseClient, rrppId: string):
   Promise<{ ok: true } | { ok: false; status: number; error: string }> {

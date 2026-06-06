@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Sparkles, UserPlus, Pause, Play, Archive, ExternalLink, Search, Mail, Copy, Check, MessageCircle, Percent, Handshake, X } from 'lucide-react'
+import { Sparkles, UserPlus, Pause, Play, Archive, ExternalLink, Search, Mail, Copy, Check, MessageCircle, Percent, Handshake, X, KeyRound, RotateCcw } from 'lucide-react'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { PagosRRPP } from '@/components/local-panel/PagosRRPP'
 import { CredencialesModal } from '@/components/local-panel/CredencialesModal'
@@ -20,6 +20,7 @@ type Relacion = {
     id: string; slug: string; nombre_publico: string; foto_url: string | null;
     bio: string | null; instagram: string | null; tiktok: string | null;
     estado_alta: 'invitado' | 'completo';
+    username?: string | null;
   }
 }
 
@@ -41,6 +42,7 @@ export default function RRPPPanelLocal() {
   const [showInvitar, setShowInvitar] = useState(false)
   const [chatCon, setChatCon] = useState<{ id: string; nombre_publico: string; slug: string } | null>(null)
   const [editarDescuentos, setEditarDescuentos] = useState<Relacion | null>(null)
+  const [credReset, setCredReset] = useState<{ username: string; password: string } | null>(null)
 
   useEffect(() => { void cargar() }, [])
 
@@ -79,6 +81,19 @@ export default function RRPPPanelLocal() {
     await fetch(`/api/local-panel/rrpp/${id}`, { method: 'DELETE', credentials: 'include' })
     void cargar()
   }
+  async function resetPassRrpp(rrppId: string) {
+    if (!confirm('¿Generar una nueva contraseña por defecto para este RRPP? La actual dejará de servir.')) return
+    const r = await fetch('/api/local-panel/rrpp/reset-password', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rrpp_id: rrppId }) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) { alert(j.error || 'No se pudo resetear'); return }
+    if (j.credenciales) setCredReset(j.credenciales)
+  }
+  async function resetTotpRrpp(rrppId: string) {
+    if (!confirm('¿Reiniciar el authenticator de este RRPP? En su próximo acceso lo reconfigurará.')) return
+    const r = await fetch('/api/local-panel/rrpp/reset-totp', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rrpp_id: rrppId }) })
+    if (!r.ok) { const j = await r.json().catch(() => ({})); alert(j.error || 'No se pudo'); return }
+    alert('Authenticator reiniciado')
+  }
 
   const activos = relaciones.filter(r => r.estado === 'activa')
   const pendientes = relaciones.filter(r => r.estado === 'pendiente')
@@ -109,15 +124,18 @@ export default function RRPPPanelLocal() {
           )}
           <Grupo titulo={`Activos (${activos.length})`} relaciones={activos}
             onPausar={(id) => cambiarEstado(id, 'pausada')}
-            onArchivar={archivar} onChat={setChatCon} onDescuentos={setEditarDescuentos} />
+            onArchivar={archivar} onChat={setChatCon} onDescuentos={setEditarDescuentos}
+            onResetPass={resetPassRrpp} onResetTotp={resetTotpRrpp} />
           {pendientes.length > 0 && (
             <Grupo titulo={`Pendientes de aceptación (${pendientes.length})`} relaciones={pendientes}
-              onArchivar={archivar} onChat={setChatCon} />
+              onArchivar={archivar} onChat={setChatCon}
+              onResetPass={resetPassRrpp} onResetTotp={resetTotpRrpp} />
           )}
           {pausados.length > 0 && (
             <Grupo titulo={`Pausados (${pausados.length})`} relaciones={pausados}
               onReanudar={(id) => cambiarEstado(id, 'activa')}
-              onArchivar={archivar} onChat={setChatCon} />
+              onArchivar={archivar} onChat={setChatCon}
+              onResetPass={resetPassRrpp} onResetTotp={resetTotpRrpp} />
           )}
           {invitaciones.length > 0 && (
             <InvitacionesPendientes invitaciones={invitaciones} />
@@ -163,6 +181,10 @@ export default function RRPPPanelLocal() {
         <DescuentosModal relacion={editarDescuentos}
           onClose={() => setEditarDescuentos(null)}
           onGuardado={() => { setEditarDescuentos(null); void cargar() }} />
+      )}
+
+      {credReset && (
+        <CredencialesModal titulo="Nueva contraseña del RRPP" username={credReset.username} password={credReset.password} onClose={() => setCredReset(null)} />
       )}
     </div>
   )
@@ -267,12 +289,13 @@ function DescuentosModal({ relacion, onClose, onGuardado }: {
 }
 
 function Grupo({
-  titulo, relaciones, onPausar, onReanudar, onArchivar, onChat, onDescuentos,
+  titulo, relaciones, onPausar, onReanudar, onArchivar, onChat, onDescuentos, onResetPass, onResetTotp,
 }: {
   titulo: string; relaciones: Relacion[];
   onPausar?: (id: string) => void; onReanudar?: (id: string) => void; onArchivar?: (id: string) => void;
   onChat?: (r: { id: string; nombre_publico: string; slug: string }) => void;
   onDescuentos?: (r: Relacion) => void;
+  onResetPass?: (rrppId: string) => void; onResetTotp?: (rrppId: string) => void;
 }) {
   return (
     <section>
@@ -328,6 +351,16 @@ function Grupo({
                 {onDescuentos && (
                   <button onClick={() => onDescuentos(r)} className="btn-ghost text-xs inline-flex items-center gap-1">
                     <Percent className="w-3.5 h-3.5" /> Descuentos
+                  </button>
+                )}
+                {onResetPass && r.rrpp.username && (
+                  <button onClick={() => onResetPass(r.rrpp.id)} className="btn-ghost text-xs inline-flex items-center gap-1" title="Resetear contraseña">
+                    <KeyRound className="w-3.5 h-3.5" /> Contraseña
+                  </button>
+                )}
+                {onResetTotp && r.rrpp.username && (
+                  <button onClick={() => onResetTotp(r.rrpp.id)} className="btn-ghost text-xs inline-flex items-center gap-1" title="Reiniciar authenticator">
+                    <RotateCcw className="w-3.5 h-3.5" /> Authenticator
                   </button>
                 )}
                 {onReanudar && (

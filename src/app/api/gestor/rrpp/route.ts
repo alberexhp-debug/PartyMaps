@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   const admin = createServiceRoleClient()
   const { data: relaciones, error } = await admin
     .from('rrpp_venue')
-    .select(`*, rrpp!inner(id, slug, nombre_publico, foto_url, instagram, estado_alta)`)
+    .select(`*, rrpp!inner(id, slug, nombre_publico, foto_url, instagram, estado_alta, username)`)
     .eq('local_id', localId)
     .order('created_at', { ascending: false })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

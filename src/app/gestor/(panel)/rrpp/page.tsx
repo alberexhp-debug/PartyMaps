@@ -7,9 +7,10 @@ import { useToast } from '@/components/ui/Toast'
 import { PageHeader } from '@/components/local-panel/ui'
 import {
   Megaphone, Plus, Search, Mail, Store, ChevronDown,
-  Check, Copy, X, AtSign, Percent, Pause, Play, UserPlus,
+  Check, Copy, X, AtSign, Percent, Pause, Play, UserPlus, KeyRound, RotateCcw,
 } from 'lucide-react'
 import { normalizarUsername, esUsernameValido } from '@/lib/equipo'
+import { CredencialesModal } from '@/components/local-panel/CredencialesModal'
 
 type LocalMin = { id: string; nombre: string; ciudad: string }
 type Relacion = {
@@ -17,7 +18,7 @@ type Relacion = {
   estado: string
   comision_pct: number
   tope_por_venta: number | null
-  rrpp: { id: string; slug: string; nombre_publico: string; foto_url: string | null; instagram: string | null; estado_alta: string }
+  rrpp: { id: string; slug: string; nombre_publico: string; foto_url: string | null; instagram: string | null; estado_alta: string; username?: string | null }
 }
 type Invitacion = { id: string; email: string; nombre: string | null; token: string; estado: string; comision_pct_sugerida: number | null }
 
@@ -145,7 +146,23 @@ function RelacionRow({ rel, localId, onChange }: { rel: Relacion; localId: strin
     toast.success(ok); onChange()
   }
 
+  const [credReset, setCredReset] = useState<{ username: string; password: string } | null>(null)
+  async function resetPass() {
+    if (!confirm('¿Generar una nueva contraseña por defecto para este RRPP? La actual dejará de servir.')) return
+    const res = await fetch('/api/gestor/rrpp/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ local_id: localId, rrpp_id: rel.rrpp.id }) })
+    const d = await res.json().catch(() => ({}))
+    if (!res.ok) { toast.error(d.error || 'No se pudo'); return }
+    if (d.credenciales) setCredReset(d.credenciales)
+  }
+  async function resetTotp() {
+    if (!confirm('¿Reiniciar el authenticator de este RRPP? En su próximo acceso lo reconfigurará.')) return
+    const res = await fetch('/api/gestor/rrpp/reset-totp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ local_id: localId, rrpp_id: rel.rrpp.id }) })
+    if (!res.ok) { const d = await res.json().catch(() => ({})); toast.error(d.error || 'No se pudo'); return }
+    toast.success('Authenticator reiniciado')
+  }
+
   return (
+    <>
     <div className="rounded-2xl glass px-4 py-3.5">
       <div className="flex items-center gap-3.5">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#7C5CFF]/15 text-[#9B82FF]">
@@ -177,8 +194,16 @@ function RelacionRow({ rel, localId, onChange }: { rel: Relacion; localId: strin
         {rel.estado === 'pausada' && (
           <Button size="sm" variant="outline" loading={guardando} onClick={() => patch({ estado: 'activa' }, 'RRPP reactivado')}><Play size={15} /></Button>
         )}
+        {rel.rrpp.username && (
+          <>
+            <Button size="sm" variant="outline" onClick={resetPass} title="Resetear contraseña"><KeyRound size={15} /></Button>
+            <Button size="sm" variant="outline" onClick={resetTotp} title="Reiniciar authenticator"><RotateCcw size={15} /></Button>
+          </>
+        )}
       </div>
     </div>
+    {credReset && <CredencialesModal titulo="Nueva contraseña del RRPP" username={credReset.username} password={credReset.password} onClose={() => setCredReset(null)} />}
+    </>
   )
 }
 

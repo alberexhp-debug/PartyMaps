@@ -41,7 +41,7 @@ export async function GET() {
     .from('rrpp_venue')
     .select(`
       *,
-      rrpp!inner(id, slug, nombre_publico, foto_url, bio, instagram, tiktok, estado_alta)
+      rrpp!inner(id, slug, nombre_publico, foto_url, bio, instagram, tiktok, estado_alta, username)
     `)
     .eq('local_id', t.local_id)
     .order('created_at', { ascending: false })
