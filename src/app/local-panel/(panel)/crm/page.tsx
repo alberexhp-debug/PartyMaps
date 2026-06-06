@@ -720,7 +720,9 @@ function CampanasTab({ esPro }: { esPro: boolean }) {
 function AjustesTab() {
   const { local, setLocal } = useLocalPanelStore()
   const [modal, setModal] = useState(false)
+  const [importar, setImportar] = useState(false)
   const aceptado = local?.crm_contrato_aceptado_at
+  const esPro = tierPermite(local?.tier, 'segmentos')
   const fecha = (s: string) => new Date(s).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
 
   const descargar = () => {
@@ -750,17 +752,23 @@ function AjustesTab() {
         </div>
       </SectionCard>
 
-      {/* Integraciones: Brevo (email/SMS). Importación llega en PR-15. */}
+      {/* Integraciones: Brevo (email/SMS). */}
       <BrevoCard />
       <SectionCard>
         <div className="flex items-center gap-3">
           <span className="w-9 h-9 rounded-xl bg-[#4F8EF7]/15 border border-[#4F8EF7]/25 flex items-center justify-center"><Upload size={16} className="text-[#4F8EF7]" /></span>
-          <div className="flex-1"><p className="text-sm font-semibold text-white">Importar clientela</p><p className="text-xs text-[#8B8BA8]">Sube tu Excel con declaración responsable.</p></div>
-          <span className="text-[11px] text-[#8B8BA8]">Próximamente</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white flex items-center gap-2">Importar clientela {!esPro && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#7C5CFF]/15 text-[#7C5CFF] border border-[#7C5CFF]/25">Pro</span>}</p>
+            <p className="text-xs text-[#8B8BA8]">Sube tu Excel/CSV con declaración responsable.</p>
+          </div>
+          {esPro && aceptado
+            ? <button onClick={() => setImportar(true)} className="text-xs px-3 h-8 rounded-lg border border-white/15 text-white hover:bg-white/5 shrink-0">Importar</button>
+            : <span className="text-[11px] text-[#8B8BA8] shrink-0">{!esPro ? 'Solo Pro' : 'Acepta el contrato'}</span>}
         </div>
       </SectionCard>
 
       {modal && <ContratoModal onClose={() => setModal(false)} onAceptado={(at) => { if (local) setLocal({ ...local, crm_contrato_aceptado_at: at }); setModal(false) }} />}
+      {importar && <ImportarModal onClose={() => setImportar(false)} />}
     </div>
   )
 }
@@ -850,6 +858,93 @@ function BrevoModal({ onClose, onConectado }: { onClose: () => void; onConectado
         <input value={key} onChange={e => setKey(e.target.value)} type="password" placeholder="xkeysib-…" autoComplete="off"
           className="w-full rounded-xl bg-white/5 border border-white/10 text-sm text-white px-3.5 py-2.5 outline-none placeholder:text-[#6B6B85]" />
         <button onClick={guardar} disabled={guardando} className="mt-4 w-full btn-primary inline-flex items-center justify-center gap-2"><Mail size={16} /> {guardando ? 'Probando…' : 'Probar y guardar'}</button>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────── Importar clientela (doc 02 §5.3) ───────────────────────────
+function ImportarModal({ onClose }: { onClose: () => void }) {
+  const toast = useToast()
+  const [headers, setHeaders] = useState<string[]>([])
+  const [rows, setRows] = useState<string[][]>([])
+  const [mapa, setMapa] = useState<{ nombre: number; telefono: number; email: number }>({ nombre: -1, telefono: -1, email: -1 })
+  const [decl, setDecl] = useState(false)
+  const [importando, setImportando] = useState(false)
+
+  function parseCSV(text: string) {
+    const lineas = text.split(/\r?\n/).filter(l => l.trim())
+    if (!lineas.length) { toast.error('El archivo está vacío'); return }
+    const delim = (lineas[0].match(/;/g)?.length ?? 0) >= (lineas[0].match(/,/g)?.length ?? 0) ? ';' : ','
+    const split = (l: string) => l.split(delim).map(c => c.trim().replace(/^"|"$/g, ''))
+    const hs = split(lineas[0])
+    setHeaders(hs)
+    setRows(lineas.slice(1).map(split))
+    const find = (re: RegExp) => hs.findIndex(h => re.test(h.toLowerCase()))
+    setMapa({ nombre: find(/nombre|name/), telefono: find(/tel|phone|m[oó]vil/), email: find(/email|correo|mail/) })
+  }
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; if (!f) return
+    const r = new FileReader(); r.onload = () => parseCSV(String(r.result)); r.readAsText(f)
+  }
+
+  const validas = mapa.telefono >= 0 ? rows.filter(r => (r[mapa.telefono] ?? '').trim()).length : 0
+  const sinTel = rows.length - validas
+
+  async function importarFn() {
+    if (mapa.telefono < 0) { toast.error('Indica la columna del teléfono'); return }
+    if (!decl) { toast.error('Acepta la declaración responsable'); return }
+    const filas = rows
+      .map(r => ({ nombre: mapa.nombre >= 0 ? r[mapa.nombre] : '', telefono: r[mapa.telefono], email: mapa.email >= 0 ? r[mapa.email] : '' }))
+      .filter(f => (f.telefono ?? '').trim())
+    setImportando(true)
+    const res = await fetch('/api/local-panel/crm/importar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filas, declaracion: true }) })
+    const j = await res.json().catch(() => ({}))
+    setImportando(false)
+    if (!res.ok) { toast.error(j.error || 'No se pudo importar'); return }
+    toast.success(`${j.importados} importados · ${j.omitidos} omitidos · ${j.sinTelefono} sin teléfono`)
+    onClose()
+  }
+
+  const Selector = ({ label, val, set }: { label: string; val: number; set: (n: number) => void }) => (
+    <label className="flex items-center justify-between gap-2 text-sm text-[#B8B8CC]">
+      {label}
+      <select value={val} onChange={e => set(Number(e.target.value))} className="rounded-lg bg-white/5 border border-white/10 text-white text-xs px-2 py-1.5 outline-none">
+        <option value={-1}>—</option>
+        {headers.map((h, i) => <option key={i} value={i}>{h || `Columna ${i + 1}`}</option>)}
+      </select>
+    </label>
+  )
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
+      <div className="card-premium w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3"><p className="font-bold text-white text-display">Importar clientela</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
+        {headers.length === 0 ? (
+          <>
+            <p className="text-xs text-[#8B8BA8] mb-3">Sube un CSV con columnas de nombre, teléfono y (opcional) email. El teléfono es la llave: las fichas se fusionan solas si la persona se registra.</p>
+            <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 cursor-pointer hover:border-[#E0455E]/50 transition-colors">
+              <Upload size={22} className="text-[#8B8BA8]" />
+              <span className="text-sm text-white">Elegir archivo CSV</span>
+              <input type="file" accept=".csv,text/csv" onChange={onFile} className="hidden" />
+            </label>
+          </>
+        ) : (
+          <>
+            <p className="text-xs font-semibold text-[#8B8BA8] mb-2">Asigna las columnas</p>
+            <div className="space-y-2 mb-3">
+              <Selector label="Nombre" val={mapa.nombre} set={n => setMapa(m => ({ ...m, nombre: n }))} />
+              <Selector label="Teléfono *" val={mapa.telefono} set={n => setMapa(m => ({ ...m, telefono: n }))} />
+              <Selector label="Email" val={mapa.email} set={n => setMapa(m => ({ ...m, email: n }))} />
+            </div>
+            <div className="rounded-xl glass-subtle p-3 text-sm text-[#B8B8CC] mb-3">{rows.length} filas · <span className="text-white font-semibold">{validas}</span> con teléfono{sinTel > 0 && ` · ${sinTel} sin teléfono (se omiten)`}</div>
+            <label className="flex items-start gap-2.5 mb-4 cursor-pointer">
+              <input type="checkbox" checked={decl} onChange={e => setDecl(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#E0455E]" />
+              <span className="text-[12px] text-[#B8B8CC] leading-snug">Declaro que obtuve estos datos de forma legal y que estas personas aceptaron recibir comunicaciones de mi local. Soy responsable de poder demostrarlo.</span>
+            </label>
+            <button onClick={importarFn} disabled={importando || !decl || validas === 0} className="w-full btn-primary inline-flex items-center justify-center gap-2 disabled:opacity-50"><Upload size={16} /> {importando ? 'Importando…' : `Importar ${validas}`}</button>
+          </>
+        )}
       </div>
     </div>
   )
