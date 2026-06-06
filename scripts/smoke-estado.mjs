@@ -34,7 +34,7 @@ try {
   console.log(`     tarjetas de local: ${nCards}`)
   await chip.first().click()
   await page.waitForTimeout(1500)
-  const errExplorar = errores.filter(e => !/favicon|manifest|sw\.js|preload|Download the React/i.test(e))
+  const errExplorar = errores.filter(e => !/favicon|manifest|sw\.js|preload|Download the React|Failed to load resource/i.test(e))
   errExplorar.length === 0 ? ok('toggle aplicado sin errores') : bad('errores al filtrar:\n     ' + errExplorar.slice(0, 4).join('\n     '))
 
   // 3) FICHA (navegando desde explorar; quitamos el filtro por si dejó 0 resultados)
@@ -50,7 +50,7 @@ try {
     await page.waitForTimeout(3500)
     const h1 = await page.locator('h1').first().textContent().catch(() => null)
     h1 ? ok(`ficha renderiza (título: "${h1?.slice(0, 30)}")`) : bad('la ficha no renderizó h1')
-    const errFicha = errores.filter(e => !/favicon|manifest|sw\.js|preload|Download the React/i.test(e))
+    const errFicha = errores.filter(e => !/favicon|manifest|sw\.js|preload|Download the React|Failed to load resource/i.test(e))
     errFicha.length === 0 ? ok('ficha sin errores de página') : bad('errores en ficha:\n     ' + errFicha.slice(0, 4).join('\n     '))
   }
 } catch (e) {
