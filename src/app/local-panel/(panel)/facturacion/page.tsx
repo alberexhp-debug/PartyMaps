@@ -111,6 +111,14 @@ export default function FacturacionPage() {
   const cuotaActual = TIERS.find(t => t.id === tierActual)?.cuota ?? 0
   const puedeCambiar = trabajador?.rol === 'dueno'
 
+  // Marca el paso "Revisa tu tier" del onboarding como visitado (fire-and-forget).
+  useEffect(() => {
+    fetch('/api/onboarding', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paso: 'tier' }),
+    }).catch(() => {})
+  }, [])
+
   useEffect(() => {
     if (!local) return
     const hace30d = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()

@@ -8,10 +8,11 @@ import {
   LayoutDashboard, Settings, Calendar, Bell,
   Star, BarChart3, Users, CreditCard, LogOut, MessageSquare, MessagesSquare,
   Beer, Gauge, MoreHorizontal, X, LayoutGrid, Sparkles, Gift, LifeBuoy,
-  TicketPlus, Contact,
+  TicketPlus, Contact, ListChecks,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
+import { BadgePuestaAPunto } from '@/components/local-panel/BadgePuestaAPunto'
 
 type NavItem = { zona: ZonaPanel; href: string; icon: React.ElementType; label: string }
 type NavGroup = { titulo: string; items: NavItem[] }
@@ -21,6 +22,7 @@ const NAV_GROUPS: NavGroup[] = [
     titulo: 'Inicio',
     items: [
       { zona: 'dashboard', href: '/local-panel/dashboard', icon: LayoutDashboard, label: 'Resumen' },
+      { zona: 'puesta-a-punto', href: '/local-panel/puesta-a-punto', icon: ListChecks, label: 'Puesta a punto' },
     ],
   },
   {
@@ -158,6 +160,9 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
           <p className="text-xs text-[#B8B8CC] mt-3 truncate">{trabajador?.nombre}</p>
         </Link>
 
+        {/* Badge "Puesta a punto" (solo dueño/gestor con pendientes) */}
+        <BadgePuestaAPunto variant="sidebar" />
+
         <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto scrollbar-hide">
           {grupos.map(grupo => (
             <div key={grupo.titulo}>
@@ -197,6 +202,9 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
       <main className="flex-1 md:ml-64 min-h-screen pb-20 md:pb-0">
         {children}
       </main>
+
+      {/* Pill flotante "Terminar (N)" en móvil (solo dueño/gestor con obligatorios pendientes) */}
+      <BadgePuestaAPunto variant="movil" />
 
       {/* ───────────── Barra inferior (móvil) ───────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-white/8 md:hidden safe-bottom">

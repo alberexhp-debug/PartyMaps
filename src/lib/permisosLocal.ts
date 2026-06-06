@@ -7,6 +7,7 @@ import type { RolLocal } from '@/types'
  */
 export type ZonaPanel =
   | 'dashboard'
+  | 'puesta-a-punto'
   | 'configuracion'
   | 'mi-local'
   | 'eventos'
@@ -46,13 +47,13 @@ export const ROLES_HOME: Record<RolLocal, ZonaPanel> = {
 export const ROLES_PERMISOS: Record<RolLocal, ZonaPanel[]> = {
   // Dueño: control total del negocio
   dueno: [
-    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'taquilla', 'pedidos-bar', 'sala', 'productos',
+    'dashboard', 'puesta-a-punto', 'configuracion', 'mi-local', 'eventos', 'scanner', 'taquilla', 'pedidos-bar', 'sala', 'productos',
     'clientes', 'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo', 'facturacion', 'soporte',
   ],
   // Gestor: todo menos facturación/tier (decisión financiera del dueño)
   gestor: [
-    'dashboard', 'configuracion', 'mi-local', 'eventos', 'scanner', 'taquilla', 'pedidos-bar', 'sala', 'productos',
+    'dashboard', 'puesta-a-punto', 'configuracion', 'mi-local', 'eventos', 'scanner', 'taquilla', 'pedidos-bar', 'sala', 'productos',
     'clientes', 'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo', 'mensajes', 'soporte',
   ],
