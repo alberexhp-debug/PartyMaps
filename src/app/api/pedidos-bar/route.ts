@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 import { calcularComision } from '@/lib/utils'
 import { devengarComisionBar, parseCookieRef } from '@/lib/rrpp/atribucion'
 import { validarRrppCodigo, descuentoCategoria } from '@/lib/rrppCodigos'
+import { registrarConsentimiento } from '@/lib/consentimiento'
 
 interface ItemBody { producto_id: string; cantidad: number }
 
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
   const body = await req.json().catch(() => null) as {
-    local_id?: string; items?: ItemBody[]; notas?: string; codigo?: string;
+    local_id?: string; items?: ItemBody[]; notas?: string; codigo?: string; consentimiento_marketing?: boolean;
   } | null
   if (!body?.local_id || !Array.isArray(body.items) || body.items.length === 0) {
     return NextResponse.json({ error: 'Faltan campos' }, { status: 400 })
@@ -136,6 +137,11 @@ export async function POST(req: NextRequest) {
     // Rollback: borrar pedido
     await admin.from('pedidos_bar').delete().eq('id', pedido.id)
     return NextResponse.json({ error: 'No se pudo registrar el pedido' }, { status: 500 })
+  }
+
+  // Consentimiento de marketing del local (RGPD), si lo marcó en el pedido.
+  if (body.consentimiento_marketing === true) {
+    try { await registrarConsentimiento(admin, { usuario_id: usuario.id, local_id: body.local_id, estado: 'acepta', origen: 'checkout_bar' }) } catch {}
   }
 
   // Registrar el uso del código del RRPP (incrementa usos + evita reutilización).

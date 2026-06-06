@@ -36,6 +36,17 @@ export default function CartaBarPage() {
   const [notas, setNotas] = useState('')
   const [codigo, setCodigo] = useState('')
   const [comprando, setComprando] = useState(false)
+  const [aceptaMarketing, setAceptaMarketing] = useState(false)
+  const [consentRespondido, setConsentRespondido] = useState(true) // hasta saberlo, no mostramos el checkbox
+
+  // Consentimiento: solo se pregunta la primera vez en este local.
+  useEffect(() => {
+    if (!id || !usuario) return
+    fetch(`/api/consentimiento?local_id=${id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setConsentRespondido(!!d.respondido) })
+      .catch(() => {})
+  }, [id, usuario])
 
   useEffect(() => {
     if (!id) return
@@ -90,7 +101,7 @@ export default function CartaBarPage() {
     const res = await fetch('/api/pedidos-bar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ local_id: id, items, notas: notas.trim() || undefined, codigo: codigo.trim() || undefined }),
+      body: JSON.stringify({ local_id: id, items, notas: notas.trim() || undefined, codigo: codigo.trim() || undefined, consentimiento_marketing: aceptaMarketing }),
     })
     const j = await res.json()
     setComprando(false)
@@ -271,6 +282,19 @@ export default function CartaBarPage() {
               <span className="text-numeric">{formatearPrecio(total)}</span>
             </div>
           </div>
+
+          {usuario && !consentRespondido && (
+            <button type="button" onClick={() => setAceptaMarketing(v => !v)}
+              className="w-full flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left">
+              <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-[11px] font-bold text-white ${aceptaMarketing ? 'border-[#E0455E] bg-[#E0455E]' : 'border-[#2A2A3E]'}`}>
+                {aceptaMarketing ? '✓' : ''}
+              </span>
+              <span>
+                <span className="block text-[13px] text-[#B8B8CC]">Quiero recibir promociones y eventos de {local?.nombre || 'este local'} <span className="text-[#6B6B85]">(opcional)</span></span>
+                <span className="mt-0.5 block text-[11px] text-[#8B8BA8]">Solo te contactará este local. Puedes retirarlo cuando quieras desde tu perfil.</span>
+              </span>
+            </button>
+          )}
 
           <Button fullWidth size="lg" loading={comprando} onClick={confirmar}>
             <Wallet size={17} /> Pagar y generar QR

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getTrabajadorLocal } from '@/lib/rrpp/auth'
+import { registrarConsentimiento, resolverIdentidadPorTelefono } from '@/lib/consentimiento'
 
 const VENDEDORES = ['dueno', 'gestor', 'puerta']
 const METODOS = ['efectivo', 'datafono', 'bizum', 'otro']
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null) as {
     evento_id?: string; precio?: number; cantidad?: number; metodo_pago?: string;
     comprador_nombre?: string; comprador_telefono?: string; consumicion_id?: string;
+    consentimiento_marketing?: boolean;
   } | null
   if (!body) return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
 
@@ -89,6 +91,15 @@ export async function POST(req: NextRequest) {
   // Suma a las entradas vendidas del evento (para precio dinámico/aforo).
   if (body.evento_id) {
     try { await db.rpc('incrementar_entradas_vendidas', { p_evento_id: body.evento_id, p_cantidad: cantidad }) } catch { /* no bloquea */ }
+  }
+
+  // Consentimiento de marketing del local (RGPD), si el taquillero lo marcó y
+  // hay teléfono para identificar al cliente.
+  if (body.consentimiento_marketing === true && body.comprador_telefono?.trim()) {
+    try {
+      const ident = await resolverIdentidadPorTelefono(db, body.comprador_telefono, t.local_id, body.comprador_nombre)
+      if (ident) await registrarConsentimiento(db, { ...ident, local_id: t.local_id, estado: 'acepta', origen: 'taquilla' })
+    } catch { /* no bloquea la venta */ }
   }
 
   return NextResponse.json({ ok: true, entradas: creadas })

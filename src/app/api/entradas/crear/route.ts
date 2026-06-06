@@ -4,6 +4,7 @@ import { calcularComision, calcularPrecioDinamico } from '@/lib/utils'
 import { devengarComisionEntrada, parseCookieRef } from '@/lib/rrpp/atribucion'
 import { validarCodigo, calcularDescuento } from '@/lib/codigos'
 import { validarRrppCodigo, descuentoCategoria } from '@/lib/rrppCodigos'
+import { registrarConsentimiento } from '@/lib/consentimiento'
 import type { PrecioDinamicoConfig } from '@/types'
 
 export async function POST(req: NextRequest) {
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     if (!usuarioRow) return NextResponse.json({ error: 'Perfil de usuario no encontrado' }, { status: 404 })
 
     const body = await req.json()
-    const { local_id, evento_id, consumicion_id, cantidad = 1, codigo } = body
+    const { local_id, evento_id, consumicion_id, cantidad = 1, codigo, consentimiento_marketing } = body
 
     const { data: local, error: localError } = await supabase
       .from('locales')
@@ -140,6 +141,11 @@ export async function POST(req: NextRequest) {
       .insert(entradas)
       .select()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Consentimiento de marketing del local (RGPD), si lo marcó en el checkout.
+    if (consentimiento_marketing === true) {
+      try { await registrarConsentimiento(createServiceRoleClient(), { usuario_id: usuarioRow.id, local_id, estado: 'acepta', origen: 'checkout_entrada' }) } catch {}
+    }
 
     // Update event entradas_vendidas if applicable
     if (evento_id) {

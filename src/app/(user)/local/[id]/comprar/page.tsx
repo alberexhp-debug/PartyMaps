@@ -27,6 +27,7 @@ export default function ComprarEntradaPage() {
   const [codigo, setCodigo] = useState('')
   const [codigoAplicado, setCodigoAplicado] = useState<{ codigo: string; descuento: number; descripcion: string } | null>(null)
   const [validandoCodigo, setValidandoCodigo] = useState(false)
+  const [aceptaMarketing, setAceptaMarketing] = useState(false)
 
   // ¿Quién captó esta compra? (cookie de referido o código de registro, 24h)
   useEffect(() => {
@@ -126,6 +127,7 @@ export default function ComprarEntradaPage() {
           consumicion_id: consumicionSeleccionada?.id,
           cantidad,
           codigo: codigoAplicado?.codigo,
+          consentimiento_marketing: aceptaMarketing,
         }),
       })
       const data = await res.json()
@@ -371,6 +373,19 @@ export default function ComprarEntradaPage() {
             En modo demo, la entrada se crea directamente sin cargo real.
           </p>
         </div>
+
+        {/* Consentimiento de marketing del local (RGPD, opcional, nunca premarcado) */}
+        <button type="button" onClick={() => setAceptaMarketing(v => !v)}
+          className="w-full flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left">
+          <span className={cn('mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors',
+            aceptaMarketing ? 'border-[#E0455E] bg-[#E0455E] text-white' : 'border-[#2A2A3E]')}>
+            {aceptaMarketing && <Check size={13} />}
+          </span>
+          <span>
+            <span className="block text-[13px] text-[#B8B8CC]">Quiero recibir promociones y eventos de {local?.nombre || 'este local'} <span className="text-[#6B6B85]">(opcional)</span></span>
+            <span className="mt-0.5 block text-[11px] text-[#8B8BA8]">Solo te contactará este local. Puedes retirarlo cuando quieras desde tu perfil.</span>
+          </span>
+        </button>
 
         {/* Botones */}
         <div className="space-y-2 pt-2">

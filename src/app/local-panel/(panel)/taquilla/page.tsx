@@ -29,6 +29,7 @@ export default function TaquillaPage() {
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [verDatos, setVerDatos] = useState(false)
+  const [aceptaMarketing, setAceptaMarketing] = useState(false)
   const [vendiendo, setVendiendo] = useState(false)
   const [resultado, setResultado] = useState<EntradaCreada[] | null>(null)
   const [hoy, setHoy] = useState<{ num: number; total: number } | null>(null)
@@ -71,6 +72,7 @@ export default function TaquillaPage() {
       body: JSON.stringify({
         evento_id: eventoId || undefined, precio: p, cantidad, metodo_pago: metodo,
         comprador_nombre: nombre.trim() || undefined, comprador_telefono: telefono.trim() || undefined,
+        consentimiento_marketing: aceptaMarketing,
       }),
     })
     const j = await res.json().catch(() => ({}))
@@ -170,11 +172,25 @@ export default function TaquillaPage() {
 
           {/* Datos del comprador (opcional) */}
           {verDatos ? (
-            <div className="grid grid-cols-2 gap-3">
-              <input value={nombre} onChange={e => setNombre(e.target.value.slice(0, 80))} placeholder="Nombre (opcional)"
-                className="h-11 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E94560]/60 placeholder:text-[#6B6B85]" />
-              <input value={telefono} onChange={e => setTelefono(e.target.value.slice(0, 30))} placeholder="Teléfono (opcional)"
-                className="h-11 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E94560]/60 placeholder:text-[#6B6B85]" />
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <input value={nombre} onChange={e => setNombre(e.target.value.slice(0, 80))} placeholder="Nombre (opcional)"
+                  className="h-11 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E94560]/60 placeholder:text-[#6B6B85]" />
+                <input value={telefono} onChange={e => setTelefono(e.target.value.slice(0, 30))} placeholder="Teléfono (opcional)"
+                  className="h-11 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E94560]/60 placeholder:text-[#6B6B85]" />
+              </div>
+              {telefono.trim() && (
+                <button type="button" onClick={() => setAceptaMarketing(v => !v)}
+                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-left">
+                  <span>
+                    <span className="block text-sm text-white">¿Acepta promos del local?</span>
+                    <span className="block text-[11px] text-[#8B8BA8]">Marca solo si el cliente da su consentimiento para recibir promociones.</span>
+                  </span>
+                  <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${aceptaMarketing ? 'bg-[#E0455E]' : 'bg-white/15'}`}>
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${aceptaMarketing ? 'left-[22px]' : 'left-0.5'}`} />
+                  </span>
+                </button>
+              )}
             </div>
           ) : (
             <button onClick={() => setVerDatos(true)} className="text-sm text-[#A0A0B8] hover:text-white inline-flex items-center gap-1.5">
