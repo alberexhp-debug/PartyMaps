@@ -7,14 +7,13 @@ import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 import {
   Users, Repeat, Coins, AlertCircle, Search, Star, X, Ticket, Beer, Wallet, Clock,
-  Phone, Save, Lock, Mail, Download, ChevronRight,
+  Phone, Save, Lock, Mail, Download, ChevronRight, Plus, Send, Trash2, ArrowLeft,
 } from 'lucide-react'
-
-type Cliente = {
-  usuario_id: string; nombre: string; edad: number | null; cumple_mes: boolean; foto: string | null; telefono: string | null
-  visitas: number; entradas: number; consumiciones: number; gasto: number; ultima: string | null
-  vip: boolean; notas: string | null; etiquetas: string[]; contactable: boolean
-}
+import type { ClienteCRM as Cliente } from '@/lib/crm/clientes'
+import {
+  aplicarSegmento, contarSegmento, SEGMENTOS_PRECREADOS, CAMPOS_FILTRO, LABEL_OP,
+  type FiltroSegmento, type SegmentoDef, type OpFiltro,
+} from '@/lib/crm/segmentos'
 type TabCRM = 'resumen' | 'clientes' | 'segmentos' | 'campanas' | 'ajustes'
 const TABS: { id: TabCRM; label: string }[] = [
   { id: 'resumen', label: 'Resumen' }, { id: 'clientes', label: 'Clientes' },
@@ -86,8 +85,8 @@ function CRMContent() {
 
       {tab === 'resumen' && <ResumenTab loading={loading} r={resumen} onVer={(c) => { setChip(c); irTab('clientes') }} />}
       {tab === 'clientes' && <ClientesTab clientes={clientes} loading={loading} chip={chip} setChip={setChip} onActualizar={cargar} />}
-      {tab === 'segmentos' && <GateOPlaceholder esPro={esPro} titulo="Segmentos" frase="Con Pro segmentas a tu clientela (recuperar, top gasto, cumpleaños…) y la contactas." />}
-      {tab === 'campanas' && <GateOPlaceholder esPro={esPro} titulo="Campañas" frase="Con Pro lanzas push, email y export a tus segmentos — y ves quién volvió." />}
+      {tab === 'segmentos' && <SegmentosTab clientes={clientes} esPro={esPro} loading={loading} />}
+      {tab === 'campanas' && <CampanasTab esPro={esPro} />}
       {tab === 'ajustes' && <AjustesScaffold />}
     </div>
   )
@@ -389,6 +388,266 @@ function GateOPlaceholder({ esPro, titulo, frase }: { esPro: boolean; titulo: st
     <SectionCard className="text-center py-10">
       <p className="text-sm text-[#8B8BA8]">{titulo}: en camino. La segmentación y las campañas llegan en la próxima entrega.</p>
     </SectionCard>
+  )
+}
+
+// ─────────────────────────── Segmentos ───────────────────────────
+function SegmentosTab({ clientes, esPro, loading }: { clientes: Cliente[]; esPro: boolean; loading: boolean }) {
+  const toast = useToast()
+  const [propios, setPropios] = useState<SegmentoDef[]>([])
+  const [sel, setSel] = useState<SegmentoDef | null>(null)
+  const [builder, setBuilder] = useState(false)
+
+  const cargar = useCallback(() => {
+    fetch('/api/local-panel/crm/segmentos').then(r => r.ok ? r.json() : null).then(d => { if (d?.segmentos) setPropios(d.segmentos) }).catch(() => {})
+  }, [])
+  useEffect(() => { if (esPro) cargar() }, [esPro, cargar])
+
+  if (!esPro) return <GateOPlaceholder esPro={false} titulo="Segmentos" frase="Con Pro segmentas a tu clientela (recuperar, top gasto, cumpleaños…) y la contactas." />
+  if (sel) return <SegmentoDetalle seg={sel} clientes={clientes} onVolver={() => setSel(null)} />
+
+  const eliminar = async (id: string) => {
+    await fetch(`/api/local-panel/crm/segmentos?id=${id}`, { method: 'DELETE' })
+    setPropios(prev => prev.filter(s => s.id !== id))
+    toast.success('Segmento eliminado')
+  }
+
+  const todos = [...SEGMENTOS_PRECREADOS, ...propios]
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {todos.map(s => {
+          const { total, contactables } = loading ? { total: 0, contactables: 0 } : contarSegmento(clientes, s.filtros)
+          return (
+            <div key={s.id} className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-4 hover:bg-white/[0.06] transition-colors relative">
+              {!s.pre_creado && (
+                <button onClick={() => eliminar(s.id)} className="absolute top-2 right-2 text-[#6B6B85] hover:text-[#E94560]" aria-label="Eliminar"><Trash2 size={13} /></button>
+              )}
+              <button onClick={() => setSel(s)} className="w-full text-left">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">{s.emoji}</span>
+                  {s.pre_creado && <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#6B6B85]">De serie</span>}
+                </div>
+                <p className="font-semibold text-white text-sm">{s.nombre}</p>
+                <p className="text-[11px] text-[#8B8BA8] mt-0.5 leading-snug">{s.descripcion}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xl font-bold text-white text-numeric">{total}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#27AE60]/15 text-[#27AE60] border border-[#27AE60]/25">{contactables} contactables</span>
+                </div>
+              </button>
+            </div>
+          )
+        })}
+        <button onClick={() => setBuilder(true)}
+          className="rounded-2xl border border-dashed border-[#2A2A3E] p-4 flex flex-col items-center justify-center gap-1.5 text-[#8B8BA8] hover:border-[#E0455E]/60 hover:text-white transition-colors min-h-[120px]">
+          <Plus size={20} /> <span className="text-sm font-medium">Nuevo segmento</span>
+        </button>
+      </div>
+      {builder && <BuilderModal clientes={clientes} onClose={() => setBuilder(false)} onGuardado={() => { setBuilder(false); cargar() }} />}
+    </div>
+  )
+}
+
+function SegmentoDetalle({ seg, clientes, onVolver }: { seg: SegmentoDef; clientes: Cliente[]; onVolver: () => void }) {
+  const [exportar, setExportar] = useState(false)
+  const [push, setPush] = useState(false)
+  const lista = aplicarSegmento(clientes, seg.filtros)
+  const contactables = lista.filter(c => c.contactable).length
+  return (
+    <div className="space-y-3 max-w-3xl">
+      <button onClick={onVolver} className="inline-flex items-center gap-1.5 text-sm text-[#8B8BA8] hover:text-white"><ArrowLeft size={15} /> Segmentos</button>
+      <div className="flex items-center gap-2">
+        <span className="text-2xl">{seg.emoji}</span>
+        <div className="flex-1">
+          <p className="font-bold text-white text-display">{seg.nombre}</p>
+          <p className="text-xs text-[#8B8BA8]">{lista.length} clientes · {contactables} contactables</p>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={() => setPush(true)} disabled={contactables === 0} className="flex-1 btn-primary inline-flex items-center justify-center gap-1.5 disabled:opacity-50"><Send size={14} /> Push</button>
+        <button onClick={() => setExportar(true)} className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 rounded-xl border border-white/10 text-sm text-white hover:bg-white/5"><Download size={14} /> Exportar</button>
+      </div>
+      <div className="space-y-2">
+        {lista.map(c => (
+          <div key={c.usuario_id} className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-3 flex items-center gap-3">
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: c.contactable ? '#27AE60' : '#4A4A60' }} />
+            <span className="flex-1 text-sm text-white truncate">{c.nombre}</span>
+            <span className="text-xs text-[#8B8BA8] text-numeric">{eur(c.gasto)}</span>
+          </div>
+        ))}
+        {lista.length === 0 && <p className="text-center text-[#8B8BA8] py-6 text-sm">Ningún cliente en este segmento ahora mismo.</p>}
+      </div>
+      {exportar && <ExportModal filtros={seg.filtros} onClose={() => setExportar(false)} />}
+      {push && <PushModal filtros={seg.filtros} nombre={seg.nombre} contactables={contactables} onClose={() => setPush(false)} />}
+    </div>
+  )
+}
+
+function BuilderModal({ clientes, onClose, onGuardado }: { clientes: Cliente[]; onClose: () => void; onGuardado: () => void }) {
+  const toast = useToast()
+  const [nombre, setNombre] = useState('')
+  const [emoji, setEmoji] = useState('⭐')
+  const [filtros, setFiltros] = useState<FiltroSegmento[]>([{ campo: 'visitas', op: '>=', valor: 1 }])
+  const [guardando, setGuardando] = useState(false)
+  const preview = contarSegmento(clientes, filtros)
+
+  const setFila = (i: number, patch: Partial<FiltroSegmento>) => setFiltros(prev => prev.map((f, j) => j === i ? { ...f, ...patch } : f))
+  const campoDef = (campo: string) => CAMPOS_FILTRO.find(c => c.campo === campo) ?? CAMPOS_FILTRO[0]
+
+  async function guardar() {
+    if (!nombre.trim()) { toast.error('Ponle nombre al segmento'); return }
+    setGuardando(true)
+    const r = await fetch('/api/local-panel/crm/segmentos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre, emoji, filtros }) })
+    setGuardando(false)
+    if (!r.ok) { toast.error('No se pudo guardar'); return }
+    toast.success('Segmento guardado'); onGuardado()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
+      <div className="card-premium w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4"><p className="font-bold text-white text-display">Nuevo segmento</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
+        <div className="space-y-2">
+          {filtros.map((f, i) => {
+            const def = campoDef(f.campo)
+            return (
+              <div key={i} className="flex items-center gap-1.5">
+                <select value={f.campo} onChange={e => { const d = campoDef(e.target.value); setFila(i, { campo: e.target.value, op: d.ops[0], valor: d.tipo === 'bool' ? true : '' }) }}
+                  className="flex-1 min-w-0 rounded-lg bg-white/5 border border-white/10 text-xs text-white px-2 py-2 outline-none">
+                  {CAMPOS_FILTRO.map(c => <option key={c.campo} value={c.campo}>{c.label}</option>)}
+                </select>
+                <select value={f.op} onChange={e => setFila(i, { op: e.target.value as OpFiltro })} className="rounded-lg bg-white/5 border border-white/10 text-xs text-white px-2 py-2 outline-none">
+                  {def.ops.map(o => <option key={o} value={o}>{LABEL_OP[o]}</option>)}
+                </select>
+                {def.tipo === 'bool'
+                  ? <select value={String(f.valor)} onChange={e => setFila(i, { valor: e.target.value === 'true' })} className="w-16 rounded-lg bg-white/5 border border-white/10 text-xs text-white px-2 py-2 outline-none"><option value="true">Sí</option><option value="false">No</option></select>
+                  : <input value={String(f.valor ?? '')} onChange={e => setFila(i, { valor: def.tipo === 'num' ? Number(e.target.value) : e.target.value })} type={def.tipo === 'num' ? 'number' : 'text'} className="w-16 rounded-lg bg-white/5 border border-white/10 text-xs text-white px-2 py-2 outline-none" />}
+                {filtros.length > 1 && <button onClick={() => setFiltros(prev => prev.filter((_, j) => j !== i))} className="text-[#6B6B85] hover:text-[#E94560] shrink-0"><X size={14} /></button>}
+              </div>
+            )
+          })}
+          <button onClick={() => setFiltros(prev => [...prev, { campo: 'gasto_total', op: '>=', valor: 0 }])} className="text-xs text-[#4F8EF7] hover:underline">+ y además…</button>
+        </div>
+        <div className="mt-3 rounded-xl glass-subtle p-3 text-sm text-[#B8B8CC]">Resultado: <span className="text-white font-semibold">{preview.total}</span> clientes · {preview.contactables} contactables</div>
+        <div className="mt-3 flex gap-2">
+          <input value={emoji} onChange={e => setEmoji(e.target.value.slice(0, 2))} className="w-12 text-center rounded-lg bg-white/5 border border-white/10 text-white px-2 py-2 outline-none" />
+          <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre del segmento" className="flex-1 rounded-lg bg-white/5 border border-white/10 text-sm text-white px-3 py-2 outline-none placeholder:text-[#6B6B85]" />
+        </div>
+        <button onClick={guardar} disabled={guardando} className="mt-4 w-full btn-primary inline-flex items-center justify-center gap-2"><Save size={16} /> {guardando ? 'Guardando…' : 'Guardar segmento'}</button>
+      </div>
+    </div>
+  )
+}
+
+const COLS_EXPORT = [
+  { id: 'nombre', label: 'Nombre' }, { id: 'telefono', label: 'Teléfono' }, { id: 'email', label: 'Email' },
+  { id: 'edad', label: 'Edad' }, { id: 'visitas', label: 'Visitas' }, { id: 'gasto_total', label: 'Gasto total' },
+  { id: 'ticket_medio', label: 'Ticket medio' }, { id: 'ultima_visita', label: 'Última visita' },
+  { id: 'etiquetas', label: 'Etiquetas' }, { id: 'vip', label: 'VIP' }, { id: 'consentimiento', label: 'Consentimiento' },
+]
+
+function ExportModal({ filtros, onClose }: { filtros: FiltroSegmento[]; onClose: () => void }) {
+  const toast = useToast()
+  const [modo, setModo] = useState<'operativo' | 'marketing'>('operativo')
+  const [cols, setCols] = useState<string[]>(COLS_EXPORT.map(c => c.id))
+  const [bajando, setBajando] = useState(false)
+
+  async function descargar() {
+    setBajando(true)
+    try {
+      const r = await fetch('/api/local-panel/crm/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modo, columnas: cols, filtros }) })
+      if (!r.ok) { const j = await r.json().catch(() => ({})); toast.error(j.error || 'No se pudo exportar'); setBajando(false); return }
+      const blob = await r.blob()
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url
+      a.download = (r.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1]) || 'clientes.csv'
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
+      toast.success('Export registrado en la auditoría')
+      onClose()
+    } catch { toast.error('Error al exportar') }
+    setBajando(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
+      <div className="card-premium w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4"><p className="font-bold text-white text-display">Exportar clientes</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {(['operativo', 'marketing'] as const).map(m => (
+            <button key={m} onClick={() => setModo(m)} className={cn('rounded-xl border p-3 text-left transition-colors', modo === m ? 'border-[#E0455E]/50 bg-[#E0455E]/10' : 'border-white/10 bg-white/[0.03]')}>
+              <p className="text-sm font-semibold text-white capitalize">{m}</p>
+              <p className="text-[11px] text-[#8B8BA8] mt-0.5">{m === 'operativo' ? 'Todos los clientes' : 'Solo contactables'}</p>
+            </button>
+          ))}
+        </div>
+        <p className="text-xs font-semibold text-[#8B8BA8] mb-1.5">Columnas</p>
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {COLS_EXPORT.map(c => {
+            const on = cols.includes(c.id)
+            return <button key={c.id} onClick={() => setCols(prev => on ? prev.filter(x => x !== c.id) : [...prev, c.id])}
+              className={cn('px-2.5 h-7 rounded-full text-xs transition-colors', on ? 'bg-[#E0455E] text-white' : 'bg-white/[0.06] text-[#B8B8CC]')}>{c.label}</button>
+          })}
+        </div>
+        <p className="text-[11px] text-[#F39C12] bg-[#F39C12]/10 border border-[#F39C12]/25 rounded-xl px-3 py-2 mb-4">Estos datos son responsabilidad de tu local. Úsalos conforme a la ley (RGPD/LSSI).</p>
+        <button onClick={descargar} disabled={bajando} className="w-full btn-primary inline-flex items-center justify-center gap-2"><Download size={16} /> {bajando ? 'Generando…' : 'Descargar CSV'}</button>
+      </div>
+    </div>
+  )
+}
+
+function PushModal({ filtros, nombre, contactables, onClose }: { filtros: FiltroSegmento[]; nombre: string; contactables: number; onClose: () => void }) {
+  const toast = useToast()
+  const [titulo, setTitulo] = useState('')
+  const [cuerpo, setCuerpo] = useState('')
+  const [enviando, setEnviando] = useState(false)
+
+  async function enviar() {
+    if (!titulo.trim() || !cuerpo.trim()) { toast.error('Falta título o mensaje'); return }
+    setEnviando(true)
+    const r = await fetch('/api/local-panel/crm/campanas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filtros, segmento_nombre: nombre, titulo, cuerpo }) })
+    const j = await r.json().catch(() => ({}))
+    setEnviando(false)
+    if (!r.ok) { toast.error(j.error || 'No se pudo enviar'); return }
+    toast.success(`Push enviado a ${j.enviados} contactables`); onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
+      <div className="card-premium w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1"><p className="font-bold text-white text-display">Push a «{nombre}»</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
+        <p className="text-xs text-[#8B8BA8] mb-4">Se enviará a {contactables} {contactables === 1 ? 'persona contactable' : 'personas contactables'}.</p>
+        <input value={titulo} onChange={e => setTitulo(e.target.value.slice(0, 60))} placeholder="Título" className="w-full rounded-xl bg-white/5 border border-white/10 text-sm text-white px-3.5 py-2.5 outline-none mb-2 placeholder:text-[#6B6B85]" />
+        <textarea value={cuerpo} onChange={e => setCuerpo(e.target.value.slice(0, 160))} rows={3} placeholder="Mensaje" className="w-full rounded-xl bg-white/5 border border-white/10 text-sm text-white px-3.5 py-2.5 outline-none resize-none placeholder:text-[#6B6B85]" />
+        <button onClick={enviar} disabled={enviando || contactables === 0} className="mt-4 w-full btn-primary inline-flex items-center justify-center gap-2 disabled:opacity-50"><Send size={16} /> {enviando ? 'Enviando…' : 'Enviar push'}</button>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────── Campañas ───────────────────────────
+function CampanasTab({ esPro }: { esPro: boolean }) {
+  const [campanas, setCampanas] = useState<{ id: string; tipo: string; segmento_nombre: string | null; titulo: string | null; enviados: number; resultado: { enviadas?: number }; created_at: string }[]>([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    if (!esPro) { setLoading(false); return }
+    fetch('/api/local-panel/crm/campanas').then(r => r.ok ? r.json() : null).then(d => { if (d?.campanas) setCampanas(d.campanas); setLoading(false) }).catch(() => setLoading(false))
+  }, [esPro])
+
+  if (!esPro) return <GateOPlaceholder esPro={false} titulo="Campañas" frase="Con Pro lanzas push a tus segmentos y ves el histórico de envíos." />
+  if (loading) return <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 rounded-2xl skeleton" />)}</div>
+  if (campanas.length === 0) return <EmptyState icon={Send} acento="rose" titulo="Tu primera campaña espera" descripcion="Abre un segmento y lanza un push a tus clientes contactables." />
+  return (
+    <div className="space-y-2 max-w-3xl">
+      {campanas.map(c => (
+        <div key={c.id} className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-3.5 flex items-center gap-3">
+          <span className="w-9 h-9 rounded-xl bg-[#E0455E]/15 flex items-center justify-center shrink-0"><Send size={15} className="text-[#E0455E]" /></span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white truncate">{c.titulo || 'Push'}</p>
+            <p className="text-[11px] text-[#8B8BA8]">{c.segmento_nombre ?? '—'} · {new Date(c.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</p>
+          </div>
+          <span className="text-xs text-[#8B8BA8] text-numeric shrink-0">{c.enviados} enviados</span>
+        </div>
+      ))}
+    </div>
   )
 }
 

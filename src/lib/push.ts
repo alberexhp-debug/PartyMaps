@@ -85,6 +85,18 @@ export async function enviarPushAUsuario(usuarioId: string, payload: PushPayload
   return enviarPush((subs ?? []) as PushSubscriptionRow[], payload)
 }
 
+// Envía un push a una lista concreta de usuarios (p. ej. los contactables de un segmento CRM).
+export async function enviarPushAUsuarios(usuarioIds: string[], payload: PushPayload) {
+  const ids = usuarioIds.filter(Boolean)
+  if (ids.length === 0) return { enviadas: 0, falladas: 0, eliminadas: 0 }
+  const admin = await createAdminSupabaseClient()
+  const { data: subs } = await admin
+    .from('push_subscriptions')
+    .select('id, endpoint, p256dh, auth')
+    .in('usuario_id', ids)
+  return enviarPush((subs ?? []) as PushSubscriptionRow[], payload)
+}
+
 // Envía un push a un RRPP (resuelve su usuario). No lanza: notificar nunca debe
 // romper la acción que lo dispara.
 export async function enviarPushARRPP(rrppId: string, payload: PushPayload) {
