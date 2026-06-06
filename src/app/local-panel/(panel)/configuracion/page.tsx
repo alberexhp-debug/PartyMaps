@@ -14,9 +14,10 @@ import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEdi
 import { AforoSemanal } from '@/components/local-panel/AforoSemanal'
 import {
   Save, Plus, Trash2, Eye, EyeOff, Edit3, AtSign,
-  Image as ImageIcon, Clock, Ticket, ShoppingBag, AlertCircle,
+  Image as ImageIcon, Clock, Ticket, ShoppingBag, AlertCircle, Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { estadoApertura, textoEstadoFicha, type EstadoApertura } from '@/lib/horarios'
 
 type Tab = 'info' | 'horario' | 'aforo' | 'entradas' | 'galeria' | 'bienvenida' | 'bar' | 'instagram'
 
@@ -37,6 +38,19 @@ const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'do
 const LABEL_DIA: Record<string, string> = {
   lunes: 'Lun', martes: 'Mar', miercoles: 'Mié', jueves: 'Jue',
   viernes: 'Vie', sabado: 'Sáb', domingo: 'Dom',
+}
+// El horario se piensa "por noches": "Noche del viernes" abre el viernes y puede cerrar de madrugada el sábado.
+const NOCHE_LABEL: Record<string, string> = {
+  lunes: 'Noche del lunes', martes: 'Noche del martes', miercoles: 'Noche del miércoles', jueves: 'Noche del jueves',
+  viernes: 'Noche del viernes', sabado: 'Noche del sábado', domingo: 'Noche del domingo',
+}
+const DIA_SIGUIENTE: Record<string, string> = {
+  lunes: 'martes', martes: 'miércoles', miercoles: 'jueves', jueves: 'viernes',
+  viernes: 'sábado', sabado: 'domingo', domingo: 'lunes',
+}
+// Punto de color de la vista previa (mismos tokens que el mapa/ficha).
+const PUNTO_ESTADO: Record<EstadoApertura, string> = {
+  abierto: 'bg-[#27AE60]', abre_pronto: 'bg-[#F39C12]', cerrado: 'bg-[#4A4A60]', sin_datos: 'bg-[#4A4A60]',
 }
 const CATEGORIAS: { value: CategoriaProducto; label: string }[] = [
   { value: 'cerveza', label: 'Cerveza' }, { value: 'cubata', label: 'Cubata' },
@@ -73,6 +87,9 @@ function ConfiguracionContent() {
   })
   const [form, setForm] = useState<Partial<Local>>(local || {})
   const [guardando, setGuardando] = useState(false)
+  // Tick de 1 min para que la vista previa viva del horario avance sola (abre_pronto → abierto a las 00:00).
+  const [ahora, setAhora] = useState(() => new Date())
+  useEffect(() => { const id = setInterval(() => setAhora(new Date()), 60000); return () => clearInterval(id) }, [])
 
   // Bar state
   const [productos, setProductos] = useState<ProductoLocal[]>([])
@@ -96,6 +113,20 @@ function ConfiguracionContent() {
 
   const guardar = async () => {
     if (!local) return
+    // Validación de horarios por noches (doc 03 §4.1): apertura ≠ cierre y máx 14h por tramo.
+    const hForm = form.horario as Record<string, { apertura: string; cierre: string } | null> | undefined
+    if (hForm) {
+      for (const dia of DIAS) {
+        const t = hForm[dia]
+        if (!t) continue
+        if (t.apertura === t.cierre) { toast.error(`${NOCHE_LABEL[dia]}: la apertura y el cierre no pueden ser iguales`); return }
+        const [ah, am] = t.apertura.split(':').map(Number)
+        const [ch, cm] = t.cierre.split(':').map(Number)
+        let dur = (ch * 60 + cm) - (ah * 60 + am)
+        if (dur <= 0) dur += 24 * 60 // cruza medianoche
+        if (dur > 14 * 60) { toast.error(`${NOCHE_LABEL[dia]}: el horario dura más de 14h, revísalo`); return }
+      }
+    }
     setGuardando(true)
     const { data, error } = await supabase.from('locales').update({
       nombre: form.nombre,
@@ -167,7 +198,24 @@ function ConfiguracionContent() {
     setForm(f => ({ ...f, consumiciones_bienvenida: [...(f.consumiciones_bienvenida || []), nueva] }))
   }
 
+  // Copia el tramo del viernes a todas las noches ya abiertas (el 90% repite horario el finde).
+  const copiarViernes = () => {
+    const v = (form.horario as Record<string, { apertura: string; cierre: string } | null>)?.viernes
+    if (!v) { toast.error('Configura primero la noche del viernes'); return }
+    setForm(f => {
+      const next = { ...(f.horario as Record<string, { apertura: string; cierre: string } | null>) }
+      for (const dia of DIAS) if (next[dia]) next[dia] = { ...v }
+      return { ...f, horario: next }
+    })
+    toast.success('Copiado a las noches abiertas')
+  }
+
   if (!local) return null
+
+  // Vista previa viva: cómo se ve el local AHORA con el horario que hay en el formulario.
+  const previa = estadoApertura({ horario: (form.horario ?? null) as Local['horario'] | null, cerrado_hasta: local.cerrado_hasta ?? null }, ahora)
+  const previaTexto = textoEstadoFicha(previa, ahora)
+  const viernesAbierto = !!(form.horario as Record<string, unknown> | undefined)?.viernes
 
   return (
     <div className="min-h-screen">
@@ -290,11 +338,25 @@ function ConfiguracionContent() {
         {/* ── TAB: Horario ── */}
         {tab === 'horario' && (
           <div className="space-y-3 max-w-2xl">
-            <p className="text-sm text-[#8B8BA8]">Configura los horarios de apertura de cada día</p>
+            {/* Cabecera */}
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#4F8EF7]/10 border border-[#4F8EF7]/20 flex items-center justify-center shrink-0">
+                <Clock size={18} className="text-[#4F8EF7]" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-white text-sm">Horarios por noches</h2>
+                <p className="text-xs text-[#8B8BA8] mt-0.5 leading-relaxed">
+                  Define cada noche: de cuándo a cuándo abres. Si cierras de madrugada, es normal que el cierre sea «del día siguiente». Nosotros lo entendemos así.
+                </p>
+              </div>
+            </div>
+
+            {/* Una fila por noche */}
             {DIAS.map(dia => {
               const h = (form.horario as Record<string, { apertura: string; cierre: string } | null>)?.[dia]
+              const cruzaMedianoche = !!h && h.cierre <= h.apertura
               return (
-                <div key={dia} className="bg-white/3 border border-white/6 rounded-2xl p-4">
+                <div key={dia} className={cn('bg-white/3 border border-white/6 rounded-2xl p-4', !h && 'opacity-60')}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={cn(
@@ -304,12 +366,14 @@ function ConfiguracionContent() {
                         {LABEL_DIA[dia]}
                       </div>
                       <div>
-                        <span className="text-white text-sm font-medium capitalize">{dia === 'miercoles' ? 'Miércoles' : dia.charAt(0).toUpperCase() + dia.slice(1)}</span>
-                        {h && <p className="text-xs text-[#8B8BA8]">{h.apertura} — {h.cierre}</p>}
+                        <span className="text-white text-sm font-medium">{NOCHE_LABEL[dia]}</span>
+                        {h
+                          ? <p className="text-xs text-[#8B8BA8]">{h.apertura} – {h.cierre}</p>
+                          : <p className="text-xs text-[#6B6B85]">Cerrado</p>}
                       </div>
                     </div>
                     <button
-                      onClick={() => setForm(f => ({ ...f, horario: { ...f.horario, [dia]: h ? null : { apertura: '22:00', cierre: '06:00' } } }))}
+                      onClick={() => setForm(f => ({ ...f, horario: { ...f.horario, [dia]: h ? null : { apertura: '23:00', cierre: '06:00' } } }))}
                       className={cn('text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors',
                         h ? 'text-[#E94560] bg-[#E94560]/10 hover:bg-[#E94560]/15' : 'text-[#4F8EF7] bg-[#4F8EF7]/10 hover:bg-[#4F8EF7]/15')}
                     >
@@ -317,26 +381,51 @@ function ConfiguracionContent() {
                     </button>
                   </div>
                   {h && (
-                    <div className="mt-3 grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-xs text-[#8B8BA8]">Apertura</label>
-                        <input type="time" value={h.apertura}
-                          onChange={e => setForm(f => ({ ...f, horario: { ...f.horario, [dia]: { ...h, apertura: e.target.value } } }))}
-                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-white/20"
-                        />
+                    <>
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-xs text-[#8B8BA8]">Apertura</label>
+                          <input type="time" value={h.apertura}
+                            onChange={e => setForm(f => ({ ...f, horario: { ...f.horario, [dia]: { ...h, apertura: e.target.value } } }))}
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-white/20"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-[#8B8BA8]">Cierre</label>
+                          <input type="time" value={h.cierre}
+                            onChange={e => setForm(f => ({ ...f, horario: { ...f.horario, [dia]: { ...h, cierre: e.target.value } } }))}
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-white/20"
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-xs text-[#8B8BA8]">Cierre</label>
-                        <input type="time" value={h.cierre}
-                          onChange={e => setForm(f => ({ ...f, horario: { ...f.horario, [dia]: { ...h, cierre: e.target.value } } }))}
-                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-white/20"
-                        />
-                      </div>
-                    </div>
+                      {cruzaMedianoche && (
+                        <p className="mt-2 text-[11px] text-[#8B8BA8]">cierra el {DIA_SIGUIENTE[dia]} de madrugada ✓</p>
+                      )}
+                    </>
                   )}
                 </div>
               )
             })}
+
+            {/* Copiar viernes a las noches abiertas */}
+            <Button variant="ghost" size="sm" disabled={!viernesAbierto} onClick={copiarViernes}>
+              <Zap size={14} /> Copiar viernes a todas las noches abiertas
+            </Button>
+
+            {/* Tip de la noche suelta */}
+            <p className="text-xs text-[#8B8BA8] leading-relaxed">
+              ¿Abres una noche suelta (festivo, fiesta especial)? No toques el horario: publica un evento y esa noche saldrás abierto.
+            </p>
+
+            {/* Vista previa viva */}
+            <div className="bg-white/4 border border-white/8 rounded-2xl p-4 flex items-center gap-2.5">
+              <span className={cn('w-2.5 h-2.5 rounded-full shrink-0', PUNTO_ESTADO[previa.estado])} />
+              <p className="text-sm text-[#B8B8CC]">
+                {previa.estado === 'sin_datos'
+                  ? 'Ahora mismo tu local no muestra estado. Configura sus noches para salir «abierto» en el mapa.'
+                  : <>Ahora mismo tu local se ve: <span className="text-white font-medium">{previaTexto}</span></>}
+              </p>
+            </div>
           </div>
         )}
 

@@ -152,6 +152,8 @@ export interface Local {
   aforo_por_dia?: AforoPorDia
   reservas_activas?: boolean
   reservas_modo?: ModoReservas
+  /** Cierre puntual "Cerrar esta noche": ISO hasta el que el local sale cerrado. NULL/pasado = inactivo. */
+  cerrado_hasta?: string | null
   created_at: string
   updated_at: string
 }
