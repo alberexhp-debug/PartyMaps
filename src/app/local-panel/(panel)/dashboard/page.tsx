@@ -9,6 +9,7 @@ import { formatearPrecio, getTemperaturaAforo, getColorTemperatura, getLabelTemp
 import {
   Ticket, Users, TrendingUp, Bell, Star, Zap,
   Calendar, ChevronRight, BarChart3, AlertCircle, Gauge, Check, X, Beer,
+  DoorClosed, MoonStar, AlertTriangle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
@@ -40,6 +41,8 @@ export default function LocalPanelDashboard() {
   const [promoPrecio, setPromoPrecio] = useState<number>(local?.precio_entrada_min || 0)
   const [promoHoras, setPromoHoras] = useState<number>(2)
   const [activandoPromo, setActivandoPromo] = useState(false)
+  const [cerrandoNoche, setCerrandoNoche] = useState(false)
+  const [showCerrarModal, setShowCerrarModal] = useState(false)
 
   useEffect(() => {
     if (!local) return
@@ -144,12 +147,29 @@ export default function LocalPanelDashboard() {
     toast.success('Promo cancelada')
   }
 
+  async function setCerrarNoche(cerrar: boolean) {
+    if (!local) return
+    setCerrandoNoche(true)
+    const res = await fetch('/api/local-panel/cerrar-noche', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cerrar }),
+    })
+    const data = await res.json().catch(() => ({}))
+    setCerrandoNoche(false)
+    setShowCerrarModal(false)
+    if (!res.ok) { toast.error(data.error || 'No se pudo actualizar'); return }
+    setLocal({ ...local, cerrado_hasta: data.cerrado_hasta })
+    toast.success(cerrar ? 'Tu local saldrá cerrado esta noche' : 'Tu local vuelve a salir según su horario')
+  }
+
   if (!local) return null
   const temperatura = getTemperaturaAforo(kpis?.aforo_actual || 0)
   const colorTemp = getColorTemperatura(temperatura)
 
   const capNoche = local.entradas_disponibles_noche
   const pctEntradas = capNoche && capNoche > 0 ? Math.min(100, Math.round(((kpis?.entradas_hoy || 0) / capNoche) * 100)) : null
+  const cerradoActivo = !!local.cerrado_hasta && new Date(local.cerrado_hasta) > new Date()
+  const puedeCerrar = trabajador?.rol === 'dueno' || trabajador?.rol === 'gestor'
 
   return (
     <div className="relative p-4 md:p-8 space-y-5 pb-20 md:pb-8 overflow-hidden">
@@ -177,6 +197,19 @@ export default function LocalPanelDashboard() {
             <p className="font-semibold text-[#F39C12] text-sm">Local en estado: {local.estado}</p>
             <p className="text-xs text-[#F39C12]/70">Contacta con soporte si tienes dudas</p>
           </div>
+        </div>
+      )}
+
+      {/* Banner: cierre puntual activo */}
+      {cerradoActivo && (
+        <div className="flex items-center gap-3 p-4 bg-[#F39C12]/10 border border-[#F39C12]/40 rounded-xl">
+          <AlertTriangle size={18} className="text-[#F39C12] shrink-0" />
+          <p className="flex-1 text-sm text-[#F39C12]">Tu local sale cerrado esta noche · se reactiva solo mañana a las 12:00</p>
+          {puedeCerrar && (
+            <Button size="sm" variant="outline" loading={cerrandoNoche} onClick={() => setCerrarNoche(false)}>
+              Reactivar ahora
+            </Button>
+          )}
         </div>
       )}
 
@@ -419,8 +452,38 @@ export default function LocalPanelDashboard() {
           <Button variant="secondary" size="sm" onClick={() => router.push('/local-panel/analytics')}>
             <BarChart3 size={13} /> Analytics
           </Button>
+          {/* Cerrar esta noche (cierre puntual) — solo dueño/gestor */}
+          {puedeCerrar && (cerradoActivo ? (
+            <button onClick={() => setCerrarNoche(false)} disabled={cerrandoNoche}
+              className="col-span-2 flex items-center justify-center gap-2 h-9 rounded-xl text-sm font-semibold bg-[#F39C12]/12 border border-[#F39C12]/30 text-[#F39C12] hover:bg-[#F39C12]/18 transition-colors disabled:opacity-50">
+              <Check size={14} /> Reactivar local ahora
+            </button>
+          ) : (
+            <button onClick={() => setShowCerrarModal(true)}
+              className="col-span-2 flex items-center justify-center gap-2 h-9 rounded-xl text-sm font-semibold bg-[#E94560]/10 border border-[#E94560]/25 text-[#E94560] hover:bg-[#E94560]/16 transition-colors">
+              <DoorClosed size={14} /> Cerrar esta noche
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Modal: confirmar cierre puntual */}
+      {showCerrarModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={() => setShowCerrarModal(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full sm:max-w-sm glass-strong rounded-t-3xl sm:rounded-3xl p-5 animate-slide-up safe-bottom" onClick={e => e.stopPropagation()}>
+            <div className="w-11 h-11 rounded-2xl bg-[#E94560]/12 border border-[#E94560]/25 flex items-center justify-center mb-3">
+              <MoonStar size={20} className="text-[#E94560]" />
+            </div>
+            <h3 className="text-lg font-bold text-white text-display">Cerrar esta noche</h3>
+            <p className="text-sm text-[#B8B8CC] mt-1.5">Tu local saldrá cerrado en el mapa esta noche. Se reactiva solo mañana a las 12:00.</p>
+            <div className="flex gap-2 mt-4">
+              <Button variant="danger" fullWidth loading={cerrandoNoche} onClick={() => setCerrarNoche(true)}>Sí, cerrar esta noche</Button>
+              <Button variant="ghost" onClick={() => setShowCerrarModal(false)}>Cancelar</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
