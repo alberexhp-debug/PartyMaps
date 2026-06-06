@@ -4,11 +4,13 @@ import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 import { createContext, useCallback, useContext, useState } from 'react'
 
 type ToastType = 'success' | 'error' | 'warning' | 'info'
+interface ToastAccion { label: string; onClick: () => void }
 
 interface Toast {
   id: string
   type: ToastType
   message: string
+  accion?: ToastAccion
 }
 
 interface ToastContextValue {
@@ -17,6 +19,8 @@ interface ToastContextValue {
   error: (message: string) => void
   warning: (message: string) => void
   info: (message: string) => void
+  /** Toast con un botón de acción embebido (p. ej. "Listo. ¿Publicamos? [Publicar]"). Dura más. */
+  conAccion: (message: string, accion: ToastAccion, type?: ToastType) => void
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
@@ -24,10 +28,12 @@ const ToastContext = createContext<ToastContextValue | null>(null)
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
 
-  const addToast = useCallback((message: string, type: ToastType = 'info') => {
+  const cerrar = useCallback((id: string) => setToasts(prev => prev.filter(t => t.id !== id)), [])
+
+  const addToast = useCallback((message: string, type: ToastType = 'info', accion?: ToastAccion) => {
     const id = Math.random().toString(36).slice(2)
-    setToasts(prev => [...prev, { id, type, message }])
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000)
+    setToasts(prev => [...prev, { id, type, message, accion }])
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), accion ? 9000 : 4000)
   }, [])
 
   const value: ToastContextValue = {
@@ -36,6 +42,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     error: (m) => addToast(m, 'error'),
     warning: (m) => addToast(m, 'warning'),
     info: (m) => addToast(m, 'info'),
+    conAccion: (m, accion, type = 'success') => addToast(m, type, accion),
   }
 
   const icons = { success: CheckCircle, error: XCircle, warning: AlertTriangle, info: Info }
@@ -58,8 +65,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               colors[t.type]
             )}>
               <Icon size={18} className="shrink-0 mt-0.5" />
-              <p className="text-sm text-white flex-1">{t.message}</p>
-              <button onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))}>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white">{t.message}</p>
+                {t.accion && (
+                  <button
+                    onClick={() => { t.accion!.onClick(); cerrar(t.id) }}
+                    className="mt-2 inline-flex items-center h-8 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition-colors"
+                  >
+                    {t.accion.label}
+                  </button>
+                )}
+              </div>
+              <button onClick={() => cerrar(t.id)}>
                 <X size={14} className="text-[#A0A0B8]" />
               </button>
             </div>

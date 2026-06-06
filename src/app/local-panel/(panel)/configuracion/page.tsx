@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { Button } from '@/components/ui/Button'
@@ -80,6 +80,7 @@ export default function ConfiguracionPage() {
 function ConfiguracionContent() {
   const toast = useToast()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const { local, setLocal, trabajador } = useLocalPanelStore()
   const [tab, setTab] = useState<Tab>(() => {
     const t = searchParams.get('tab') as Tab | null
@@ -149,6 +150,9 @@ function ConfiguracionContent() {
     setLocal(data)
     toast.success('Configuración guardada')
     setGuardando(false)
+    // Si veníamos de "Completar ahora" para publicar un evento, volvemos a él (doc 01 §7).
+    const intent = typeof window !== 'undefined' ? sessionStorage.getItem('pm_intent_publicar') : null
+    if (intent) router.push(`/local-panel/eventos/${intent}`)
   }
 
   const guardarBar = async () => {

@@ -10,6 +10,10 @@ import { Evento, EstadoEvento, PrecioDinamicoConfig } from '@/types'
 import { ArrowLeft, Save, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEditor'
+import { obligatoriosCompletos, faltantesObligatorios } from '@/lib/onboarding/gate'
+import { ModalTeFaltaPoco } from '@/components/local-panel/ModalTeFaltaPoco'
+
+const INTENT_KEY = 'pm_intent_publicar' // recuerda "iba a publicar este evento" al ir a completar datos
 
 const ESTADOS: EstadoEvento[] = ['borrador', 'publicado', 'cancelado', 'finalizado']
 const ESTADO_COLOR: Record<EstadoEvento, string> = {
@@ -33,6 +37,7 @@ export default function EventoEditPage() {
     modulos_activos: [],
   })
   const [loading, setSaving] = useState(false)
+  const [showGate, setShowGate] = useState(false)
 
   useEffect(() => {
     if (!isNuevo) {
@@ -41,25 +46,72 @@ export default function EventoEditPage() {
     }
   }, [eventoId, isNuevo])
 
+  // Al volver tras completar los datos que faltaban: ofrecer publicar con un toast-acción.
+  useEffect(() => {
+    if (isNuevo || !local) return
+    const intent = typeof window !== 'undefined' ? sessionStorage.getItem(INTENT_KEY) : null
+    if (intent === eventoId && obligatoriosCompletos(local)) {
+      sessionStorage.removeItem(INTENT_KEY)
+      toast.conAccion('Ya tienes todo listo. ¿Publicamos tu evento?', {
+        label: 'Publicar',
+        onClick: async () => {
+          const id = await persistir('publicado')
+          if (id) { setForm(f => ({ ...f, estado: 'publicado' })); toast.success('Evento publicado') }
+          else toast.error('No se pudo publicar')
+        },
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [local, eventoId, isNuevo])
+
+  // Guarda el evento con un estado dado; devuelve su id (o null si error).
+  async function persistir(estado: EstadoEvento): Promise<string | null> {
+    if (!local) return null
+    if (isNuevo) {
+      const { data, error } = await supabase.from('eventos')
+        .insert({ ...form, estado, local_id: local.id, entradas_vendidas: 0 })
+        .select('id').single()
+      return error ? null : data.id
+    }
+    const { error } = await supabase.from('eventos').update({ ...form, estado }).eq('id', eventoId)
+    return error ? null : eventoId
+  }
+
   const guardar = async () => {
     if (!local || !form.nombre || !form.fecha_inicio) {
       toast.error('Nombre y fecha de inicio son obligatorios')
       return
     }
+    // Bloqueo suave (doc 01 §7): publicar exige los obligatorios del local. El borrador siempre se puede guardar.
+    if (form.estado === 'publicado' && !obligatoriosCompletos(local)) { setShowGate(true); return }
     setSaving(true)
-    if (isNuevo) {
-      const { error } = await supabase.from('eventos').insert({
-        ...form,
-        local_id: local.id,
-        entradas_vendidas: 0,
-      })
-      if (error) { toast.error('Error al crear'); setSaving(false); return }
-      toast.success('Evento creado')
-    } else {
-      const { error } = await supabase.from('eventos').update(form).eq('id', eventoId)
-      if (error) { toast.error('Error al guardar'); setSaving(false); return }
-      toast.success('Evento actualizado')
-    }
+    const id = await persistir(form.estado ?? 'borrador')
+    setSaving(false)
+    if (!id) { toast.error(isNuevo ? 'Error al crear' : 'Error al guardar'); return }
+    toast.success(isNuevo ? 'Evento creado' : 'Evento actualizado')
+    router.push('/local-panel/eventos')
+  }
+
+  // "Completar ahora": guarda como borrador (no se pierde) y va al primer dato que falta.
+  const gateCompletar = async (ruta: string) => {
+    setShowGate(false)
+    setSaving(true)
+    const id = await persistir('borrador')
+    setSaving(false)
+    if (!id) { toast.error('No se pudo guardar el borrador'); return }
+    sessionStorage.setItem(INTENT_KEY, id)
+    router.push(ruta)
+  }
+
+  // "Volver al borrador": guarda como borrador y a la lista.
+  const gateBorrador = async () => {
+    setShowGate(false)
+    setSaving(true)
+    const id = await persistir('borrador')
+    setSaving(false)
+    if (!id) { toast.error('Error al guardar'); return }
+    setForm(f => ({ ...f, estado: 'borrador' }))
+    toast.success('Guardado como borrador')
     router.push('/local-panel/eventos')
   }
 
@@ -217,6 +269,16 @@ export default function EventoEditPage() {
           ))}
         </div>
       </div>
+
+      {/* Bloqueo suave al publicar */}
+      {showGate && local && (
+        <ModalTeFaltaPoco
+          faltantes={faltantesObligatorios(local)}
+          descripcion="Para publicar tu evento necesitas tener listo el local. Son minutos y sale perfecto."
+          onCompletar={gateCompletar}
+          onCerrar={gateBorrador}
+        />
+      )}
     </div>
   )
 }
