@@ -54,11 +54,18 @@ export default function LocalPanelDashboard() {
   const [tourActivo, setTourActivo] = useState(false)
   const [tourVisto, setTourVisto] = useState(true) // optimista: no parpadea si ya lo vio
 
-  // Auto-lanza el tour la primera vez (dueño/gestor); luego se relanza desde "Guía".
+  // Auto-lanza el tour la primera vez (dueño/gestor); recordatorio anti-spam si lleva días con pendientes.
   useEffect(() => {
     fetch('/api/onboarding').then(r => r.ok ? r.json() : null).then(d => {
-      if (d && typeof d.tourVisto === 'boolean') { setTourVisto(d.tourVisto); if (!d.tourVisto) setTourActivo(true) }
+      if (!d) return
+      if (typeof d.tourVisto === 'boolean') { setTourVisto(d.tourVisto); if (!d.tourVisto) setTourActivo(true) }
+      if (d.recordatorio) {
+        toast.conAccion(`Te falta ${String(d.recordatorio.paso).toLowerCase()}. 1 minuto y tu local sale mejor en el mapa.`,
+          { label: 'Ir', onClick: () => router.push('/local-panel/puesta-a-punto') }, 'warning')
+        fetch('/api/onboarding', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recordatorio: true }) }).catch(() => {})
+      }
     }).catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const cerrarTour = () => {
     setTourActivo(false)

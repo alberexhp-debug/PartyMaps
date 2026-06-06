@@ -40,15 +40,16 @@ async function onboardingLocal(db: SupabaseClient) {
   const localId = t.local_id
 
   const [localRes, equipo, productos, eventos, mesas, rrpp, est] = await Promise.all([
-    db.from('locales').select('nombre, direccion, latitud, longitud, tipo_local, musica, horario, imagenes, aforo_por_dia, aforo_maximo, reservas_activas').eq('id', localId).maybeSingle(),
+    db.from('locales').select('nombre, direccion, latitud, longitud, tipo_local, musica, horario, imagenes, aforo_por_dia, aforo_maximo, reservas_activas, created_at').eq('id', localId).maybeSingle(),
     db.from('usuario_local').select('id', { count: 'exact', head: true }).eq('local_id', localId),
     db.from('productos_local').select('id', { count: 'exact', head: true }).eq('local_id', localId).eq('disponible', true),
     db.from('eventos').select('id', { count: 'exact', head: true }).eq('local_id', localId).eq('estado', 'publicado'),
     db.from('mesas').select('id', { count: 'exact', head: true }).eq('local_id', localId).eq('activa', true),
     db.from('rrpp_venue').select('id', { count: 'exact', head: true }).eq('local_id', localId).in('estado', ['activa', 'pendiente']),
-    db.from('onboarding_estado').select('pasos_visitados, tour_visto_at').eq('perfil_tipo', perfil).eq('perfil_id', t.id).eq('local_id', localId).maybeSingle(),
+    db.from('onboarding_estado').select('pasos_visitados, tour_visto_at, recordatorios_enviados, ultimo_recordatorio_at').eq('perfil_tipo', perfil).eq('perfil_id', t.id).eq('local_id', localId).maybeSingle(),
   ])
 
+  const lo = (localRes.data ?? {}) as { created_at?: string }
   const ctx: OnboardingCtx = {
     local: localRes.data ?? {},
     equipoCount: equipo.count ?? 0,
@@ -58,7 +59,17 @@ async function onboardingLocal(db: SupabaseClient) {
     rrppCount: rrpp.count ?? 0,
     pasosVisitados: est.data?.pasos_visitados ?? [],
   }
-  return NextResponse.json({ ...resolverOnboarding(perfil, ctx), tourVisto: !!est.data?.tour_visto_at })
+  const r = resolverOnboarding(perfil, ctx)
+
+  // Recordatorio anti-spam (doc 01 §8): 7+ días con obligatorios pendientes, máx 1/7 días, máx 3.
+  const dias = (s?: string | null) => (s ? (Date.now() - new Date(s).getTime()) / 86400000 : Infinity)
+  const enviados = est.data?.recordatorios_enviados ?? 0
+  const cadenciaOk = !est.data?.ultimo_recordatorio_at || dias(est.data.ultimo_recordatorio_at) >= 7
+  const recordatorio = (r.obligatoriosPendientes > 0 && dias(lo.created_at) >= 7 && enviados < 3 && cadenciaOk)
+    ? { paso: r.pasos.find(p => p.tipo === 'obligatorio' && p.estado === 'pendiente')?.titulo ?? 'tus datos' }
+    : null
+
+  return NextResponse.json({ ...r, tourVisto: !!est.data?.tour_visto_at, recordatorio })
 }
 
 async function onboardingRrpp(db: SupabaseClient) {
@@ -112,26 +123,30 @@ export async function POST(req: NextRequest) {
   if (!t) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   if (t.rol !== 'dueno' && t.rol !== 'gestor') return NextResponse.json({ ok: true })
 
-  const body = await req.json().catch(() => null) as { paso?: string; tour?: boolean } | null
+  const body = await req.json().catch(() => null) as { paso?: string; tour?: boolean; recordatorio?: boolean } | null
   const paso = body?.paso?.trim()
   const marcaTour = body?.tour === true
-  if (!paso && !marcaTour) return NextResponse.json({ error: 'Falta el paso' }, { status: 400 })
+  const marcaRecordatorio = body?.recordatorio === true
+  if (!paso && !marcaTour && !marcaRecordatorio) return NextResponse.json({ error: 'Nada que marcar' }, { status: 400 })
 
   const db = createServiceRoleClient()
+  const ahora = new Date().toISOString()
   const { data: existing } = await db.from('onboarding_estado')
-    .select('id, pasos_visitados')
+    .select('id, pasos_visitados, recordatorios_enviados')
     .eq('perfil_tipo', t.rol).eq('perfil_id', t.id).eq('local_id', t.local_id)
     .maybeSingle()
 
   if (existing) {
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
+    const patch: Record<string, unknown> = { updated_at: ahora }
     if (paso && !existing.pasos_visitados.includes(paso)) patch.pasos_visitados = [...existing.pasos_visitados, paso]
-    if (marcaTour) patch.tour_visto_at = new Date().toISOString()
+    if (marcaTour) patch.tour_visto_at = ahora
+    if (marcaRecordatorio) { patch.recordatorios_enviados = (existing.recordatorios_enviados ?? 0) + 1; patch.ultimo_recordatorio_at = ahora }
     await db.from('onboarding_estado').update(patch).eq('id', existing.id)
   } else {
     await db.from('onboarding_estado').insert({
       perfil_tipo: t.rol, perfil_id: t.id, local_id: t.local_id,
-      pasos_visitados: paso ? [paso] : [], tour_visto_at: marcaTour ? new Date().toISOString() : null,
+      pasos_visitados: paso ? [paso] : [], tour_visto_at: marcaTour ? ahora : null,
+      recordatorios_enviados: marcaRecordatorio ? 1 : 0, ultimo_recordatorio_at: marcaRecordatorio ? ahora : null,
     })
   }
   return NextResponse.json({ ok: true })

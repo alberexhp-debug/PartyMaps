@@ -29,8 +29,10 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<GlobalStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'semana' | 'locales'>('semana')
+  const [onb, setOnb] = useState<{ total: number; completos: number; pct: number; faltaPorPaso: Record<string, number> } | null>(null)
 
   useEffect(() => { cargar() }, [])
+  useEffect(() => { fetch('/api/admin/onboarding-metricas').then(r => r.ok ? r.json() : null).then(d => { if (d && !d.error) setOnb(d) }).catch(() => {}) }, [])
 
   async function cargar() {
     const hoy = new Date()
@@ -150,6 +152,23 @@ export default function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      {/* Salud del onboarding de los locales (doc 01 §12) */}
+      {onb && onb.total > 0 && (
+        <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4">
+          <div className="flex items-end justify-between gap-3 mb-2">
+            <span className="text-[10px] text-[#8B8BA8] font-bold uppercase tracking-[0.15em]">Locales listos (obligatorios)</span>
+            <span className="text-2xl font-bold text-white text-numeric leading-none">{onb.pct}%</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
+            <div className="h-full rounded-full" style={{ width: `${onb.pct}%`, background: onb.pct >= 80 ? '#27AE60' : onb.pct >= 50 ? '#F39C12' : '#E94560' }} />
+          </div>
+          <p className="text-[11px] text-[#8B8BA8] mt-2">
+            {onb.completos}/{onb.total} con datos, horarios, fotos y aforo.
+            {Object.entries(onb.faltaPorPaso).sort((a, b) => b[1] - a[1])[0] && (() => { const top = Object.entries(onb.faltaPorPaso).sort((a, b) => b[1] - a[1])[0]; return ` Lo que más falta: ${top[0].toLowerCase()} (${top[1]}).` })()}
+          </p>
+        </div>
+      )}
 
       {/* Gráficas */}
       {!loading && stats && (
