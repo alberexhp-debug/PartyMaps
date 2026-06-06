@@ -47,7 +47,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     titulo: 'Audiencia',
     items: [
-      { zona: 'clientes',    href: '/local-panel/clientes',    icon: Contact,       label: 'Clientes' },
+      { zona: 'crm',         href: '/local-panel/crm',         icon: Contact,       label: 'CRM' },
       { zona: 'analytics',   href: '/local-panel/analytics',   icon: BarChart3,     label: 'Analítica' },
       { zona: 'reviews',     href: '/local-panel/reviews',     icon: Star,          label: 'Reseñas' },
       { zona: 'sugerencias', href: '/local-panel/sugerencias', icon: MessageSquare, label: 'Sugerencias' },

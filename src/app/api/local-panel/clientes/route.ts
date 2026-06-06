@@ -49,13 +49,20 @@ export async function GET(req: NextRequest) {
   const ids = [...agg.keys()]
   if (ids.length === 0) return NextResponse.json({ clientes: [] })
 
-  // 2) Datos de los usuarios + anotaciones del local.
-  const [{ data: usuarios }, anotaciones] = await Promise.all([
+  // 2) Datos de los usuarios + anotaciones del local + consentimiento vigente.
+  const mesActual = new Date().getMonth()
+  const [{ data: usuarios }, anotaciones, consentRes] = await Promise.all([
     db.from('usuarios').select('id, nombre, apellidos, fecha_nacimiento, foto_perfil_url, telefono').in('id', ids),
-    db.from('cliente_local').select('usuario_id, vip, notas').eq('local_id', t.local_id).in('usuario_id', ids)
-      .then(r => r.error ? { data: [] as { usuario_id: string; vip: boolean; notas: string | null }[] } : r),
+    db.from('cliente_local').select('usuario_id, vip, notas, etiquetas').eq('local_id', t.local_id).in('usuario_id', ids)
+      .then(r => r.error ? { data: [] as { usuario_id: string; vip: boolean; notas: string | null; etiquetas: string[] }[] } : r),
+    // Consentimiento vigente = última fila por usuario (histórico append-only). Tolera ausencia de la 038.
+    db.from('consentimientos_marketing').select('usuario_id, estado, created_at')
+      .eq('local_id', t.local_id).in('usuario_id', ids).order('created_at', { ascending: false })
+      .then(r => r.error ? { data: [] as { usuario_id: string; estado: string; created_at: string }[] } : r),
   ])
   const anota = new Map((anotaciones.data ?? []).map(a => [a.usuario_id, a]))
+  const consentVigente = new Map<string, string>()
+  for (const c of consentRes.data ?? []) if (!consentVigente.has(c.usuario_id)) consentVigente.set(c.usuario_id, c.estado)
 
   let clientes = (usuarios ?? []).map(u => {
     const a = agg.get(u.id)!
@@ -64,6 +71,7 @@ export async function GET(req: NextRequest) {
       usuario_id: u.id,
       nombre: [u.nombre, u.apellidos].filter(Boolean).join(' ') || 'Cliente',
       edad: u.fecha_nacimiento ? calcularEdad(u.fecha_nacimiento) : null,
+      cumple_mes: u.fecha_nacimiento ? new Date(u.fecha_nacimiento).getMonth() === mesActual : false,
       foto: u.foto_perfil_url ?? null,
       telefono: u.telefono ?? null,
       visitas: a.entradas_n + a.bar_n,
@@ -73,6 +81,8 @@ export async function GET(req: NextRequest) {
       ultima: a.ultima,
       vip: an?.vip ?? false,
       notas: an?.notas ?? null,
+      etiquetas: an?.etiquetas ?? [],
+      contactable: consentVigente.get(u.id) === 'acepta',
     }
   })
 
@@ -86,13 +96,14 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const t = await getTrabajadorLocal()
   if (!t || !GESTION.includes(t.rol)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  const body = await req.json().catch(() => null) as { usuario_id?: string; vip?: boolean; notas?: string } | null
+  const body = await req.json().catch(() => null) as { usuario_id?: string; vip?: boolean; notas?: string; etiquetas?: string[] } | null
   if (!body?.usuario_id) return NextResponse.json({ error: 'Falta usuario_id' }, { status: 400 })
 
   const db = createServiceRoleClient()
   const fila: Record<string, unknown> = { local_id: t.local_id, usuario_id: body.usuario_id, updated_at: new Date().toISOString() }
   if (typeof body.vip === 'boolean') fila.vip = body.vip
   if (body.notas !== undefined) fila.notas = String(body.notas).slice(0, 500) || null
+  if (Array.isArray(body.etiquetas)) fila.etiquetas = body.etiquetas.map(e => String(e).trim()).filter(Boolean).slice(0, 30)
 
   const { error } = await db.from('cliente_local').upsert(fila, { onConflict: 'local_id,usuario_id' })
   if (error) {
