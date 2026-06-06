@@ -83,3 +83,28 @@ export async function crearRrppDirecto(svc: SupabaseClient, input: AltaRrppInput
 
   return { ok: true, credenciales: { username, password }, rrpp }
 }
+
+/** Resetea la contraseña de un RRPP a una nueva por defecto (la cambiará en el
+ * próximo acceso). Devuelve las credenciales para entregárselas. service_role. */
+export async function resetPasswordRrpp(svc: SupabaseClient, rrppId: string):
+  Promise<{ ok: true; credenciales: { username: string; password: string } } | { ok: false; status: number; error: string }> {
+  const { data: rr } = await svc.from('rrpp').select('id, username, usuario_id').eq('id', rrppId).maybeSingle()
+  if (!rr) return { ok: false, status: 404, error: 'RRPP no encontrado' }
+  const { data: u } = await svc.from('usuarios').select('auth_id').eq('id', rr.usuario_id).maybeSingle()
+  if (!u?.auth_id) return { ok: false, status: 400, error: 'Este RRPP no tiene cuenta gestionable' }
+  const password = passwordPorDefecto()
+  const { error } = await svc.auth.admin.updateUserById(u.auth_id, { password })
+  if (error) return { ok: false, status: 500, error: 'No se pudo resetear la contraseña' }
+  await svc.from('rrpp').update({ debe_cambiar_password: true }).eq('id', rrppId)
+  return { ok: true, credenciales: { username: rr.username ?? '', password } }
+}
+
+/** Reinicia el authenticator de un RRPP: en su próximo acceso lo reconfigura. */
+export async function resetTotpRrpp(svc: SupabaseClient, rrppId: string):
+  Promise<{ ok: true } | { ok: false; status: number; error: string }> {
+  const { data: rr } = await svc.from('rrpp').select('id').eq('id', rrppId).maybeSingle()
+  if (!rr) return { ok: false, status: 404, error: 'RRPP no encontrado' }
+  await svc.from('rrpp_totp').delete().eq('rrpp_id', rrppId)
+  await svc.from('rrpp').update({ totp_activado: false }).eq('id', rrppId)
+  return { ok: true }
+}

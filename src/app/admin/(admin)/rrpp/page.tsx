@@ -1,12 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Sparkles, UserPlus, Search, Copy, Check, ShieldOff, Shield, EyeOff, Eye, ExternalLink, Mail } from 'lucide-react'
+import { Sparkles, UserPlus, Search, Copy, Check, ShieldOff, Shield, EyeOff, Eye, ExternalLink, Mail, KeyRound, RotateCcw } from 'lucide-react'
 import { CredencialesModal } from '@/components/local-panel/CredencialesModal'
 import { normalizarUsername, esUsernameValido } from '@/lib/equipo'
 
 type Usuario = { id: string; nombre: string; telefono: string | null; foto_perfil_url: string | null }
 type RRPP = {
   id: string; slug: string; nombre_publico: string; foto_url: string | null;
+  username: string | null;
   bio: string | null; instagram: string | null; tiktok: string | null;
   activo: boolean; visible_en_busqueda: boolean;
   estado_alta: 'invitado' | 'completo';
@@ -35,6 +36,7 @@ export default function AdminRRPP() {
   const [invitaciones, setInvitaciones] = useState<Invitacion[]>([])
   const [loading, setLoading] = useState(true)
   const [showCrear, setShowCrear] = useState(false)
+  const [credReset, setCredReset] = useState<{ username: string; password: string } | null>(null)
 
   useEffect(() => { void cargar() }, [q, filtroEstado])
 
@@ -66,6 +68,26 @@ export default function AdminRRPP() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ visible_en_busqueda: !r.visible_en_busqueda }),
     })
+    void cargar()
+  }
+
+  async function resetPassword(r: RRPP) {
+    if (!confirm(`¿Generar una nueva contraseña por defecto para ${r.nombre_publico}? La actual dejará de funcionar.`)) return
+    const res = await fetch('/api/admin/rrpp/reset-password', {
+      method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rrpp_id: r.id }),
+    })
+    const j = await res.json().catch(() => ({}))
+    if (!res.ok) { alert(j.error || 'No se pudo resetear'); return }
+    if (j.credenciales) setCredReset(j.credenciales)
+  }
+  async function resetTotp(r: RRPP) {
+    if (!confirm(`¿Reiniciar el authenticator de ${r.nombre_publico}? En su próximo acceso volverá a configurarlo.`)) return
+    const res = await fetch('/api/admin/rrpp/reset-totp', {
+      method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rrpp_id: r.id }),
+    })
+    if (!res.ok) { alert('No se pudo reiniciar'); return }
     void cargar()
   }
 
@@ -167,6 +189,16 @@ export default function AdminRRPP() {
                       title={r.activo ? 'Suspender' : 'Reactivar'}>
                       {r.activo ? <Shield className="w-4 h-4" /> : <ShieldOff className="w-4 h-4" />}
                     </button>
+                    {r.username && (
+                      <>
+                        <button onClick={() => resetPassword(r)} className="p-2 rounded-lg hover:bg-white/5 text-[#A0A0B8]" title="Resetear contraseña">
+                          <KeyRound className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => resetTotp(r)} className="p-2 rounded-lg hover:bg-white/5 text-[#A0A0B8]" title="Reiniciar authenticator">
+                          <RotateCcw className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </li>
               ))}
@@ -181,6 +213,9 @@ export default function AdminRRPP() {
 
       {showCrear && (
         <ModalCrear onClose={() => setShowCrear(false)} onCreado={() => { setShowCrear(false); void cargar() }} />
+      )}
+      {credReset && (
+        <CredencialesModal titulo="Nueva contraseña del RRPP" username={credReset.username} password={credReset.password} onClose={() => setCredReset(null)} />
       )}
     </div>
   )
