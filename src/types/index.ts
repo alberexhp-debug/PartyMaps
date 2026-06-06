@@ -597,6 +597,14 @@ export interface RRPP {
   edad_declarada_18: boolean
   created_at: string
   updated_at: string
+  // Invitación/estado (migración 020)
+  estado_alta?: 'invitado' | 'completo'
+  visible_en_busqueda?: boolean
+  // Alta directa con credenciales (migración 037)
+  username?: string | null
+  email_contacto?: string | null
+  totp_activado?: boolean
+  debe_cambiar_password?: boolean
 }
 
 /**

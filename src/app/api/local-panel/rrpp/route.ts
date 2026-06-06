@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminSupabaseClient } from '@/lib/supabase/server'
+import { createAdminSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { getTrabajadorLocal } from '@/lib/rrpp/auth'
+import { crearRrppDirecto } from '@/lib/rrpp/crear'
 import { enviarPushARRPP } from '@/lib/push'
 
 const ROLES_GESTION = ['dueno', 'gestor'] as const
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => null) as Partial<{
+    crear_cuenta: boolean; username: string; email_contacto: string;
     rrpp_slug: string; rrpp_id: string;
     email: string; nombre: string; telefono: string; mensaje: string;
     comision_pct: number; tope_por_venta: number;
@@ -72,6 +74,17 @@ export async function POST(req: NextRequest) {
   }> | null
 
   if (!body) return NextResponse.json({ error: 'body vacío' }, { status: 400 })
+
+  // ── Modo 0: alta directa de un RRPP nuevo (cuenta + credenciales) ──────
+  if (body.crear_cuenta) {
+    const res = await crearRrppDirecto(createServiceRoleClient(), {
+      nombre: body.nombre || '', username: body.username || '', email_contacto: body.email_contacto || null,
+      invitadoPorLocalId: t.local_id, localId: t.local_id,
+      comisionPct: body.comision_pct ?? 0, topePorVenta: body.tope_por_venta ?? null,
+    })
+    if (!res.ok) return NextResponse.json({ error: res.error }, { status: res.status })
+    return NextResponse.json({ ok: true, credenciales: res.credenciales, rrpp: res.rrpp, creada: true })
+  }
 
   const admin = await createAdminSupabaseClient()
   const triggers = body.triggers_activos ?? {

@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Sparkles, UserPlus, Search, Copy, Check, ShieldOff, Shield, EyeOff, Eye, ExternalLink, Mail } from 'lucide-react'
+import { CredencialesModal } from '@/components/local-panel/CredencialesModal'
+import { normalizarUsername, esUsernameValido } from '@/lib/equipo'
 
 type Usuario = { id: string; nombre: string; telefono: string | null; foto_perfil_url: string | null }
 type RRPP = {
@@ -223,38 +225,33 @@ function InvitacionesList({ invitaciones, loading }: { invitaciones: Invitacion[
 }
 
 function ModalCrear({ onClose, onCreado }: { onClose: () => void; onCreado: () => void }) {
-  const [email, setEmail] = useState('')
   const [nombre, setNombre] = useState('')
-  const [mensaje, setMensaje] = useState('')
-  const [link, setLink] = useState<string | null>(null)
-  const [copiado, setCopiado] = useState(false)
+  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
+  const [cred, setCred] = useState<{ username: string; password: string } | null>(null)
+  const userNorm = normalizarUsername(username)
 
   async function crear() {
-    setError(null); setEnviando(true); setLink(null)
+    if (!nombre.trim()) { setError('Pon el nombre'); return }
+    if (!esUsernameValido(userNorm)) { setError('Usuario no válido: 3-30 caracteres (letras, números, . _ -)'); return }
+    setError(null); setEnviando(true)
     const r = await fetch('/api/admin/rrpp', {
       method: 'POST', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: email.trim().toLowerCase(),
-        nombre: nombre.trim() || undefined,
-        mensaje: mensaje.trim() || undefined,
+        crear_cuenta: true, nombre: nombre.trim(), username: userNorm,
+        email_contacto: email.trim().toLowerCase() || undefined,
       }),
     })
     const j = await r.json()
     setEnviando(false)
     if (!r.ok) { setError(j.error || 'Error'); return }
-    if (j.link_invitacion) setLink(j.link_invitacion)
-    else onCreado()
+    if (j.credenciales) setCred(j.credenciales)
   }
 
-  async function copiar() {
-    if (!link) return
-    await navigator.clipboard.writeText(link)
-    setCopiado(true)
-    setTimeout(() => setCopiado(false), 1500)
-  }
+  if (cred) return <CredencialesModal titulo="Acceso del RRPP" username={cred.username} password={cred.password} onClose={onCreado} />
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
@@ -263,57 +260,35 @@ function ModalCrear({ onClose, onCreado }: { onClose: () => void; onCreado: () =
           <h3 className="text-xl font-bold text-white">Dar de alta RRPP (free agent)</h3>
           <button onClick={onClose} className="text-xs text-[#A0A0B8] hover:text-white">Cerrar</button>
         </div>
-
-        {link ? (
-          <>
-            <p className="text-sm text-[#A0A0B8]">
-              Invitación creada para <strong className="text-white">{email}</strong>. Sin local asignado, queda como
-              free agent hasta que un venue lo invite. Comparte este link con la persona:
+        <p className="text-xs text-[#6B6B85]">
+          El RRPP nace sin local asociado. Entrará con usuario + contraseña y configurará su authenticator en
+          el primer acceso. Cuando un venue lo invite, empezará a trabajar.
+        </p>
+        <label className="block">
+          <span className="text-xs uppercase tracking-wider text-[#A0A0B8] font-semibold">Nombre *</span>
+          <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Leo García"
+            className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-[#6B6B85]" />
+        </label>
+        <label className="block">
+          <span className="text-xs uppercase tracking-wider text-[#A0A0B8] font-semibold">Nombre de usuario *</span>
+          <input value={username} onChange={e => setUsername(e.target.value)} placeholder="leo.noches" autoComplete="off"
+            className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-[#6B6B85]" />
+          {username && (
+            <p className={`mt-1 text-xs ${esUsernameValido(userNorm) ? 'text-[#6B6B85]' : 'text-amber-300'}`}>
+              {esUsernameValido(userNorm) ? <>Usuario: <span className="font-mono text-white">{userNorm}</span></> : '3-30 caracteres: letras, números, . _ -'}
             </p>
-            <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-2">
-              <code className="text-xs text-[#A0A0B8] break-all flex-1">{link}</code>
-              <button onClick={copiar}
-                className="px-2 py-1.5 rounded-lg hover:bg-white/5 text-xs text-[#A0A0B8] inline-flex items-center gap-1 shrink-0">
-                {copiado ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                {copiado ? 'Copiado' : 'Copiar'}
-              </button>
-            </div>
-            <button onClick={onCreado}
-              className="w-full py-2.5 rounded-xl bg-[#4F8EF7] text-white font-semibold text-sm">
-              Listo
-            </button>
-          </>
-        ) : (
-          <>
-            <p className="text-xs text-[#6B6B85]">
-              El RRPP nace sin local asociado. Cuando una discoteca lo invite o él se ofrezca por su slug,
-              empezará a trabajar. La cuota legal de Rumbo es cero — solo facilitamos el contacto.
-            </p>
-            <label className="block">
-              <span className="text-xs uppercase tracking-wider text-[#A0A0B8] font-semibold">Email *</span>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="leo@example.com"
-                className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-[#6B6B85]" />
-            </label>
-            <label className="block">
-              <span className="text-xs uppercase tracking-wider text-[#A0A0B8] font-semibold">Nombre</span>
-              <input value={nombre} onChange={e => setNombre(e.target.value)}
-                placeholder="Leo García"
-                className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-[#6B6B85]" />
-            </label>
-            <label className="block">
-              <span className="text-xs uppercase tracking-wider text-[#A0A0B8] font-semibold">Mensaje (opcional)</span>
-              <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} rows={2}
-                placeholder="Bienvenido a Rumbo como RRPP..."
-                className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-[#6B6B85]" />
-            </label>
-            {error && <p className="text-rose-300 text-sm">{error}</p>}
-            <button onClick={crear} disabled={!email || enviando}
-              className="w-full py-2.5 rounded-xl bg-[#4F8EF7] text-white font-semibold text-sm disabled:opacity-50">
-              {enviando ? 'Creando...' : 'Crear invitación'}
-            </button>
-          </>
-        )}
+          )}
+        </label>
+        <label className="block">
+          <span className="text-xs uppercase tracking-wider text-[#A0A0B8] font-semibold">Email de contacto (opcional)</span>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="leo@example.com"
+            className="mt-1 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-[#6B6B85]" />
+        </label>
+        {error && <p className="text-rose-300 text-sm">{error}</p>}
+        <button onClick={crear} disabled={!nombre || !username || enviando}
+          className="w-full py-2.5 rounded-xl bg-[#4F8EF7] text-white font-semibold text-sm disabled:opacity-50">
+          {enviando ? 'Creando...' : 'Dar de alta RRPP'}
+        </button>
       </div>
     </div>
   )

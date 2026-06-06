@@ -9,6 +9,7 @@ import {
   Megaphone, Plus, Search, Mail, Store, ChevronDown,
   Check, Copy, X, AtSign, Percent, Pause, Play, UserPlus,
 } from 'lucide-react'
+import { normalizarUsername, esUsernameValido } from '@/lib/equipo'
 
 type LocalMin = { id: string; nombre: string; ciudad: string }
 type Relacion = {
@@ -308,19 +309,21 @@ function InvitarModal({ localId, onClose, onHecho }: { localId: string; onClose:
 function AltaRrppModal({ localId, onClose, onHecho }: { localId: string; onClose: () => void; onHecho: () => void }) {
   const toast = useToast()
   const [nombre, setNombre] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [comision, setComision] = useState('10')
   const [guardando, setGuardando] = useState(false)
-  const [cred, setCred] = useState<{ email: string; password: string } | null>(null)
+  const [cred, setCred] = useState<{ username: string; password: string } | null>(null)
   const [copiado, setCopiado] = useState(false)
+  const userNorm = normalizarUsername(username)
 
   const crear = async () => {
     if (!nombre.trim()) { toast.error('Pon el nombre del RRPP'); return }
-    if (!email.trim()) { toast.error('Pon el email'); return }
+    if (!esUsernameValido(userNorm)) { toast.error('Usuario no válido: 3-30 caracteres (letras, números, . _ -)'); return }
     setGuardando(true)
     const res = await fetch('/api/gestor/rrpp', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ local_id: localId, crear_cuenta: true, nombre, email, comision_pct: Number(comision) }),
+      body: JSON.stringify({ local_id: localId, crear_cuenta: true, nombre, username: userNorm, email: email.trim().toLowerCase() || undefined, comision_pct: Number(comision) }),
     })
     const d = await res.json()
     setGuardando(false)
@@ -332,7 +335,7 @@ function AltaRrppModal({ localId, onClose, onHecho }: { localId: string; onClose
 
   const copiar = () => {
     if (!cred) return
-    navigator.clipboard.writeText(`Acceso RRPP Rumbo\nEmail: ${cred.email}\nContraseña: ${cred.password}\nEntra en: ${location.origin}/rrpp/login`)
+    navigator.clipboard.writeText(`Acceso RRPP Rumbo\nUsuario: ${cred.username}\nContraseña: ${cred.password}\nEntra en: ${location.origin}/rrpp/login`)
     setCopiado(true); setTimeout(() => setCopiado(false), 2000)
   }
 
@@ -341,9 +344,9 @@ function AltaRrppModal({ localId, onClose, onHecho }: { localId: string; onClose
       {cred ? (
         <div className="space-y-4 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-500/15 text-green-400"><Check size={26} /></div>
-          <p className="text-sm text-[#A0A0B8]">Entrega estas credenciales al RRPP. Que cambie la contraseña al entrar.</p>
+          <p className="text-sm text-[#A0A0B8]">Entrega estas credenciales al RRPP. Cambiará la contraseña y configurará su authenticator en el primer acceso.</p>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-sm text-white">
-            <div className="flex items-center gap-2"><Mail size={14} className="text-[#9B82FF]" /> {cred.email}</div>
+            <div className="flex items-center gap-2"><AtSign size={14} className="text-[#9B82FF]" /> {cred.username}</div>
             <div className="mt-2 font-mono">{cred.password}</div>
           </div>
           <div className="flex gap-2">
@@ -354,7 +357,9 @@ function AltaRrppModal({ localId, onClose, onHecho }: { localId: string; onClose
       ) : (
         <div className="space-y-4">
           <Input label="Nombre del RRPP" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre público" />
-          <Input label="Email del RRPP" type="email" icon={<Mail size={16} />} value={email} onChange={e => setEmail(e.target.value)} placeholder="rrpp@email.com" />
+          <Input label="Nombre de usuario" icon={<AtSign size={16} />} value={username} onChange={e => setUsername(e.target.value)} placeholder="leo.noches"
+            hint={username && esUsernameValido(userNorm) ? `Entrará con: ${userNorm}` : 'Con el que iniciará sesión'} />
+          <Input label="Email de contacto (opcional)" type="email" icon={<Mail size={16} />} value={email} onChange={e => setEmail(e.target.value)} placeholder="rrpp@email.com" />
           <Input label="Comisión (%)" type="number" icon={<Percent size={16} />} value={comision} onChange={e => setComision(e.target.value)} hint="Queda vinculado y activo en este local con esta comisión." />
           <Button fullWidth size="lg" loading={guardando} onClick={crear}>Crear RRPP</Button>
         </div>

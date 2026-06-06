@@ -28,6 +28,13 @@ export function emailSinteticoDeUsuario(username: string): string {
   return `${normalizarUsername(username)}@${DOMINIO_TRABAJADOR}`
 }
 
+/** Dominio interno para los emails sintéticos de los RRPP. */
+export const DOMINIO_RRPP = 'rrpp.rumbomap.com'
+/** Email sintético interno del RRPP a partir del nombre de usuario. */
+export function emailSinteticoRrpp(username: string): string {
+  return `${normalizarUsername(username)}@${DOMINIO_RRPP}`
+}
+
 /** ¿Lo que ha tecleado parece un email "de verdad" (dueño) y no un usuario? */
 export function pareceEmail(s: string): boolean {
   return s.includes('@')

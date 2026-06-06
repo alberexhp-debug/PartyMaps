@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react'
 import { Sparkles, UserPlus, Pause, Play, Archive, ExternalLink, Search, Mail, Copy, Check, MessageCircle, Percent, Handshake, X } from 'lucide-react'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { PagosRRPP } from '@/components/local-panel/PagosRRPP'
+import { CredencialesModal } from '@/components/local-panel/CredencialesModal'
 import { CATEGORIAS_DESCUENTO, LABEL_CATEGORIA, type CategoriaDescuento } from '@/lib/rrppCodigos'
+import { normalizarUsername, esUsernameValido } from '@/lib/equipo'
 
 // Tipos relajados para no atar a la forma exacta del join del endpoint
 type Relacion = {
@@ -548,84 +550,64 @@ function TabBuscar({ onCreado, onContactar }: { onCreado: () => void; onContacta
 }
 
 function TabCrear({ onCreado }: { onCreado: () => void }) {
-  const [email, setEmail] = useState('')
   const [nombre, setNombre] = useState('')
-  const [telefono, setTelefono] = useState('')
+  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [comision, setComision] = useState(10)
   const [tope, setTope] = useState<number | ''>('')
-  const [mensaje, setMensaje] = useState('')
-  const [linkInvitacion, setLinkInvitacion] = useState<string | null>(null)
-  const [via, setVia] = useState<'usuario_existente' | 'nuevo_lead' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
-  const [copiado, setCopiado] = useState(false)
+  const [cred, setCred] = useState<{ username: string; password: string } | null>(null)
+  const userNorm = normalizarUsername(username)
 
   async function enviar() {
-    setError(null); setSending(true); setLinkInvitacion(null)
+    if (!nombre.trim()) { setError('Pon el nombre del RRPP'); return }
+    if (!esUsernameValido(userNorm)) { setError('Usuario no válido: 3-30 caracteres (letras, números, . _ -)'); return }
+    setError(null); setSending(true)
     const r = await fetch('/api/local-panel/rrpp', {
       method: 'POST', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: email.trim().toLowerCase(),
-        nombre: nombre.trim() || undefined,
-        telefono: telefono.trim() || undefined,
+        crear_cuenta: true,
+        nombre: nombre.trim(), username: userNorm,
+        email_contacto: email.trim().toLowerCase() || undefined,
         comision_pct: comision,
         tope_por_venta: tope === '' ? null : tope,
-        mensaje: mensaje.trim() || undefined,
       }),
     })
     const j = await r.json()
     setSending(false)
     if (!r.ok) { setError(j.error || 'Error'); return }
-    setVia(j.via ?? null)
-    if (j.link_invitacion) setLinkInvitacion(j.link_invitacion)
-    if (!j.link_invitacion) onCreado()  // si era usuario existente, ya está
+    if (j.credenciales) setCred(j.credenciales)
   }
 
-  async function copiarLink() {
-    if (!linkInvitacion) return
-    await navigator.clipboard.writeText(linkInvitacion)
-    setCopiado(true)
-    setTimeout(() => setCopiado(false), 1500)
-  }
-
-  if (linkInvitacion) {
-    return (
-      <div className="space-y-3">
-        <p className="text-sm">
-          Invitación creada para <strong>{email}</strong>. Comparte este link por WhatsApp:
-        </p>
-        <div className="card-premium p-3 flex items-center gap-2">
-          <code className="text-xs text-secondary break-all flex-1">{linkInvitacion}</code>
-          <button onClick={copiarLink} className="btn-ghost text-xs inline-flex items-center gap-1 shrink-0">
-            {copiado ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            {copiado ? 'Copiado' : 'Copiar'}
-          </button>
-        </div>
-        <p className="text-tertiary text-xs">
-          Expira en 30 días. Cuando la persona lo acepte aparecerá automáticamente en tu lista.
-        </p>
-        <button onClick={onCreado} className="btn-primary w-full">Listo</button>
-      </div>
-    )
+  if (cred) {
+    return <CredencialesModal titulo="Acceso del RRPP" username={cred.username} password={cred.password} onClose={onCreado} />
   }
 
   return (
     <div className="space-y-3">
       <label className="block">
-        <span className="text-xs eyebrow eyebrow-rose">Email *</span>
-        <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-          placeholder="leo@example.com" className="input mt-1 w-full" />
-      </label>
-      <label className="block">
-        <span className="text-xs eyebrow eyebrow-rose">Nombre</span>
+        <span className="text-xs eyebrow eyebrow-rose">Nombre *</span>
         <input value={nombre} onChange={e => setNombre(e.target.value)}
           placeholder="Leo García" className="input mt-1 w-full" />
       </label>
       <label className="block">
-        <span className="text-xs eyebrow eyebrow-rose">Teléfono (opcional)</span>
-        <input value={telefono} onChange={e => setTelefono(e.target.value)}
-          placeholder="+34 666 ..." className="input mt-1 w-full" />
+        <span className="text-xs eyebrow eyebrow-rose">Nombre de usuario *</span>
+        <input value={username} onChange={e => setUsername(e.target.value)}
+          placeholder="leo.noches" autoComplete="off" className="input mt-1 w-full" />
+        {username && (
+          <p className={`mt-1 text-xs ${esUsernameValido(userNorm) ? 'text-tertiary' : 'text-amber-300'}`}>
+            {esUsernameValido(userNorm)
+              ? <>Entrará con el usuario <span className="font-mono text-white">{userNorm}</span></>
+              : 'Usa 3-30 caracteres: letras, números, punto, guion o guion bajo'}
+          </p>
+        )}
+      </label>
+      <label className="block">
+        <span className="text-xs eyebrow eyebrow-rose">Email de contacto (opcional)</span>
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+          placeholder="leo@example.com" className="input mt-1 w-full" />
       </label>
       <div className="grid grid-cols-2 gap-2">
         <label className="block">
@@ -641,19 +623,13 @@ function TabCrear({ onCreado }: { onCreado: () => void }) {
             placeholder="sin tope" className="input mt-1 w-full" />
         </label>
       </div>
-      <label className="block">
-        <span className="text-xs eyebrow eyebrow-rose">Mensaje (opcional)</span>
-        <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} rows={2}
-          placeholder="Hola Leo, te invito a llevar nuestras fiestas..."
-          className="input mt-1 w-full" />
-      </label>
       {error && <p className="text-rose-300 text-sm">{error}</p>}
-      <button onClick={enviar} disabled={!email || sending} className="btn-primary w-full">
-        {sending ? 'Procesando...' : 'Crear invitación'}
+      <button onClick={enviar} disabled={!nombre || !username || sending} className="btn-primary w-full">
+        {sending ? 'Creando...' : 'Dar de alta RRPP'}
       </button>
-      {via === 'usuario_existente' && (
-        <p className="text-emerald-300 text-xs">Esta persona ya está en Rumbo. Le ha llegado la invitación a su panel.</p>
-      )}
+      <p className="text-tertiary text-xs">
+        Se genera una contraseña por defecto. El RRPP la cambiará y configurará su authenticator en el primer acceso.
+      </p>
     </div>
   )
 }
