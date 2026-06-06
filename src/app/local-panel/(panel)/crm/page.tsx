@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import {
   Users, Repeat, Coins, AlertCircle, Search, Star, X, Ticket, Beer, Wallet, Clock,
   Phone, Save, Lock, Mail, Download, ChevronRight, Plus, Send, Trash2, ArrowLeft,
-  ShieldCheck, FileText, Upload,
+  ShieldCheck, FileText, Upload, MessageCircle, Copy,
 } from 'lucide-react'
 import type { ClienteCRM as Cliente } from '@/lib/crm/clientes'
 import {
@@ -462,10 +462,23 @@ function ContratoPendiente({ onIrAjustes }: { onIrAjustes: () => void }) {
 }
 
 function SegmentoDetalle({ seg, clientes, onVolver }: { seg: SegmentoDef; clientes: Cliente[]; onVolver: () => void }) {
+  const toast = useToast()
   const [exportar, setExportar] = useState(false)
   const [push, setPush] = useState(false)
+  const [whats, setWhats] = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
   const lista = aplicarSegmento(clientes, seg.filtros)
   const contactables = lista.filter(c => c.contactable).length
+
+  async function syncBrevo() {
+    setEmailLoading(true)
+    const r = await fetch('/api/local-panel/crm/integraciones/brevo/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filtros: seg.filtros, segmento_nombre: seg.nombre }) })
+    const j = await r.json().catch(() => ({}))
+    setEmailLoading(false)
+    if (!r.ok) { toast.error(j.error || 'No se pudo sincronizar'); return }
+    toast.success(`${j.importados} contactos sincronizados a Brevo. Envía la campaña desde Brevo.`)
+  }
+
   return (
     <div className="space-y-3 max-w-3xl">
       <button onClick={onVolver} className="inline-flex items-center gap-1.5 text-sm text-[#8B8BA8] hover:text-white"><ArrowLeft size={15} /> Segmentos</button>
@@ -476,9 +489,11 @@ function SegmentoDetalle({ seg, clientes, onVolver }: { seg: SegmentoDef; client
           <p className="text-xs text-[#8B8BA8]">{lista.length} clientes · {contactables} contactables</p>
         </div>
       </div>
-      <div className="flex gap-2">
-        <button onClick={() => setPush(true)} disabled={contactables === 0} className="flex-1 btn-primary inline-flex items-center justify-center gap-1.5 disabled:opacity-50"><Send size={14} /> Push</button>
-        <button onClick={() => setExportar(true)} className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 rounded-xl border border-white/10 text-sm text-white hover:bg-white/5"><Download size={14} /> Exportar</button>
+      <div className="flex gap-2 flex-wrap">
+        <button onClick={() => setPush(true)} disabled={contactables === 0} className="flex-1 min-w-[100px] btn-primary inline-flex items-center justify-center gap-1.5 disabled:opacity-50"><Send size={14} /> Push</button>
+        <button onClick={() => setWhats(true)} disabled={contactables === 0} className="flex-1 min-w-[100px] inline-flex items-center justify-center gap-1.5 h-10 rounded-xl border border-[#27AE60]/30 bg-[#27AE60]/10 text-sm text-[#27AE60] hover:bg-[#27AE60]/15 disabled:opacity-50"><MessageCircle size={14} /> WhatsApp</button>
+        <button onClick={syncBrevo} disabled={emailLoading || contactables === 0} className="flex-1 min-w-[100px] inline-flex items-center justify-center gap-1.5 h-10 rounded-xl border border-[#4F8EF7]/30 bg-[#4F8EF7]/10 text-sm text-[#4F8EF7] hover:bg-[#4F8EF7]/15 disabled:opacity-50"><Mail size={14} /> {emailLoading ? 'Sync…' : 'Email'}</button>
+        <button onClick={() => setExportar(true)} className="flex-1 min-w-[100px] inline-flex items-center justify-center gap-1.5 h-10 rounded-xl border border-white/10 text-sm text-white hover:bg-white/5"><Download size={14} /> Exportar</button>
       </div>
       <div className="space-y-2">
         {lista.map(c => (
@@ -492,6 +507,40 @@ function SegmentoDetalle({ seg, clientes, onVolver }: { seg: SegmentoDef; client
       </div>
       {exportar && <ExportModal filtros={seg.filtros} onClose={() => setExportar(false)} />}
       {push && <PushModal filtros={seg.filtros} nombre={seg.nombre} contactables={contactables} onClose={() => setPush(false)} />}
+      {whats && <WhatsAppModal contactables={lista.filter(c => c.contactable && !!c.telefono)} nombre={seg.nombre} onClose={() => setWhats(false)} />}
+    </div>
+  )
+}
+
+// WhatsApp manual (doc 02 §7, decisión 2): wa.me uno a uno + plantilla copiada. Sin API, sin coste.
+function WhatsAppModal({ contactables, nombre, onClose }: { contactables: Cliente[]; nombre: string; onClose: () => void }) {
+  const toast = useToast()
+  const [plantilla, setPlantilla] = useState(`¡Hola! Te escribimos de tu local. Tenemos algo para ti esta semana 🎉`)
+  const waLink = (tel: string) => {
+    const num = tel.replace(/[^\d]/g, '')
+    return `https://wa.me/${num}?text=${encodeURIComponent(plantilla)}`
+  }
+  const copiar = async () => { try { await navigator.clipboard.writeText(plantilla); toast.success('Plantilla copiada') } catch { toast.error('No se pudo copiar') } }
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
+      <div className="card-premium w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1"><p className="font-bold text-white text-display">WhatsApp · «{nombre}»</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
+        <p className="text-xs text-[#8B8BA8] mb-3">{contactables.length} contactables con teléfono. Uno a uno: copia la plantilla y abre cada chat.</p>
+        <textarea value={plantilla} onChange={e => setPlantilla(e.target.value.slice(0, 300))} rows={3}
+          className="w-full rounded-xl bg-white/5 border border-white/10 text-sm text-white px-3.5 py-2.5 outline-none resize-none placeholder:text-[#6B6B85]" />
+        <button onClick={copiar} className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#4F8EF7] hover:underline"><Copy size={12} /> Copiar plantilla</button>
+        <div className="mt-3 space-y-1.5 max-h-[40vh] overflow-y-auto">
+          {contactables.map(c => (
+            <a key={c.usuario_id} href={waLink(c.telefono!)} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-xl bg-white/[0.03] border border-white/[0.07] px-3 py-2.5 hover:bg-white/[0.06] transition-colors">
+              <span className="w-8 h-8 rounded-full bg-[#27AE60]/15 flex items-center justify-center shrink-0"><MessageCircle size={14} className="text-[#27AE60]" /></span>
+              <div className="flex-1 min-w-0"><p className="text-sm text-white truncate">{c.nombre}</p><p className="text-[11px] text-[#8B8BA8]">{c.telefono}</p></div>
+              <span className="text-xs text-[#27AE60] shrink-0">Abrir →</span>
+            </a>
+          ))}
+          {contactables.length === 0 && <p className="text-center text-[#8B8BA8] py-4 text-sm">Ningún contactable con teléfono.</p>}
+        </div>
+      </div>
     </div>
   )
 }
@@ -701,14 +750,8 @@ function AjustesTab() {
         </div>
       </SectionCard>
 
-      {/* Integraciones (Brevo) e importación — llegan en PR-12/15 */}
-      <SectionCard>
-        <div className="flex items-center gap-3">
-          <span className="w-9 h-9 rounded-xl bg-[#4F8EF7]/15 border border-[#4F8EF7]/25 flex items-center justify-center"><Mail size={16} className="text-[#4F8EF7]" /></span>
-          <div className="flex-1"><p className="text-sm font-semibold text-white">Email (Brevo)</p><p className="text-xs text-[#8B8BA8]">Conecta tu cuenta para sincronizar segmentos.</p></div>
-          <span className="text-[11px] text-[#8B8BA8]">Próximamente</span>
-        </div>
-      </SectionCard>
+      {/* Integraciones: Brevo (email/SMS). Importación llega en PR-15. */}
+      <BrevoCard />
       <SectionCard>
         <div className="flex items-center gap-3">
           <span className="w-9 h-9 rounded-xl bg-[#4F8EF7]/15 border border-[#4F8EF7]/25 flex items-center justify-center"><Upload size={16} className="text-[#4F8EF7]" /></span>
@@ -752,6 +795,61 @@ function ContratoModal({ onClose, onAceptado }: { onClose: () => void; onAceptad
         <div className="flex items-center justify-between mb-3"><p className="font-bold text-white text-display">Contrato de encargo</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
         <pre className="text-[12px] text-[#B8B8CC] whitespace-pre-wrap font-sans leading-relaxed rounded-xl glass-subtle p-4 max-h-[50vh] overflow-y-auto">{CONTRATO_ENCARGO_TXT}</pre>
         <button onClick={aceptar} disabled={aceptando} className="mt-4 w-full btn-primary inline-flex items-center justify-center gap-2"><ShieldCheck size={16} /> {aceptando ? 'Registrando…' : 'Acepto el contrato de encargo'}</button>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────── Brevo (Ajustes) ───────────────────────────
+function BrevoCard() {
+  const toast = useToast()
+  const [estado, setEstado] = useState<{ estado: string; cuenta: string | null; ultima_sync: string | null } | null>(null)
+  const [modal, setModal] = useState(false)
+  const cargar = useCallback(() => { fetch('/api/local-panel/crm/integraciones/brevo').then(r => r.ok ? r.json() : null).then(d => { if (d) setEstado(d) }).catch(() => {}) }, [])
+  useEffect(() => { cargar() }, [cargar])
+  const conectada = estado?.estado === 'conectada'
+  const desconectar = async () => { await fetch('/api/local-panel/crm/integraciones/brevo', { method: 'DELETE' }); toast.info('Brevo desconectado'); cargar() }
+  return (
+    <SectionCard>
+      <div className="flex items-center gap-3">
+        <span className="w-9 h-9 rounded-xl bg-[#4F8EF7]/15 border border-[#4F8EF7]/25 flex items-center justify-center"><Mail size={16} className="text-[#4F8EF7]" /></span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white flex items-center gap-2">
+            Email / SMS (Brevo)
+            {conectada && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#27AE60]/15 text-[#27AE60] border border-[#27AE60]/25">Conectada</span>}
+          </p>
+          <p className="text-xs text-[#8B8BA8] truncate">{conectada ? (estado?.cuenta || 'Cuenta conectada') : 'Conecta tu cuenta para sincronizar segmentos.'}</p>
+        </div>
+        {conectada
+          ? <button onClick={desconectar} className="text-xs text-[#8B8BA8] hover:text-[#E94560] shrink-0">Desconectar</button>
+          : <button onClick={() => setModal(true)} className="text-xs px-3 h-8 rounded-lg border border-white/15 text-white hover:bg-white/5 shrink-0">Conectar</button>}
+      </div>
+      {modal && <BrevoModal onClose={() => setModal(false)} onConectado={() => { setModal(false); cargar() }} />}
+    </SectionCard>
+  )
+}
+
+function BrevoModal({ onClose, onConectado }: { onClose: () => void; onConectado: () => void }) {
+  const toast = useToast()
+  const [key, setKey] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  async function guardar() {
+    if (!key.trim()) { toast.error('Pega tu API key de Brevo'); return }
+    setGuardando(true)
+    const r = await fetch('/api/local-panel/crm/integraciones/brevo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apiKey: key.trim() }) })
+    const j = await r.json().catch(() => ({}))
+    setGuardando(false)
+    if (!r.ok) { toast.error(j.error || 'No se pudo conectar'); return }
+    toast.success('Brevo conectado'); onConectado()
+  }
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
+      <div className="card-premium w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1"><p className="font-bold text-white text-display">Conectar Brevo</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
+        <p className="text-xs text-[#8B8BA8] mb-4">Pega tu API key v3 de Brevo (Ajustes → SMTP & API). Se guarda cifrada y nunca se muestra.</p>
+        <input value={key} onChange={e => setKey(e.target.value)} type="password" placeholder="xkeysib-…" autoComplete="off"
+          className="w-full rounded-xl bg-white/5 border border-white/10 text-sm text-white px-3.5 py-2.5 outline-none placeholder:text-[#6B6B85]" />
+        <button onClick={guardar} disabled={guardando} className="mt-4 w-full btn-primary inline-flex items-center justify-center gap-2"><Mail size={16} /> {guardando ? 'Probando…' : 'Probar y guardar'}</button>
       </div>
     </div>
   )
