@@ -8,12 +8,14 @@ import { cn } from '@/lib/utils'
 import {
   Users, Repeat, Coins, AlertCircle, Search, Star, X, Ticket, Beer, Wallet, Clock,
   Phone, Save, Lock, Mail, Download, ChevronRight, Plus, Send, Trash2, ArrowLeft,
+  ShieldCheck, FileText, Upload,
 } from 'lucide-react'
 import type { ClienteCRM as Cliente } from '@/lib/crm/clientes'
 import {
   aplicarSegmento, contarSegmento, SEGMENTOS_PRECREADOS, CAMPOS_FILTRO, LABEL_OP,
   type FiltroSegmento, type SegmentoDef, type OpFiltro,
 } from '@/lib/crm/segmentos'
+import { tierPermite } from '@/lib/crm/tier'
 type TabCRM = 'resumen' | 'clientes' | 'segmentos' | 'campanas' | 'ajustes'
 const TABS: { id: TabCRM; label: string }[] = [
   { id: 'resumen', label: 'Resumen' }, { id: 'clientes', label: 'Clientes' },
@@ -35,7 +37,8 @@ function CRMContent() {
   const searchParams = useSearchParams()
   const { local } = useLocalPanelStore()
   const tier = local?.tier ?? 'visibility'
-  const esPro = tier === 'pro' || tier === 'destacado'
+  const esPro = tierPermite(tier, 'segmentos')
+  const contratoOk = !!local?.crm_contrato_aceptado_at
 
   const [tab, setTab] = useState<TabCRM>(() => {
     const t = searchParams.get('tab') as TabCRM | null
@@ -85,9 +88,9 @@ function CRMContent() {
 
       {tab === 'resumen' && <ResumenTab loading={loading} r={resumen} onVer={(c) => { setChip(c); irTab('clientes') }} />}
       {tab === 'clientes' && <ClientesTab clientes={clientes} loading={loading} chip={chip} setChip={setChip} onActualizar={cargar} />}
-      {tab === 'segmentos' && <SegmentosTab clientes={clientes} esPro={esPro} loading={loading} />}
+      {tab === 'segmentos' && <SegmentosTab clientes={clientes} esPro={esPro} contratoOk={contratoOk} loading={loading} onIrAjustes={() => irTab('ajustes')} />}
       {tab === 'campanas' && <CampanasTab esPro={esPro} />}
-      {tab === 'ajustes' && <AjustesScaffold />}
+      {tab === 'ajustes' && <AjustesTab />}
     </div>
   )
 }
@@ -369,30 +372,8 @@ function Metric({ icon: Icon, label, valor }: { icon: React.ElementType; label: 
   )
 }
 
-// Segmentos/Campañas: gating de tier (Venta) o placeholder "próximamente" (Pro) hasta PR-10.
-function GateOPlaceholder({ esPro, titulo, frase }: { esPro: boolean; titulo: string; frase: string }) {
-  const router = useRouter()
-  if (!esPro) {
-    return (
-      <SectionCard className="text-center py-10">
-        <div className="w-12 h-12 rounded-2xl bg-[#7C5CFF]/15 border border-[#7C5CFF]/25 flex items-center justify-center mx-auto mb-3">
-          <Lock size={20} className="text-[#7C5CFF]" />
-        </div>
-        <p className="font-bold text-white">{titulo} es de Pro</p>
-        <p className="text-sm text-[#8B8BA8] mt-1 max-w-sm mx-auto">{frase}</p>
-        <button onClick={() => router.push('/local-panel/facturacion')} className="mt-4 btn-primary inline-flex">Ver planes</button>
-      </SectionCard>
-    )
-  }
-  return (
-    <SectionCard className="text-center py-10">
-      <p className="text-sm text-[#8B8BA8]">{titulo}: en camino. La segmentación y las campañas llegan en la próxima entrega.</p>
-    </SectionCard>
-  )
-}
-
 // ─────────────────────────── Segmentos ───────────────────────────
-function SegmentosTab({ clientes, esPro, loading }: { clientes: Cliente[]; esPro: boolean; loading: boolean }) {
+function SegmentosTab({ clientes, esPro, contratoOk, loading, onIrAjustes }: { clientes: Cliente[]; esPro: boolean; contratoOk: boolean; loading: boolean; onIrAjustes: () => void }) {
   const toast = useToast()
   const [propios, setPropios] = useState<SegmentoDef[]>([])
   const [sel, setSel] = useState<SegmentoDef | null>(null)
@@ -403,48 +384,80 @@ function SegmentosTab({ clientes, esPro, loading }: { clientes: Cliente[]; esPro
   }, [])
   useEffect(() => { if (esPro) cargar() }, [esPro, cargar])
 
-  if (!esPro) return <GateOPlaceholder esPro={false} titulo="Segmentos" frase="Con Pro segmentas a tu clientela (recuperar, top gasto, cumpleaños…) y la contactas." />
-  if (sel) return <SegmentoDetalle seg={sel} clientes={clientes} onVolver={() => setSel(null)} />
-
   const eliminar = async (id: string) => {
     await fetch(`/api/local-panel/crm/segmentos?id=${id}`, { method: 'DELETE' })
     setPropios(prev => prev.filter(s => s.id !== id))
     toast.success('Segmento eliminado')
   }
 
-  const todos = [...SEGMENTOS_PRECREADOS, ...propios]
-  return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {todos.map(s => {
-          const { total, contactables } = loading ? { total: 0, contactables: 0 } : contarSegmento(clientes, s.filtros)
-          return (
-            <div key={s.id} className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-4 hover:bg-white/[0.06] transition-colors relative">
-              {!s.pre_creado && (
-                <button onClick={() => eliminar(s.id)} className="absolute top-2 right-2 text-[#6B6B85] hover:text-[#E94560]" aria-label="Eliminar"><Trash2 size={13} /></button>
-              )}
-              <button onClick={() => setSel(s)} className="w-full text-left">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xl">{s.emoji}</span>
-                  {s.pre_creado && <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#6B6B85]">De serie</span>}
-                </div>
-                <p className="font-semibold text-white text-sm">{s.nombre}</p>
-                <p className="text-[11px] text-[#8B8BA8] mt-0.5 leading-snug">{s.descripcion}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xl font-bold text-white text-numeric">{total}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#27AE60]/15 text-[#27AE60] border border-[#27AE60]/25">{contactables} contactables</span>
-                </div>
-              </button>
-            </div>
-          )
-        })}
+  const todos = [...SEGMENTOS_PRECREADOS, ...(esPro ? propios : [])]
+  const grid = (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {todos.map(s => {
+        const { total, contactables } = loading ? { total: 0, contactables: 0 } : contarSegmento(clientes, s.filtros)
+        return (
+          <div key={s.id} className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-4 hover:bg-white/[0.06] transition-colors relative">
+            {!s.pre_creado && (
+              <button onClick={() => eliminar(s.id)} className="absolute top-2 right-2 text-[#6B6B85] hover:text-[#E94560]" aria-label="Eliminar"><Trash2 size={13} /></button>
+            )}
+            <button onClick={() => setSel(s)} className="w-full text-left">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xl">{s.emoji}</span>
+                {s.pre_creado && <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#6B6B85]">De serie</span>}
+              </div>
+              <p className="font-semibold text-white text-sm">{s.nombre}</p>
+              <p className="text-[11px] text-[#8B8BA8] mt-0.5 leading-snug">{s.descripcion}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xl font-bold text-white text-numeric">{total}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#27AE60]/15 text-[#27AE60] border border-[#27AE60]/25">{contactables} contactables</span>
+              </div>
+            </button>
+          </div>
+        )
+      })}
+      {esPro && (
         <button onClick={() => setBuilder(true)}
           className="rounded-2xl border border-dashed border-[#2A2A3E] p-4 flex flex-col items-center justify-center gap-1.5 text-[#8B8BA8] hover:border-[#E0455E]/60 hover:text-white transition-colors min-h-[120px]">
           <Plus size={20} /> <span className="text-sm font-medium">Nuevo segmento</span>
         </button>
-      </div>
-      {builder && <BuilderModal clientes={clientes} onClose={() => setBuilder(false)} onGuardado={() => { setBuilder(false); cargar() }} />}
+      )}
     </div>
+  )
+
+  // Tier Venta: el contenido real se ve borroso detrás del candado (vende lo que te pierdes).
+  if (!esPro) return <GateBlur frase="Con Pro segmentas a tu clientela (recuperar, top gasto, cumpleaños…) y la contactas.">{grid}</GateBlur>
+  // Pro sin contrato: hay que aceptar el encargo antes de contactar.
+  if (!contratoOk) return <ContratoPendiente onIrAjustes={onIrAjustes} />
+  if (sel) return <SegmentoDetalle seg={sel} clientes={clientes} onVolver={() => setSel(null)} />
+  return <div className="space-y-3">{grid}{builder && <BuilderModal clientes={clientes} onClose={() => setBuilder(false)} onGuardado={() => { setBuilder(false); cargar() }} />}</div>
+}
+
+// Candado de tier con el contenido real borroso detrás (doc 02 §14.8).
+function GateBlur({ children, frase }: { children: React.ReactNode; frase: string }) {
+  const router = useRouter()
+  return (
+    <div className="relative">
+      <div className="blur-md opacity-40 pointer-events-none select-none">{children}</div>
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="glass-strong rounded-2xl p-6 text-center max-w-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[#7C5CFF]/15 border border-[#7C5CFF]/25 flex items-center justify-center mx-auto mb-3"><Lock size={20} className="text-[#7C5CFF]" /></div>
+          <p className="font-bold text-white">Función de Pro</p>
+          <p className="text-sm text-[#8B8BA8] mt-1">{frase}</p>
+          <button onClick={() => router.push('/local-panel/facturacion')} className="mt-4 btn-primary inline-flex">Ver planes</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ContratoPendiente({ onIrAjustes }: { onIrAjustes: () => void }) {
+  return (
+    <SectionCard className="text-center py-10 border-[#F39C12]/30">
+      <div className="w-12 h-12 rounded-2xl bg-[#F39C12]/15 border border-[#F39C12]/25 flex items-center justify-center mx-auto mb-3"><Lock size={20} className="text-[#F39C12]" /></div>
+      <p className="font-bold text-white">Acepta el contrato de encargo</p>
+      <p className="text-sm text-[#8B8BA8] mt-1 max-w-sm mx-auto">Para segmentar y contactar a tu clientela conforme al RGPD, primero firma el contrato de encargo en Ajustes.</p>
+      <button onClick={onIrAjustes} className="mt-4 btn-primary inline-flex">Ir a Ajustes</button>
+    </SectionCard>
   )
 }
 
@@ -632,7 +645,11 @@ function CampanasTab({ esPro }: { esPro: boolean }) {
     fetch('/api/local-panel/crm/campanas').then(r => r.ok ? r.json() : null).then(d => { if (d?.campanas) setCampanas(d.campanas); setLoading(false) }).catch(() => setLoading(false))
   }, [esPro])
 
-  if (!esPro) return <GateOPlaceholder esPro={false} titulo="Campañas" frase="Con Pro lanzas push a tus segmentos y ves el histórico de envíos." />
+  if (!esPro) return (
+    <GateBlur frase="Con Pro lanzas push a tus segmentos y ves el histórico de envíos.">
+      <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 rounded-2xl bg-white/[0.04] border border-white/[0.07]" />)}</div>
+    </GateBlur>
+  )
   if (loading) return <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 rounded-2xl skeleton" />)}</div>
   if (campanas.length === 0) return <EmptyState icon={Send} acento="rose" titulo="Tu primera campaña espera" descripcion="Abre un segmento y lanza un push a tus clientes contactables." />
   return (
@@ -651,9 +668,40 @@ function CampanasTab({ esPro }: { esPro: boolean }) {
   )
 }
 
-function AjustesScaffold() {
+function AjustesTab() {
+  const { local, setLocal } = useLocalPanelStore()
+  const [modal, setModal] = useState(false)
+  const aceptado = local?.crm_contrato_aceptado_at
+  const fecha = (s: string) => new Date(s).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  const descargar = () => {
+    const blob = new Blob([CONTRATO_ENCARGO_TXT], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url
+    a.download = 'contrato-encargo-rumbo.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-3 max-w-2xl">
+      {/* Protección de datos */}
+      <SectionCard className={cn(!aceptado && 'border-[#F39C12]/40')}>
+        <div className="flex items-start gap-3">
+          <span className="w-9 h-9 rounded-xl bg-[#27AE60]/15 border border-[#27AE60]/25 flex items-center justify-center shrink-0"><ShieldCheck size={16} className="text-[#27AE60]" /></span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white">Protección de datos</p>
+            <p className="text-xs text-[#8B8BA8] mt-0.5">Contrato de encargo (art. 28 RGPD): tú eres el responsable de los datos; Rumbo, el encargado.</p>
+            {aceptado ? (
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#27AE60]/15 text-[#27AE60] border border-[#27AE60]/25">Aceptado el {fecha(aceptado)}</span>
+                <button onClick={descargar} className="text-xs text-[#8B8BA8] hover:text-white inline-flex items-center gap-1"><FileText size={12} /> Descargar</button>
+              </div>
+            ) : (
+              <button onClick={() => setModal(true)} className="mt-3 btn-primary inline-flex text-sm">Leer y aceptar</button>
+            )}
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Integraciones (Brevo) e importación — llegan en PR-12/15 */}
       <SectionCard>
         <div className="flex items-center gap-3">
           <span className="w-9 h-9 rounded-xl bg-[#4F8EF7]/15 border border-[#4F8EF7]/25 flex items-center justify-center"><Mail size={16} className="text-[#4F8EF7]" /></span>
@@ -663,11 +711,48 @@ function AjustesScaffold() {
       </SectionCard>
       <SectionCard>
         <div className="flex items-center gap-3">
-          <span className="w-9 h-9 rounded-xl bg-[#4F8EF7]/15 border border-[#4F8EF7]/25 flex items-center justify-center"><Download size={16} className="text-[#4F8EF7]" /></span>
+          <span className="w-9 h-9 rounded-xl bg-[#4F8EF7]/15 border border-[#4F8EF7]/25 flex items-center justify-center"><Upload size={16} className="text-[#4F8EF7]" /></span>
           <div className="flex-1"><p className="text-sm font-semibold text-white">Importar clientela</p><p className="text-xs text-[#8B8BA8]">Sube tu Excel con declaración responsable.</p></div>
           <span className="text-[11px] text-[#8B8BA8]">Próximamente</span>
         </div>
       </SectionCard>
+
+      {modal && <ContratoModal onClose={() => setModal(false)} onAceptado={(at) => { if (local) setLocal({ ...local, crm_contrato_aceptado_at: at }); setModal(false) }} />}
+    </div>
+  )
+}
+
+const CONTRATO_ENCARGO_TXT = `CONTRATO DE ENCARGO DEL TRATAMIENTO (art. 28 RGPD) — [PENDIENTE REVISIÓN LEGAL]
+
+1. Objeto: Rumbo trata por cuenta del LOCAL (responsable) los datos de sus clientes con el único fin de prestar el servicio de CRM.
+2. Duración: mientras esté activa la cuenta del local.
+3. Tipos de datos: identificativos y de contacto (nombre, teléfono), y de actividad (visitas, consumo).
+4. Confidencialidad: Rumbo y su personal guardan secreto sobre los datos.
+5. Sub-encargados: Supabase (base de datos), Vercel (hosting), Brevo (email, si se activa).
+6. Medidas de seguridad: cifrado en tránsito y reposo, control de acceso por rol, auditoría de exportaciones.
+7. Fin del encargo: a la terminación, devolución o supresión de los datos a elección del responsable.
+
+El LOCAL declara ser responsable del tratamiento y haber recabado el consentimiento de marketing de sus clientes cuando proceda.`
+
+function ContratoModal({ onClose, onAceptado }: { onClose: () => void; onAceptado: (at: string) => void }) {
+  const toast = useToast()
+  const [aceptando, setAceptando] = useState(false)
+  async function aceptar() {
+    setAceptando(true)
+    const r = await fetch('/api/local-panel/crm/contrato', { method: 'POST' })
+    const j = await r.json().catch(() => ({}))
+    setAceptando(false)
+    if (!r.ok) { toast.error(j.error || 'No se pudo registrar'); return }
+    toast.success('Contrato de encargo aceptado')
+    onAceptado(j.crm_contrato_aceptado_at)
+  }
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
+      <div className="card-premium w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3"><p className="font-bold text-white text-display">Contrato de encargo</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
+        <pre className="text-[12px] text-[#B8B8CC] whitespace-pre-wrap font-sans leading-relaxed rounded-xl glass-subtle p-4 max-h-[50vh] overflow-y-auto">{CONTRATO_ENCARGO_TXT}</pre>
+        <button onClick={aceptar} disabled={aceptando} className="mt-4 w-full btn-primary inline-flex items-center justify-center gap-2"><ShieldCheck size={16} /> {aceptando ? 'Registrando…' : 'Acepto el contrato de encargo'}</button>
+      </div>
     </div>
   )
 }

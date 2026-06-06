@@ -4,6 +4,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getTrabajadorLocal } from '@/lib/rrpp/auth'
 import { obtenerClientesCRM, type ClienteCRM } from '@/lib/crm/clientes'
 import { aplicarSegmento, type FiltroSegmento } from '@/lib/crm/segmentos'
+import { tierPermite } from '@/lib/crm/tier'
 
 const GESTION = ['dueno', 'gestor']
 
@@ -29,10 +30,13 @@ export async function POST(req: NextRequest) {
   if (!t || !GESTION.includes(t.rol)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const db = createServiceRoleClient()
 
-  const { data: local } = await db.from('locales').select('tier, nombre').eq('id', t.local_id).maybeSingle()
+  const { data: local } = await db.from('locales').select('tier, nombre, crm_contrato_aceptado_at').eq('id', t.local_id).maybeSingle()
   const tier = local?.tier ?? 'visibility'
-  if (tier !== 'pro' && tier !== 'destacado') {
+  if (!tierPermite(tier, 'export')) {
     return NextResponse.json({ error: 'El export es una función de Pro' }, { status: 403 })
+  }
+  if (!local?.crm_contrato_aceptado_at) {
+    return NextResponse.json({ error: 'Acepta el contrato de encargo (CRM → Ajustes) antes de exportar' }, { status: 403 })
   }
 
   const body = await req.json().catch(() => null) as { modo?: 'operativo' | 'marketing'; columnas?: string[]; filtros?: FiltroSegmento[] } | null

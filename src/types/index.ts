@@ -154,6 +154,8 @@ export interface Local {
   reservas_modo?: ModoReservas
   /** Cierre puntual "Cerrar esta noche": ISO hasta el que el local sale cerrado. NULL/pasado = inactivo. */
   cerrado_hasta?: string | null
+  /** Contrato de encargo (art. 28 RGPD) aceptado: ISO o null. Requerido para el marketing del CRM. */
+  crm_contrato_aceptado_at?: string | null
   created_at: string
   updated_at: string
 }

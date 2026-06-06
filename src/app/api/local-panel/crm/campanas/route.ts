@@ -4,6 +4,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getTrabajadorLocal } from '@/lib/rrpp/auth'
 import { obtenerClientesCRM } from '@/lib/crm/clientes'
 import { aplicarSegmento, type FiltroSegmento } from '@/lib/crm/segmentos'
+import { tierPermite } from '@/lib/crm/tier'
 import { enviarPushAUsuarios } from '@/lib/push'
 
 const GESTION = ['dueno', 'gestor']
@@ -26,9 +27,10 @@ export async function POST(req: NextRequest) {
   if (!t || !GESTION.includes(t.rol)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const db = createServiceRoleClient()
 
-  const { data: local } = await db.from('locales').select('tier').eq('id', t.local_id).maybeSingle()
+  const { data: local } = await db.from('locales').select('tier, crm_contrato_aceptado_at').eq('id', t.local_id).maybeSingle()
   const tier = local?.tier ?? 'visibility'
-  if (tier !== 'pro' && tier !== 'destacado') return NextResponse.json({ error: 'El push a segmento es una función de Pro' }, { status: 403 })
+  if (!tierPermite(tier, 'push')) return NextResponse.json({ error: 'El push a segmento es una función de Pro' }, { status: 403 })
+  if (!local?.crm_contrato_aceptado_at) return NextResponse.json({ error: 'Acepta el contrato de encargo (CRM → Ajustes) antes de enviar' }, { status: 403 })
 
   const body = await req.json().catch(() => null) as { filtros?: FiltroSegmento[]; segmento_nombre?: string; titulo?: string; cuerpo?: string; enlace?: string } | null
   if (!body?.titulo?.trim() || !body?.cuerpo?.trim()) return NextResponse.json({ error: 'Falta título o cuerpo' }, { status: 400 })
