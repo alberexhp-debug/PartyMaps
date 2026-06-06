@@ -6,6 +6,7 @@ import { useMapStore } from '@/lib/stores/useMapStore'
 import { supabase } from '@/lib/supabase/client'
 import { LocalConAforo, TipoLocal } from '@/types'
 import { getTemperaturaAforo, aforoVisible } from '@/lib/utils'
+import { estadoApertura, type EventoFranja } from '@/lib/horarios'
 import { LocalBottomSheet } from './LocalBottomSheet'
 import { FiltrosMapa } from './FiltrosMapa'
 import { BuscadorLocales } from './BuscadorLocales'
@@ -45,24 +46,52 @@ const TIPO_COLOR: mapboxgl.Expression = [
   COLOR_POR_TIPO.otro,
 ]
 
-function buildGeoJSON(locales: LocalConAforo[]): GeoJSON.FeatureCollection {
+// El join de eventos viaja en el row pero no está en el tipo Local; lo leemos aquí.
+type LocalConEventos = LocalConAforo & {
+  eventos?: { estado: string; fecha_inicio: string; fecha_fin: string | null }[]
+}
+
+// Eventos publicados cuya franja podría cubrir "ahora" (de anoche a mañana), para que
+// estadoApertura aplique la prioridad evento > horario sin arrastrar eventos lejanos.
+function franjasEventoCercanas(l: LocalConEventos, ahora: Date): EventoFranja[] {
+  if (!l.eventos?.length) return []
+  const desde = new Date(ahora); desde.setDate(desde.getDate() - 1); desde.setHours(0, 0, 0, 0)
+  const hasta = new Date(ahora); hasta.setDate(hasta.getDate() + 1); hasta.setHours(23, 59, 59, 999)
+  return l.eventos
+    .filter(e => e.estado === 'publicado' && e.fecha_inicio)
+    .filter(e => { const t = new Date(e.fecha_inicio).getTime(); return t >= desde.getTime() && t <= hasta.getTime() })
+    .map(e => ({ inicio: e.fecha_inicio, fin: e.fecha_fin ?? null }))
+}
+
+function buildGeoJSON(locales: LocalConAforo[], ahora: Date): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
-    features: locales.map(l => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [l.longitud, l.latitud] },
-      properties: {
-        id:     l.id,
-        nombre: l.nombre,
-        aforo:  aforoVisible(l),
-        tipo:   l.tipo_local || 'otro',
-        tier:   l.tier || 'visibility',
-        // Punto algo mayor para cualquier plan de pago (pro/destacado).
-        destacado: l.tier === 'destacado' || l.tier === 'pro' ? 1 : 0,
-        // Nombre resaltado solo para el plan de visibilidad premium (destacado).
-        top: l.tier === 'destacado' ? 1 : 0,
-      },
-    })),
+    features: locales.map(l => {
+      // Estado de apertura calculado en cliente (hora local = Madrid).
+      const est = estadoApertura(
+        { horario: l.horario ?? null, cerrado_hasta: l.cerrado_hasta ?? null },
+        ahora,
+        franjasEventoCercanas(l as LocalConEventos, ahora),
+      )
+      return {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [l.longitud, l.latitud] },
+        properties: {
+          id:     l.id,
+          nombre: l.nombre,
+          aforo:  aforoVisible(l),
+          tipo:   l.tipo_local || 'otro',
+          tier:   l.tier || 'visibility',
+          // Punto algo mayor para cualquier plan de pago (pro/destacado).
+          destacado: l.tier === 'destacado' || l.tier === 'pro' ? 1 : 0,
+          // Nombre resaltado solo para el plan de visibilidad premium (destacado).
+          top: l.tier === 'destacado' ? 1 : 0,
+          // Estado de apertura (opacidad/badge) y hora si "abre pronto".
+          estado: est.estado,
+          abre: est.estado === 'abre_pronto' ? (est.horaRelevante ?? '') : '',
+        },
+      }
+    }),
   }
 }
 
@@ -76,12 +105,22 @@ export default function MapaExplorar() {
   } = useMapStore()
   const [showFiltros, setShowFiltros] = useState(false)
   const [showBuscador, setShowBuscador] = useState(false)
+  // Hora actual: se recalcula cada minuto y al volver la app al primer plano, para que
+  // "abre pronto" pase solo a "abierto" a las 00:00 sin recargar (doc 03 §7).
+  const [ahora, setAhora] = useState(() => new Date())
+  useEffect(() => {
+    const tick = () => setAhora(new Date())
+    const id = setInterval(tick, 60000)
+    const onVisible = () => { if (document.visibilityState === 'visible') tick() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
+  }, [])
   const filtrosActivos = filtros.tipos.length > 0 || filtros.musica.length > 0 || filtros.solo_con_evento || filtros.solo_con_planes
 
   const cargarLocales = useCallback(async () => {
     let { data, error } = await supabase
       .from('locales')
-      .select('*, eventos(id, nombre, estado, fecha_inicio)')
+      .select('*, eventos(id, nombre, estado, fecha_inicio, fecha_fin)')
       .eq('estado', 'activo')
       .limit(300)
     // Si el join a eventos falla (relación/RLS), reintentar sin él para no
@@ -154,6 +193,8 @@ export default function MapaExplorar() {
         type: 'heatmap',
         source: SOURCE_ID,
         maxzoom: 16,
+        // Un local cerrado no tiene "ambiente": no aporta al heatmap.
+        filter: ['!=', ['get', 'estado'], 'cerrado'],
         paint: {
           'heatmap-weight': ['interpolate', ['linear'], ['get', 'aforo'], 0, 0.35, 100, 1],
           'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 8, 0.9, 14, 2.2],
@@ -187,7 +228,10 @@ export default function MapaExplorar() {
           ],
           'circle-color': TIPO_COLOR,
           'circle-blur': 1,
-          'circle-opacity': ['interpolate', ['linear'], ['get', 'aforo'], 0, 0.16, 50, 0.3, 100, 0.5],
+          'circle-opacity': ['*',
+            ['interpolate', ['linear'], ['get', 'aforo'], 0, 0.16, 50, 0.3, 100, 0.5],
+            ['match', ['get', 'estado'], 'cerrado', 0.3, 'abre_pronto', 0.8, 1],
+          ],
         },
       })
 
@@ -203,12 +247,22 @@ export default function MapaExplorar() {
             14, ['case', ['==', ['get', 'destacado'], 1], 5.5, 3.5],
           ],
           'circle-color': TIPO_COLOR,
-          'circle-opacity': 0.95,
+          // Opacidad = tercera dimensión (sobre color=tipo, tamaño/halo=aforo): el estado.
+          'circle-opacity': ['match', ['get', 'estado'],
+            'abre_pronto', 0.85,
+            'cerrado', 0.38,
+            0.95, // abierto / sin_datos
+          ],
           // Aro blanco para que el punto recorte nítido sobre el mapa oscuro;
-          // los premium llevan el aro más marcado para resaltar.
+          // los premium llevan el aro más marcado para resaltar. El cerrado lo apaga,
+          // pero el aro premium nunca desaparece del todo (0.45).
           'circle-stroke-color': '#FFFFFF',
           'circle-stroke-width': ['case', ['==', ['get', 'destacado'], 1], 2, 1],
-          'circle-stroke-opacity': ['case', ['==', ['get', 'destacado'], 1], 0.9, 0.5],
+          'circle-stroke-opacity': ['case',
+            ['==', ['get', 'estado'], 'cerrado'], ['case', ['==', ['get', 'destacado'], 1], 0.45, 0.25],
+            ['==', ['get', 'destacado'], 1], 0.9,
+            0.5,
+          ],
         },
       })
 
@@ -221,7 +275,15 @@ export default function MapaExplorar() {
         source: SOURCE_ID,
         minzoom: 13,
         layout: {
-          'text-field': ['get', 'nombre'],
+          // Nombre y, si abre pronto, una 2ª línea ámbar "Abre 00:00" (mismo halo oscuro).
+          'text-field': ['case',
+            ['==', ['get', 'estado'], 'abre_pronto'],
+            ['format',
+              ['get', 'nombre'], {},
+              ['concat', '\nAbre ', ['get', 'abre']], { 'font-scale': 0.9, 'text-color': '#F39C12' },
+            ],
+            ['get', 'nombre'],
+          ],
           'text-font': [
             'case', ['==', ['get', 'top'], 1],
             ['literal', ['Open Sans Bold', 'Arial Unicode MS Bold']],
@@ -241,12 +303,15 @@ export default function MapaExplorar() {
           // Los locales con plan de visibilidad aparecen desde z~13.3; el resto desde z~14.5.
           // El zoom debe ir en el interpolate de nivel superior (Mapbox no permite
           // expresiones de zoom anidadas en un 'case'); el 'top' decide el valor en cada parada.
-          'text-opacity': [
-            'interpolate', ['linear'], ['zoom'],
-            13.3, 0,
-            14,   ['case', ['==', ['get', 'top'], 1], 1, 0],
-            14.5, ['case', ['==', ['get', 'top'], 1], 1, 0],
-            15.3, 1,
+          'text-opacity': ['*',
+            ['interpolate', ['linear'], ['zoom'],
+              13.3, 0,
+              14,   ['case', ['==', ['get', 'top'], 1], 1, 0],
+              14.5, ['case', ['==', ['get', 'top'], 1], 1, 0],
+              15.3, 1,
+            ],
+            // El nombre de un local cerrado se atenúa.
+            ['match', ['get', 'estado'], 'cerrado', 0.45, 1],
           ],
         },
       })
@@ -277,7 +342,7 @@ export default function MapaExplorar() {
         const existingFiltros = useMapStore.getState().filtros
         const filtered = applyFiltros(existing, existingFiltros)
         const src = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource
-        if (src) src.setData(buildGeoJSON(filtered))
+        if (src) src.setData(buildGeoJSON(filtered, new Date()))
       }
       cargarLocales()
     })
@@ -302,8 +367,8 @@ export default function MapaExplorar() {
     const map = mapRef.current
     if (!map || !mapLoaded) return
     const src = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource | undefined
-    if (src) src.setData(buildGeoJSON(applyFiltros(locales, filtros)))
-  }, [locales, filtros, mapLoaded])
+    if (src) src.setData(buildGeoJSON(applyFiltros(locales, filtros), ahora))
+  }, [locales, filtros, mapLoaded, ahora])
 
   const centrarEnUsuario = useCallback(() => {
     if (!mapRef.current) return
