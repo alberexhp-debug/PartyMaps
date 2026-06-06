@@ -7,6 +7,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts'
 import { SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
+import { ChecklistCard } from '@/components/onboarding/ChecklistCard'
 
 type SerieMes = { mes: string; comision: number; incentivo: number }
 type PorLocal = { nombre: string; comision: number }
@@ -38,6 +39,7 @@ export default function GestorDashboardPage() {
 
   return (
     <div className="space-y-6">
+      <ChecklistCard panel="gestor" />
       {/* HERO */}
       <div className="relative -mx-4 -mt-6 md:-mt-8">
         <div className="relative overflow-hidden rounded-b-[2rem] px-5 sm:px-7 pt-9 pb-7 border-b border-white/[0.06]"

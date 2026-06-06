@@ -4,6 +4,7 @@ import { useGrupoStore } from '@/lib/stores/useGrupoStore'
 import { Store, Users, Ticket, TrendingUp, BarChart3 } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { HeroBanner, KpiBold, SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
+import { ChecklistCard } from '@/components/onboarding/ChecklistCard'
 
 type Resumen = {
   grupo: string; rol: 'propietario' | 'manager'
@@ -32,6 +33,7 @@ export default function GrupoDashboardPage() {
 
   return (
     <div className="space-y-6">
+      <ChecklistCard panel="grupo" />
       <HeroBanner
         acento="blue"
         eyebrow={esManager ? 'Manager' : 'Propietario'}

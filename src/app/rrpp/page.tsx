@@ -6,6 +6,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
 import { RrppNav } from '@/components/rrpp/RrppNav'
+import { ChecklistCard } from '@/components/onboarding/ChecklistCard'
 import { LocalDetalleRRPP } from '@/components/rrpp/LocalDetalleRRPP'
 import { EditarPerfilRRPP } from '@/components/rrpp/EditarPerfilRRPP'
 import { CobrosRRPP } from '@/components/rrpp/CobrosRRPP'
@@ -263,6 +264,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
   return (
     <div className="min-h-screen bg-[#07070D] text-white">
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 pb-24">
+        <ChecklistCard panel="rrpp" />
         {/* HERO — cabecera con balance destacado */}
         <div className="relative -mx-4 sm:-mx-6 -mt-4 sm:-mt-6">
           <div className="relative overflow-hidden rounded-b-[2rem] px-5 sm:px-7 pt-9 pb-7 border-b border-white/[0.06]"
