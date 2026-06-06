@@ -22,6 +22,8 @@ import {
 import { cn } from '@/lib/utils'
 import { LocalImagen } from '@/components/ui/LocalImagen'
 import { ReservarModal } from '@/components/user/ReservarModal'
+import { estadoDeLocal } from '@/lib/estado-local'
+import { textoEstadoFicha } from '@/lib/horarios'
 
 export default function LocalPerfilPage() {
   const { id } = useParams<{ id: string }>()
@@ -54,11 +56,20 @@ export default function LocalPerfilPage() {
   const [haciendoCheckin, setHaciendoCheckin] = useState(false)
   const [showSugerencia, setShowSugerencia] = useState(false)
   const [showReservar, setShowReservar] = useState(false)
+  // Hora actual con tick de 1 min: la línea de estado pasa sola de "abre pronto" a "abierto".
+  const [ahora, setAhora] = useState(() => new Date())
+  useEffect(() => {
+    const tick = () => setAhora(new Date())
+    const id = setInterval(tick, 60000)
+    const onVisible = () => { if (document.visibilityState === 'visible') tick() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
+  }, [])
 
   useEffect(() => {
     const cargar = async () => {
       const [{ data: localData }, { data: reviewsData }] = await Promise.all([
-        supabase.from('locales').select('*, eventos(id,nombre,estado,fecha_inicio,imagen_url)').eq('id', id).single(),
+        supabase.from('locales').select('*, eventos(id,nombre,estado,fecha_inicio,fecha_fin,imagen_url)').eq('id', id).single(),
         supabase.from('reviews').select('*, usuarios(nombre, foto_perfil_url)').eq('local_id', id).eq('estado', 'activa').eq('censurada', false).order('created_at', { ascending: false }).limit(20),
       ])
 
@@ -325,6 +336,13 @@ export default function LocalPerfilPage() {
   const eventoActivo = eventosPublicados[0]
   const masEventos = eventosPublicados.slice(1)
 
+  // Estado de apertura (línea bajo el nombre + punto de la noche de hoy en el bloque Horario).
+  const estadoAp = estadoDeLocal(local, ahora)
+  const lineaEstado = textoEstadoFicha(estadoAp, ahora)
+  const colorEstado = estadoAp.estado === 'abierto' ? '#27AE60' : estadoAp.estado === 'abre_pronto' ? '#F39C12' : '#4A4A60'
+  const hoyStr = ahora.toDateString()
+  const eventoEstaNoche = eventosPublicados.some(e => e.fecha_inicio && new Date(e.fecha_inicio).toDateString() === hoyStr)
+
   // Antes de comprar, si el local ofrece consumición de bienvenida, la ofrecemos en un modal.
   const irAComprar = () => {
     if (local.consumiciones_bienvenida?.length) { setShowBienvenida(true); return }
@@ -335,7 +353,7 @@ export default function LocalPerfilPage() {
   }
   const mediaReviews = reviews.length > 0 ? reviews.reduce((a, r) => a + r.puntuacion, 0) / reviews.length : 0
   const diasSemana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
-  const diasCompleto = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+  const nochesCompleto = ['Noche del lunes', 'Noche del martes', 'Noche del miércoles', 'Noche del jueves', 'Noche del viernes', 'Noche del sábado', 'Noche del domingo']
   const hoyIdx = (new Date().getDay() + 6) % 7
 
   return (
@@ -371,6 +389,14 @@ export default function LocalPerfilPage() {
             )}
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-display text-white" style={{ textShadow: '0 4px 30px rgba(0,0,0,0.6)' }}>{local.nombre}</h1>
+          {/* Línea de estado de apertura */}
+          {lineaEstado && (
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: colorEstado, boxShadow: `0 0 6px ${colorEstado}` }} />
+              <span className="text-[13px] text-[#B8B8CC]">{lineaEstado}</span>
+              {eventoEstaNoche && <Badge variant="violet" size="sm">Evento esta noche</Badge>}
+            </div>
+          )}
           {(reviews.length > 0 || local.precio_entrada_min != null) && (
             <div className="flex items-center gap-2.5 mt-2.5 text-sm">
               {reviews.length > 0 && (
@@ -631,8 +657,8 @@ export default function LocalPerfilPage() {
                     return (
                       <div key={dia} className={cn('flex items-center justify-between px-4 py-2.5 text-sm', esHoy && 'bg-white/[0.05]')}>
                         <span className="flex items-center gap-2">
-                          {esHoy && <span className="w-1.5 h-1.5 rounded-full bg-[#E94560] shrink-0" />}
-                          <span className={cn(esHoy ? 'text-white font-semibold' : 'text-[#A0A0B8]')}>{diasCompleto[i]}</span>
+                          {esHoy && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: colorEstado }} />}
+                          <span className={cn(esHoy ? 'text-white font-semibold' : 'text-[#A0A0B8]')}>{nochesCompleto[i]}</span>
                         </span>
                         <span className={cn(h ? (esHoy ? 'text-white font-medium' : 'text-[#C8C8D8]') : 'text-[#6B6B85]')}>
                           {h ? `${h.apertura} – ${h.cierre}` : 'Cerrado'}

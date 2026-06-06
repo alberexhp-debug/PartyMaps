@@ -184,6 +184,16 @@ export function formatProximaApertura(iso: string, ahora: Date): string {
   return `abre ${cuando} a las ${hhmm(d)}`
 }
 
+/** Etiqueta corta para el chip de la tarjeta de Explorar. null si sin datos (sin chip). */
+export function etiquetaChipEstado(res: ResultadoEstado): string | null {
+  switch (res.estado) {
+    case 'abierto': return 'Abierto'
+    case 'abre_pronto': return `Abre a las ${res.horaRelevante}`
+    case 'cerrado': return 'Cerrado'
+    case 'sin_datos': return null
+  }
+}
+
 /** Línea de estado de la ficha del local. null si sin datos (la línea no aparece). */
 export function textoEstadoFicha(res: ResultadoEstado, ahora: Date): string | null {
   switch (res.estado) {

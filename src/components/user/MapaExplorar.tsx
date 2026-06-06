@@ -6,7 +6,7 @@ import { useMapStore } from '@/lib/stores/useMapStore'
 import { supabase } from '@/lib/supabase/client'
 import { LocalConAforo, TipoLocal } from '@/types'
 import { getTemperaturaAforo, aforoVisible } from '@/lib/utils'
-import { estadoApertura, type EventoFranja } from '@/lib/horarios'
+import { estadoDeLocal } from '@/lib/estado-local'
 import { LocalBottomSheet } from './LocalBottomSheet'
 import { FiltrosMapa } from './FiltrosMapa'
 import { BuscadorLocales } from './BuscadorLocales'
@@ -46,33 +46,12 @@ const TIPO_COLOR: mapboxgl.Expression = [
   COLOR_POR_TIPO.otro,
 ]
 
-// El join de eventos viaja en el row pero no está en el tipo Local; lo leemos aquí.
-type LocalConEventos = LocalConAforo & {
-  eventos?: { estado: string; fecha_inicio: string; fecha_fin: string | null }[]
-}
-
-// Eventos publicados cuya franja podría cubrir "ahora" (de anoche a mañana), para que
-// estadoApertura aplique la prioridad evento > horario sin arrastrar eventos lejanos.
-function franjasEventoCercanas(l: LocalConEventos, ahora: Date): EventoFranja[] {
-  if (!l.eventos?.length) return []
-  const desde = new Date(ahora); desde.setDate(desde.getDate() - 1); desde.setHours(0, 0, 0, 0)
-  const hasta = new Date(ahora); hasta.setDate(hasta.getDate() + 1); hasta.setHours(23, 59, 59, 999)
-  return l.eventos
-    .filter(e => e.estado === 'publicado' && e.fecha_inicio)
-    .filter(e => { const t = new Date(e.fecha_inicio).getTime(); return t >= desde.getTime() && t <= hasta.getTime() })
-    .map(e => ({ inicio: e.fecha_inicio, fin: e.fecha_fin ?? null }))
-}
-
 function buildGeoJSON(locales: LocalConAforo[], ahora: Date): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
     features: locales.map(l => {
       // Estado de apertura calculado en cliente (hora local = Madrid).
-      const est = estadoApertura(
-        { horario: l.horario ?? null, cerrado_hasta: l.cerrado_hasta ?? null },
-        ahora,
-        franjasEventoCercanas(l as LocalConEventos, ahora),
-      )
+      const est = estadoDeLocal(l, ahora)
       return {
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [l.longitud, l.latitud] },
@@ -115,7 +94,7 @@ export default function MapaExplorar() {
     document.addEventListener('visibilitychange', onVisible)
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
   }, [])
-  const filtrosActivos = filtros.tipos.length > 0 || filtros.musica.length > 0 || filtros.solo_con_evento || filtros.solo_con_planes
+  const filtrosActivos = filtros.tipos.length > 0 || filtros.musica.length > 0 || filtros.solo_con_evento || filtros.solo_con_planes || filtros.solo_abiertos
 
   const cargarLocales = useCallback(async () => {
     let { data, error } = await supabase
@@ -340,7 +319,7 @@ export default function MapaExplorar() {
       const existing = useMapStore.getState().locales
       if (existing.length > 0) {
         const existingFiltros = useMapStore.getState().filtros
-        const filtered = applyFiltros(existing, existingFiltros)
+        const filtered = applyFiltros(existing, existingFiltros, new Date())
         const src = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource
         if (src) src.setData(buildGeoJSON(filtered, new Date()))
       }
@@ -367,7 +346,7 @@ export default function MapaExplorar() {
     const map = mapRef.current
     if (!map || !mapLoaded) return
     const src = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource | undefined
-    if (src) src.setData(buildGeoJSON(applyFiltros(locales, filtros), ahora))
+    if (src) src.setData(buildGeoJSON(applyFiltros(locales, filtros, ahora), ahora))
   }, [locales, filtros, mapLoaded, ahora])
 
   const centrarEnUsuario = useCallback(() => {
@@ -484,12 +463,13 @@ export default function MapaExplorar() {
   )
 }
 
-function applyFiltros(locales: LocalConAforo[], filtros: ReturnType<typeof useMapStore.getState>['filtros']) {
+function applyFiltros(locales: LocalConAforo[], filtros: ReturnType<typeof useMapStore.getState>['filtros'], ahora: Date) {
   let r = locales
   if (filtros.tipos.length > 0) r = r.filter(l => filtros.tipos.includes(l.tipo_local))
   if (filtros.musica.length > 0) r = r.filter(l => l.musica?.some(m => filtros.musica.includes(m)))
   if (filtros.solo_con_evento) r = r.filter(l => l.evento_activo)
   if (filtros.precio_min != null) r = r.filter(l => (l.precio_entrada_min || 0) >= filtros.precio_min!)
   if (filtros.precio_max != null) r = r.filter(l => (l.precio_entrada_min || 0) <= filtros.precio_max!)
+  if (filtros.solo_abiertos) r = r.filter(l => { const e = estadoDeLocal(l, ahora).estado; return e === 'abierto' || e === 'abre_pronto' })
   return r
 }

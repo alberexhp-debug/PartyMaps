@@ -1,7 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { LocalConAforo } from '@/types'
+import { estadoDeLocal } from '@/lib/estado-local'
+import { textoEstadoFicha } from '@/lib/horarios'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
@@ -27,11 +29,23 @@ export function LocalBottomSheet({ local, onClose }: Props) {
   const [suscrito, setSuscrito] = useState(local.esta_suscrito || false)
   const [loadingSub, setLoadingSub] = useState(false)
 
+  const [ahora, setAhora] = useState(() => new Date())
+  useEffect(() => {
+    const tick = () => setAhora(new Date())
+    const id = setInterval(tick, 60000)
+    const onVisible = () => { if (document.visibilityState === 'visible') tick() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
+  }, [])
+
   const aforo = Math.round(aforoVisible(local))
   const temp = getTemperaturaAforo(aforo)
   const colorTemp = getColorTemperatura(temp)
   const precio = local.precio_entrada_min
   const genero = local.musica?.[0] ? getLabelMusica(local.musica[0]) : null
+  const estadoAp = estadoDeLocal(local, ahora)
+  const lineaEstado = textoEstadoFicha(estadoAp, ahora)
+  const colorEstado = estadoAp.estado === 'abierto' ? '#27AE60' : estadoAp.estado === 'abre_pronto' ? '#F39C12' : '#4A4A60'
 
   const toggleSuscripcion = async () => {
     if (!usuario) { router.push('/login'); return }
@@ -77,6 +91,12 @@ export function LocalBottomSheet({ local, onClose }: Props) {
               {getLabelTipoLocal(local.tipo_local)}
               {local.ciudad && <><span className="text-[#8B8BA8]">·</span><MapPin size={11} className="shrink-0" />{local.ciudad}</>}
             </p>
+            {lineaEstado && (
+              <p className="text-[13px] text-[#D7D7E2] mt-1 flex items-center gap-1.5 truncate">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: colorEstado }} />
+                {lineaEstado}
+              </p>
+            )}
           </div>
         </div>
 

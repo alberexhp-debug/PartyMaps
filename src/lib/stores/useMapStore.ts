@@ -22,6 +22,7 @@ const filtrosDefault: FiltrosMapa = {
   precio_max: undefined,
   solo_con_evento: false,
   solo_con_planes: false,
+  solo_abiertos: false,
 }
 
 export const useMapStore = create<MapState>((set) => ({

@@ -16,6 +16,8 @@ import {
   getColorTemperatura, getLabelTemperatura, getLabelTipoLocal,
   getTemperaturaAforo, formatearPrecio, cn,
 } from '@/lib/utils'
+import { estadoDeLocal } from '@/lib/estado-local'
+import type { EstadoApertura } from '@/lib/horarios'
 import {
   Search, SlidersHorizontal, ArrowUpDown, Clock, Flame, MapPin,
   Ticket, X, Check, CalendarDays,
@@ -92,6 +94,10 @@ const ORDEN_LABEL: Record<Orden, string> = {
   nombre: 'Nombre A-Z',
 }
 
+// Orden por defecto de la lista: abiertos → abre pronto → sin datos → cerrados.
+const RANK_ESTADO: Record<EstadoApertura, number> = { abierto: 0, abre_pronto: 1, sin_datos: 2, cerrado: 3 }
+const COLOR_PUNTO_ESTADO: Record<EstadoApertura, string> = { abierto: '#27AE60', abre_pronto: '#F39C12', cerrado: '#4A4A60', sin_datos: '#4A4A60' }
+
 export default function ExplorarPage() {
   const { filtros, setFiltros, clearFiltros } = useMapStore()
   const [locales, setLocales] = useState<LocalConAforo[]>([])
@@ -103,13 +109,22 @@ export default function ExplorarPage() {
   const [showOrden, setShowOrden] = useState(false)
   const [filtroFecha, setFiltroFecha] = useState<FiltroFecha | null>(null)
   const [soloOfertas, setSoloOfertas] = useState(false)
+  // Hora actual con tick de 1 min: el chip de estado y el orden "abiertos primero" se mantienen vivos.
+  const [ahora, setAhora] = useState(() => new Date())
+  useEffect(() => {
+    const tick = () => setAhora(new Date())
+    const id = setInterval(tick, 60000)
+    const onVisible = () => { if (document.visibilityState === 'visible') tick() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
+  }, [])
 
   const cargar = async () => {
     setLoading(true)
     setError(false)
     const { data, error: err } = await supabase
       .from('locales')
-      .select('*, eventos(id, nombre, estado, fecha_inicio, precio_base, precio_maximo)')
+      .select('*, eventos(id, nombre, estado, fecha_inicio, fecha_fin, precio_base, precio_maximo)')
       .eq('estado', 'activo')
       .limit(200)
     if (err || !data) { setError(true); setLoading(false); return }
@@ -124,6 +139,12 @@ export default function ExplorarPage() {
   useEffect(() => { cargar() }, [])
   const ptr = usePullToRefresh({ onRefresh: cargar })
 
+  // Estado de apertura por local (recalculado cada minuto): chip, filtro y orden.
+  const estadoPorId = useMemo(
+    () => new Map(locales.map(l => [l.id, estadoDeLocal(l, ahora).estado])),
+    [locales, ahora],
+  )
+
   // Aplicar filtros y orden en memoria
   const resultados = useMemo(() => {
     let r = locales
@@ -134,6 +155,7 @@ export default function ExplorarPage() {
     if (filtros.solo_con_evento) r = r.filter(l => l.evento_activo)
     if (filtros.precio_min != null) r = r.filter(l => (l.precio_entrada_min ?? 0) >= filtros.precio_min!)
     if (filtros.precio_max != null) r = r.filter(l => (l.precio_entrada_min ?? 0) <= filtros.precio_max!)
+    if (filtros.solo_abiertos) r = r.filter(l => { const e = estadoPorId.get(l.id); return e === 'abierto' || e === 'abre_pronto' })
     if (soloOfertas) r = r.filter(l => !!l.promo_ultima_hora_hasta && new Date(l.promo_ultima_hora_hasta).getTime() > Date.now())
     // Filtro por fecha (eventos publicados en el rango, o local abierto ese día)
     if (filtroFecha) {
@@ -155,8 +177,12 @@ export default function ExplorarPage() {
       case 'nombre':      sorted.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')); break
       case 'relevancia':
       default:
-        // Score: destacado +100, promo activa +50, evento publicado +30, aforo medio +10
+        // Orden por defecto: primero por estado (abiertos → abre pronto → sin datos → cerrados),
+        // y dentro de cada grupo por relevancia (destacado +100, promo +50, evento +30, aforo +10).
         sorted.sort((a, b) => {
+          const ra = RANK_ESTADO[estadoPorId.get(a.id) ?? 'sin_datos']
+          const rb = RANK_ESTADO[estadoPorId.get(b.id) ?? 'sin_datos']
+          if (ra !== rb) return ra - rb
           const score = (l: LocalConAforo) =>
             (l.tier === 'destacado' ? 100 : 0) +
             (tienePromo(l) ? 50 : 0) +
@@ -166,11 +192,12 @@ export default function ExplorarPage() {
         })
     }
     return sorted
-  }, [locales, filtros, busca, orden, filtroFecha, soloOfertas])
+  }, [locales, filtros, busca, orden, filtroFecha, soloOfertas, estadoPorId])
 
   const numFiltros =
     filtros.tipos.length + filtros.musica.length +
     (filtros.solo_con_evento ? 1 : 0) +
+    (filtros.solo_abiertos ? 1 : 0) +
     (filtros.precio_min != null || filtros.precio_max != null ? 1 : 0) +
     (filtroFecha != null ? 1 : 0) +
     (soloOfertas ? 1 : 0)
@@ -221,6 +248,19 @@ export default function ExplorarPage() {
 
         {/* Chips de filtros activos + orden */}
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+          {/* Abiertos ahora — primer chip (incluye abiertos + abre pronto) */}
+          <button
+            onClick={() => setFiltros({ solo_abiertos: !filtros.solo_abiertos })}
+            aria-pressed={filtros.solo_abiertos}
+            className={cn(
+              'shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-colors',
+              filtros.solo_abiertos
+                ? 'bg-[#27AE60] text-white'
+                : 'bg-white/4 border border-white/8 text-[#B8B8CC] hover:text-white'
+            )}
+          >
+            <Clock size={11} /> Abiertos ahora
+          </button>
           <button
             onClick={() => setShowOrden(true)}
             className="shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full bg-white/6 border border-white/10 text-xs font-semibold text-white hover:bg-white/10 transition-colors"
@@ -319,7 +359,7 @@ export default function ExplorarPage() {
             )}
           </div>
         ) : (
-          resultados.map(l => <CardLocal key={l.id} local={l} />)
+          resultados.map(l => <CardLocal key={l.id} local={l} ahora={ahora} />)
         )}
       </div>
 
@@ -444,10 +484,14 @@ export default function ExplorarPage() {
   )
 }
 
-function CardLocal({ local }: { local: LocalConAforo }) {
+function CardLocal({ local, ahora }: { local: LocalConAforo; ahora: Date }) {
   const colorTemp = getColorTemperatura(local.temperatura)
   const tienePromo = local.promo_ultima_hora_hasta && new Date(local.promo_ultima_hora_hasta).getTime() > Date.now()
   const precioMostrar = local.precio_entrada_min
+  const estado = estadoDeLocal(local, ahora)
+  const etiquetaEstado = estado.estado === 'abre_pronto' ? `Abre ${estado.horaRelevante}`
+    : estado.estado === 'abierto' ? 'Abierto'
+    : estado.estado === 'cerrado' ? 'Cerrado' : null
   return (
     <Link href={`/local/${local.id}`} className="block">
       <div className="card-premium overflow-hidden hover:-translate-y-0.5 transition-transform">
@@ -455,8 +499,15 @@ function CardLocal({ local }: { local: LocalConAforo }) {
           {/* Imagen */}
           <div className="w-28 h-32 flex-shrink-0 relative overflow-hidden">
             <LocalImagen src={local.imagenes?.[0]} nombre={local.nombre} />
+            {/* Chip de estado de apertura (no atenúa la tarjeta) */}
+            {etiquetaEstado && (
+              <div className="absolute top-2 left-2 inline-flex items-center gap-1 h-6 px-2 rounded-full glass-strong">
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: COLOR_PUNTO_ESTADO[estado.estado] }} />
+                <span className="text-[11px] font-medium" style={{ color: estado.estado === 'cerrado' ? '#8B8BA8' : '#FAFAFC' }}>{etiquetaEstado}</span>
+              </div>
+            )}
             {local.tier === 'destacado' && (
-              <div className="absolute top-2 left-2">
+              <div className="absolute top-2 right-2">
                 <Badge variant="gold" size="sm">★</Badge>
               </div>
             )}

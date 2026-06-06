@@ -92,6 +92,7 @@ export function FiltrosMapa({ open, onClose }: Props) {
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-[#A0A0B8] uppercase tracking-wider">Más filtros</h3>
           {[
+            { key: 'solo_abiertos' as const, label: 'Abiertos ahora', emoji: '🕐' },
             { key: 'solo_con_evento' as const, label: 'Solo con evento esta noche', emoji: '★' },
             { key: 'solo_con_planes' as const, label: 'Solo con planes públicos', emoji: '👥' },
           ].map(({ key, label, emoji }) => (

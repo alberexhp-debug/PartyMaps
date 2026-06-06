@@ -533,6 +533,8 @@ export interface FiltrosMapa {
   precio_max?: number
   solo_con_evento: boolean
   solo_con_planes: boolean
+  /** "Abiertos ahora": deja solo locales abiertos o que abren pronto (≤2h). */
+  solo_abiertos: boolean
 }
 
 export interface ResultadoEscaneoQR {
