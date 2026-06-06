@@ -282,15 +282,14 @@ export default function MapaExplorar() {
           // Los locales con plan de visibilidad aparecen desde z~13.3; el resto desde z~14.5.
           // El zoom debe ir en el interpolate de nivel superior (Mapbox no permite
           // expresiones de zoom anidadas en un 'case'); el 'top' decide el valor en cada parada.
-          'text-opacity': ['*',
-            ['interpolate', ['linear'], ['zoom'],
-              13.3, 0,
-              14,   ['case', ['==', ['get', 'top'], 1], 1, 0],
-              14.5, ['case', ['==', ['get', 'top'], 1], 1, 0],
-              15.3, 1,
-            ],
-            // El nombre de un local cerrado se atenúa.
-            ['match', ['get', 'estado'], 'cerrado', 0.45, 1],
+          // El nombre de un local cerrado se atenúa (×0.45). El factor va DENTRO de cada
+          // parada del interpolate: Mapbox exige que "zoom" sea el input de nivel superior
+          // (no se puede anidar un interpolate de zoom dentro de un "*").
+          'text-opacity': ['interpolate', ['linear'], ['zoom'],
+            13.3, 0,
+            14,   ['*', ['case', ['==', ['get', 'top'], 1], 1, 0], ['match', ['get', 'estado'], 'cerrado', 0.45, 1]],
+            14.5, ['*', ['case', ['==', ['get', 'top'], 1], 1, 0], ['match', ['get', 'estado'], 'cerrado', 0.45, 1]],
+            15.3, ['match', ['get', 'estado'], 'cerrado', 0.45, 1],
           ],
         },
       })
