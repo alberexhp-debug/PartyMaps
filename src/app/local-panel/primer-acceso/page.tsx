@@ -33,7 +33,7 @@ export default function PrimerAccesoPage() {
 
   const entrar = useCallback(async (t: TrabajadorConLocal) => {
     // Recarga la ficha con los flags ya actualizados.
-    const { data } = await supabase.from('usuario_local').select('*, locales!inner(*)')
+    const { data } = await supabase.from('usuario_local').select('*, locales!local_id!inner(*)')
       .ilike('email', t.email.trim()).eq('activo', true).maybeSingle()
     const fresco = (data as TrabajadorConLocal | null) ?? t
     setTrabajador(fresco)
@@ -48,7 +48,7 @@ export default function PrimerAccesoPage() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user?.email) { router.replace('/local-panel/login'); return }
-      const { data } = await supabase.from('usuario_local').select('*, locales!inner(*)')
+      const { data } = await supabase.from('usuario_local').select('*, locales!local_id!inner(*)')
         .ilike('email', user.email.trim()).eq('activo', true).maybeSingle()
       if (!data) { await supabase.auth.signOut(); router.replace('/local-panel/login'); return }
       const t = data as TrabajadorConLocal

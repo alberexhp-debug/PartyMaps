@@ -52,7 +52,7 @@ export default function LocalPanelLoginPage() {
     const emailLookup = (authData.user?.email ?? email).trim()
     const { data: trabajador, error: trabajadorError } = await supabase
       .from('usuario_local')
-      .select('*, locales!inner(*)')
+      .select('*, locales!local_id!inner(*)')
       .ilike('email', emailLookup)
       .eq('activo', true)
       .maybeSingle()
