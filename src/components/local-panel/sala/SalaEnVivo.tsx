@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { Planta, Mesa, Reserva } from '@/types'
-import { Users, Beer, Check, X, LogIn, RotateCcw } from 'lucide-react'
+import { Users, Beer, Check, X, LogIn, RotateCcw, Plus, Minus, Clock, Armchair } from 'lucide-react'
 
 interface Props {
   localId: string
@@ -29,6 +29,14 @@ const PRIORIDAD: Record<string, number> = { sentada: 3, confirmada: 2, solicitad
 function hoyLocal(): string {
   return new Date().toLocaleDateString('sv-SE') // YYYY-MM-DD en hora local
 }
+function tiempoMesa(iso: string): string {
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+  if (m < 1) return 'ahora'
+  if (m < 60) return `${m} min`
+  return `${Math.floor(m / 60)}h ${m % 60}m`
+}
+
+type SesionMesa = { id: string; personas: number; nombre: string | null; abierta_at: string }
 
 export function SalaEnVivo({ localId, plantas, mesas }: Props) {
   const toast = useToast()
@@ -36,15 +44,20 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
   const [reservas, setReservas] = useState<Reserva[]>([])
   const [pedidosPorMesa, setPedidosPorMesa] = useState<Record<string, number>>({})
   const [selId, setSelId] = useState<string | null>(null)
+  const [sesionesPorMesa, setSesionesPorMesa] = useState<Record<string, SesionMesa>>({})
+  const [sentando, setSentando] = useState(false)
+  const [personasSentar, setPersonasSentar] = useState(2)
 
   const cargar = useCallback(async () => {
     const hoy = hoyLocal()
-    const [{ data: rv }, { data: pd }] = await Promise.all([
+    const [{ data: rv }, { data: pd }, { data: ses }] = await Promise.all([
       supabase.from('reservas').select('*')
         .eq('local_id', localId).eq('fecha_noche', hoy)
         .in('estado', ['solicitada', 'confirmada', 'sentada']),
       supabase.from('pedidos_bar').select('id, mesa_id')
         .eq('local_id', localId).eq('estado', 'pagado').not('mesa_id', 'is', null),
+      supabase.from('mesa_sesiones').select('id, mesa_id, personas, nombre, abierta_at')
+        .eq('local_id', localId).is('cerrada_at', null),
     ])
     setReservas((rv ?? []) as Reserva[])
     const conteo: Record<string, number> = {}
@@ -52,6 +65,9 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
       if (p.mesa_id) conteo[p.mesa_id] = (conteo[p.mesa_id] ?? 0) + 1
     }
     setPedidosPorMesa(conteo)
+    const porMesa: Record<string, SesionMesa> = {}
+    for (const s of (ses ?? []) as (SesionMesa & { mesa_id: string })[]) porMesa[s.mesa_id] = s
+    setSesionesPorMesa(porMesa)
   }, [localId])
 
   useEffect(() => { cargar() }, [cargar])
@@ -61,6 +77,7 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
     const ch = supabase.channel(`sala-${localId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reservas', filter: `local_id=eq.${localId}` }, () => cargar())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_bar', filter: `local_id=eq.${localId}` }, () => cargar())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mesa_sesiones', filter: `local_id=eq.${localId}` }, () => cargar())
       .subscribe()
     return () => { supabase.removeChannel(ch) }
   }, [localId, cargar])
@@ -74,10 +91,11 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
   const estadoDeMesa = (mesaId: string): EstadoMesa => {
     if (pedidosPorMesa[mesaId]) return 'pedido'
     const r = reservaDeMesa(mesaId)
-    if (!r) return 'libre'
-    if (r.estado === 'sentada') return 'sentada'
-    if (r.estado === 'confirmada') return 'reservada'
-    return 'solicitada'
+    if (r?.estado === 'sentada') return 'sentada'
+    if (sesionesPorMesa[mesaId]) return 'sentada'   // walk-in: sesión de mesa abierta
+    if (r?.estado === 'confirmada') return 'reservada'
+    if (r) return 'solicitada'
+    return 'libre'
   }
 
   const cambiarEstadoReserva = async (r: Reserva, estado: Reserva['estado']) => {
@@ -92,6 +110,29 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
   const mesasPlanta = mesas.filter(m => m.planta_id === plantaId)
   const seleccionada = mesas.find(m => m.id === selId) ?? null
   const reservaSel = seleccionada ? reservaDeMesa(seleccionada.id) : null
+  const sesionSel = seleccionada ? sesionesPorMesa[seleccionada.id] : null
+
+  const sentarWalkin = async () => {
+    if (!seleccionada) return
+    const res = await fetch('/api/local-panel/mesas-sesiones', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'sentar', mesa_id: seleccionada.id, personas: personasSentar }),
+    })
+    const j = await res.json().catch(() => ({}))
+    if (!res.ok) { toast.error(j.error || 'No se pudo sentar'); return }
+    setSentando(false); setPersonasSentar(2)
+    toast.success(`Mesa ${seleccionada.codigo} ocupada`)
+    cargar()
+  }
+  const liberarMesa = async (sesionId: string) => {
+    const res = await fetch('/api/local-panel/mesas-sesiones', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'liberar', sesion_id: sesionId }),
+    })
+    if (!res.ok) { toast.error('No se pudo liberar'); return }
+    toast.success('Mesa liberada')
+    cargar()
+  }
 
   if (plantas.length === 0) {
     return <div className="glass rounded-2xl py-16 text-center text-sm text-[#6B6B85]">El local aún no tiene plano. Pídele al dueño/gestor que lo defina en la pestaña “Plano”.</div>
@@ -137,7 +178,7 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
             return (
               <button
                 key={m.id}
-                onClick={() => setSelId(m.id)}
+                onClick={() => { setSelId(m.id); setSentando(false) }}
                 className={cn('absolute flex flex-col items-center justify-center transition-transform active:scale-95',
                   m.forma === 'redonda' ? 'rounded-full' : m.forma === 'rect' ? 'rounded-lg' : 'rounded-md',
                   est === 'pedido' && 'animate-pulse-heat')}
@@ -201,8 +242,36 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
                     )}
                   </div>
                 </div>
+              ) : sesionSel ? (
+                <div className="space-y-2 pt-1 border-t border-white/8">
+                  <p className="text-sm font-semibold text-white flex items-center gap-1.5"><Armchair size={13} className="text-[#27AE60]" /> Ocupada{sesionSel.nombre ? ` · ${sesionSel.nombre}` : ''}</p>
+                  <p className="text-xs text-[#B8B8CC] flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1"><Users size={11} /> {sesionSel.personas}</span>
+                    <span className="inline-flex items-center gap-1"><Clock size={11} /> {tiempoMesa(sesionSel.abierta_at)}</span>
+                  </p>
+                  <Button size="sm" variant="secondary" onClick={() => liberarMesa(sesionSel.id)}>Liberar mesa</Button>
+                </div>
               ) : (
-                <p className="text-xs text-[#6B6B85] pt-1 border-t border-white/8">Sin reserva esta noche.</p>
+                <div className="space-y-2 pt-1 border-t border-white/8">
+                  {sentando ? (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-[#B8B8CC]">Personas</span>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setPersonasSentar(p => Math.max(1, p - 1))} className="h-8 w-8 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Minus size={13} /></button>
+                          <span className="w-6 text-center font-bold text-white">{personasSentar}</span>
+                          <button onClick={() => setPersonasSentar(p => Math.min(50, p + 1))} className="h-8 w-8 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Plus size={13} /></button>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="secondary" onClick={() => setSentando(false)}>Cancelar</Button>
+                        <Button size="sm" onClick={sentarWalkin}><Armchair size={13} /> Sentar</Button>
+                      </div>
+                    </>
+                  ) : (
+                    <Button size="sm" onClick={() => setSentando(true)}><Armchair size={13} /> Sentar clientes</Button>
+                  )}
+                </div>
               )}
             </div>
           ) : (
