@@ -55,7 +55,7 @@ export default function PerfilPage() {
     setLoggingOut(true)
     await supabase.auth.signOut()
     setUsuario(null)
-    router.push('/bienvenida')
+    router.push('/login')   // al login del usuario, no a la intro (§6.1)
   }
 
   const guardarNombre = async () => {

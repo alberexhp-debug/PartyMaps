@@ -40,7 +40,7 @@ export function FiltrosMapa({ open, onClose }: Props) {
 
   return (
     <BottomSheet open={open} onClose={onClose}>
-      <div className="px-5 pb-8 pt-2 space-y-6">
+      <div className="px-5 pt-2 space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-white">Filtros</h2>
           <button onClick={clearFiltros} className="text-sm text-[#E94560]">Limpiar todo</button>
@@ -115,9 +115,12 @@ export function FiltrosMapa({ open, onClose }: Props) {
           ))}
         </div>
 
-        <Button fullWidth onClick={onClose}>
-          Aplicar filtros
-        </Button>
+        {/* Footer fijo: "Aplicar" siempre visible y por encima del notch / barra de navegación (§3.5) */}
+        <div className="sticky bottom-0 -mx-5 px-5 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] bg-[#0E0E16]/85 backdrop-blur-md border-t border-white/5">
+          <Button fullWidth onClick={onClose}>
+            Aplicar filtros
+          </Button>
+        </div>
       </div>
     </BottomSheet>
   )
