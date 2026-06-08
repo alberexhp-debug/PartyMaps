@@ -366,10 +366,29 @@ async function verificarQR(qrData: string, localId: string, modoConsumicion: boo
   }
 
   if (modoConsumicion) {
-    if (!entrada.consumicion_id) return { tipo: 'qr_invalido', mensaje: 'Esta entrada no incluye consumición' }
-    if (entrada.consumicion_canjeada) return { tipo: 'consumicion_usada', entrada, mensaje: 'Consumición ya canjeada' }
-    await supabase.from('entradas').update({ consumicion_canjeada: true }).eq('id', entrada.id)
-    return { tipo: 'consumicion_ok', entrada, mensaje: '✓ Consumición canjeada', timestamp: new Date().toISOString() }
+    // Canje en servidor: contador atómico (anti-falsificación). Sirve para el modelo
+    // contador (N incluidas) y para la consumición de bienvenida legacy.
+    try {
+      const res = await fetch('/api/local-panel/consumiciones/canjear', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ qr_code: qrData }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const sinSaldo = j.disponibles === 0
+        return { tipo: sinSaldo ? 'consumicion_usada' : 'qr_invalido', entrada, mensaje: j.error || 'No se pudo canjear' }
+      }
+      const incluidas = j.incluidas ?? 1
+      const quedan = j.disponibles ?? 0
+      const detalle = j.descripcion ? ` · ${j.descripcion}` : ''
+      return {
+        tipo: 'consumicion_ok', entrada,
+        mensaje: `✓ Consumición canjeada · quedan ${quedan} de ${incluidas}${detalle}`,
+        timestamp: new Date().toISOString(),
+      }
+    } catch {
+      return { tipo: 'qr_invalido', mensaje: 'Error de red al canjear la consumición' }
+    }
   }
 
   if (entrada.estado === 'usada') {

@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { PageHeader, SectionCard } from '@/components/local-panel/ui'
 import { useToast } from '@/components/ui/Toast'
-import { Banknote, CreditCard, Smartphone, Check, Plus, Minus, User, RotateCcw, Download } from 'lucide-react'
+import { Banknote, CreditCard, Smartphone, Check, Plus, Minus, User, RotateCcw, Download, Coffee } from 'lucide-react'
 
 type Evento = { id: string; nombre: string; fecha_inicio: string; precio_base: number | null }
 type EntradaCreada = { id: string; qr_code: string; precio_total: number }
@@ -30,6 +30,8 @@ export default function TaquillaPage() {
   const [telefono, setTelefono] = useState('')
   const [verDatos, setVerDatos] = useState(false)
   const [aceptaMarketing, setAceptaMarketing] = useState(false)
+  const [consumiciones, setConsumiciones] = useState(0)
+  const [consumicionTexto, setConsumicionTexto] = useState('')
   const [vendiendo, setVendiendo] = useState(false)
   const [resultado, setResultado] = useState<EntradaCreada[] | null>(null)
   const [hoy, setHoy] = useState<{ num: number; total: number } | null>(null)
@@ -73,6 +75,8 @@ export default function TaquillaPage() {
         evento_id: eventoId || undefined, precio: p, cantidad, metodo_pago: metodo,
         comprador_nombre: nombre.trim() || undefined, comprador_telefono: telefono.trim() || undefined,
         consentimiento_marketing: aceptaMarketing,
+        consumiciones_incluidas: consumiciones,
+        consumiciones_descripcion: consumicionTexto.trim() || undefined,
       }),
     })
     const j = await res.json().catch(() => ({}))
@@ -84,6 +88,7 @@ export default function TaquillaPage() {
 
   function nuevaVenta() {
     setResultado(null); setCantidad(1); setNombre(''); setTelefono(''); setVerDatos(false)
+    setConsumiciones(0); setConsumicionTexto('')
   }
 
   // ─── Pantalla de resultado: QR(s) generados ───
@@ -96,6 +101,11 @@ export default function TaquillaPage() {
           </div>
           <p className="text-white font-bold text-lg">Venta registrada</p>
           <p className="text-[#8B8BA8] text-sm">{resultado.length} {resultado.length === 1 ? 'entrada' : 'entradas'} · {eur(resultado.reduce((s, e) => s + Number(e.precio_total), 0))} en {metodo}</p>
+          {consumiciones > 0 && (
+            <p className="text-[#E0455E] text-xs mt-1.5 flex items-center justify-center gap-1.5">
+              <Coffee size={12} /> Incluye {consumiciones} {consumiciones === 1 ? 'consumición' : 'consumiciones'}{consumicionTexto.trim() ? ` · ${consumicionTexto.trim()}` : ''}
+            </p>
+          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {resultado.map((e, i) => <QrEntrada key={e.id} code={e.qr_code} idx={i + 1} total={resultado.length} />)}
@@ -197,6 +207,30 @@ export default function TaquillaPage() {
               <User size={14} /> Añadir nombre del cliente (opcional)
             </button>
           )}
+
+          {/* Consumiciones incluidas con la entrada (van DENTRO del QR: anti-falsificación) */}
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-white flex items-center gap-2">
+                <Coffee size={15} className="text-[#E0455E]" /> Consumiciones incluidas
+              </span>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setConsumiciones(c => Math.max(0, c - 1))} disabled={consumiciones === 0}
+                  className="h-9 w-9 rounded-lg border border-white/10 bg-white/5 text-white flex items-center justify-center hover:bg-white/10 disabled:opacity-40"><Minus size={14} /></button>
+                <span className="w-6 text-center text-base font-bold text-white">{consumiciones}</span>
+                <button type="button" onClick={() => setConsumiciones(c => Math.min(5, c + 1))} disabled={consumiciones === 5}
+                  className="h-9 w-9 rounded-lg border border-white/10 bg-white/5 text-white flex items-center justify-center hover:bg-white/10 disabled:opacity-40"><Plus size={14} /></button>
+              </div>
+            </div>
+            {consumiciones > 0 && (
+              <>
+                <input value={consumicionTexto} onChange={e => setConsumicionTexto(e.target.value.slice(0, 120))}
+                  placeholder="Qué incluye (ej. cubata, copa o refresco)"
+                  className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+                <p className="text-[11px] text-[#8B8BA8]">Van dentro del QR de la entrada y se canjean en barra una a una. Sin papelitos: imposible de falsificar.</p>
+              </>
+            )}
+          </div>
 
           {/* Total + cobrar */}
           <div className="flex items-center justify-between pt-2 border-t border-white/8">

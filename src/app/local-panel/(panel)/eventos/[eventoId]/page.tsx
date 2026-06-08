@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 import { Evento, EstadoEvento, PrecioDinamicoConfig } from '@/types'
-import { ArrowLeft, Save, Zap } from 'lucide-react'
+import { ArrowLeft, Save, Zap, Coffee, Plus, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEditor'
 import { obligatoriosCompletos, faltantesObligatorios } from '@/lib/onboarding/gate'
@@ -235,6 +235,32 @@ export default function EventoEditPage() {
             placeholder="Ej: 50"
           />
         </div>
+      </div>
+
+      {/* Consumiciones incluidas con la entrada online (van DENTRO del QR: anti-falsificación) */}
+      <div className="glass rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <Coffee size={14} className="text-[#E0455E]" /> Consumiciones incluidas
+          </h3>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setForm(f => ({ ...f, consumiciones_incluidas: Math.max(0, (f.consumiciones_incluidas ?? 0) - 1) }))}
+              disabled={(form.consumiciones_incluidas ?? 0) === 0}
+              className="h-9 w-9 rounded-lg border border-white/10 bg-white/5 text-white flex items-center justify-center hover:bg-white/10 disabled:opacity-40"><Minus size={14} /></button>
+            <span className="w-6 text-center text-base font-bold text-white">{form.consumiciones_incluidas ?? 0}</span>
+            <button type="button" onClick={() => setForm(f => ({ ...f, consumiciones_incluidas: Math.min(5, (f.consumiciones_incluidas ?? 0) + 1) }))}
+              disabled={(form.consumiciones_incluidas ?? 0) === 5}
+              className="h-9 w-9 rounded-lg border border-white/10 bg-white/5 text-white flex items-center justify-center hover:bg-white/10 disabled:opacity-40"><Plus size={14} /></button>
+          </div>
+        </div>
+        {(form.consumiciones_incluidas ?? 0) > 0 && (
+          <>
+            <input value={form.consumiciones_descripcion || ''} onChange={e => setForm(f => ({ ...f, consumiciones_descripcion: e.target.value.slice(0, 120) }))}
+              placeholder="Qué incluye (ej. cubata, copa o refresco)"
+              className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E0455E]/50" />
+            <p className="text-[11px] text-[#8B8BA8]">Quien compre esta entrada online la llevará en su QR; se canjean en barra una a una.</p>
+          </>
+        )}
       </div>
 
       <Input

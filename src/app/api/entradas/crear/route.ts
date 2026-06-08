@@ -32,14 +32,18 @@ export async function POST(req: NextRequest) {
     if (localError || !local) return NextResponse.json({ error: 'Local no encontrado' }, { status: 404 })
 
     let precioBase: number = local.precio_entrada_min ?? 0
+    let consumicionesIncluidas = 0
+    let consumicionesDescripcion: string | null = null
 
     if (evento_id) {
       const { data: evento } = await supabase
         .from('eventos')
-        .select('precio_base, precio_maximo, precio_early_bird, early_bird_hasta, early_bird_cupo, precio_dinamico, entradas_vendidas, aforo_maximo, estado')
+        .select('precio_base, precio_maximo, precio_early_bird, early_bird_hasta, early_bird_cupo, precio_dinamico, entradas_vendidas, aforo_maximo, estado, consumiciones_incluidas, consumiciones_descripcion')
         .eq('id', evento_id)
         .single()
       if (evento && evento.estado === 'publicado') {
+        consumicionesIncluidas = Math.max(0, Math.min(5, Number(evento.consumiciones_incluidas) || 0))
+        consumicionesDescripcion = consumicionesIncluidas > 0 ? (evento.consumiciones_descripcion ?? null) : null
         const ahora = new Date()
         const earlyBirdActivo = evento.precio_early_bird && evento.early_bird_hasta && new Date(evento.early_bird_hasta) > ahora
           && (evento.early_bird_cupo == null || evento.entradas_vendidas < evento.early_bird_cupo)
@@ -129,6 +133,9 @@ export async function POST(req: NextRequest) {
       evento_id: evento_id || null,
       consumicion_id: consumicion_id || null,
       consumicion_canjeada: false,
+      consumiciones_incluidas: consumicionesIncluidas,
+      consumiciones_canjeadas: 0,
+      consumiciones_descripcion: consumicionesDescripcion,
       precio_local: precioBase,
       comision_plataforma: comision,
       precio_total: precioTotal,

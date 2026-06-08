@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     evento_id?: string; precio?: number; cantidad?: number; metodo_pago?: string;
     comprador_nombre?: string; comprador_telefono?: string; consumicion_id?: string;
     consentimiento_marketing?: boolean;
+    consumiciones_incluidas?: number; consumiciones_descripcion?: string;
   } | null
   if (!body) return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
 
@@ -60,6 +61,10 @@ export async function POST(req: NextRequest) {
     if (!ev || ev.local_id !== t.local_id) return NextResponse.json({ error: 'Evento no válido' }, { status: 400 })
   }
 
+  // Consumiciones incluidas con la entrada (0-5, "qué incluye" como snapshot).
+  const consumicionesIncluidas = Math.max(0, Math.min(5, Math.floor(Number(body.consumiciones_incluidas) || 0)))
+  const consumicionesDesc = consumicionesIncluidas > 0 ? (body.consumiciones_descripcion?.trim().slice(0, 120) || null) : null
+
   const precioRedondeado = Math.round(precio * 100) / 100
   const filas = Array.from({ length: cantidad }, () => ({
     usuario_id: null,
@@ -67,6 +72,9 @@ export async function POST(req: NextRequest) {
     evento_id: body.evento_id || null,
     consumicion_id: body.consumicion_id || null,
     consumicion_canjeada: false,
+    consumiciones_incluidas: consumicionesIncluidas,
+    consumiciones_canjeadas: 0,
+    consumiciones_descripcion: consumicionesDesc,
     precio_local: precioRedondeado,
     comision_plataforma: 0,                 // venta en mano: Rumbo no procesa el dinero
     precio_total: precioRedondeado,
@@ -82,9 +90,9 @@ export async function POST(req: NextRequest) {
   const { data: creadas, error } = await db.from('entradas').insert(filas)
     .select('id, qr_code, precio_total, evento_id, estado')
   if (error) {
-    const faltaMigracion = /canal|metodo_pago|vendido_por|null value.*usuario_id|comprador/i.test(error.message)
+    const faltaMigracion = /canal|metodo_pago|vendido_por|null value.*usuario_id|comprador|consumiciones_/i.test(error.message)
     return NextResponse.json({
-      error: faltaMigracion ? 'La taquilla necesita la migración 032 aplicada en Supabase.' : `No se pudo vender: ${error.message}`,
+      error: faltaMigracion ? 'La taquilla necesita sus migraciones aplicadas en Supabase (032 y 047).' : `No se pudo vender: ${error.message}`,
     }, { status: faltaMigracion ? 409 : 500 })
   }
 

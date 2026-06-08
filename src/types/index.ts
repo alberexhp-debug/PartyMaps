@@ -309,6 +309,9 @@ export interface Evento {
   entradas_vendidas: number
   modulos_activos: TipoModulo[]
   configuracion_modulos?: Record<string, unknown>
+  /** Consumiciones incluidas al comprar online este evento (0-5) + qué incluye. */
+  consumiciones_incluidas?: number
+  consumiciones_descripcion?: string | null
   created_at: string
   updated_at: string
 }
@@ -323,6 +326,10 @@ export interface Entrada {
   precio_total: number
   consumicion_id?: string
   consumicion_canjeada: boolean
+  /** Consumiciones incluidas en la entrada (modelo contador, máx 5). Se canjean en barra una a una. */
+  consumiciones_incluidas?: number
+  consumiciones_canjeadas?: number
+  consumiciones_descripcion?: string | null
   qr_code: string
   estado: EstadoEntrada
   usado_at?: string

@@ -217,6 +217,39 @@ export default function EntradaDetallePage() {
           </div>
         )}
 
+        {/* Cartita digital: consumiciones incluidas con la entrada (contador en servidor) */}
+        {(entrada.consumiciones_incluidas ?? 0) > 0 && (() => {
+          const inc = entrada.consumiciones_incluidas ?? 0
+          const canj = entrada.consumiciones_canjeadas ?? 0
+          const quedan = Math.max(0, inc - canj)
+          return (
+            <div className={cn(
+              'p-4 rounded-2xl border',
+              quedan > 0 ? 'border-green-500/30 bg-green-500/10' : 'border-white/10 bg-white/6 opacity-60'
+            )}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+                  <Coffee size={18} className="text-green-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white text-sm">
+                    {quedan > 0 ? `${quedan} de ${inc} ${inc === 1 ? 'consumición' : 'consumiciones'}` : 'Consumiciones canjeadas'}
+                  </p>
+                  <p className="text-xs text-[#A0A0B8] truncate">
+                    {entrada.consumiciones_descripcion || (quedan > 0 ? 'Muestra tu QR en la barra para canjear' : 'No te queda ninguna')}
+                  </p>
+                </div>
+              </div>
+              {/* Puntos: se apagan al canjear (●●○) */}
+              <div className="flex items-center gap-1.5 mt-3">
+                {Array.from({ length: inc }).map((_, i) => (
+                  <span key={i} className={cn('h-2.5 flex-1 rounded-full', i < quedan ? 'bg-green-400' : 'bg-white/15')} />
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
         {/* Desglose precio */}
         <div className="glass rounded-2xl p-4 space-y-2">
           <h3 className="text-xs font-semibold text-[#6B6B85] uppercase tracking-wider">Detalle del pago</h3>
