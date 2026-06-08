@@ -10,7 +10,7 @@ import { getLabelTipoLocal } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import {
   ArrowLeft, Save, Store, MapPin, Clock, Image, Settings, AtSign,
-  Ticket, Check, X, AlertCircle, Trash2, Plus, ChevronDown,
+  Ticket, Check, X, AlertCircle, Trash2, Plus, ChevronDown, KeyRound, ShieldOff,
 } from 'lucide-react'
 
 const TIPOS_LOCAL: TipoLocal[] = ['discoteca', 'bar_copas', 'rooftop', 'sala_conciertos', 'bar_cocteleria', 'otro']
@@ -51,6 +51,29 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
   const [estado, setEstado] = useState<EstadoLocal>('activo')
   const [cif, setCif] = useState('')
   const [emailFacturacion, setEmailFacturacion] = useState('')
+  const [resetCreds, setResetCreds] = useState<{ username: string; password: string } | null>(null)
+  const [reseteando, setReseteando] = useState(false)
+
+  const resetPasswordDueno = async () => {
+    if (!confirm('¿Generar una contraseña temporal para el dueño de este local?')) return
+    setReseteando(true)
+    const r = await fetch('/api/admin/locales/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ local_id: id }) })
+    const j = await r.json().catch(() => ({}))
+    setReseteando(false)
+    if (!r.ok) { toast.error(j.error || 'No se pudo resetear'); return }
+    setResetCreds(j.credenciales)
+    registrarAuditoria({ tipo_accion: 'reset_password_local', entidad_tipo: 'local', entidad_id: id }).catch(() => {})
+  }
+  const resetTotpDueno = async () => {
+    if (!confirm('¿Reiniciar el 2FA del dueño? Tendrá que configurarlo de nuevo.')) return
+    setReseteando(true)
+    const r = await fetch('/api/admin/locales/reset-totp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ local_id: id }) })
+    const j = await r.json().catch(() => ({}))
+    setReseteando(false)
+    if (!r.ok) { toast.error(j.error || 'No se pudo reiniciar'); return }
+    toast.success('2FA del dueño reiniciado')
+    registrarAuditoria({ tipo_accion: 'reset_2fa_local', entidad_tipo: 'local', entidad_id: id }).catch(() => {})
+  }
 
   useEffect(() => { cargar() }, [id])
 
@@ -395,6 +418,28 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
         {/* ESTADO */}
         {tab === 'estado' && (
           <>
+            <Section label="Acceso del dueño">
+              <p className="text-xs text-[#8B8BA8]">Para ayudar a un dueño que no puede entrar. Las contraseñas no se pueden ver (están cifradas): se genera una temporal de un solo uso. Queda en auditoría.</p>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={resetPasswordDueno} disabled={reseteando}
+                  className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-white/10 text-sm text-white hover:border-white/25 disabled:opacity-50">
+                  <KeyRound size={14} /> Restablecer contraseña
+                </button>
+                <button onClick={resetTotpDueno} disabled={reseteando}
+                  className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-white/10 text-sm text-white hover:border-white/25 disabled:opacity-50">
+                  <ShieldOff size={14} /> Reiniciar 2FA
+                </button>
+              </div>
+              {resetCreds && (
+                <div className="rounded-xl border border-[#27AE60]/30 bg-[#27AE60]/8 p-3 text-sm space-y-0.5">
+                  <p className="text-[#27AE60] font-semibold">Contraseña temporal generada</p>
+                  <p className="text-[#B8B8CC]">Usuario: <span className="text-white font-mono">{resetCreds.username}</span></p>
+                  <p className="text-[#B8B8CC]">Contraseña: <span className="text-white font-mono">{resetCreds.password}</span></p>
+                  <p className="text-[11px] text-[#8B8BA8] pt-1">Dásela en mano. Al entrar, se le pedirá cambiarla.</p>
+                </div>
+              )}
+            </Section>
+
             <Section label="Tier del local">
               <div className="grid grid-cols-2 gap-2">
                 {(['visibility', 'venta', 'pro', 'destacado'] as TierLocal[]).map(t => (
