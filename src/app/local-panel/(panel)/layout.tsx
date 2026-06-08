@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
@@ -78,6 +78,7 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   const rol = trabajador?.rol
   const [showMas, setShowMas] = useState(false)
   const [noLeidosMsg, setNoLeidosMsg] = useState(0)
+  const silenciadosRef = useRef<string[]>([])
   const tieneMensajes = !!rol && ROLES_PERMISOS[rol].includes('mensajes')
   // Badge de mensajes no leídos: realtime para que se actualice al instante y
   // suene el ping aunque estés en otra página del panel; sondeo de respaldo.
@@ -86,14 +87,19 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
     let vivo = true
     const cargar = () => fetch('/api/local-panel/mensajes')
       .then(r => (r.ok ? r.json() : null))
-      .then(d => { if (vivo && d) setNoLeidosMsg(d.no_leidos_total || 0) })
+      .then(d => { if (vivo && d) { setNoLeidosMsg(d.no_leidos_total || 0); silenciadosRef.current = d.silenciados_match || [] } })
       .catch(() => {})
     cargar()
     const t = setInterval(cargar, 15000)
 
     const esGestor = rol === 'dueno' || rol === 'gestor'
     const esEntrante = (e?: string) => esGestor ? (e === 'rrpp' || e === 'trabajador') : (e === 'local')
-    const onMsg = (payload: { new?: { emisor?: string } }) => { cargar(); if (esEntrante(payload.new?.emisor)) sonidoMensaje() }
+    const onMsg = (payload: { new?: { emisor?: string; rrpp_id?: string; trabajador_id?: string } }) => {
+      cargar()
+      const n = payload.new || {}
+      const refId = n.rrpp_id || n.trabajador_id
+      if (esEntrante(n.emisor) && !(refId && silenciadosRef.current.includes(refId))) sonidoMensaje()
+    }
     let ch: ReturnType<typeof supabase.channel> | null = null
     if (local?.id) {
       ch = supabase.channel(`nav-msg-${local.id}-${Math.random().toString(36).slice(2)}`)

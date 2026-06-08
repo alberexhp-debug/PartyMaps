@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { PageHeader } from '@/components/local-panel/ui'
@@ -7,13 +7,14 @@ import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { sonidoMensaje, sonidoMensajesActivo, setSonidoMensajes } from '@/lib/sonido'
-import { LifeBuoy, MessageSquare, ChevronRight, Volume2, VolumeX } from 'lucide-react'
+import { LifeBuoy, MessageSquare, ChevronRight, Volume2, VolumeX, Pin, PinOff, Bell, BellOff, Archive, ArchiveRestore, MoreVertical, X } from 'lucide-react'
 
 type Tipo = 'rrpp' | 'empleado' | 'local'
 type Conversacion = {
   clave: string; tipo: Tipo; ref_id: string
   nombre: string; rol_label: string
   ultimo_mensaje: string; ultimo_at: string | null; no_leidos: number
+  fijado?: boolean; silenciado?: boolean; archivado?: boolean
 }
 
 const CHIP: Record<Tipo, string> = {
@@ -61,12 +62,18 @@ export default function MensajesPage() {
   const [filtro, setFiltro] = useState<Tipo | 'todos'>('todos')
   const [abierta, setAbierta] = useState<Conversacion | null>(null)
   const [sonidoOn, setSonidoOn] = useState(true)
+  const [verArchivados, setVerArchivados] = useState(false)
+  const [archivadosCount, setArchivadosCount] = useState(0)
+  const [menu, setMenu] = useState<Conversacion | null>(null)
+  const convsRef = useRef<Conversacion[]>([])
 
   const cargar = useCallback(async () => {
-    const r = await fetch('/api/local-panel/mensajes').then(x => x.ok ? x.json() : null).catch(() => null)
+    const url = verArchivados ? '/api/local-panel/mensajes?archivados=1' : '/api/local-panel/mensajes'
+    const r = await fetch(url).then(x => x.ok ? x.json() : null).catch(() => null)
     if (r?.conversaciones) setConvs(r.conversaciones)
+    if (typeof r?.archivados_count === 'number') setArchivadosCount(r.archivados_count)
     setLoading(false)
-  }, [])
+  }, [verArchivados])
 
   useEffect(() => { setSonidoOn(sonidoMensajesActivo()) }, [])
 
@@ -76,13 +83,19 @@ export default function MensajesPage() {
     return () => clearInterval(t)
   }, [cargar])
 
-  // Tiempo real: nuevas conversaciones/mensajes al instante + ping al recibir.
+  useEffect(() => { convsRef.current = convs }, [convs])
+
+  // Tiempo real: nuevas conversaciones/mensajes al instante + ping al recibir
+  // (salvo en conversaciones silenciadas).
   useEffect(() => {
     if (!local?.id) return
     const esEntrante = (emisor: string) => esGestor ? (emisor === 'rrpp' || emisor === 'trabajador') : (emisor === 'local')
-    const onMsg = (payload: { new?: { emisor?: string } }) => {
+    const onMsg = (payload: { new?: { emisor?: string; rrpp_id?: string; trabajador_id?: string } }) => {
       cargar()
-      if (esEntrante(payload.new?.emisor || '')) sonidoMensaje()
+      const n = payload.new || {}
+      const refId = n.rrpp_id || n.trabajador_id
+      const silenciado = convsRef.current.some(c => c.ref_id === refId && c.silenciado)
+      if (esEntrante(n.emisor || '') && !silenciado) sonidoMensaje()
     }
     const ch = supabase.channel(`bandeja-${local.id}-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_rrpp', filter: `local_id=eq.${local.id}` }, onMsg)
@@ -92,6 +105,16 @@ export default function MensajesPage() {
   }, [local?.id, esGestor, cargar])
 
   const toggleSonido = () => { const v = !sonidoOn; setSonidoOn(v); setSonidoMensajes(v) }
+
+  const setEstado = async (c: Conversacion, campo: 'fijado' | 'silenciado' | 'archivado', valor: boolean) => {
+    setMenu(null)
+    setConvs(prev => prev.map(x => x.clave === c.clave ? { ...x, [campo]: valor } : x))
+    await fetch('/api/local-panel/mensajes/estado', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clave: c.clave, campo, valor }),
+    }).catch(() => {})
+    cargar()
+  }
 
   const tipos = Array.from(new Set(convs.map(c => c.tipo)))
   const mostradas = filtro === 'todos' ? convs : convs.filter(c => c.tipo === filtro)
@@ -150,30 +173,59 @@ export default function MensajesPage() {
       ) : (
         <div className="space-y-2">
           {mostradas.map(c => (
-            <button key={c.clave} onClick={() => setAbierta(c)}
-              className="w-full flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 text-left hover:border-white/15 transition-colors">
-              <div className={cn('w-11 h-11 rounded-2xl bg-gradient-to-br flex items-center justify-center shrink-0 text-white text-sm font-bold', AVATAR[c.tipo])}>
-                {iniciales(c.nombre)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-white truncate">{c.nombre}</p>
-                  <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full border shrink-0', CHIP[c.tipo])}>{c.rol_label}</span>
+            <div key={c.clave} className={cn('w-full flex items-center gap-2 rounded-2xl border px-3.5 py-3 transition-colors',
+              c.fijado ? 'border-[#E0455E]/25 bg-[#E0455E]/[0.04]' : 'border-white/[0.07] bg-white/[0.03] hover:border-white/15')}>
+              <button onClick={() => setAbierta(c)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                <div className={cn('w-11 h-11 rounded-2xl bg-gradient-to-br flex items-center justify-center shrink-0 text-white text-sm font-bold', AVATAR[c.tipo])}>
+                  {iniciales(c.nombre)}
                 </div>
-                <p className={cn('text-xs truncate mt-0.5', c.no_leidos > 0 ? 'text-white' : 'text-[#8B8BA8]')}>
-                  {c.ultimo_mensaje || 'Sin mensajes aún'}
-                </p>
-              </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    {c.fijado && <Pin size={12} className="text-[#E0455E] shrink-0" />}
+                    <p className="text-sm font-semibold text-white truncate">{c.nombre}</p>
+                    <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full border shrink-0', CHIP[c.tipo])}>{c.rol_label}</span>
+                    {c.silenciado && <BellOff size={12} className="text-[#6B6B85] shrink-0" />}
+                  </div>
+                  <p className={cn('text-xs truncate mt-0.5', c.no_leidos > 0 ? 'text-white' : 'text-[#8B8BA8]')}>
+                    {c.ultimo_mensaje || 'Sin mensajes aún'}
+                  </p>
+                </div>
+              </button>
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <span className="text-[11px] text-[#6B6B85]">{hora(c.ultimo_at)}</span>
                 {c.no_leidos > 0 && (
-                  <span className="min-w-5 h-5 px-1.5 rounded-full bg-[#E0455E] text-white text-[11px] font-bold flex items-center justify-center">
+                  <span className={cn('min-w-5 h-5 px-1.5 rounded-full text-white text-[11px] font-bold flex items-center justify-center', c.silenciado ? 'bg-white/15' : 'bg-[#E0455E]')}>
                     {c.no_leidos > 99 ? '99+' : c.no_leidos}
                   </span>
                 )}
               </div>
-            </button>
+              <button onClick={() => setMenu(c)} aria-label="Opciones de la conversación" className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[#6B6B85] hover:text-white hover:bg-white/5">
+                <MoreVertical size={16} />
+              </button>
+            </div>
           ))}
+        </div>
+      )}
+
+      {!loading && (verArchivados ? (
+        <button onClick={() => setVerArchivados(false)} className="text-sm text-[#A0A0B8] hover:text-white">← Volver a la bandeja</button>
+      ) : archivadosCount > 0 ? (
+        <button onClick={() => setVerArchivados(true)} className="text-sm text-[#A0A0B8] hover:text-white inline-flex items-center gap-1.5">
+          <Archive size={14} /> Archivados ({archivadosCount})
+        </button>
+      ) : null)}
+
+      {menu && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4" onClick={() => setMenu(null)}>
+          <div className="w-full sm:max-w-xs glass-strong rounded-t-3xl sm:rounded-3xl border border-white/10 p-2 safe-bottom" onClick={e => e.stopPropagation()}>
+            <div className="px-3 py-2 flex items-center justify-between">
+              <p className="text-sm font-semibold text-white truncate">{menu.nombre}</p>
+              <button onClick={() => setMenu(null)} aria-label="Cerrar" className="text-[#8B8BA8] hover:text-white"><X size={18} /></button>
+            </div>
+            <AccionFila icon={menu.fijado ? PinOff : Pin} label={menu.fijado ? 'Dejar de fijar' : 'Fijar arriba'} onClick={() => setEstado(menu, 'fijado', !menu.fijado)} />
+            <AccionFila icon={menu.silenciado ? Bell : BellOff} label={menu.silenciado ? 'Reactivar sonido' : 'Silenciar'} onClick={() => setEstado(menu, 'silenciado', !menu.silenciado)} />
+            <AccionFila icon={menu.archivado ? ArchiveRestore : Archive} label={menu.archivado ? 'Desarchivar' : 'Archivar'} onClick={() => setEstado(menu, 'archivado', !menu.archivado)} />
+          </div>
         </div>
       )}
 
@@ -189,5 +241,13 @@ export default function MensajesPage() {
         )
       })()}
     </div>
+  )
+}
+
+function AccionFila({ icon: Icon, label, onClick }: { icon: React.ElementType; label: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white hover:bg-white/5 text-left">
+      <Icon size={17} className="text-[#A0A0B8]" /> {label}
+    </button>
   )
 }
