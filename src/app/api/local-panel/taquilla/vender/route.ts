@@ -31,7 +31,18 @@ export async function GET() {
   const total = (data ?? []).reduce((s, e) => s + Number(e.precio_total || 0), 0)
   const porMetodo: Record<string, number> = {}
   for (const e of data ?? []) porMetodo[e.metodo_pago || 'otro'] = (porMetodo[e.metodo_pago || 'otro'] || 0) + Number(e.precio_total || 0)
-  return NextResponse.json({ hoy: { num, total, por_metodo: porMetodo } })
+
+  // Cupo de la noche en Rumbo (si está configurado): cuánto queda. Cuenta TODAS las
+  // entradas de noche regular de hoy (online + taquilla), no solo taquilla.
+  const { data: loc } = await db.from('locales').select('entradas_disponibles_noche').eq('id', t.local_id).maybeSingle()
+  let cupo_noche: { limite: number; vendidas: number; quedan: number } | null = null
+  if (loc?.entradas_disponibles_noche != null) {
+    const { count } = await db.from('entradas').select('id', { count: 'exact', head: true })
+      .eq('local_id', t.local_id).is('evento_id', null).gte('created_at', inicioHoy.toISOString())
+    const vendidas = count ?? 0
+    cupo_noche = { limite: loc.entradas_disponibles_noche, vendidas, quedan: Math.max(0, loc.entradas_disponibles_noche - vendidas) }
+  }
+  return NextResponse.json({ hoy: { num, total, por_metodo: porMetodo }, cupo_noche })
 }
 
 export async function POST(req: NextRequest) {

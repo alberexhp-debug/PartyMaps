@@ -35,10 +35,12 @@ export default function TaquillaPage() {
   const [vendiendo, setVendiendo] = useState(false)
   const [resultado, setResultado] = useState<EntradaCreada[] | null>(null)
   const [hoy, setHoy] = useState<{ num: number; total: number } | null>(null)
+  const [cupoNoche, setCupoNoche] = useState<{ limite: number; quedan: number } | null>(null)
 
   const cargarHoy = useCallback(async () => {
     const r = await fetch('/api/local-panel/taquilla/vender').then(x => x.ok ? x.json() : null).catch(() => null)
     if (r?.hoy) setHoy(r.hoy)
+    setCupoNoche(r?.cupo_noche ?? null)
   }, [])
 
   useEffect(() => {
@@ -126,6 +128,13 @@ export default function TaquillaPage() {
         <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] border border-white/[0.07] px-4 py-3">
           <span className="text-sm text-[#B8B8CC]">Vendido hoy en taquilla</span>
           <span className="text-sm font-bold text-white">{hoy.num} · {eur(hoy.total)}</span>
+        </div>
+      )}
+
+      {!eventoId && cupoNoche && (
+        <div className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${cupoNoche.quedan <= Math.max(5, cupoNoche.limite * 0.1) ? 'bg-[#F39C12]/10 border-[#F39C12]/30' : 'bg-white/[0.03] border-white/[0.07]'}`}>
+          <span className="text-sm text-[#B8B8CC]">Cupo de esta noche en Rumbo</span>
+          <span className="text-sm font-bold text-white">Quedan {cupoNoche.quedan} de {cupoNoche.limite}</span>
         </div>
       )}
 
