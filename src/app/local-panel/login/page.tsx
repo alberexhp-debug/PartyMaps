@@ -180,6 +180,8 @@ export default function LocalPanelLoginPage() {
           <p className="text-sm text-[#A0A0B8]">
             ¿Tu local aún no está en Rumbo?{' '}
             <Link href="/local-panel/registro" className="font-semibold text-[#E94560]">Regístralo gratis</Link>
+            {' '}·{' '}
+            <Link href="/para-locales" className="font-semibold text-[#A0A0B8] hover:text-white">Más información</Link>
           </p>
           <p className="text-xs text-[#6B6B85]">
             ¿Problemas para acceder?{' '}
