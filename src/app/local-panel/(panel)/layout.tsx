@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils'
 import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
 import { BadgePuestaAPunto } from '@/components/local-panel/BadgePuestaAPunto'
+import { GuiaPanel } from '@/components/onboarding/GuiaPanel'
 
 type NavItem = { zona: ZonaPanel; href: string; icon: React.ElementType; label: string }
 type NavGroup = { titulo: string; items: NavItem[] }
@@ -205,6 +206,9 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
 
       {/* Pill flotante "Terminar (N)" en móvil (solo dueño/gestor con obligatorios pendientes) */}
       <BadgePuestaAPunto variant="movil" />
+
+      {/* Guía por página: se lanza sola la 1ª visita de cada página + botón "?" para repetir */}
+      <GuiaPanel />
 
       {/* ───────────── Barra inferior (móvil) ───────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-white/8 md:hidden safe-bottom">
