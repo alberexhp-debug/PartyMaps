@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
 import { BadgePuestaAPunto } from '@/components/local-panel/BadgePuestaAPunto'
 import { GuiaPanel } from '@/components/onboarding/GuiaPanel'
+import { sonidoMensaje } from '@/lib/sonido'
 
 type NavItem = { zona: ZonaPanel; href: string; icon: React.ElementType; label: string }
 type NavGroup = { titulo: string; items: NavItem[] }
@@ -78,7 +79,8 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   const [showMas, setShowMas] = useState(false)
   const [noLeidosMsg, setNoLeidosMsg] = useState(0)
   const tieneMensajes = !!rol && ROLES_PERMISOS[rol].includes('mensajes')
-  // Sondeo ligero del total de mensajes no leídos para el badge del nav.
+  // Badge de mensajes no leídos: realtime para que se actualice al instante y
+  // suene el ping aunque estés en otra página del panel; sondeo de respaldo.
   useEffect(() => {
     if (!hydrated || !isAuthenticated || !tieneMensajes) return
     let vivo = true
@@ -88,8 +90,19 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
       .catch(() => {})
     cargar()
     const t = setInterval(cargar, 15000)
-    return () => { vivo = false; clearInterval(t) }
-  }, [hydrated, isAuthenticated, tieneMensajes])
+
+    const esGestor = rol === 'dueno' || rol === 'gestor'
+    const esEntrante = (e?: string) => esGestor ? (e === 'rrpp' || e === 'trabajador') : (e === 'local')
+    const onMsg = (payload: { new?: { emisor?: string } }) => { cargar(); if (esEntrante(payload.new?.emisor)) sonidoMensaje() }
+    let ch: ReturnType<typeof supabase.channel> | null = null
+    if (local?.id) {
+      ch = supabase.channel(`nav-msg-${local.id}-${Math.random().toString(36).slice(2)}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_rrpp', filter: `local_id=eq.${local.id}` }, onMsg)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_trabajador', filter: `local_id=eq.${local.id}` }, onMsg)
+        .subscribe()
+    }
+    return () => { vivo = false; clearInterval(t); if (ch) supabase.removeChannel(ch) }
+  }, [hydrated, isAuthenticated, tieneMensajes, local?.id, rol])
 
   // Grupos filtrados por permisos del rol (se ocultan grupos vacíos)
   const grupos = useMemo<NavGroup[]>(() => {

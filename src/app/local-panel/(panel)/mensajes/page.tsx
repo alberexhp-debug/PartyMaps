@@ -5,7 +5,9 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { PageHeader } from '@/components/local-panel/ui'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { cn } from '@/lib/utils'
-import { LifeBuoy, MessageSquare, ChevronRight } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+import { sonidoMensaje, sonidoMensajesActivo, setSonidoMensajes } from '@/lib/sonido'
+import { LifeBuoy, MessageSquare, ChevronRight, Volume2, VolumeX } from 'lucide-react'
 
 type Tipo = 'rrpp' | 'empleado' | 'local'
 type Conversacion = {
@@ -41,23 +43,24 @@ function hora(iso: string | null) {
 function chatProps(c: Conversacion) {
   if (c.tipo === 'rrpp') return {
     getUrl: `/api/local-panel/rrpp/chat?rrpp_id=${c.ref_id}`, postUrl: '/api/local-panel/rrpp/chat',
-    postBody: { rrpp_id: c.ref_id } as Record<string, string>, yo: 'local',
+    postBody: { rrpp_id: c.ref_id } as Record<string, string>, yo: 'local', realtimeTabla: 'mensajes_rrpp',
   }
   if (c.tipo === 'empleado') return {
     getUrl: `/api/local-panel/equipo/chat?trabajador_id=${c.ref_id}`, postUrl: '/api/local-panel/equipo/chat',
-    postBody: { trabajador_id: c.ref_id } as Record<string, string>, yo: 'local',
+    postBody: { trabajador_id: c.ref_id } as Record<string, string>, yo: 'local', realtimeTabla: 'mensajes_trabajador',
   }
   // Operativo: su chat con la dirección del local.
-  return { getUrl: '/api/local-panel/cuenta/chat', postUrl: '/api/local-panel/cuenta/chat', postBody: {} as Record<string, string>, yo: 'trabajador' }
+  return { getUrl: '/api/local-panel/cuenta/chat', postUrl: '/api/local-panel/cuenta/chat', postBody: {} as Record<string, string>, yo: 'trabajador', realtimeTabla: 'mensajes_trabajador' }
 }
 
 export default function MensajesPage() {
-  const { trabajador } = useLocalPanelStore()
+  const { trabajador, local } = useLocalPanelStore()
   const esGestor = trabajador?.rol === 'dueno' || trabajador?.rol === 'gestor'
   const [convs, setConvs] = useState<Conversacion[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState<Tipo | 'todos'>('todos')
   const [abierta, setAbierta] = useState<Conversacion | null>(null)
+  const [sonidoOn, setSonidoOn] = useState(true)
 
   const cargar = useCallback(async () => {
     const r = await fetch('/api/local-panel/mensajes').then(x => x.ok ? x.json() : null).catch(() => null)
@@ -65,18 +68,44 @@ export default function MensajesPage() {
     setLoading(false)
   }, [])
 
+  useEffect(() => { setSonidoOn(sonidoMensajesActivo()) }, [])
+
   useEffect(() => {
     cargar()
-    const t = setInterval(cargar, 10000)
+    const t = setInterval(cargar, 10000)   // respaldo del realtime
     return () => clearInterval(t)
   }, [cargar])
+
+  // Tiempo real: nuevas conversaciones/mensajes al instante + ping al recibir.
+  useEffect(() => {
+    if (!local?.id) return
+    const esEntrante = (emisor: string) => esGestor ? (emisor === 'rrpp' || emisor === 'trabajador') : (emisor === 'local')
+    const onMsg = (payload: { new?: { emisor?: string } }) => {
+      cargar()
+      if (esEntrante(payload.new?.emisor || '')) sonidoMensaje()
+    }
+    const ch = supabase.channel(`bandeja-${local.id}-${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_rrpp', filter: `local_id=eq.${local.id}` }, onMsg)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_trabajador', filter: `local_id=eq.${local.id}` }, onMsg)
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [local?.id, esGestor, cargar])
+
+  const toggleSonido = () => { const v = !sonidoOn; setSonidoOn(v); setSonidoMensajes(v) }
 
   const tipos = Array.from(new Set(convs.map(c => c.tipo)))
   const mostradas = filtro === 'todos' ? convs : convs.filter(c => c.tipo === filtro)
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-4">
-      <PageHeader eyebrow="La noche" titulo="Mensajes" subtitulo="Tus conversaciones con RRPP, equipo y soporte, en un solo sitio." />
+      <PageHeader eyebrow="La noche" titulo="Mensajes" subtitulo="Tus conversaciones con RRPP, equipo y soporte, en un solo sitio."
+        acciones={
+          <button onClick={toggleSonido} aria-label={sonidoOn ? 'Silenciar sonido de mensajes' : 'Activar sonido de mensajes'}
+            className="w-10 h-10 rounded-xl glass-strong border border-white/10 flex items-center justify-center text-[#A0A0B8] hover:text-white transition-colors">
+            {sonidoOn ? <Volume2 size={17} /> : <VolumeX size={17} />}
+          </button>
+        }
+      />
 
       {/* Acceso directo a Soporte (sigue siendo tickets, no chat) */}
       {esGestor && (
@@ -154,6 +183,7 @@ export default function MensajesPage() {
           <ChatRrpp
             titulo={abierta.nombre} subtitulo={abierta.rol_label}
             getUrl={p.getUrl} postUrl={p.postUrl} postBody={p.postBody} yo={p.yo}
+            realtimeTabla={p.realtimeTabla}
             onClose={() => { setAbierta(null); cargar() }}
           />
         )

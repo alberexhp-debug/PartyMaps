@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Send, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase/client'
 
 type Mensaje = { id: string; emisor: string; mensaje: string; created_at: string }
 
@@ -11,7 +12,7 @@ type Mensaje = { id: string; emisor: string; mensaje: string; created_at: string
  * 'local'/'trabajador'). Carga al abrir + sondeo cada 5s.
  */
 export function ChatRrpp({
-  titulo, subtitulo, getUrl, postUrl, postBody, yo, onClose,
+  titulo, subtitulo, getUrl, postUrl, postBody, yo, onClose, realtimeTabla,
 }: {
   titulo: string
   subtitulo?: string
@@ -20,6 +21,8 @@ export function ChatRrpp({
   postBody: Record<string, string>
   yo: string
   onClose: () => void
+  /** Si se pasa, suscribe a INSERTs de esa tabla y refresca el hilo al instante. */
+  realtimeTabla?: string
 }) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [texto, setTexto] = useState('')
@@ -33,9 +36,18 @@ export function ChatRrpp({
 
   useEffect(() => {
     cargar()
-    const t = setInterval(cargar, 5000)
+    const t = setInterval(cargar, 5000)   // respaldo por si el realtime cae
     return () => clearInterval(t)
   }, [cargar])
+
+  // Tiempo real: refresca el hilo en cuanto entra un mensaje (RLS scoped).
+  useEffect(() => {
+    if (!realtimeTabla) return
+    const ch = supabase.channel(`chat-rt-${realtimeTabla}-${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: realtimeTabla }, () => cargar())
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [realtimeTabla, cargar])
 
   useEffect(() => { finRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [mensajes.length])
 
