@@ -12,6 +12,7 @@ import { Local, TipoLocal, TipoMusica, ConsumicionBienvenida, PrecioDinamicoConf
 import { getLabelTipoLocal, formatearPrecio, youtubeId } from '@/lib/utils'
 import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEditor'
 import { AforoSemanal } from '@/components/local-panel/AforoSemanal'
+import { SeguridadSection } from '@/components/local-panel/SeguridadSection'
 import {
   Save, Plus, Trash2, Eye, EyeOff, Edit3, AtSign,
   Image as ImageIcon, Clock, Ticket, ShoppingBag, AlertCircle, Zap,
@@ -19,7 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 import { estadoApertura, textoEstadoFicha, type EstadoApertura } from '@/lib/horarios'
 
-type Tab = 'info' | 'horario' | 'aforo' | 'entradas' | 'galeria' | 'bienvenida' | 'bar' | 'instagram'
+type Tab = 'info' | 'horario' | 'aforo' | 'entradas' | 'galeria' | 'bienvenida' | 'bar' | 'instagram' | 'seguridad'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'info',       label: 'Info' },
@@ -30,6 +31,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'bienvenida', label: 'Bienvenida' },
   { id: 'bar',        label: 'Bar' },
   { id: 'instagram',  label: 'Instagram' },
+  { id: 'seguridad',  label: 'Seguridad' },
 ]
 
 const TIPOS_LOCAL: TipoLocal[] = ['discoteca', 'bar_copas', 'rooftop', 'sala_conciertos', 'bar_cocteleria', 'otro']
@@ -230,7 +232,7 @@ function ConfiguracionContent() {
             <p className="text-xs text-[#8B8BA8] font-medium uppercase tracking-widest mb-0.5">Configuración</p>
             <h1 className="text-lg font-bold text-white truncate">{local.nombre}</h1>
           </div>
-          {tab !== 'bar' && tab !== 'aforo' && (
+          {tab !== 'bar' && tab !== 'aforo' && tab !== 'seguridad' && (
             <Button size="sm" loading={guardando} onClick={guardar}>
               <Save size={14} /> Guardar
             </Button>
@@ -770,6 +772,8 @@ function ConfiguracionContent() {
             </div>
           </div>
         )}
+
+        {tab === 'seguridad' && <SeguridadSection />}
       </div>
     </div>
   )
