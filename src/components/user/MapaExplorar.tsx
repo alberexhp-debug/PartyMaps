@@ -208,7 +208,9 @@ export default function MapaExplorar() {
           'circle-color': TIPO_COLOR,
           'circle-blur': 1,
           'circle-opacity': ['*',
-            ['interpolate', ['linear'], ['get', 'aforo'], 0, 0.16, 50, 0.3, 100, 0.5],
+            // Suelo de glow algo más alto: sin el aro blanco, el glow es lo que separa
+            // el punto del mapa oscuro, también en locales tranquilos (§3.2).
+            ['interpolate', ['linear'], ['get', 'aforo'], 0, 0.22, 50, 0.34, 100, 0.55],
             ['match', ['get', 'estado'], 'cerrado', 0.3, 'abre_pronto', 0.8, 1],
           ],
         },
@@ -232,15 +234,15 @@ export default function MapaExplorar() {
             'cerrado', 0.38,
             0.95, // abierto / sin_datos
           ],
-          // Aro blanco para que el punto recorte nítido sobre el mapa oscuro;
-          // los premium llevan el aro más marcado para resaltar. El cerrado lo apaga,
-          // pero el aro premium nunca desaparece del todo (0.45).
-          'circle-stroke-color': '#FFFFFF',
-          'circle-stroke-width': ['case', ['==', ['get', 'destacado'], 1], 2, 1],
+          // Sin aro blanco (§3.2): el punto recorta por su glow de color (capa HALO),
+          // no por un borde duro. Los destacados llevan un finísimo realce del PROPIO
+          // tono para resaltar sin volver al "aro blanco"; los demás, sin borde.
+          'circle-stroke-color': TIPO_COLOR,
+          'circle-stroke-width': ['case', ['==', ['get', 'destacado'], 1], 1.5, 0],
           'circle-stroke-opacity': ['case',
-            ['==', ['get', 'estado'], 'cerrado'], ['case', ['==', ['get', 'destacado'], 1], 0.45, 0.25],
-            ['==', ['get', 'destacado'], 1], 0.9,
-            0.5,
+            ['==', ['get', 'estado'], 'cerrado'], 0.25,
+            ['==', ['get', 'destacado'], 1], 0.6,
+            0,
           ],
         },
       })
