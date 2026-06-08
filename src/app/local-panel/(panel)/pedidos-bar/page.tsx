@@ -4,12 +4,12 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { formatearPrecio, tiempoRelativo, cn } from '@/lib/utils'
-import { Check, Clock, User, QrCode, RotateCcw } from 'lucide-react'
+import { Check, Clock, User, QrCode, RotateCcw, ArrowUp, Settings2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { MesasTab } from '@/components/local-panel/MesasTab'
 
 interface PedidoActivo {
-  id: string; qr_code: string; estado: string; precio_total: number; notas?: string; origen?: string
+  id: string; qr_code: string; estado: string; precio_total: number; notas?: string; origen?: string; priorizado_at?: string | null
   pagado_at: string; expira_at: string; entregado_at?: string
   usuarios: { nombre: string; foto_perfil_url?: string }
   pedido_items: { id: string; nombre_snapshot: string; cantidad: number; precio_unitario: number }[]
@@ -41,6 +41,7 @@ export default function PedidosBarPanelPage() {
   const [loading, setLoading] = useState(true)
   const [canjeando, setCanjeando] = useState<string | null>(null)
   const [vista, setVista] = useState<'barra' | 'mesas'>('barra')
+  const [showConfig, setShowConfig] = useState(false)
 
   const cargar = async () => {
     setLoading(true)
@@ -78,7 +79,18 @@ export default function PedidosBarPanelPage() {
     setPedidos(prev => prev.filter(x => x.id !== p.id))
   }
 
+  const priorizar = async (p: PedidoActivo) => {
+    const quitar = !!p.priorizado_at
+    setPedidos(prev => prev.map(x => x.id === p.id ? { ...x, priorizado_at: quitar ? null : new Date().toISOString() } : x))
+    await fetch('/api/local-panel/pedidos-bar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'priorizar', pedido_id: p.id, quitar }),
+    }).catch(() => {})
+    cargar()
+  }
+
   const puedeCanjear = trabajador && ['dueno', 'gestor', 'barman'].includes(trabajador.rol)
+  const esGestor = trabajador && ['dueno', 'gestor'].includes(trabajador.rol)
 
   return (
     <div className="p-4 md:p-8 pb-20 md:pb-8 space-y-5">
@@ -94,13 +106,18 @@ export default function PedidosBarPanelPage() {
             </p>
           )}
         </div>
-        <button
-          onClick={cargar}
-          aria-label="Refrescar"
-          className="w-10 h-10 rounded-xl glass-strong flex items-center justify-center text-white"
-        >
-          <RotateCcw size={16} />
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {esGestor && vista === 'barra' && (
+            <button onClick={() => setShowConfig(true)} aria-label="Ajustes de prioridad"
+              className="w-10 h-10 rounded-xl glass-strong flex items-center justify-center text-white">
+              <Settings2 size={16} />
+            </button>
+          )}
+          <button onClick={cargar} aria-label="Refrescar"
+            className="w-10 h-10 rounded-xl glass-strong flex items-center justify-center text-white">
+            <RotateCcw size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Pestañas Barra | Mesas */}
@@ -210,14 +227,17 @@ export default function PedidosBarPanelPage() {
               )}
 
               {filtro === 'pagado' && puedeCanjear && (
-                <Button
-                  fullWidth
-                  className="mt-3"
-                  loading={canjeando === p.id}
-                  onClick={() => canjear(p)}
-                >
-                  <Check size={16} /> Marcar entregado
-                </Button>
+                <div className="mt-3 flex gap-2">
+                  <button onClick={() => priorizar(p)}
+                    title={p.priorizado_at ? 'Quitar prioridad' : 'Subir al principio de la cola'}
+                    className={cn('shrink-0 h-10 px-3 rounded-xl border text-sm font-semibold inline-flex items-center gap-1.5 transition-colors',
+                      p.priorizado_at ? 'border-[#F39C12] text-[#F39C12] bg-[#F39C12]/10' : 'border-white/10 text-[#B8B8CC] hover:text-white hover:border-white/25')}>
+                    <ArrowUp size={15} /> {p.priorizado_at ? 'Prioritario' : 'Priorizar'}
+                  </button>
+                  <Button className="flex-1" loading={canjeando === p.id} onClick={() => canjear(p)}>
+                    <Check size={16} /> Entregado
+                  </Button>
+                </div>
               )}
             </div>
           ))}
@@ -225,6 +245,56 @@ export default function PedidosBarPanelPage() {
       )}
 
       </>)}
+
+      {showConfig && <ConfigPrioridad onClose={() => setShowConfig(false)} />}
+    </div>
+  )
+}
+
+function ConfigPrioridad({ onClose }: { onClose: () => void }) {
+  const { local } = useLocalPanelStore()
+  const toast = useToast()
+  const inicial = (local?.prioridad_zonas as Record<string, string> | undefined) || {}
+  const [prio, setPrio] = useState<Record<string, string>>({
+    reservado: inicial.reservado || 'alta', mesa: inicial.mesa || 'media', barra: inicial.barra || 'media', otro: inicial.otro || 'media',
+  })
+  const [guardando, setGuardando] = useState(false)
+
+  const guardar = async () => {
+    setGuardando(true)
+    const r = await fetch('/api/local-panel/prioridad-zonas', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prioridad_zonas: prio }),
+    })
+    setGuardando(false)
+    if (!r.ok) { toast.error('No se pudo guardar'); return }
+    toast.success('Prioridad actualizada')
+    onClose()
+  }
+
+  const ZONAS = [
+    { key: 'reservado', label: 'Reservados / VIP' },
+    { key: 'mesa', label: 'Mesas' },
+    { key: 'barra', label: 'Barra' },
+  ]
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm sm:p-4" onClick={onClose}>
+      <div className="w-full sm:max-w-sm glass-strong rounded-t-3xl sm:rounded-3xl border border-white/10 p-5 space-y-4 safe-bottom" onClick={e => e.stopPropagation()}>
+        <h3 className="text-lg font-bold text-white text-display">Prioridad de la cola</h3>
+        <p className="text-xs text-[#8B8BA8]">Qué se sirve antes por tipo de zona. Dentro de cada nivel, el más antiguo primero. Cualquier pedido se puede subir a mano con «Priorizar».</p>
+        {ZONAS.map(z => (
+          <div key={z.key} className="flex items-center justify-between gap-3">
+            <span className="text-sm text-white">{z.label}</span>
+            <select value={prio[z.key]} onChange={e => setPrio(p => ({ ...p, [z.key]: e.target.value }))}
+              className="h-10 rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#E0455E]/60">
+              <option value="alta" className="bg-[#15151F]">Alta</option>
+              <option value="media" className="bg-[#15151F]">Media</option>
+              <option value="baja" className="bg-[#15151F]">Baja</option>
+            </select>
+          </div>
+        ))}
+        <Button fullWidth loading={guardando} onClick={guardar}>Guardar</Button>
+      </div>
     </div>
   )
 }

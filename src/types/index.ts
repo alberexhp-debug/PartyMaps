@@ -152,6 +152,8 @@ export interface Local {
   aforo_por_dia?: AforoPorDia
   reservas_activas?: boolean
   reservas_modo?: ModoReservas
+  /** Prioridad de la cola de pedidos por tipo de zona (reservado/mesa/barra/otro → alta/media/baja). */
+  prioridad_zonas?: Record<string, 'alta' | 'media' | 'baja'>
   /** Cierre puntual "Cerrar esta noche": ISO hasta el que el local sale cerrado. NULL/pasado = inactivo. */
   cerrado_hasta?: string | null
   /** Contrato de encargo (art. 28 RGPD) aceptado: ISO o null. Requerido para el marketing del CRM. */
