@@ -156,6 +156,7 @@ export default function ExplorarPage() {
     if (filtros.precio_min != null) r = r.filter(l => (l.precio_entrada_min ?? 0) >= filtros.precio_min!)
     if (filtros.precio_max != null) r = r.filter(l => (l.precio_entrada_min ?? 0) <= filtros.precio_max!)
     if (filtros.solo_abiertos) r = r.filter(l => { const e = estadoPorId.get(l.id); return e === 'abierto' || e === 'abre_pronto' })
+    if (filtros.solo_afters) r = r.filter(l => l.admite_after && ['abierto', 'abre_pronto'].includes(estadoPorId.get(l.id) || ''))
     if (soloOfertas) r = r.filter(l => !!l.promo_ultima_hora_hasta && new Date(l.promo_ultima_hora_hasta).getTime() > Date.now())
     // Filtro por fecha (eventos publicados en el rango, o local abierto ese día)
     if (filtroFecha) {

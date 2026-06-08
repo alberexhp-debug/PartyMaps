@@ -147,6 +147,7 @@ function ConfiguracionContent() {
       videos_youtube: form.videos_youtube ?? [],
       instagram_handle: form.instagram_handle ?? null,
       entradas_disponibles_noche: form.entradas_disponibles_noche ?? null,
+      admite_after: form.admite_after ?? false,
     }).eq('id', local.id).select().single()
     if (error) { toast.error('Error al guardar'); setGuardando(false); return }
     setLocal(data)
@@ -422,6 +423,13 @@ function ConfiguracionContent() {
             <p className="text-xs text-[#8B8BA8] leading-relaxed">
               ¿Abres una noche suelta (festivo, fiesta especial)? No toques el horario: publica un evento y esa noche saldrás abierto.
             </p>
+
+            <ToggleSimple
+              label="Admito after (abro de madrugada)"
+              hint="Saldrás en el filtro «Afters» del mapa cuando estés abierto de madrugada, aunque tu horario sea raro."
+              value={!!form.admite_after}
+              onChange={v => setForm(f => ({ ...f, admite_after: v }))}
+            />
 
             {/* Vista previa viva */}
             <div className="bg-white/4 border border-white/8 rounded-2xl p-4 flex items-center gap-2.5">

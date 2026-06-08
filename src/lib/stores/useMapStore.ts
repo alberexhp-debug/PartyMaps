@@ -23,6 +23,7 @@ const filtrosDefault: FiltrosMapa = {
   solo_con_evento: false,
   solo_con_planes: false,
   solo_abiertos: false,
+  solo_afters: false,
 }
 
 export const useMapStore = create<MapState>((set) => ({

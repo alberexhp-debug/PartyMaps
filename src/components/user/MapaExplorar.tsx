@@ -94,7 +94,7 @@ export default function MapaExplorar() {
     document.addEventListener('visibilitychange', onVisible)
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
   }, [])
-  const filtrosActivos = filtros.tipos.length > 0 || filtros.musica.length > 0 || filtros.solo_con_evento || filtros.solo_con_planes || filtros.solo_abiertos
+  const filtrosActivos = filtros.tipos.length > 0 || filtros.musica.length > 0 || filtros.solo_con_evento || filtros.solo_con_planes || filtros.solo_abiertos || filtros.solo_afters
 
   const cargarLocales = useCallback(async () => {
     let { data, error } = await supabase
@@ -472,5 +472,6 @@ function applyFiltros(locales: LocalConAforo[], filtros: ReturnType<typeof useMa
   if (filtros.precio_min != null) r = r.filter(l => (l.precio_entrada_min || 0) >= filtros.precio_min!)
   if (filtros.precio_max != null) r = r.filter(l => (l.precio_entrada_min || 0) <= filtros.precio_max!)
   if (filtros.solo_abiertos) r = r.filter(l => { const e = estadoDeLocal(l, ahora).estado; return e === 'abierto' || e === 'abre_pronto' })
+  if (filtros.solo_afters) r = r.filter(l => l.admite_after && ['abierto', 'abre_pronto'].includes(estadoDeLocal(l, ahora).estado))
   return r
 }

@@ -154,6 +154,8 @@ export interface Local {
   reservas_modo?: ModoReservas
   /** Prioridad de la cola de pedidos por tipo de zona (reservado/mesa/barra/otro → alta/media/baja). */
   prioridad_zonas?: Record<string, 'alta' | 'media' | 'baja'>
+  /** El local admite after (abre de madrugada): aparece en el filtro Afters del mapa. */
+  admite_after?: boolean
   /** Cierre puntual "Cerrar esta noche": ISO hasta el que el local sale cerrado. NULL/pasado = inactivo. */
   cerrado_hasta?: string | null
   /** Contrato de encargo (art. 28 RGPD) aceptado: ISO o null. Requerido para el marketing del CRM. */
@@ -544,6 +546,7 @@ export interface FiltrosMapa {
   precio_max?: number
   solo_con_evento: boolean
   solo_con_planes: boolean
+  solo_afters: boolean
   /** "Abiertos ahora": deja solo locales abiertos o que abren pronto (≤2h). */
   solo_abiertos: boolean
 }
