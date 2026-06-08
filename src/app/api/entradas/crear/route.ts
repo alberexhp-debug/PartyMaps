@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     const { data: local, error: localError } = await supabase
       .from('locales')
-      .select('id, tier, comision_porcentaje_override, precio_entrada_min, precio_entrada_max, precio_dinamico, precio_promocional, promo_ultima_hora_hasta, aforo_maximo, nombre')
+      .select('id, tier, comision_porcentaje_override, precio_entrada_min, precio_entrada_max, precio_dinamico, precio_promocional, promo_ultima_hora_hasta, aforo_maximo, entradas_disponibles_noche, nombre')
       .eq('id', local_id)
       .single()
     if (localError || !local) return NextResponse.json({ error: 'Local no encontrado' }, { status: 404 })
@@ -42,6 +42,11 @@ export async function POST(req: NextRequest) {
         .eq('id', evento_id)
         .single()
       if (evento && evento.estado === 'publicado') {
+        // Cupo del evento: nunca por encima del aforo que el local puso a la venta en Rumbo (§6.2).
+        if (evento.aforo_maximo > 0 && evento.entradas_vendidas + cantidad > evento.aforo_maximo) {
+          const quedan = Math.max(0, evento.aforo_maximo - evento.entradas_vendidas)
+          return NextResponse.json({ error: quedan === 0 ? 'Entradas agotadas para este evento' : `Solo quedan ${quedan} ${quedan === 1 ? 'entrada' : 'entradas'} para este evento` }, { status: 409 })
+        }
         consumicionesIncluidas = Math.max(0, Math.min(5, Number(evento.consumiciones_incluidas) || 0))
         consumicionesDescripcion = consumicionesIncluidas > 0 ? (evento.consumiciones_descripcion ?? null) : null
         const ahora = new Date()
@@ -70,6 +75,12 @@ export async function POST(req: NextRequest) {
         .eq('local_id', local.id)
         .is('evento_id', null)
         .gte('created_at', inicioHoy.toISOString())
+
+      // Cupo de la noche en Rumbo: nunca por encima de lo que el local pone a la venta aquí (§6.2).
+      if (local.entradas_disponibles_noche != null && (vendidasHoy ?? 0) + cantidad > local.entradas_disponibles_noche) {
+        const quedan = Math.max(0, local.entradas_disponibles_noche - (vendidasHoy ?? 0))
+        return NextResponse.json({ error: quedan === 0 ? 'Cupo de entradas de esta noche agotado' : `Solo quedan ${quedan} ${quedan === 1 ? 'entrada' : 'entradas'} esta noche` }, { status: 409 })
+      }
 
       const pctVendido = local.aforo_maximo > 0 ? ((vendidasHoy ?? 0) / local.aforo_maximo) * 100 : 0
       const { precio } = calcularPrecioDinamico(
