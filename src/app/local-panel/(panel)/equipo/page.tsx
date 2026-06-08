@@ -33,6 +33,7 @@ export default function EquipoPage() {
   const [nombre, setNombre] = useState('')
   const [username, setUsername] = useState('')
   const [rol, setRol] = useState<RolLocal>('gestor')
+  const [rolEtiqueta, setRolEtiqueta] = useState('')
   const [telefono, setTelefono] = useState('')
   const [emailContacto, setEmailContacto] = useState('')
   const [dni, setDni] = useState('')
@@ -51,7 +52,7 @@ export default function EquipoPage() {
   useEffect(cargar, [local])
 
   const resetForm = () => {
-    setNombre(''); setUsername(''); setRol('gestor'); setTelefono(''); setEmailContacto(''); setDni(''); setFechaNacimiento('')
+    setNombre(''); setUsername(''); setRol('gestor'); setRolEtiqueta(''); setTelefono(''); setEmailContacto(''); setDni(''); setFechaNacimiento('')
   }
 
   const darDeAlta = async () => {
@@ -61,7 +62,7 @@ export default function EquipoPage() {
     const res = await fetchLocal('/api/local-panel/equipo', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        nombre: nombre.trim(), username: userNorm, rol,
+        nombre: nombre.trim(), username: userNorm, rol, rol_etiqueta: rolEtiqueta.trim() || undefined,
         telefono, email_contacto: emailContacto, dni, fecha_nacimiento: fechaNacimiento,
       }),
     })
@@ -120,6 +121,11 @@ export default function EquipoPage() {
             </div>
           </div>
 
+          <div>
+            <Input label="Nombre del puesto (opcional)" value={rolEtiqueta} onChange={e => setRolEtiqueta(e.target.value)} placeholder='Ej. "Jefe de sala", "Coordinador"' />
+            <p className="mt-1 text-xs text-[#6B6B85]">Solo cambia el nombre que se muestra; los permisos son los del rol elegido arriba.</p>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <Input label="Teléfono" value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="600 000 000" />
             <Input label="DNI/NIE" value={dni} onChange={e => setDni(e.target.value)} placeholder="00000000A" />
@@ -162,7 +168,8 @@ export default function EquipoPage() {
                   {m.username ? <><AtSign size={11} /> {m.username}</> : m.email}
                 </p>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-block rounded-full bg-[#2A2A3E] px-2 py-0.5 text-xs text-[#A0A0B8]">{esDueno ? 'Dueño' : rolInfo?.label || m.rol}</span>
+                  <span className="inline-block rounded-full bg-[#2A2A3E] px-2 py-0.5 text-xs text-[#A0A0B8]">{esDueno ? 'Dueño' : (m.rol_etiqueta || rolInfo?.label || m.rol)}</span>
+                  {!esDueno && m.rol_etiqueta && <span className="text-[10px] text-[#6B6B85]">· {rolInfo?.label || m.rol}</span>}
                   {!m.activo && <span className="rounded-full bg-red-500/12 px-2 py-0.5 text-xs text-red-400">Inactivo</span>}
                   {!esDueno && m.username && (
                     m.totp_activado

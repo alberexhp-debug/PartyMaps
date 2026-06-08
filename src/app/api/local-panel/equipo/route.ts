@@ -67,7 +67,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '¿Está aplicada la migración 035? ' + error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true, trabajador: fila, credenciales: { username, password } })
+  // Etiqueta de puesto (§2.1) en escritura aparte: si la migración 052 aún no está
+  // aplicada, NO rompe el alta (se ignora el error de columna inexistente).
+  const etiqueta = limpiarTexto(body.rol_etiqueta)
+  if (etiqueta) await svc.from('usuario_local').update({ rol_etiqueta: etiqueta }).eq('id', fila.id)
+
+  return NextResponse.json({ ok: true, trabajador: { ...fila, rol_etiqueta: etiqueta }, credenciales: { username, password } })
 }
 
 /**
@@ -96,10 +101,20 @@ export async function PATCH(req: NextRequest) {
   if ('dni' in body) cambios.dni = limpiarTexto(body.dni)
   if ('fecha_nacimiento' in body) cambios.fecha_nacimiento = limpiarFecha(body.fecha_nacimiento)
   if (typeof body.activo === 'boolean') cambios.activo = body.activo
-  if (Object.keys(cambios).length === 0) return NextResponse.json({ error: 'Nada que cambiar' }, { status: 400 })
+  const tieneEtiqueta = 'rol_etiqueta' in body
+  if (Object.keys(cambios).length === 0 && !tieneEtiqueta) return NextResponse.json({ error: 'Nada que cambiar' }, { status: 400 })
 
-  const { data, error } = await svc.from('usuario_local').update(cambios).eq('id', id).select('*').single()
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  let data: Record<string, unknown> = target
+  if (Object.keys(cambios).length > 0) {
+    const upd = await svc.from('usuario_local').update(cambios).eq('id', id).select('*').single()
+    if (upd.error) return NextResponse.json({ error: upd.error.message }, { status: 500 })
+    data = upd.data
+  }
+  // Etiqueta de puesto (§2.1) aparte: best-effort (no rompe si falta la 052).
+  if (tieneEtiqueta) {
+    const upd2 = await svc.from('usuario_local').update({ rol_etiqueta: limpiarTexto(body.rol_etiqueta) }).eq('id', id).select('*').maybeSingle()
+    if (upd2.data) data = upd2.data
+  }
   return NextResponse.json({ ok: true, trabajador: data })
 }
 

@@ -247,6 +247,8 @@ export interface UsuarioLocal {
   usuario_id: string
   local_id: string
   rol: RolLocal
+  /** Nombre de puesto personalizado (§2.1); solo display, los permisos vienen de rol. */
+  rol_etiqueta?: string | null
   email: string
   nombre: string
   activo: boolean
