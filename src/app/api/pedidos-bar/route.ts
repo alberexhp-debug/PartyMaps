@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null) as {
     local_id?: string; items?: ItemBody[]; notas?: string; codigo?: string; consentimiento_marketing?: boolean;
+    mesa_token?: string;
   } | null
   if (!body?.local_id || !Array.isArray(body.items) || body.items.length === 0) {
     return NextResponse.json({ error: 'Faltan campos' }, { status: 400 })
@@ -97,6 +98,23 @@ export async function POST(req: NextRequest) {
     : calcularComision(subtotalNeto, tier)
   const total = Math.round((subtotalNeto + comision) * 100) / 100
 
+  // Pedido desde una mesa (QR PMM): enlaza con la mesa y su sesión abierta (o la abre).
+  let mesaLink: { mesa_id: string; mesa_sesion_id: string } | null = null
+  if (body.mesa_token) {
+    const { data: mesa } = await admin.from('mesas').select('id, local_id').eq('qr_token', body.mesa_token).maybeSingle()
+    if (mesa && mesa.local_id === body.local_id) {
+      let ses = (await admin.from('mesa_sesiones').select('id').eq('mesa_id', mesa.id).is('cerrada_at', null).maybeSingle()).data
+      if (!ses) {
+        const ins = await admin.from('mesa_sesiones')
+          .insert({ local_id: body.local_id, mesa_id: mesa.id, usuario_id: usuario.id, personas: 2 })
+          .select('id').maybeSingle()
+        // Si dos clientes piden a la vez, el índice único deja una sola sesión: reusa la abierta.
+        ses = ins.data ?? (await admin.from('mesa_sesiones').select('id').eq('mesa_id', mesa.id).is('cerrada_at', null).maybeSingle()).data
+      }
+      if (ses) mesaLink = { mesa_id: mesa.id, mesa_sesion_id: ses.id }
+    }
+  }
+
   // Generar QR único
   const qrCode = `PMB:${crypto.randomUUID()}`
 
@@ -113,6 +131,9 @@ export async function POST(req: NextRequest) {
       metodo_pago: 'app',
       notas: body.notas?.trim().slice(0, 200) || null,
       rrpp_id: rrppCodigo?.rrpp_id ?? null,
+      mesa_id: mesaLink?.mesa_id ?? null,
+      mesa_sesion_id: mesaLink?.mesa_sesion_id ?? null,
+      origen: mesaLink ? 'mesa' : 'barra',
     })
     .select()
     .single()

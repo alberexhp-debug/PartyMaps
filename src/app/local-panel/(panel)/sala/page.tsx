@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { supabase } from '@/lib/supabase/client'
 import { Spinner } from '@/components/ui/Spinner'
@@ -8,11 +9,12 @@ import { PlanoEditor } from '@/components/local-panel/sala/PlanoEditor'
 import { SalaEnVivo } from '@/components/local-panel/sala/SalaEnVivo'
 import { ReservasPanel } from '@/components/local-panel/sala/ReservasPanel'
 import { cn } from '@/lib/utils'
-import { LayoutGrid, PencilRuler, CalendarClock } from 'lucide-react'
+import { LayoutGrid, PencilRuler, CalendarClock, QrCode } from 'lucide-react'
 
 type Tab = 'vivo' | 'plano' | 'reservas'
 
 export default function SalaPage() {
+  const router = useRouter()
   const { local, trabajador } = useLocalPanelStore()
   const rol = trabajador?.rol
   const puedeEditar = rol === 'dueno' || rol === 'gestor'
@@ -55,6 +57,12 @@ export default function SalaPage() {
             {mesas.length} {mesas.length === 1 ? 'mesa' : 'mesas'} en {plantas.length} {plantas.length === 1 ? 'planta' : 'plantas'}
           </p>
         </div>
+        {puedeEditar && mesas.length > 0 && (
+          <button onClick={() => router.push('/local-panel/sala/qr-mesas')}
+            className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-xl glass-strong border border-white/10 text-sm text-[#B8B8CC] hover:text-white transition-colors">
+            <QrCode size={15} /> QR de las mesas
+          </button>
+        )}
       </header>
 
       <div className="flex gap-1 p-1 bg-white/6 rounded-xl w-full max-w-md">

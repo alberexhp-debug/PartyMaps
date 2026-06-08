@@ -38,6 +38,15 @@ export default function CartaBarPage() {
   const [comprando, setComprando] = useState(false)
   const [aceptaMarketing, setAceptaMarketing] = useState(false)
   const [consentRespondido, setConsentRespondido] = useState(true) // hasta saberlo, no mostramos el checkbox
+  const [mesaToken, setMesaToken] = useState<string | null>(null)
+  const [mesaCodigo, setMesaCodigo] = useState<string | null>(null)
+
+  // Si vienes del QR de una mesa (?mesa=token&mc=codigo), el pedido se asocia a esa mesa.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search)
+    setMesaToken(p.get('mesa'))
+    setMesaCodigo(p.get('mc'))
+  }, [])
 
   // Consentimiento: solo se pregunta la primera vez en este local.
   useEffect(() => {
@@ -101,7 +110,7 @@ export default function CartaBarPage() {
     const res = await fetch('/api/pedidos-bar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ local_id: id, items, notas: notas.trim() || undefined, codigo: codigo.trim() || undefined, consentimiento_marketing: aceptaMarketing }),
+      body: JSON.stringify({ local_id: id, items, notas: notas.trim() || undefined, codigo: codigo.trim() || undefined, consentimiento_marketing: aceptaMarketing, mesa_token: mesaToken || undefined }),
     })
     const j = await res.json()
     setComprando(false)
@@ -120,12 +129,18 @@ export default function CartaBarPage() {
           <ChevronLeft size={20} />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="eyebrow">Carta</p>
+          <p className="eyebrow">{mesaCodigo ? `Carta · Mesa ${mesaCodigo}` : 'Carta'}</p>
           <h1 className="text-lg font-bold text-display truncate">{local.nombre}</h1>
         </div>
       </div>
 
       <div className="px-4 mt-4">
+        {mesaCodigo && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#E0455E]/10 border border-[#E0455E]/25 text-xs text-white mb-3">
+            <span className="font-bold shrink-0">📍 Mesa {mesaCodigo}</span>
+            <span className="text-[#B8B8CC]">Pides desde tu mesa — te lo llevan.</span>
+          </div>
+        )}
         {/* Info expira */}
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl glass text-xs text-[#B8B8CC] mb-4">
           <Clock size={13} className="text-[#F39C12]" />

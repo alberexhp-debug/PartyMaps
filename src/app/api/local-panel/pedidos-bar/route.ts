@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await admin
     .from('pedidos_bar')
     .select(`
-      id, qr_code, estado, precio_total, notas,
+      id, qr_code, estado, precio_total, notas, origen,
       pagado_at, expira_at, entregado_at,
       usuarios(nombre, foto_perfil_url),
       pedido_items(id, nombre_snapshot, cantidad, precio_unitario)

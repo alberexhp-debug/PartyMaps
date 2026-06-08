@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase/client'
 import { MesasTab } from '@/components/local-panel/MesasTab'
 
 interface PedidoActivo {
-  id: string; qr_code: string; estado: string; precio_total: number; notas?: string
+  id: string; qr_code: string; estado: string; precio_total: number; notas?: string; origen?: string
   pagado_at: string; expira_at: string; entregado_at?: string
   usuarios: { nombre: string; foto_perfil_url?: string }
   pedido_items: { id: string; nombre_snapshot: string; cantidad: number; precio_unitario: number }[]
@@ -178,7 +178,10 @@ export default function PedidosBarPanelPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-white truncate text-display">{p.usuarios.nombre}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-white truncate text-display">{p.usuarios.nombre}</p>
+                    {p.origen === 'mesa' && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#27AE60]/15 text-[#5FD08A] border border-[#27AE60]/30 shrink-0">Mesa</span>}
+                  </div>
                   <p className="text-[11px] text-[#8B8BA8]">
                     {filtro === 'pagado' ? `Pagado ${tiempoRelativo(p.pagado_at)}` : `Entregado ${p.entregado_at ? tiempoRelativo(p.entregado_at) : ''}`}
                   </p>

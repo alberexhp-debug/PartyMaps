@@ -376,6 +376,14 @@ a:focus-visible,
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; }
 
+/* Impresión: ocultar el chrome del panel (sidebar/barra) y lo marcado .no-print.
+   Lo usa la hoja imprimible "QR de las mesas". */
+@media print {
+  aside, nav, .no-print { display: none !important; }
+  main { margin: 0 !important; padding: 0 !important; }
+  body { background: #fff !important; }
+}
+
 /* ─── View Transitions API (Chrome/Edge/Safari TP) ─── */
 @view-transition { navigation: auto; }
 
