@@ -325,6 +325,53 @@ a:focus-visible,
   outline-width: 2px;
 }
 
+/* ─── Botones de marca ───
+   En @layer components para que las utilidades de Tailwind (w-full, h-12,
+   rounded-*, etc.) puedan seguir sobreescribiéndolas en cada uso. */
+@layer components {
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fff;
+    background: var(--color-accent);
+    box-shadow: 0 8px 22px -8px var(--color-accent-glow);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--color-accent-strong); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:disabled,
+  .btn-primary[disabled] { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border-subtle);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--color-border-strong);
+  }
+  .btn-ghost:disabled,
+  .btn-ghost[disabled] { opacity: 0.5; cursor: not-allowed; }
+}
+
 /* Scrollbar hide para tabs y carruseles horizontales */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; }
