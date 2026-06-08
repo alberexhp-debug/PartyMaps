@@ -32,7 +32,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { zona: 'scanner',     href: '/local-panel/scanner',     icon: Gauge, label: 'Afluencia & Puerta' },
       { zona: 'taquilla',    href: '/local-panel/taquilla',    icon: TicketPlus, label: 'Taquilla' },
-      { zona: 'pedidos-bar', href: '/local-panel/pedidos-bar', icon: Beer,  label: 'Barra' },
+      { zona: 'pedidos-bar', href: '/local-panel/pedidos-bar', icon: Beer,  label: 'Pedidos' },
       { zona: 'sala',        href: '/local-panel/sala',        icon: LayoutGrid, label: 'Sala & Mesas' },
       { zona: 'cortesias',   href: '/local-panel/cortesias',   icon: Gift, label: 'Cortesías' },
       { zona: 'mensajes',    href: '/local-panel/mensajes',    icon: MessagesSquare, label: 'Mensajes' },

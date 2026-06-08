@@ -6,6 +6,7 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { formatearPrecio, tiempoRelativo, cn } from '@/lib/utils'
 import { Check, Clock, User, QrCode, RotateCcw } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { MesasTab } from '@/components/local-panel/MesasTab'
 
 interface PedidoActivo {
   id: string; qr_code: string; estado: string; precio_total: number; notas?: string
@@ -39,6 +40,7 @@ export default function PedidosBarPanelPage() {
   const [filtro, setFiltro] = useState<Filtro>('pagado')
   const [loading, setLoading] = useState(true)
   const [canjeando, setCanjeando] = useState<string | null>(null)
+  const [vista, setVista] = useState<'barra' | 'mesas'>('barra')
 
   const cargar = async () => {
     setLoading(true)
@@ -84,11 +86,13 @@ export default function PedidosBarPanelPage() {
         <div>
           <p className="eyebrow mb-2">Bar · cola en vivo</p>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Pedidos</h1>
-          <p className="text-sm text-[#B8B8CC] mt-2">
-            {filtro === 'pagado'
-              ? `${pedidos.length} ${pedidos.length === 1 ? 'pedido' : 'pedidos'} por servir`
-              : `Últimos ${pedidos.length} entregados`}
-          </p>
+          {vista === 'barra' && (
+            <p className="text-sm text-[#B8B8CC] mt-2">
+              {filtro === 'pagado'
+                ? `${pedidos.length} ${pedidos.length === 1 ? 'pedido' : 'pedidos'} por servir`
+                : `Últimos ${pedidos.length} entregados`}
+            </p>
+          )}
         </div>
         <button
           onClick={cargar}
@@ -98,6 +102,21 @@ export default function PedidosBarPanelPage() {
           <RotateCcw size={16} />
         </button>
       </div>
+
+      {/* Pestañas Barra | Mesas */}
+      <div className="flex gap-1 glass-subtle rounded-2xl p-1">
+        {([{ id: 'barra', label: 'Barra' }, { id: 'mesas', label: 'Mesas' }] as { id: 'barra' | 'mesas'; label: string }[]).map(t => (
+          <button key={t.id} onClick={() => setVista(t.id)}
+            className={cn('flex-1 py-2.5 text-sm font-semibold transition-all rounded-xl',
+              vista === t.id ? 'bg-[#E94560] text-white shadow-[0_6px_20px_-4px_rgba(233,69,96,0.6)]' : 'text-[#B8B8CC] hover:text-white')}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {vista === 'mesas' && <MesasTab />}
+
+      {vista === 'barra' && (<>
 
       {/* Tabs */}
       <div className="flex gap-1 glass-subtle rounded-2xl p-1">
@@ -201,6 +220,8 @@ export default function PedidosBarPanelPage() {
           ))}
         </div>
       )}
+
+      </>)}
     </div>
   )
 }
