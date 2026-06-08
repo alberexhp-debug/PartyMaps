@@ -76,6 +76,20 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   const { isAuthenticated, local, trabajador, hydrated, logout } = useLocalPanelStore()
   const rol = trabajador?.rol
   const [showMas, setShowMas] = useState(false)
+  const [noLeidosMsg, setNoLeidosMsg] = useState(0)
+  const tieneMensajes = !!rol && ROLES_PERMISOS[rol].includes('mensajes')
+  // Sondeo ligero del total de mensajes no leídos para el badge del nav.
+  useEffect(() => {
+    if (!hydrated || !isAuthenticated || !tieneMensajes) return
+    let vivo = true
+    const cargar = () => fetch('/api/local-panel/mensajes')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (vivo && d) setNoLeidosMsg(d.no_leidos_total || 0) })
+      .catch(() => {})
+    cargar()
+    const t = setInterval(cargar, 15000)
+    return () => { vivo = false; clearInterval(t) }
+  }, [hydrated, isAuthenticated, tieneMensajes])
 
   // Grupos filtrados por permisos del rol (se ocultan grupos vacíos)
   const grupos = useMemo<NavGroup[]>(() => {
@@ -142,6 +156,7 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   // En móvil mostramos hasta 4 accesos directos; si hay más, el 5º es "Más"
   const directosMovil = itemsPlanos.length <= 5 ? itemsPlanos : itemsPlanos.slice(0, 4)
   const hayMas = itemsPlanos.length > 5
+  const mensajesEnMas = hayMas && !directosMovil.some(i => i.zona === 'mensajes')
 
   return (
     <div className="min-h-screen flex">
@@ -172,7 +187,7 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
                 <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#6B6B85]">{grupo.titulo}</p>
               )}
               <div className="space-y-0.5">
-                {grupo.items.map(({ href, icon: Icon, label }) => {
+                {grupo.items.map(({ href, icon: Icon, label, zona }) => {
                   const active = esActivo(href)
                   return (
                     <Link key={href} href={href}
@@ -183,6 +198,11 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
                       {active && <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#E94560] rounded-r-full shadow-[0_0_6px_rgba(233,69,96,0.6)]" />}
                       <Icon size={18} strokeWidth={active ? 2.4 : 1.6} />
                       {label}
+                      {zona === 'mensajes' && noLeidosMsg > 0 && (
+                        <span className="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-[#E0455E] text-white text-[10px] font-bold flex items-center justify-center">
+                          {noLeidosMsg > 99 ? '99+' : noLeidosMsg}
+                        </span>
+                      )}
                     </Link>
                   )
                 })}
@@ -213,12 +233,13 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
       {/* ───────────── Barra inferior (móvil) ───────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-white/8 md:hidden safe-bottom">
         <div className="flex items-center justify-around h-14">
-          {directosMovil.map(({ href, icon: Icon, label }) => {
+          {directosMovil.map(({ href, icon: Icon, label, zona }) => {
             const active = esActivo(href)
             return (
               <Link key={href} href={href} aria-label={label} aria-current={active ? 'page' : undefined}
                 className={cn('relative flex flex-col items-center gap-0.5 py-2 px-2', active ? 'text-[#E94560]' : 'text-[#8B8BA8]')}>
                 {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#E94560] rounded-full shadow-[0_0_8px_rgba(233,69,96,0.6)]" />}
+                {zona === 'mensajes' && noLeidosMsg > 0 && <span className="absolute top-1 left-1/2 ml-1.5 w-2 h-2 rounded-full bg-[#E0455E]" />}
                 <Icon size={20} strokeWidth={active ? 2.4 : 1.75} />
                 <span className="text-[9px] font-medium">{label}</span>
               </Link>
@@ -226,8 +247,9 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
           })}
           {hayMas && (
             <button onClick={() => setShowMas(true)} aria-label="Más secciones"
-              className={cn('flex flex-col items-center gap-0.5 py-2 px-2', showMas ? 'text-[#E94560]' : 'text-[#8B8BA8]')}>
+              className={cn('relative flex flex-col items-center gap-0.5 py-2 px-2', showMas ? 'text-[#E94560]' : 'text-[#8B8BA8]')}>
               <MoreHorizontal size={20} strokeWidth={1.75} />
+              {mensajesEnMas && noLeidosMsg > 0 && <span className="absolute top-1 left-1/2 ml-1.5 w-2 h-2 rounded-full bg-[#E0455E]" />}
               <span className="text-[9px] font-medium">Más</span>
             </button>
           )}
@@ -256,12 +278,15 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
                 <div key={grupo.titulo}>
                   <p className="px-2 mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#6B6B85]">{grupo.titulo}</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {grupo.items.map(({ href, icon: Icon, label }) => {
+                    {grupo.items.map(({ href, icon: Icon, label, zona }) => {
                       const active = esActivo(href)
                       return (
                         <Link key={href} href={href}
-                          className={cn('flex flex-col items-center gap-1.5 p-3 rounded-2xl border text-center',
+                          className={cn('relative flex flex-col items-center gap-1.5 p-3 rounded-2xl border text-center',
                             active ? 'bg-[#E94560]/12 border-[#E94560]/30 text-[#E94560]' : 'bg-white/[0.03] border-white/[0.07] text-[#B8B8CC]')}>
+                          {zona === 'mensajes' && noLeidosMsg > 0 && (
+                            <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-[#E0455E] text-white text-[9px] font-bold flex items-center justify-center">{noLeidosMsg > 99 ? '99+' : noLeidosMsg}</span>
+                          )}
                           <Icon size={20} strokeWidth={active ? 2.4 : 1.7} />
                           <span className="text-[11px] font-medium leading-tight">{label}</span>
                         </Link>
