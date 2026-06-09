@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getUsuarioAutenticado } from '@/lib/usuario/auth'
+import { enviarPushAUsuario } from '@/lib/push'
 
 type FilaAmistad = { id: string; solicitante_id: string; receptor_id: string; estado: string; created_at: string }
 type UsuarioMin = { id: string; nombre: string; foto_perfil_url: string | null }
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
     // Pendiente: si la envió el otro, la acepto → mutua.
     if (previa.receptor_id === yo.id) {
       await db.from('amistades').update({ estado: 'aceptada', updated_at: new Date().toISOString() }).eq('id', previa.id)
+      enviarPushAUsuario(destino, { title: '¡Nueva amistad!', body: `${yo.nombre} y tú ya sois amigos en Rumbo`, url: '/amigos' }).catch(() => {})
       return NextResponse.json({ ok: true, estado: 'aceptada', nombre: existeDestino.nombre })
     }
     return NextResponse.json({ ok: true, estado: 'pendiente', nombre: existeDestino.nombre })
@@ -87,6 +89,7 @@ export async function POST(req: NextRequest) {
     if (error.code === '42P01') return NextResponse.json({ error: 'Los amigos se activan muy pronto.' }, { status: 409 })
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+  enviarPushAUsuario(destino, { title: 'Nueva solicitud de amistad', body: `${yo.nombre} quiere ser tu amigo en Rumbo`, url: '/amigos' }).catch(() => {})
   return NextResponse.json({ ok: true, estado: 'pendiente', nombre: existeDestino.nombre })
 }
 
@@ -99,11 +102,12 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Petición no válida' }, { status: 400 })
   }
   const db = createServiceRoleClient()
-  const { data: am } = await db.from('amistades').select('id, receptor_id, estado').eq('id', body.amistad_id).maybeSingle()
+  const { data: am } = await db.from('amistades').select('id, solicitante_id, receptor_id, estado').eq('id', body.amistad_id).maybeSingle()
   if (!am || am.receptor_id !== yo.id) return NextResponse.json({ error: 'Solicitud no encontrada' }, { status: 404 })
 
   if (body.accion === 'aceptar') {
     await db.from('amistades').update({ estado: 'aceptada', updated_at: new Date().toISOString() }).eq('id', am.id)
+    enviarPushAUsuario(am.solicitante_id, { title: 'Solicitud aceptada', body: `${yo.nombre} ha aceptado tu solicitud de amistad`, url: '/amigos' }).catch(() => {})
   } else {
     await db.from('amistades').delete().eq('id', am.id)
   }
