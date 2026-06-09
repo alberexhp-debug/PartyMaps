@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
 import { BadgePuestaAPunto } from '@/components/local-panel/BadgePuestaAPunto'
 import { GuiaPanel } from '@/components/onboarding/GuiaPanel'
+import { AvisoEstadoLocal } from '@/components/local-panel/AvisoEstadoLocal'
 import { sonidoMensaje } from '@/lib/sonido'
 
 type NavItem = { zona: ZonaPanel; href: string; icon: React.ElementType; label: string }
@@ -240,6 +241,7 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
       </aside>
 
       <main className="flex-1 md:ml-64 min-h-screen pb-20 md:pb-0">
+        <AvisoEstadoLocal />
         {children}
       </main>
 
