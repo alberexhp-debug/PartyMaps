@@ -24,7 +24,16 @@ export default function PerfilPage() {
   const [nuevoNombre, setNuevoNombre] = useState(usuario?.nombre || '')
   const [stats, setStats] = useState({ entradas: 0, planes: 0, suscritos: 0 })
   const [pendientesValorar, setPendientesValorar] = useState(0)
+  const [amigosPendientes, setAmigosPendientes] = useState(0)
   const push = usePushSubscription()
+
+  // Solicitudes de amistad pendientes (para el badge del acceso a Amigos).
+  useEffect(() => {
+    if (!usuario) return
+    fetch('/api/amigos').then(r => (r.ok ? r.json() : null))
+      .then(d => { if (Array.isArray(d?.recibidas)) setAmigosPendientes(d.recibidas.length) })
+      .catch(() => {})
+  }, [usuario])
 
   useEffect(() => {
     if (isLoading) return            // esperar a que AuthProvider resuelva la sesión
@@ -217,6 +226,12 @@ export default function PerfilPage() {
 
         {/* Opciones */}
         <div className="card-premium overflow-hidden divide-y divide-white/5 stagger-item" style={{ ['--delay' as string]: '360ms' }}>
+          <OpcionPerfil
+            icon={Users}
+            label="Amigos y grupos"
+            badge={amigosPendientes > 0 ? amigosPendientes : undefined}
+            onClick={() => router.push('/amigos')}
+          />
           <OpcionPerfil
             icon={ClipboardCheck}
             label="Valoraciones pendientes"

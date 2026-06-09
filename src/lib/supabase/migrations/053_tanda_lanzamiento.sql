@@ -83,3 +83,42 @@ DO $$ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE ticket_mensajes;
   END IF;
 END $$;
+
+-- ─────────────────────────────────────────────
+-- §4 · Amigos y grupos del usuario (§1.3, B2C de lanzamiento)
+-- Grafo social del usuario final. Acceso SIEMPRE por endpoints service_role
+-- (verifican identidad y pertenencia); RLS activada sin políticas permisivas
+-- = sin acceso directo del cliente. Idempotente.
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS amistades (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  solicitante_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  receptor_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  estado TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'aceptada')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT amistad_par_unico UNIQUE (solicitante_id, receptor_id),
+  CONSTRAINT amistad_no_consigo CHECK (solicitante_id <> receptor_id)
+);
+CREATE INDEX IF NOT EXISTS idx_amistades_receptor ON amistades (receptor_id, estado);
+CREATE INDEX IF NOT EXISTS idx_amistades_solicitante ON amistades (solicitante_id, estado);
+ALTER TABLE amistades ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS grupos_amigos (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nombre TEXT NOT NULL,
+  emoji TEXT,
+  creador_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_grupos_amigos_creador ON grupos_amigos (creador_id);
+ALTER TABLE grupos_amigos ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS grupo_miembros (
+  grupo_id UUID NOT NULL REFERENCES grupos_amigos(id) ON DELETE CASCADE,
+  usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (grupo_id, usuario_id)
+);
+CREATE INDEX IF NOT EXISTS idx_grupo_miembros_usuario ON grupo_miembros (usuario_id);
+ALTER TABLE grupo_miembros ENABLE ROW LEVEL SECURITY;
