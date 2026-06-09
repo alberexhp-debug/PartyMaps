@@ -10,7 +10,7 @@ import {
   calcularEdad, cn,
 } from '@/lib/utils'
 import {
-  User, Star, Bell, BellOff, Shield, LogOut, ChevronRight,
+  Star, Bell, BellOff, Shield, LogOut, ChevronRight,
   Ticket, Users, Edit3, Camera, AlertCircle, Lightbulb, ClipboardCheck,
 } from 'lucide-react'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
@@ -93,12 +93,14 @@ export default function PerfilPage() {
         <div className="card-premium p-5 stagger-item" style={{ ['--delay' as string]: '40ms' }}>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 overflow-hidden shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]">
+              <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-[0_10px_28px_-10px_rgba(0,0,0,0.7)] ring-1 ring-white/12">
                 {usuario.foto_perfil_url ? (
                   <img src={usuario.foto_perfil_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <User size={36} className="text-[#6B6B85]" />
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#E94560] to-[#7C5CFF]">
+                    <span className="text-display text-4xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
+                      {(usuario.nombre?.[0] || '?').toUpperCase()}
+                    </span>
                   </div>
                 )}
               </div>
