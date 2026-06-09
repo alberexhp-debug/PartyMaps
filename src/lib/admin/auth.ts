@@ -19,3 +19,13 @@ export async function getAdminAutenticado(_req?: NextRequest) {
     .maybeSingle()
   return data
 }
+
+/**
+ * Roles de administrador con poder para acciones SENSIBLES: restablecer el
+ * acceso del dueño/RRPP (contraseña/2FA) y suspender o eliminar. El rol
+ * 'soporte' atiende y consulta, pero no ejecuta estas acciones.
+ */
+export const ROLES_ADMIN_PODER = ['super_admin', 'admin'] as const
+export function adminPuedeAccionSensible(admin: { rol?: string | null } | null | undefined): boolean {
+  return !!admin && (ROLES_ADMIN_PODER as readonly string[]).includes(admin.rol ?? '')
+}

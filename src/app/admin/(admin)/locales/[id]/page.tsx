@@ -1,16 +1,18 @@
 'use client'
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { registrarAuditoria } from '@/lib/auditoria'
+import { useAdminStore } from '@/lib/stores/useAdminStore'
 import { Local, TierLocal, EstadoLocal, TipoLocal, TipoMusica, HorarioLocal } from '@/types'
 import { getLabelTipoLocal } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import {
   ArrowLeft, Save, Store, MapPin, Clock, Image, Settings, AtSign,
-  Ticket, Check, X, AlertCircle, Trash2, Plus, ChevronDown, KeyRound, ShieldOff,
+  Ticket, Check, X, AlertCircle, Trash2, Plus, ChevronDown, KeyRound, ShieldOff, Eye,
 } from 'lucide-react'
 
 const TIPOS_LOCAL: TipoLocal[] = ['discoteca', 'bar_copas', 'rooftop', 'sala_conciertos', 'bar_cocteleria', 'otro']
@@ -24,6 +26,9 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
   const { id } = use(params)
   const router = useRouter()
   const toast = useToast()
+  const { admin } = useAdminStore()
+  // §5.4 — 'soporte' consulta y atiende, pero no resetea accesos ni suspende.
+  const puedePoder = admin?.rol === 'super_admin' || admin?.rol === 'admin'
   const [local, setLocal] = useState<Local | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -418,8 +423,16 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
         {/* ESTADO */}
         {tab === 'estado' && (
           <>
+            <Section label="Vista de soporte">
+              <p className="text-xs text-[#8B8BA8]">Mira el estado operativo del local (equipo, RRPP, eventos, soporte) en solo lectura, sin cambiar de sesión. Queda en auditoría.</p>
+              <Link href={`/admin/locales/${id}/vista`} className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-white/10 text-sm text-white hover:border-white/25">
+                <Eye size={14} /> Ver el local (solo lectura)
+              </Link>
+            </Section>
+
             <Section label="Acceso del dueño">
               <p className="text-xs text-[#8B8BA8]">Para ayudar a un dueño que no puede entrar. Las contraseñas no se pueden ver (están cifradas): se genera una temporal de un solo uso. Queda en auditoría.</p>
+              {puedePoder ? (
               <div className="flex flex-wrap gap-2">
                 <button onClick={resetPasswordDueno} disabled={reseteando}
                   className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-white/10 text-sm text-white hover:border-white/25 disabled:opacity-50">
@@ -430,6 +443,11 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                   <ShieldOff size={14} /> Reiniciar 2FA
                 </button>
               </div>
+              ) : (
+                <p className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-[#8B8BA8]">
+                  Solo un <span className="font-medium text-white">admin</span> o <span className="font-medium text-white">super_admin</span> puede restablecer accesos. Tu rol es <span className="font-medium text-white">soporte</span>.
+                </p>
+              )}
               {resetCreds && (
                 <div className="rounded-xl border border-[#27AE60]/30 bg-[#27AE60]/8 p-3 text-sm space-y-0.5">
                   <p className="text-[#27AE60] font-semibold">Contraseña temporal generada</p>
@@ -466,20 +484,25 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                   { v: 'activo', label: 'Activo', desc: 'Visible y operativo en la app', color: '#27AE60' },
                   { v: 'pendiente_verificacion', label: 'Pendiente', desc: 'Esperando verificación', color: '#F39C12' },
                   { v: 'suspendido', label: 'Suspendido', desc: 'No visible para usuarios', color: '#E94560' },
-                ] as const).map(({ v, label, desc, color }) => (
-                  <button key={v} onClick={() => setEstado(v)}
+                ] as const).map(({ v, label, desc, color }) => {
+                  // §5.4 — suspender no visible para 'soporte' (acción destructiva).
+                  const bloqueado = v === 'suspendido' && !puedePoder
+                  return (
+                  <button key={v} onClick={() => { if (!bloqueado) setEstado(v) }} disabled={bloqueado}
                     className={cn(
                       'w-full p-3 rounded-xl border text-left flex items-center gap-3 transition-colors',
                       estado === v ? 'border-white/25 bg-white/6' : 'border-white/8 hover:border-white/15',
+                      bloqueado && 'opacity-40 cursor-not-allowed',
                     )}>
                     <div className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-white">{label}</p>
-                      <p className="text-xs text-[#6B6B85]">{desc}</p>
+                      <p className="text-xs text-[#6B6B85]">{bloqueado ? 'Requiere admin o super_admin' : desc}</p>
                     </div>
                     {estado === v && <Check size={14} className="text-white shrink-0" />}
                   </button>
-                ))}
+                  )
+                })}
               </div>
             </Section>
 

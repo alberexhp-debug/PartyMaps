@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
-import { getAdminAutenticado } from '@/lib/admin/auth'
+import { getAdminAutenticado, adminPuedeAccionSensible } from '@/lib/admin/auth'
 import { passwordPorDefecto } from '@/lib/equipo'
 
 /**
@@ -13,6 +13,7 @@ import { passwordPorDefecto } from '@/lib/equipo'
 export async function POST(req: NextRequest) {
   const admin = await getAdminAutenticado()
   if (!admin) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
+  if (!adminPuedeAccionSensible(admin)) return NextResponse.json({ error: 'Solo un admin o super_admin puede restablecer accesos' }, { status: 403 })
   const { local_id } = await req.json().catch(() => ({})) as { local_id?: string }
   if (!local_id) return NextResponse.json({ error: 'Falta local_id' }, { status: 400 })
 
