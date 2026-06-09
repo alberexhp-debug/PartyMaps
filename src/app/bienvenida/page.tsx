@@ -51,7 +51,7 @@ export default function BienvenidaPage() {
       <div className="relative px-6 pt-10 safe-top">
         <div className="flex items-center gap-2.5">
           <span className="w-9 h-9 rounded-xl holo-bg flex items-center justify-center text-white text-sm font-black shadow-[0_8px_22px_-6px_rgba(124,92,255,0.7)]">
-            PM
+            R
           </span>
           <span className="text-sm font-bold text-white uppercase tracking-[0.24em]">Rumbo</span>
         </div>
