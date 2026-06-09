@@ -427,16 +427,21 @@ function InvitarAmigosModal({ planId, yaParticipantes, huecos, onClose, onInvita
 }) {
   const toast = useToast()
   const [amigos, setAmigos] = useState<{ id: string; nombre: string; foto_perfil_url: string | null }[]>([])
+  const [grupos, setGrupos] = useState<{ id: string; nombre: string; emoji: string | null; miembros: { id: string }[] }[]>([])
   const [sel, setSel] = useState<Set<string>>(new Set())
   const [cargando, setCargando] = useState(true)
   const [enviando, setEnviando] = useState(false)
 
   useEffect(() => {
     const ya = new Set(yaParticipantes)
-    fetch('/api/amigos').then(r => (r.ok ? r.json() : null)).then(d => {
-      setAmigos((d?.amigos ?? []).filter((a: { id: string }) => !ya.has(a.id)))
+    Promise.all([
+      fetch('/api/amigos').then(r => (r.ok ? r.json() : null)).catch(() => null),
+      fetch('/api/grupos').then(r => (r.ok ? r.json() : null)).catch(() => null),
+    ]).then(([a, g]) => {
+      setAmigos((a?.amigos ?? []).filter((x: { id: string }) => !ya.has(x.id)))
+      setGrupos(g?.grupos ?? [])
       setCargando(false)
-    }).catch(() => setCargando(false))
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -461,6 +466,21 @@ function InvitarAmigosModal({ planId, yaParticipantes, huecos, onClose, onInvita
           <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
         </div>
         <p className="mb-3 text-sm text-[#A0A0B8]">Quedan {huecos} {huecos === 1 ? 'hueco' : 'huecos'}. Entran ya aceptados.</p>
+        {grupos.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {grupos.map(g => {
+              const avail = new Set(amigos.map(a => a.id))
+              const ids = g.miembros.map(m => m.id).filter(id => avail.has(id))
+              if (!ids.length) return null
+              return (
+                <button key={g.id} onClick={() => setSel(prev => new Set([...prev, ...ids]))}
+                  className="inline-flex items-center gap-1 rounded-full border border-[#7C5CFF]/40 bg-[#7C5CFF]/10 px-2.5 py-1 text-xs text-[#C9BCFF]">
+                  <span>{g.emoji || '🎉'}</span> {g.nombre} <span className="text-[#9B82FF]">+{ids.length}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
         {cargando ? (
           <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-12 rounded-xl bg-white/5 animate-pulse" />)}</div>
         ) : amigos.length === 0 ? (
