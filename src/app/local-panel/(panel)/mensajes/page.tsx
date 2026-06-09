@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase/client'
 import { sonidoMensaje, sonidoMensajesActivo, setSonidoMensajes } from '@/lib/sonido'
 import { LifeBuoy, MessageSquare, ChevronRight, Volume2, VolumeX, Pin, PinOff, Bell, BellOff, Archive, ArchiveRestore, MoreVertical, X } from 'lucide-react'
 
-type Tipo = 'rrpp' | 'empleado' | 'local'
+type Tipo = 'rrpp' | 'empleado' | 'local' | 'gestor'
 type Conversacion = {
   clave: string; tipo: Tipo; ref_id: string
   nombre: string; rol_label: string
@@ -21,11 +21,13 @@ const CHIP: Record<Tipo, string> = {
   rrpp:     'bg-[#7C5CFF]/15 text-[#B7A6FF] border-[#7C5CFF]/30',
   empleado: 'bg-[#4F8EF7]/15 text-[#9CC0FF] border-[#4F8EF7]/30',
   local:    'bg-[#D4A84B]/15 text-[#E7CB86] border-[#D4A84B]/30',
+  gestor:   'bg-[#34D399]/15 text-[#86E7C0] border-[#34D399]/30',
 }
 const AVATAR: Record<Tipo, string> = {
   rrpp:     'from-[#7C5CFF] to-[#4F8EF7]',
   empleado: 'from-[#4F8EF7] to-[#34D399]',
   local:    'from-[#D4A84B] to-[#E0455E]',
+  gestor:   'from-[#34D399] to-[#4F8EF7]',
 }
 
 function iniciales(nombre: string) {
@@ -49,6 +51,10 @@ function chatProps(c: Conversacion) {
   if (c.tipo === 'empleado') return {
     getUrl: `/api/local-panel/equipo/chat?trabajador_id=${c.ref_id}`, postUrl: '/api/local-panel/equipo/chat',
     postBody: { trabajador_id: c.ref_id } as Record<string, string>, yo: 'local', realtimeTabla: 'mensajes_trabajador',
+  }
+  if (c.tipo === 'gestor') return {
+    getUrl: '/api/local-panel/mi-gestor/chat', postUrl: '/api/local-panel/mi-gestor/chat',
+    postBody: {} as Record<string, string>, yo: 'local', realtimeTabla: 'mensajes_gestor',
   }
   // Operativo: su chat con la dirección del local.
   return { getUrl: '/api/local-panel/cuenta/chat', postUrl: '/api/local-panel/cuenta/chat', postBody: {} as Record<string, string>, yo: 'trabajador', realtimeTabla: 'mensajes_trabajador' }
@@ -89,17 +95,18 @@ export default function MensajesPage() {
   // (salvo en conversaciones silenciadas).
   useEffect(() => {
     if (!local?.id) return
-    const esEntrante = (emisor: string) => esGestor ? (emisor === 'rrpp' || emisor === 'trabajador') : (emisor === 'local')
-    const onMsg = (payload: { new?: { emisor?: string; rrpp_id?: string; trabajador_id?: string } }) => {
+    const esEntrante = (emisor: string) => esGestor ? (emisor === 'rrpp' || emisor === 'trabajador' || emisor === 'gestor') : (emisor === 'local')
+    const onMsg = (payload: { new?: { emisor?: string; rrpp_id?: string; trabajador_id?: string; gestor_id?: string } }) => {
       cargar()
       const n = payload.new || {}
-      const refId = n.rrpp_id || n.trabajador_id
+      const refId = n.rrpp_id || n.trabajador_id || n.gestor_id
       const silenciado = convsRef.current.some(c => c.ref_id === refId && c.silenciado)
       if (esEntrante(n.emisor || '') && !silenciado) sonidoMensaje()
     }
     const ch = supabase.channel(`bandeja-${local.id}-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_rrpp', filter: `local_id=eq.${local.id}` }, onMsg)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_trabajador', filter: `local_id=eq.${local.id}` }, onMsg)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_gestor', filter: `local_id=eq.${local.id}` }, onMsg)
       .subscribe()
     return () => { supabase.removeChannel(ch) }
   }, [local?.id, esGestor, cargar])
@@ -152,7 +159,7 @@ export default function MensajesPage() {
             <button key={f} onClick={() => setFiltro(f)}
               className={cn('px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors',
                 filtro === f ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-white/10 text-[#8B8BA8] hover:text-white')}>
-              {f === 'todos' ? 'Todos' : f === 'rrpp' ? 'RRPP' : f === 'empleado' ? 'Equipo' : 'Local'}
+              {f === 'todos' ? 'Todos' : f === 'rrpp' ? 'RRPP' : f === 'empleado' ? 'Equipo' : f === 'gestor' ? 'Mi gestor' : 'Local'}
             </button>
           ))}
         </div>

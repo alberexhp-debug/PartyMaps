@@ -1,14 +1,15 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useGestorStore } from '@/lib/stores/useGestorStore'
 import { supabase } from '@/lib/supabase/client'
-import { LayoutDashboard, Store, Megaphone, Tag, Ticket, LogOut } from 'lucide-react'
+import { LayoutDashboard, Store, Megaphone, MessageSquare, Tag, Ticket, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/gestor/dashboard', icon: LayoutDashboard, label: 'Inicio' },
+  { href: '/gestor/mensajes', icon: MessageSquare, label: 'Mensajes' },
   { href: '/gestor/locales', icon: Store, label: 'Locales' },
   { href: '/gestor/rrpp', icon: Megaphone, label: 'RRPP' },
   { href: '/gestor/codigos', icon: Tag, label: 'Códigos' },
@@ -21,6 +22,7 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
   const router = useRouter()
   const pathname = usePathname()
   const { isAuthenticated, gestor, hydrated, logout } = useGestorStore()
+  const [noLeidos, setNoLeidos] = useState(0)
 
   useEffect(() => {
     if (hydrated && !isAuthenticated) router.push('/gestor/login')
@@ -42,6 +44,20 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
     })()
     return () => { cancelado = true }
   }, [hydrated, isAuthenticated, gestor?.email, logout, router])
+
+  // Badge de mensajes sin leer en el nav (sondeo ligero; el realtime en vivo
+  // vive en la propia página de Mensajes).
+  useEffect(() => {
+    if (!hydrated || !isAuthenticated) return
+    let vivo = true
+    const cargar = () => fetch('/api/gestor/mensajes')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (vivo && typeof d?.no_leidos_total === 'number') setNoLeidos(d.no_leidos_total) })
+      .catch(() => {})
+    cargar()
+    const t = setInterval(cargar, 30000)
+    return () => { vivo = false; clearInterval(t) }
+  }, [hydrated, isAuthenticated])
 
   if (!hydrated) return null
   if (!isAuthenticated || !gestor) return null
@@ -79,6 +95,11 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
                 {active && <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#7C5CFF] rounded-r-full shadow-[0_0_6px_rgba(124,92,255,0.6)]" />}
                 <Icon size={16} strokeWidth={active ? 2.4 : 1.6} />
                 {label}
+                {href === '/gestor/mensajes' && noLeidos > 0 && (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E0455E] px-1.5 text-[10px] font-bold text-white">
+                    {noLeidos > 99 ? '99+' : noLeidos}
+                  </span>
+                )}
               </Link>
             )
           })}
@@ -121,6 +142,9 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
                 className={cn('relative flex flex-col items-center gap-0.5 py-2 px-2', active ? 'text-[#9B82FF]' : 'text-[#6B6B85]')}>
                 {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#7C5CFF] rounded-full shadow-[0_0_8px_rgba(124,92,255,0.6)]" />}
                 <Icon size={20} strokeWidth={active ? 2.4 : 1.75} />
+                {href === '/gestor/mensajes' && noLeidos > 0 && (
+                  <span className="absolute top-1 left-1/2 ml-2 h-2 w-2 rounded-full bg-[#E0455E]" />
+                )}
                 <span className="text-[9px] font-medium">{label}</span>
               </Link>
             )

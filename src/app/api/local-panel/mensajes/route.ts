@@ -7,7 +7,7 @@ const GESTORES = ['dueno', 'gestor']
 
 type Conversacion = {
   clave: string
-  tipo: 'rrpp' | 'empleado' | 'local'
+  tipo: 'rrpp' | 'empleado' | 'local' | 'gestor'
   ref_id: string
   nombre: string
   rol_label: string
@@ -79,6 +79,27 @@ export async function GET(req: NextRequest) {
           ultimo_mensaje: ult.mensaje, ultimo_at: ult.created_at, no_leidos: noLeidos,
         })
       }
+    }
+
+    // ── Mi gestor de Rumbo (si el local tiene gestor asignado) ──
+    // Graceful con la 053 pendiente: si mensajes_gestor aún no existe, la
+    // conversación aparece igualmente (sin mensajes) para poder iniciarla.
+    const { data: localRow } = await db.from('locales').select('gestor_id').eq('id', t.local_id).maybeSingle()
+    const gestorId = (localRow?.gestor_id as string | null) || null
+    if (gestorId) {
+      const { data: g } = await db.from('gestores').select('nombre').eq('id', gestorId).maybeSingle()
+      const { data: msgsG } = await db.from('mensajes_gestor')
+        .select('emisor, mensaje, leido, created_at')
+        .eq('local_id', t.local_id).eq('gestor_id', gestorId)
+        .order('created_at', { ascending: false }).limit(500)
+      const filasG = (msgsG ?? []) as { emisor: string; mensaje: string; leido: boolean; created_at: string }[]
+      const noLeidosG = filasG.filter(m => m.emisor === 'gestor' && !m.leido).length
+      const ultG = filasG[0]
+      conversaciones.push({
+        clave: `gestor:${gestorId}`, tipo: 'gestor', ref_id: gestorId,
+        nombre: (g?.nombre as string) || 'Mi gestor', rol_label: 'Mi gestor',
+        ultimo_mensaje: ultG?.mensaje || '', ultimo_at: ultG?.created_at ?? null, no_leidos: noLeidosG,
+      })
     }
   } else {
     // ── Operativo (puerta/barman): solo su chat con la dirección del local ──
