@@ -12,6 +12,17 @@ import { LocalImagen } from '@/components/ui/LocalImagen'
 
 type PlanConLocal = PlanPublico & { locales?: Local }
 
+type AmigoMin = { id: string; nombre: string; foto_perfil_url: string | null }
+type PlanAmigo = {
+  id: string
+  local: { id: string; nombre: string; ciudad: string | null; imagen: string | null } | null
+  hora_llegada: string
+  huecos_disponibles: number
+  soy_creador: boolean
+  mi_estado: string | null
+  amigos: AmigoMin[]
+}
+
 export default function PlanesPage() {
   return (
     <Suspense fallback={<div className="min-h-screen" />}>
@@ -31,6 +42,7 @@ function PlanesContent() {
   const [localFilter] = useState(searchParams.get('local') || '')
   const [uniendose, setUniendose] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
+  const [planesAmigos, setPlanesAmigos] = useState<PlanAmigo[]>([])
 
   const cargar = useCallback(async () => {
     let query = supabase
@@ -47,6 +59,14 @@ function PlanesContent() {
   }, [localFilter])
 
   useEffect(() => { cargar() }, [cargar])
+
+  // Prueba social: planes donde van amigos del usuario.
+  useEffect(() => {
+    if (!usuario) return
+    fetch('/api/planes/de-amigos').then(r => (r.ok ? r.json() : null))
+      .then(d => { if (Array.isArray(d?.planes)) setPlanesAmigos(d.planes) })
+      .catch(() => {})
+  }, [usuario])
 
   const unirse = async (plan: PlanConLocal) => {
     if (!usuario) { router.push('/login'); return }
@@ -98,6 +118,9 @@ function PlanesContent() {
           />
         </div>
       </div>
+
+      {/* Tus amigos salen (prueba social) */}
+      {planesAmigos.length > 0 && <AmigosSalen planes={planesAmigos} onVer={(id) => router.push(`/planes/${id}`)} />}
 
       {/* Contador */}
       {!loading && planesFiltrados.length > 0 && (
@@ -208,6 +231,43 @@ function PlanCard({ plan, currentUserId, onUnirse, onVer, loading }: {
             <ChevronRight size={16} />
           </button>
         )}
+      </div>
+    </div>
+  )
+}
+
+function AmigosSalen({ planes, onVer }: { planes: PlanAmigo[]; onVer: (id: string) => void }) {
+  return (
+    <div className="px-5 pb-3">
+      <p className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#9B82FF]">
+        <Users size={12} /> Tus amigos salen
+      </p>
+      <div className="-mx-1 flex gap-2.5 overflow-x-auto scrollbar-hide px-1 pb-1">
+        {planes.map(p => (
+          <button key={p.id} onClick={() => onVer(p.id)}
+            className="relative w-40 shrink-0 overflow-hidden rounded-2xl border border-[#7C5CFF]/25 bg-white/[0.03] text-left">
+            <div className="relative h-20 w-full">
+              <LocalImagen src={p.local?.imagen ?? undefined} nombre={p.local?.nombre || ''} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 to-transparent" />
+              <div className="absolute bottom-1.5 left-2 right-2">
+                <p className="truncate text-xs font-bold text-white">{p.local?.nombre}</p>
+                <p className="text-[10px] text-white/80">{formatearHora(p.hora_llegada)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-2 py-2">
+              <div className="flex -space-x-1.5">
+                {p.amigos.slice(0, 3).map(a => (
+                  <span key={a.id} className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-[#0E0E1A] bg-gradient-to-br from-[#E94560] to-[#7C5CFF] text-[9px] font-bold text-white">
+                    {a.foto_perfil_url ? <img src={a.foto_perfil_url} alt="" className="h-full w-full object-cover" /> : (a.nombre?.[0] || '?').toUpperCase()}
+                  </span>
+                ))}
+              </div>
+              <span className="truncate text-[11px] text-[#A0A0B8]">
+                {p.amigos.length === 1 ? (p.amigos[0].nombre.split(' ')[0]) : `${p.amigos.length} amigos`}
+              </span>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   )
