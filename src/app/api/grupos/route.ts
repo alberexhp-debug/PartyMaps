@@ -11,13 +11,13 @@ export async function GET() {
   if (!yo) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const db = createServiceRoleClient()
 
-  const { data: mis } = await db.from('grupo_miembros').select('grupo_id').eq('usuario_id', yo.id)
+  const { data: mis } = await db.from('grupo_amigos_miembros').select('grupo_id').eq('usuario_id', yo.id)
   const grupoIds = [...new Set((mis ?? []).map(m => m.grupo_id as string))]
   if (!grupoIds.length) return NextResponse.json({ grupos: [] })
 
   const { data: grupos } = await db.from('grupos_amigos')
     .select('id, nombre, emoji, creador_id, created_at').in('id', grupoIds).order('created_at', { ascending: false })
-  const { data: miembros } = await db.from('grupo_miembros').select('grupo_id, usuario_id').in('grupo_id', grupoIds)
+  const { data: miembros } = await db.from('grupo_amigos_miembros').select('grupo_id, usuario_id').in('grupo_id', grupoIds)
   const userIds = [...new Set((miembros ?? []).map(m => m.usuario_id as string))]
   const { data: usuarios } = userIds.length
     ? await db.from('usuarios').select('id, nombre, foto_perfil_url').in('id', userIds)
@@ -64,6 +64,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error?.message || 'No se pudo crear el grupo' }, { status: 500 })
   }
   const filas = [{ grupo_id: grupo.id, usuario_id: yo.id }, ...amigosValidos.map(id => ({ grupo_id: grupo.id, usuario_id: id }))]
-  await db.from('grupo_miembros').insert(filas)
+  await db.from('grupo_amigos_miembros').insert(filas)
   return NextResponse.json({ ok: true, grupo })
 }

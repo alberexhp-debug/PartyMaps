@@ -114,11 +114,14 @@ CREATE TABLE IF NOT EXISTS grupos_amigos (
 CREATE INDEX IF NOT EXISTS idx_grupos_amigos_creador ON grupos_amigos (creador_id);
 ALTER TABLE grupos_amigos ENABLE ROW LEVEL SECURITY;
 
-CREATE TABLE IF NOT EXISTS grupo_miembros (
+-- OJO: la tabla `grupo_miembros` (sin sufijo) YA EXISTE para los grupos
+-- PROMOTORA B2B (mig 029, FK a `grupos`). Esta es la de grupos de AMIGOS B2C,
+-- así que lleva nombre propio para no colisionar.
+CREATE TABLE IF NOT EXISTS grupo_amigos_miembros (
   grupo_id UUID NOT NULL REFERENCES grupos_amigos(id) ON DELETE CASCADE,
   usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (grupo_id, usuario_id)
 );
-CREATE INDEX IF NOT EXISTS idx_grupo_miembros_usuario ON grupo_miembros (usuario_id);
-ALTER TABLE grupo_miembros ENABLE ROW LEVEL SECURITY;
+CREATE INDEX IF NOT EXISTS idx_grupo_amigos_miembros_usuario ON grupo_amigos_miembros (usuario_id);
+ALTER TABLE grupo_amigos_miembros ENABLE ROW LEVEL SECURITY;
