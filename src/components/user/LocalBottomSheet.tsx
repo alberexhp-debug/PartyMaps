@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/Badge'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
-import { X, Bell, ChevronRight, Ticket, Sparkles, MapPin } from 'lucide-react'
+import { X, Bell, ChevronRight, Ticket, Sparkles, MapPin, Music2 } from 'lucide-react'
 import { LocalImagen } from '@/components/ui/LocalImagen'
 import {
   getLabelTipoLocal, getColorTemperatura, getLabelTemperatura,
@@ -69,6 +69,8 @@ export function LocalBottomSheet({ local, onClose }: Props) {
         <div className="relative h-40">
           <LocalImagen src={local.imagenes?.[0]} nombre={local.nombre} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C15] via-[#0C0C15]/55 to-transparent" />
+          {/* Asa de arrastre — afordancia de hoja inferior */}
+          <div className="absolute left-1/2 top-2 z-10 h-1 w-9 -translate-x-1/2 rounded-full bg-white/45 shadow-[0_1px_3px_rgba(0,0,0,0.4)]" />
 
           <button
             onClick={onClose}
@@ -108,25 +110,29 @@ export function LocalBottomSheet({ local, onClose }: Props) {
         {/* ── Contenido ── */}
         <div className="p-4 space-y-3">
           {/* Strip de datos reales: ambiente · entrada · música */}
-          <div className="flex items-stretch rounded-2xl bg-white/[0.03] border border-white/[0.07] divide-x divide-white/[0.06]">
-            <div className="flex-1 px-3 py-2.5 text-center">
+          <div className="flex items-stretch overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-white/[0.055] to-white/[0.02] divide-x divide-white/[0.06]">
+            <div className="flex-1 px-3 py-3 text-center">
               <div className="flex items-center justify-center gap-1.5">
-                <span className={cn('w-2 h-2 rounded-full', temp === 'caliente' && 'animate-pulse-heat')}
+                <span className={cn('h-2 w-2 rounded-full', temp === 'caliente' && 'animate-pulse-heat')}
                   style={{ background: colorTemp, boxShadow: `0 0 8px ${colorTemp}` }} />
                 <span className="text-sm font-bold text-display" style={{ color: colorTemp }}>{getLabelTemperatura(temp)}</span>
               </div>
-              <p className="text-[10px] text-[#8B8BA8] mt-0.5 uppercase tracking-wide">Ambiente</p>
+              <p className="mt-1 text-[10px] uppercase tracking-wide text-[#8B8BA8]">Ambiente</p>
             </div>
-            <div className="flex-1 px-3 py-2.5 text-center">
-              <p className="text-sm font-bold text-white text-display text-numeric">
+            <div className="flex-1 px-3 py-3 text-center">
+              <p className="flex items-center justify-center gap-1.5 text-sm font-bold text-white text-display text-numeric">
+                <Ticket size={12} className="text-[#8B8BA8]" />
                 {precio == null ? '—' : precio === 0 ? 'Gratis' : formatearPrecio(precio)}
               </p>
-              <p className="text-[10px] text-[#8B8BA8] mt-0.5 uppercase tracking-wide">Entrada</p>
+              <p className="mt-1 text-[10px] uppercase tracking-wide text-[#8B8BA8]">Entrada</p>
             </div>
             {genero && (
-              <div className="flex-1 px-3 py-2.5 text-center">
-                <p className="text-sm font-bold text-white text-display truncate">{genero}</p>
-                <p className="text-[10px] text-[#8B8BA8] mt-0.5 uppercase tracking-wide">Música</p>
+              <div className="flex-1 px-3 py-3 text-center">
+                <p className="flex items-center justify-center gap-1.5 text-sm font-bold text-white text-display">
+                  <Music2 size={12} className="shrink-0 text-[#8B8BA8]" />
+                  <span className="truncate">{genero}</span>
+                </p>
+                <p className="mt-1 text-[10px] uppercase tracking-wide text-[#8B8BA8]">Música</p>
               </div>
             )}
           </div>
