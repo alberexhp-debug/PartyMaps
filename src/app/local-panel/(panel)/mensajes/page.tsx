@@ -70,6 +70,7 @@ export default function MensajesPage() {
   const [sonidoOn, setSonidoOn] = useState(true)
   const [verArchivados, setVerArchivados] = useState(false)
   const [archivadosCount, setArchivadosCount] = useState(0)
+  const [soporteNoLeidos, setSoporteNoLeidos] = useState(0)
   const [menu, setMenu] = useState<Conversacion | null>(null)
   const convsRef = useRef<Conversacion[]>([])
 
@@ -78,6 +79,7 @@ export default function MensajesPage() {
     const r = await fetch(url).then(x => x.ok ? x.json() : null).catch(() => null)
     if (r?.conversaciones) setConvs(r.conversaciones)
     if (typeof r?.archivados_count === 'number') setArchivadosCount(r.archivados_count)
+    if (typeof r?.soporte_no_leidos === 'number') setSoporteNoLeidos(r.soporte_no_leidos)
     setLoading(false)
   }, [verArchivados])
 
@@ -148,6 +150,11 @@ export default function MensajesPage() {
             <p className="text-sm font-semibold text-white">Soporte de Rumbo</p>
             <p className="text-xs text-[#8B8BA8]">¿Una duda o incidencia? Abre un ticket con nuestro equipo.</p>
           </div>
+          {soporteNoLeidos > 0 && (
+            <span className="mr-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E0455E] px-1.5 text-[11px] font-bold text-white">
+              {soporteNoLeidos > 99 ? '99+' : soporteNoLeidos}
+            </span>
+          )}
           <ChevronRight size={18} className="text-[#6B6B85]" />
         </Link>
       )}

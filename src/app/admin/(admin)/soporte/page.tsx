@@ -8,6 +8,7 @@ import {
 } from '@/lib/soporte'
 import { LifeBuoy, X, Send, Store, ExternalLink, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase/client'
 
 type Ticket = {
   id: string; local_id: string; local_nombre: string; asunto: string
@@ -97,6 +98,14 @@ function TicketAdminModal({ id, onClose }: { id: string; onClose: () => void }) 
     if (r.ok) { setTicket(j.ticket); setMensajes(j.mensajes ?? []) }
   }, [id])
   useEffect(() => { cargar() }, [cargar])
+  // Tiempo real: nuevos mensajes del local al instante + respaldo por sondeo (§1.5).
+  useEffect(() => {
+    const t = setInterval(cargar, 5000)
+    const ch = supabase.channel(`soporte-adm-${id}-${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ticket_mensajes', filter: `ticket_id=eq.${id}` }, () => cargar())
+      .subscribe()
+    return () => { clearInterval(t); supabase.removeChannel(ch) }
+  }, [id, cargar])
 
   async function responder() {
     if (!texto.trim()) return

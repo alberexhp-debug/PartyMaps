@@ -9,6 +9,7 @@ import {
   haceTiempo, type EstadoTicket, type CategoriaTicket, type PrioridadTicket,
 } from '@/lib/soporte'
 import { LifeBuoy, Plus, X, Send, ChevronRight } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 type Ticket = {
   id: string; asunto: string; categoria: CategoriaTicket; prioridad: PrioridadTicket
@@ -152,6 +153,14 @@ function TicketModal({ id, onClose }: { id: string; onClose: () => void }) {
     if (r.ok) { setTicket(j.ticket); setMensajes(j.mensajes ?? []) }
   }, [id])
   useEffect(() => { cargar() }, [cargar])
+  // Tiempo real: respuestas del soporte al instante + respaldo por sondeo (§1.5).
+  useEffect(() => {
+    const t = setInterval(cargar, 5000)
+    const ch = supabase.channel(`soporte-${id}-${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ticket_mensajes', filter: `ticket_id=eq.${id}` }, () => cargar())
+      .subscribe()
+    return () => { clearInterval(t); supabase.removeChannel(ch) }
+  }, [id, cargar])
 
   async function responder() {
     if (!texto.trim()) return

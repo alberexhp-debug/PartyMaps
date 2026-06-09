@@ -68,3 +68,18 @@ END $$;
 -- lee graceful (login con select * ; la escritura es best-effort).
 -- ─────────────────────────────────────────────
 ALTER TABLE usuario_local ADD COLUMN IF NOT EXISTS permisos_override JSONB;
+
+-- ─────────────────────────────────────────────
+-- §3 · Soporte como chat en vivo (§1.5)
+-- Realtime en el hilo de tickets (ticket_mensajes, mig 028) para que las
+-- respuestas aparezcan al instante en ambos lados (local y admin), como un
+-- chat. La RLS de la tabla sigue mandando.
+-- ─────────────────────────────────────────────
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'ticket_mensajes'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE ticket_mensajes;
+  END IF;
+END $$;

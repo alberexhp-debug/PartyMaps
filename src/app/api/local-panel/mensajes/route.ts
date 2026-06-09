@@ -142,5 +142,15 @@ export async function GET(req: NextRequest) {
   // silenciadas se omite en cliente con silenciados_match.
   const no_leidos_total = conversaciones.filter(c => !c.archivado).reduce((s, c) => s + c.no_leidos, 0)
   const silenciados_match = conversaciones.filter(c => c.silenciado).map(c => c.ref_id)
-  return NextResponse.json({ conversaciones: visibles, no_leidos_total, archivados_count, silenciados_match })
+
+  // Soporte (tickets con respuesta sin leer) — solo dueño/gestor; integra el
+  // contador del soporte en la bandeja unificada (§1.5).
+  let soporte_no_leidos = 0
+  if (GESTORES.includes(t.rol)) {
+    const { count } = await db.from('tickets_soporte').select('id', { count: 'exact', head: true })
+      .eq('local_id', t.local_id).eq('no_leido_local', true)
+    soporte_no_leidos = count ?? 0
+  }
+
+  return NextResponse.json({ conversaciones: visibles, no_leidos_total, archivados_count, silenciados_match, soporte_no_leidos })
 }
