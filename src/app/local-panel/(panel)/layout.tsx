@@ -11,7 +11,7 @@ import {
   TicketPlus, Contact, ListChecks,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ROLES_PERMISOS, ROL_LABEL, homeDeRol, type ZonaPanel } from '@/lib/permisosLocal'
+import { ROL_LABEL, homeDeRol, zonasDeTrabajador, homeDeTrabajador, type ZonaPanel } from '@/lib/permisosLocal'
 import { BadgePuestaAPunto } from '@/components/local-panel/BadgePuestaAPunto'
 import { GuiaPanel } from '@/components/onboarding/GuiaPanel'
 import { AvisoEstadoLocal } from '@/components/local-panel/AvisoEstadoLocal'
@@ -80,7 +80,9 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   const [showMas, setShowMas] = useState(false)
   const [noLeidosMsg, setNoLeidosMsg] = useState(0)
   const silenciadosRef = useRef<string[]>([])
-  const tieneMensajes = !!rol && ROLES_PERMISOS[rol].includes('mensajes')
+  // Zonas efectivas (rol base + permisos a medida §2.1). Sin override = rol base.
+  const zonasPermitidas = useMemo(() => zonasDeTrabajador(trabajador), [trabajador])
+  const tieneMensajes = zonasPermitidas.includes('mensajes')
   // Badge de mensajes no leídos: realtime para que se actualice al instante y
   // suene el ping aunque estés en otra página del panel; sondeo de respaldo.
   useEffect(() => {
@@ -114,11 +116,10 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   // Grupos filtrados por permisos del rol (se ocultan grupos vacíos)
   const grupos = useMemo<NavGroup[]>(() => {
     if (!rol) return []
-    const permitidas = ROLES_PERMISOS[rol]
     return NAV_GROUPS
-      .map(g => ({ ...g, items: g.items.filter(it => permitidas.includes(it.zona)) }))
+      .map(g => ({ ...g, items: g.items.filter(it => zonasPermitidas.includes(it.zona)) }))
       .filter(g => g.items.length > 0)
-  }, [rol])
+  }, [rol, zonasPermitidas])
 
   // Lista plana en orden de grupo (para la barra inferior móvil)
   const itemsPlanos = useMemo(() => grupos.flatMap(g => g.items), [grupos])
@@ -128,10 +129,10 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
     if (!isAuthenticated) { router.push('/local-panel/login'); return }
     if (!rol) return
     const zona = zonaActual(pathname)
-    if (zona && !ROLES_PERMISOS[rol].includes(zona)) {
-      router.replace(`/local-panel/${homeDeRol(rol)}`)
+    if (zona && !zonasPermitidas.includes(zona)) {
+      router.replace(`/local-panel/${homeDeTrabajador(trabajador)}`)
     }
-  }, [hydrated, isAuthenticated, rol, pathname, router])
+  }, [hydrated, isAuthenticated, rol, pathname, router, zonasPermitidas, trabajador])
 
   // Verifica que la sesión REAL de Supabase corresponde a este trabajador.
   // Las 4 superficies (PWA/admin/gestor/local) comparten UNA sola sesión de

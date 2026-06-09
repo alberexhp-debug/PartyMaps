@@ -247,8 +247,11 @@ export interface UsuarioLocal {
   usuario_id: string
   local_id: string
   rol: RolLocal
-  /** Nombre de puesto personalizado (§2.1); solo display, los permisos vienen de rol. */
+  /** Nombre de puesto personalizado (§2.1); solo display. */
   rol_etiqueta?: string | null
+  /** Permisos por módulos a medida (§2.1 avanzado). null = los del rol base.
+   *  extra: zonas concedidas además del rol; quitar: zonas retiradas. */
+  permisos_override?: { extra?: string[]; quitar?: string[] } | null
   email: string
   nombre: string
   activo: boolean

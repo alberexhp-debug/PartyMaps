@@ -84,3 +84,51 @@ export const ROL_LABEL: Record<RolLocal, string> = {
   puerta: 'Puerta',
   barman: 'Barman',
 }
+
+/**
+ * Zonas que el dueño/encargado puede conceder o retirar a su equipo a la carta
+ * (§2.1 avanzado). Excluye las sensibles (facturación, equipo, configuración,
+ * mi-local, soporte, puesta-a-punto), que siguen ligadas al rol base.
+ */
+export const ZONAS_ASIGNABLES: ZonaPanel[] = [
+  'dashboard', 'scanner', 'taquilla', 'pedidos-bar', 'sala', 'productos',
+  'cortesias', 'eventos', 'rrpp', 'clientes', 'crm', 'reviews',
+  'sugerencias', 'notificaciones', 'analytics', 'mensajes',
+]
+
+/** Etiqueta legible de cada zona, para el editor de permisos del equipo. */
+export const ZONA_LABEL: Record<ZonaPanel, string> = {
+  dashboard: 'Resumen', 'puesta-a-punto': 'Puesta a punto', configuracion: 'Configuración',
+  'mi-local': 'Mi local', eventos: 'Eventos', scanner: 'Afluencia & Puerta', taquilla: 'Taquilla',
+  'pedidos-bar': 'Pedidos', sala: 'Sala & Mesas', productos: 'Productos', clientes: 'Clientes',
+  crm: 'CRM', rrpp: 'RRPP', cortesias: 'Cortesías', sugerencias: 'Sugerencias',
+  notificaciones: 'Notificaciones', reviews: 'Reseñas', analytics: 'Analítica', equipo: 'Equipo',
+  mensajes: 'Mensajes', facturacion: 'Facturación', soporte: 'Soporte',
+}
+
+type TrabajadorPerm = { rol: RolLocal; permisos_override?: { extra?: string[]; quitar?: string[] } | null } | null | undefined
+
+/**
+ * Zonas EFECTIVAS de un trabajador: las de su rol base, más las concedidas a
+ * medida (extra) y menos las retiradas (quitar) — todo acotado a ZONAS_ASIGNABLES.
+ * Si no hay override, devuelve exactamente las del rol (comportamiento previo,
+ * 100% compatible). El dueño nunca se restringe (evita auto-bloqueos).
+ */
+export function zonasDeTrabajador(trabajador: TrabajadorPerm): ZonaPanel[] {
+  if (!trabajador?.rol) return []
+  const base = ROLES_PERMISOS[trabajador.rol]
+  if (trabajador.rol === 'dueno') return base
+  const ov = trabajador.permisos_override
+  if (!ov) return base
+  const asignable = (z: string): z is ZonaPanel => ZONAS_ASIGNABLES.includes(z as ZonaPanel)
+  const extra = (ov.extra ?? []).filter(z => asignable(z) && !base.includes(z as ZonaPanel)) as ZonaPanel[]
+  const quitar = new Set((ov.quitar ?? []).filter(asignable))
+  return [...base, ...extra].filter(z => !quitar.has(z))
+}
+
+/** Home efectivo: el del rol si sigue permitido; si no, la primera zona disponible. */
+export function homeDeTrabajador(trabajador: TrabajadorPerm): ZonaPanel {
+  const zonas = zonasDeTrabajador(trabajador)
+  const home = homeDeRol(trabajador?.rol)
+  return zonas.includes(home) ? home : (zonas[0] ?? 'dashboard')
+}

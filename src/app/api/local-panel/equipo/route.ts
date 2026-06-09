@@ -102,7 +102,8 @@ export async function PATCH(req: NextRequest) {
   if ('fecha_nacimiento' in body) cambios.fecha_nacimiento = limpiarFecha(body.fecha_nacimiento)
   if (typeof body.activo === 'boolean') cambios.activo = body.activo
   const tieneEtiqueta = 'rol_etiqueta' in body
-  if (Object.keys(cambios).length === 0 && !tieneEtiqueta) return NextResponse.json({ error: 'Nada que cambiar' }, { status: 400 })
+  const tienePermisos = 'permisos_override' in body
+  if (Object.keys(cambios).length === 0 && !tieneEtiqueta && !tienePermisos) return NextResponse.json({ error: 'Nada que cambiar' }, { status: 400 })
 
   let data: Record<string, unknown> = target
   if (Object.keys(cambios).length > 0) {
@@ -114,6 +115,15 @@ export async function PATCH(req: NextRequest) {
   if (tieneEtiqueta) {
     const upd2 = await svc.from('usuario_local').update({ rol_etiqueta: limpiarTexto(body.rol_etiqueta) }).eq('id', id).select('*').maybeSingle()
     if (upd2.data) data = upd2.data
+  }
+  // Permisos por módulos a medida (§2.1 avanzado) aparte: best-effort (no rompe si falta la 053).
+  if (tienePermisos) {
+    const ov = body.permisos_override as { extra?: unknown; quitar?: unknown } | null
+    const arr = (x: unknown): string[] => Array.isArray(x) ? x.filter((z): z is string => typeof z === 'string') : []
+    const extra = arr(ov?.extra), quitar = arr(ov?.quitar)
+    const limpio = (extra.length || quitar.length) ? { extra, quitar } : null
+    const upd3 = await svc.from('usuario_local').update({ permisos_override: limpio }).eq('id', id).select('*').maybeSingle()
+    if (upd3.data) data = upd3.data
   }
   return NextResponse.json({ ok: true, trabajador: data })
 }

@@ -60,3 +60,11 @@ DO $$ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE mensajes_gestor;
   END IF;
 END $$;
+
+-- ─────────────────────────────────────────────
+-- §2 · Permisos por módulos del equipo (§2.1 avanzado)
+-- Override a medida sobre el rol base: { extra: [...zonas], quitar: [...zonas] }.
+-- null = exactamente los permisos del rol (comportamiento previo). El código lo
+-- lee graceful (login con select * ; la escritura es best-effort).
+-- ─────────────────────────────────────────────
+ALTER TABLE usuario_local ADD COLUMN IF NOT EXISTS permisos_override JSONB;

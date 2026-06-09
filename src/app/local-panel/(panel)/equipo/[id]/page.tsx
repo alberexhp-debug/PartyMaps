@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 import { UsuarioLocal, RolLocal } from '@/types'
+import { ROLES_PERMISOS, ZONAS_ASIGNABLES, ZONA_LABEL, zonasDeTrabajador, type ZonaPanel } from '@/lib/permisosLocal'
 import {
   ArrowLeft, Shield, Gift, MessageSquare, KeyRound, ShieldCheck, ShieldAlert,
   Save, Trash2, Power, AtSign, Calendar,
@@ -36,6 +37,7 @@ export default function FichaTrabajadorPage() {
   const [showChat, setShowChat] = useState(false)
   const [showCortesias, setShowCortesias] = useState(false)
   const [credenciales, setCredenciales] = useState<{ username: string; password: string } | null>(null)
+  const [permisos, setPermisos] = useState<Set<string>>(new Set())
 
   const esDueno = trabajador?.rol === 'dueno'
   const puedoGestionar = trabajador?.rol === 'dueno' || trabajador?.rol === 'gestor'
@@ -43,7 +45,13 @@ export default function FichaTrabajadorPage() {
   const cargar = useCallback(() => {
     if (!local || !id) return
     supabase.from('usuario_local').select('*').eq('id', id).eq('local_id', local.id).maybeSingle()
-      .then(({ data }) => { if (data) { setWorker(data); setForm(data) } setLoading(false) })
+      .then(({ data }) => {
+        if (data) {
+          setWorker(data); setForm(data)
+          setPermisos(new Set(zonasDeTrabajador(data).filter(z => ZONAS_ASIGNABLES.includes(z))))
+        }
+        setLoading(false)
+      })
   }, [local, id])
 
   useEffect(cargar, [cargar])
@@ -58,19 +66,27 @@ export default function FichaTrabajadorPage() {
   const guardar = async () => {
     if (!form.nombre?.trim()) { toast.error('El nombre no puede estar vacío'); return }
     setGuardando(true)
+    // Permisos a medida (§2.1): diferencia respecto al rol base seleccionado.
+    const baseRol = ROLES_PERMISOS[(form.rol ?? worker!.rol) as RolLocal]
+    const extra = [...permisos].filter(z => ZONAS_ASIGNABLES.includes(z as ZonaPanel) && !baseRol.includes(z as ZonaPanel))
+    const quitar = baseRol.filter(z => ZONAS_ASIGNABLES.includes(z) && !permisos.has(z))
     const res = await fetchLocal('/api/local-panel/equipo', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id, nombre: form.nombre, rol: form.rol,
         telefono: form.telefono ?? '', email_contacto: form.email_contacto ?? '',
         dni: form.dni ?? '', fecha_nacimiento: form.fecha_nacimiento ?? '',
+        permisos_override: { extra, quitar },
       }),
     })
     const data = await res.json().catch(() => ({}))
     setGuardando(false)
     if (!res.ok) { toast.error(data.error || 'No se pudo guardar'); return }
     toast.success('Datos guardados')
-    if (data.trabajador) { setWorker(data.trabajador); setForm(data.trabajador) }
+    if (data.trabajador) {
+      setWorker(data.trabajador); setForm(data.trabajador)
+      setPermisos(new Set(zonasDeTrabajador(data.trabajador).filter(z => ZONAS_ASIGNABLES.includes(z))))
+    }
   }
 
   const resetPassword = async () => {
@@ -179,6 +195,25 @@ export default function FichaTrabajadorPage() {
           <span className="inline-flex items-center gap-1"><Calendar size={12} /> Alta: {worker.fecha_alta || '—'}</span>
         </div>
         <Button loading={guardando} onClick={guardar}><Save size={15} /> Guardar cambios</Button>
+      </Section>
+
+      {/* Permisos por módulos (§2.1 avanzado) */}
+      <Section titulo="Permisos del puesto">
+        <p className="text-sm text-[#A0A0B8]">Marca los módulos que verá esta persona en su panel. Los de su rol vienen marcados; ajústalos a la carta. El dueño y el encargado tienen acceso completo por su rol.</p>
+        <div className="flex flex-wrap gap-1.5">
+          {ZONAS_ASIGNABLES.map(z => {
+            const on = permisos.has(z)
+            return (
+              <button key={z} type="button"
+                onClick={() => setPermisos(prev => { const n = new Set(prev); if (n.has(z)) n.delete(z); else n.add(z); return n })}
+                className={cn('rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
+                  on ? 'border-[#E94560] bg-[#E94560]/12 text-white' : 'border-white/10 bg-white/5 text-[#8B8BA8] hover:text-white')}>
+                {ZONA_LABEL[z]}
+              </button>
+            )
+          })}
+        </div>
+        <Button loading={guardando} onClick={guardar}><Save size={15} /> Guardar permisos</Button>
       </Section>
 
       {/* Comunicación */}

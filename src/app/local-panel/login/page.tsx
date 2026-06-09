@@ -29,8 +29,8 @@ export default function LocalPanelLoginPage() {
   const finalizar = (trab: TrabajadorConLocal) => {
     setTrabajador(trab)
     setLocal(trab.locales)
-    import('@/lib/permisosLocal').then(({ homeDeRol }) => {
-      router.push(`/local-panel/${homeDeRol(trab.rol)}`)
+    import('@/lib/permisosLocal').then(({ homeDeTrabajador }) => {
+      router.push(`/local-panel/${homeDeTrabajador(trab)}`)
     })
   }
 
