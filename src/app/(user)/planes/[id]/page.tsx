@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/Toast'
 import { formatearHora, tiempoRelativo, detectarContactoEnTexto } from '@/lib/utils'
 import {
   ArrowLeft, Send, Users, MapPin, Clock, Check, X,
-  MessageCircle, UserCheck, Crown, AlertCircle
+  MessageCircle, UserCheck, Crown, AlertCircle, UserPlus
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -37,6 +37,7 @@ export default function PlanDetallePage() {
   const [enviando, setEnviando] = useState(false)
   const [tab, setTab] = useState<'chat' | 'miembros'>('chat')
   const [miSolicitud, setMiSolicitud] = useState<ParticipanteConUsuario | null>(null)
+  const [invitarOpen, setInvitarOpen] = useState(false)
 
   const cargar = useCallback(async () => {
     const [planRes, partRes, msgRes] = await Promise.all([
@@ -242,6 +243,13 @@ export default function PlanDetallePage() {
             </div>
           </div>
 
+          {/* Invitar amigos (solo organizador, si quedan huecos) */}
+          {soyCreador && plan.huecos_disponibles > 0 && (
+            <Button variant="outline" fullWidth onClick={() => setInvitarOpen(true)}>
+              <UserPlus size={15} /> Invitar amigos · {plan.huecos_disponibles} {plan.huecos_disponibles === 1 ? 'hueco' : 'huecos'}
+            </Button>
+          )}
+
           {/* Estado de mi solicitud */}
           {miParticipacion && !soyCreador && (
             <div className={cn(
@@ -383,6 +391,16 @@ export default function PlanDetallePage() {
           )}
         </>
       )}
+
+      {invitarOpen && (
+        <InvitarAmigosModal
+          planId={id}
+          yaParticipantes={participantes.map(p => p.usuario_id)}
+          huecos={plan.huecos_disponibles}
+          onClose={() => setInvitarOpen(false)}
+          onInvitado={() => { setInvitarOpen(false); cargar() }}
+        />
+      )}
     </div>
   )
 }
@@ -400,6 +418,72 @@ function Avatar({ usuario, size = 32 }: { usuario?: Partial<Usuario> | null; siz
           {usuario?.nombre?.[0]?.toUpperCase() || '?'}
         </span>
       )}
+    </div>
+  )
+}
+
+function InvitarAmigosModal({ planId, yaParticipantes, huecos, onClose, onInvitado }: {
+  planId: string; yaParticipantes: string[]; huecos: number; onClose: () => void; onInvitado: () => void
+}) {
+  const toast = useToast()
+  const [amigos, setAmigos] = useState<{ id: string; nombre: string; foto_perfil_url: string | null }[]>([])
+  const [sel, setSel] = useState<Set<string>>(new Set())
+  const [cargando, setCargando] = useState(true)
+  const [enviando, setEnviando] = useState(false)
+
+  useEffect(() => {
+    const ya = new Set(yaParticipantes)
+    fetch('/api/amigos').then(r => (r.ok ? r.json() : null)).then(d => {
+      setAmigos((d?.amigos ?? []).filter((a: { id: string }) => !ya.has(a.id)))
+      setCargando(false)
+    }).catch(() => setCargando(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const invitar = async () => {
+    if (!sel.size) return
+    setEnviando(true)
+    const r = await fetch(`/api/planes/${planId}/invitar`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario_ids: [...sel] }),
+    })
+    const d = await r.json().catch(() => ({}))
+    setEnviando(false)
+    if (!r.ok) { toast.error(d.error || 'No se pudo invitar'); return }
+    toast.success(d.invitados > 0 ? `Invitado${d.invitados === 1 ? '' : 's'} ${d.invitados}` : 'No quedaban huecos')
+    onInvitado()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
+      <div className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-3xl border border-white/10 bg-[#0E0E1A] p-6 sm:rounded-3xl" onClick={e => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">Invitar amigos</h2>
+          <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
+        </div>
+        <p className="mb-3 text-sm text-[#A0A0B8]">Quedan {huecos} {huecos === 1 ? 'hueco' : 'huecos'}. Entran ya aceptados.</p>
+        {cargando ? (
+          <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-12 rounded-xl bg-white/5 animate-pulse" />)}</div>
+        ) : amigos.length === 0 ? (
+          <p className="py-8 text-center text-sm text-[#6B6B85]">No tienes amigos disponibles para invitar. Añade amigos desde tu perfil.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {amigos.map(a => {
+              const on = sel.has(a.id)
+              return (
+                <button key={a.id} onClick={() => setSel(prev => { const n = new Set(prev); if (n.has(a.id)) n.delete(a.id); else n.add(a.id); return n })}
+                  className={cn('flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left', on ? 'border-[#E94560] bg-[#E94560]/10' : 'border-white/8 bg-white/[0.03]')}>
+                  <Avatar usuario={{ nombre: a.nombre, foto_perfil_url: a.foto_perfil_url ?? undefined }} size={32} />
+                  <span className="flex-1 truncate text-sm text-white">{a.nombre}</span>
+                  {on && <Check size={16} className="text-[#E94560]" />}
+                </button>
+              )
+            })}
+          </div>
+        )}
+        <button onClick={invitar} disabled={enviando || !sel.size} className="mt-4 h-12 w-full rounded-xl bg-[#E94560] font-semibold text-white disabled:opacity-50">
+          {enviando ? 'Invitando…' : `Invitar${sel.size ? ` (${sel.size})` : ''}`}
+        </button>
+      </div>
     </div>
   )
 }
