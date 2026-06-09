@@ -97,6 +97,11 @@ export function LocalBottomSheet({ local, onClose }: Props) {
                 {lineaEstado}
               </p>
             )}
+            {local.admite_after && (
+              <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-[#7C5CFF]/40 bg-[#7C5CFF]/25 px-2 py-0.5 text-[11px] font-semibold text-[#C9BCFF] backdrop-blur-sm">
+                🌙 Admite afters
+              </span>
+            )}
           </div>
         </div>
 
