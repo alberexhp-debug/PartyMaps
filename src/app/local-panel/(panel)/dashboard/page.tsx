@@ -9,19 +9,21 @@ import { formatearPrecio, getColorTemperatura, getTemperaturaAforo, aforoVisible
 import { zonasDeTrabajador, type ZonaPanel } from '@/lib/permisosLocal'
 import {
   Gauge, TicketPlus, Beer, LayoutGrid, Gift, MessagesSquare, Calendar, Sparkles,
-  Bell, Contact, BarChart3, Star, MessageSquare, ChevronRight, Zap, Check, X, DoorClosed, MoonStar,
+  Bell, Contact, BarChart3, Star, MessageSquare, ChevronRight, Check, DoorClosed, MoonStar,
 } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
+interface SerieDia { dia: string; ingresos: number; entradas: number; pedidos: number }
 interface KPIs {
   entradas_hoy: number
   ingresos_hoy: number
-  entradas_semana: number
   aforo_actual: number
   suscriptores: number
   media_reviews: number
   num_reviews: number
-  evento_activo: { nombre: string; entradas_vendidas: number; aforo_maximo: number } | null
+  evento_activo: { nombre: string } | null
   pedidos_bar_pendientes: number
+  serie: SerieDia[]
 }
 
 type Seccion = { zona: ZonaPanel; href: string; icon: React.ElementType; label: string; sub: string; color: string }
@@ -33,12 +35,6 @@ export default function LocalPanelDashboard() {
   const [loading, setLoading] = useState(true)
   const [noLeidos, setNoLeidos] = useState(0)
   const [pendientePaso, setPendientePaso] = useState<string | null>(null)
-  const [aforoSlider, setAforoSlider] = useState<number | null>(null)
-  const [guardandoAforo, setGuardandoAforo] = useState(false)
-  const [aforoGuardado, setAforoGuardado] = useState(false)
-  const [promoPrecio, setPromoPrecio] = useState<number>(local?.precio_entrada_min || 0)
-  const [promoHoras, setPromoHoras] = useState<number>(2)
-  const [activandoPromo, setActivandoPromo] = useState(false)
   const [cerrandoNoche, setCerrandoNoche] = useState(false)
   const [showCerrarModal, setShowCerrarModal] = useState(false)
 
@@ -57,57 +53,44 @@ export default function LocalPanelDashboard() {
     const hoy = new Date()
     const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).toISOString()
     const hace7 = new Date(Date.now() - 7 * 86400000).toISOString()
-    const [entradasHoyRes, semanaRes, suscritorRes, reviewsRes, eventoRes, pedidosPendientesRes] = await Promise.all([
+    const [entradasHoyRes, semanaRes, pedidosSemanaRes, suscritorRes, reviewsRes, eventoRes, pedidosPendientesRes] = await Promise.all([
       supabase.from('entradas').select('precio_total').eq('local_id', local.id).gte('created_at', inicioHoy).eq('estado', 'activa'),
-      supabase.from('entradas').select('id', { count: 'exact', head: true }).eq('local_id', local.id).gte('created_at', hace7).eq('estado', 'activa'),
+      supabase.from('entradas').select('created_at, precio_total').eq('local_id', local.id).gte('created_at', hace7).eq('estado', 'activa'),
+      supabase.from('pedidos_bar').select('pagado_at').eq('local_id', local.id).gte('pagado_at', hace7).in('estado', ['pagado', 'entregado']),
       supabase.from('suscripciones').select('id', { count: 'exact', head: true }).eq('local_id', local.id),
       supabase.from('reviews').select('puntuacion').eq('local_id', local.id).eq('censurada', false),
-      supabase.from('eventos').select('nombre, entradas_vendidas, aforo_maximo').eq('local_id', local.id).eq('estado', 'publicado').gte('fecha_fin', new Date().toISOString()).single(),
+      supabase.from('eventos').select('nombre').eq('local_id', local.id).eq('estado', 'publicado').gte('fecha_fin', new Date().toISOString()).single(),
       supabase.from('pedidos_bar').select('id', { count: 'exact', head: true }).eq('local_id', local.id).eq('estado', 'pagado'),
     ])
     const entradasHoy = entradasHoyRes.data || []
+    const semana = semanaRes.data || []
+    const pedidosSemana = pedidosSemanaRes.data || []
     const reviews = reviewsRes.data || []
+
+    // Serie de los últimos 7 días: ingresos, entradas y pedidos por día
+    const fmt = (d: Date) => d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })
+    const grouped: Record<string, SerieDia> = {}
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000)
+      grouped[fmt(d)] = { dia: fmt(d), ingresos: 0, entradas: 0, pedidos: 0 }
+    }
+    semana.forEach(e => { const k = fmt(new Date(e.created_at)); if (grouped[k]) { grouped[k].ingresos += e.precio_total || 0; grouped[k].entradas++ } })
+    pedidosSemana.forEach(p => { if (!p.pagado_at) return; const k = fmt(new Date(p.pagado_at)); if (grouped[k]) grouped[k].pedidos++ })
+
     setKpis({
       entradas_hoy: entradasHoy.length,
       ingresos_hoy: entradasHoy.reduce((s, e) => s + (e.precio_total || 0), 0),
-      entradas_semana: semanaRes.count || 0,
       aforo_actual: aforoVisible(local),
       suscriptores: suscritorRes.count || 0,
       media_reviews: reviews.length > 0 ? reviews.reduce((s, r) => s + r.puntuacion, 0) / reviews.length : 0,
       num_reviews: reviews.length,
       pedidos_bar_pendientes: pedidosPendientesRes.count || 0,
       evento_activo: eventoRes.data || null,
+      serie: Object.values(grouped),
     })
     setLoading(false)
   }
 
-  async function guardarAforo() {
-    if (aforoSlider === null || !local || !trabajador) return
-    setGuardandoAforo(true)
-    await fetch('/api/locales/aforo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ local_id: local.id, porcentaje: aforoSlider, worker_id: trabajador.usuario_id }) })
-    setGuardandoAforo(false); setAforoGuardado(true); setTimeout(() => setAforoGuardado(false), 3000)
-  }
-
-  const promoActiva = local?.promo_ultima_hora_hasta && new Date(local.promo_ultima_hora_hasta) > new Date()
-
-  async function activarPromo() {
-    if (!local) return
-    setActivandoPromo(true)
-    const res = await fetch('/api/locales/promo-ultima-hora', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ local_id: local.id, precio: promoPrecio, horas: promoHoras }) })
-    const data = await res.json(); setActivandoPromo(false)
-    if (!res.ok) { toast.error(data.error || 'Error al activar la promo'); return }
-    setLocal({ ...local, precio_promocional: promoPrecio, promo_ultima_hora_hasta: data.expira })
-    toast.success('Promo activada y notificación enviada a suscriptores')
-  }
-  async function cancelarPromo() {
-    if (!local) return
-    setActivandoPromo(true)
-    const res = await fetch('/api/locales/promo-ultima-hora', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ local_id: local.id }) })
-    setActivandoPromo(false)
-    if (!res.ok) { toast.error('Error al cancelar'); return }
-    setLocal({ ...local, precio_promocional: undefined, promo_ultima_hora_hasta: undefined })
-    toast.success('Promo cancelada')
-  }
   async function setCerrarNoche(cerrar: boolean) {
     if (!local) return
     setCerrandoNoche(true)
@@ -144,7 +127,6 @@ export default function LocalPanelDashboard() {
   ]
   const secciones = SECCIONES.filter(s => zonas.includes(s.zona))
 
-  // "Te interesa" — avisos reales
   const avisos: { icon: React.ElementType; color: string; txt: string; sub: string; href: string }[] = []
   if (noLeidos > 0) avisos.push({ icon: MessagesSquare, color: '#7C5CFF', txt: `${noLeidos} ${noLeidos === 1 ? 'mensaje sin leer' : 'mensajes sin leer'}`, sub: 'De tu equipo o RRPP', href: '/local-panel/mensajes' })
   if (kpis?.pedidos_bar_pendientes) avisos.push({ icon: Beer, color: '#F39C12', txt: `${kpis.pedidos_bar_pendientes} ${kpis.pedidos_bar_pendientes === 1 ? 'pedido' : 'pedidos'} por servir`, sub: 'En la barra ahora mismo', href: '/local-panel/pedidos-bar' })
@@ -152,6 +134,7 @@ export default function LocalPanelDashboard() {
 
   const card: React.CSSProperties = { background: 'var(--p-surface)', border: '1px solid var(--p-border)', borderRadius: 16, boxShadow: 'var(--p-shadow)' }
   const tint = (c: string) => c.startsWith('var') ? 'color-mix(in srgb, var(--p-accent) 12%, transparent)' : `${c}1f`
+  const sinDatos = !loading && kpis !== null && kpis.serie.every(d => d.ingresos === 0 && d.entradas === 0 && d.pedidos === 0)
 
   return (
     <div className="px-4 pb-16 pt-6 md:px-6">
@@ -177,6 +160,31 @@ export default function LocalPanelDashboard() {
             <p className="mt-1 text-[12px] font-medium" style={{ color: 'var(--p-text-3)' }}>{l}</p>
           </div>
         ))}
+      </div>
+
+      {/* Gráfica de progresiones (últimos 7 días) */}
+      <div className="mb-7" style={{ ...card, padding: '16px 14px 12px' }}>
+        <p className="mb-3 px-1 text-[12px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--p-text-3)' }}>Últimos 7 días</p>
+        {sinDatos ? (
+          <div className="grid h-[150px] place-items-center text-center text-[13px]" style={{ color: 'var(--p-text-3)' }}>
+            Aún no hay actividad esta semana.<br />Aquí verás cómo evolucionan ingresos, entradas y pedidos.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={190}>
+            <LineChart data={kpis?.serie ?? []} margin={{ top: 4, right: 6, left: -14, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(130,130,150,0.16)" vertical={false} />
+              <XAxis dataKey="dia" tick={{ fill: '#9A9AA6', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="left" tick={{ fill: '#9A9AA6', fontSize: 10 }} axisLine={false} tickLine={false} width={36} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fill: '#9A9AA6', fontSize: 10 }} axisLine={false} tickLine={false} width={26} />
+              <Tooltip contentStyle={{ background: 'var(--p-surface)', border: '1px solid var(--p-border)', borderRadius: 12, fontSize: 12, color: 'var(--p-text)', boxShadow: 'var(--p-shadow)' }}
+                labelStyle={{ color: 'var(--p-text-2)', fontWeight: 600 }} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 6 }} iconType="plainline" />
+              <Line yAxisId="left" type="monotone" dataKey="ingresos" name="Ingresos €" stroke="#E0455E" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+              <Line yAxisId="right" type="monotone" dataKey="entradas" name="Entradas" stroke="#4F8EF7" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+              <Line yAxisId="right" type="monotone" dataKey="pedidos" name="Pedidos" stroke="#F39C12" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Te interesa */}
@@ -208,70 +216,21 @@ export default function LocalPanelDashboard() {
         ))}
       </div>
 
-      {/* Ajustes de esta noche (controles operativos) */}
+      {/* Cerrar esta noche (acción puntual, discreta) */}
       {puedeCerrar && (
-        <>
-          <p className="mb-3 mt-8 px-0.5 text-[12px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--p-text-3)' }}>Ajustes de esta noche</p>
-          <div className="grid gap-3 md:grid-cols-2">
-            {/* Afluencia */}
-            <div style={{ ...card, padding: 16 }}>
-              <div className="mb-2 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-sm font-bold" style={{ color: 'var(--p-text)' }}><Gauge size={15} style={{ color: 'var(--p-accent)' }} /> Afluencia ahora</h2>
-                <span className="text-lg font-black" style={{ color: colorTemp }}>{aforoSlider !== null ? aforoSlider : aforoPct}%</span>
-              </div>
-              <p className="mb-2 text-xs" style={{ color: 'var(--p-text-3)' }}>Ajuste puntual de lo lleno que ve la gente. Expira a las 6:00.</p>
-              <input type="range" min={0} max={100} step={5} value={aforoSlider !== null ? aforoSlider : aforoPct}
-                onChange={e => setAforoSlider(Number(e.target.value))} className="w-full accent-[#E0455E]" />
-              <Button size="sm" fullWidth loading={guardandoAforo} disabled={aforoSlider === null} onClick={guardarAforo} className="mt-2">
-                {aforoGuardado ? <><Check size={13} /> Guardado</> : <><Gauge size={13} /> Aplicar</>}
-              </Button>
-            </div>
-
-            {/* Promo última hora */}
-            <div style={{ ...card, padding: 16 }}>
-              <div className="mb-2 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-sm font-bold" style={{ color: 'var(--p-text)' }}><Zap size={15} style={{ color: '#F39C12' }} /> Promo última hora</h2>
-                {promoActiva && <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: '#F39C1222', color: '#F39C12' }}>Activa</span>}
-              </div>
-              {promoActiva ? (
-                <>
-                  <p className="mb-2 text-sm" style={{ color: 'var(--p-text-2)' }}>Precio: <strong style={{ color: 'var(--p-text)' }}>{formatearPrecio(local.precio_promocional!)}</strong> hasta {new Date(local.promo_ultima_hora_hasta!).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
-                  <Button size="sm" variant="secondary" fullWidth onClick={cancelarPromo} loading={activandoPromo}><X size={13} /> Cancelar promo</Button>
-                </>
-              ) : (
-                <>
-                  <div className="mb-2 grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs" style={{ color: 'var(--p-text-3)' }}>Precio (€)</label>
-                      <input type="number" min={local.precio_entrada_min || 0} step="0.5" value={promoPrecio} onChange={e => setPromoPrecio(parseFloat(e.target.value) || 0)}
-                        className="mt-1 w-full rounded-xl px-3 py-2 text-sm outline-none" style={{ background: 'var(--p-surface-2)', border: '1px solid var(--p-border)', color: 'var(--p-text)' }} />
-                    </div>
-                    <div>
-                      <label className="text-xs" style={{ color: 'var(--p-text-3)' }}>Duración: {promoHoras}h</label>
-                      <input type="range" min={1} max={4} step={1} value={promoHoras} onChange={e => setPromoHoras(parseInt(e.target.value))} className="mt-3 w-full accent-[#F39C12]" />
-                    </div>
-                  </div>
-                  <Button size="sm" fullWidth onClick={activarPromo} loading={activandoPromo} disabled={promoPrecio < (local.precio_entrada_min || 0)}><Zap size={13} /> Activar promo</Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Cerrar esta noche */}
-          <div className="mt-3">
-            {cerradoActivo ? (
-              <button onClick={() => setCerrarNoche(false)} disabled={cerrandoNoche}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold disabled:opacity-50" style={{ background: '#F39C1218', border: '1px solid #F39C1240', color: '#B45309' }}>
-                <Check size={15} /> Reactivar local ahora
-              </button>
-            ) : (
-              <button onClick={() => setShowCerrarModal(true)}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold" style={{ background: 'color-mix(in srgb, var(--p-accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--p-accent) 28%, transparent)', color: 'var(--p-accent)' }}>
-                <DoorClosed size={15} /> Cerrar esta noche
-              </button>
-            )}
-          </div>
-        </>
+        <div className="mt-8">
+          {cerradoActivo ? (
+            <button onClick={() => setCerrarNoche(false)} disabled={cerrandoNoche}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold disabled:opacity-50" style={{ background: '#F39C1218', border: '1px solid #F39C1240', color: '#B45309' }}>
+              <Check size={15} /> Reactivar local ahora
+            </button>
+          ) : (
+            <button onClick={() => setShowCerrarModal(true)}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold" style={{ background: 'transparent', border: '1px solid var(--p-border)', color: 'var(--p-text-2)' }}>
+              <DoorClosed size={15} /> Cerrar el local esta noche
+            </button>
+          )}
+        </div>
       )}
 
       {/* Modal cierre */}
