@@ -110,12 +110,14 @@ export default function PreviewPanel() {
           {/* Barra superior */}
           <header style={{ position: 'sticky', top: 0, zIndex: 20, background: t.surface, borderBottom: `1px solid ${t.border}` }}>
             <div style={{ height: 58, padding: '0 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-              {/* Avatar / menú (móvil y tablet) */}
-              <button className="lg:hidden" onClick={() => setMenu(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 12 }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg, ${t.accent}, ${t.violet})`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 14 }}>A</span>
-                <ChevronDown size={15} style={{ color: t.text3 }} />
-              </button>
+              {/* Avatar / menú (solo móvil y tablet; en ordenador vive en la barra lateral) */}
+              <div className="lg:hidden">
+                <button onClick={() => setMenu(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 12 }}>
+                  <span style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg, ${t.accent}, ${t.violet})`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 14 }}>A</span>
+                  <ChevronDown size={15} style={{ color: t.text3 }} />
+                </button>
+              </div>
               <p style={{ margin: 0, fontSize: 15.5, fontWeight: 700 }}>Inicio</p>
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button aria-label="Avisos" style={{ position: 'relative', width: 38, height: 38, borderRadius: 11, border: `1px solid ${t.border}`, background: t.surface, color: t.text2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
