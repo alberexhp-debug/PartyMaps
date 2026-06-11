@@ -47,25 +47,19 @@ export default function PreviewPanel() {
   const [menu, setMenu] = useState(false)
   const t = TEMA[modo]
 
-  const GRUPOS = [
-    { titulo: 'Tu noche', items: [
-      { icon: Ticket, label: 'Taquilla', sub: 'Vender en puerta', color: t.accent },
-      { icon: Beer, label: 'Barra', sub: '3 en cola', color: t.amber },
-      { icon: ScanLine, label: 'Puerta', sub: '320 dentro', color: t.blue },
-      { icon: LayoutGrid, label: 'Sala y mesas', sub: '4 reservas', color: t.violet },
-      { icon: Gift, label: 'Cortesías', sub: 'Emitir / canjear', color: t.green },
-    ] },
-    { titulo: 'Crecer', items: [
-      { icon: CalendarDays, label: 'Eventos', sub: 'Vie · Techno', color: t.accent },
-      { icon: Megaphone, label: 'RRPP', sub: '8 activos', color: t.violet },
-      { icon: BellRing, label: 'Notificaciones', sub: 'Avisar a tus seguidores', color: t.blue },
-    ] },
-    { titulo: 'Tu audiencia', items: [
-      { icon: Contact, label: 'Clientes', sub: '1.240 fichas', color: t.blue },
-      { icon: BarChart3, label: 'Analítica', sub: 'Cómo va el negocio', color: t.violet },
-      { icon: Star, label: 'Reseñas', sub: '4,6 de media', color: t.amber },
-      { icon: MessageSquare, label: 'Sugerencias', sub: '2 nuevas', color: t.green },
-    ] },
+  const SECCIONES = [
+    { icon: Ticket, label: 'Taquilla', sub: 'Vender en puerta', color: t.accent },
+    { icon: Beer, label: 'Barra', sub: '3 en cola', color: t.amber },
+    { icon: ScanLine, label: 'Puerta', sub: '320 dentro', color: t.blue },
+    { icon: LayoutGrid, label: 'Sala y mesas', sub: '4 reservas', color: t.violet },
+    { icon: Gift, label: 'Cortesías', sub: 'Emitir / canjear', color: t.green },
+    { icon: CalendarDays, label: 'Eventos', sub: 'Vie · Techno', color: t.accent },
+    { icon: Megaphone, label: 'RRPP', sub: '8 activos', color: t.violet },
+    { icon: BellRing, label: 'Notificaciones', sub: 'Avisar a seguidores', color: t.blue },
+    { icon: Contact, label: 'Clientes', sub: '1.240 fichas', color: t.blue },
+    { icon: BarChart3, label: 'Analítica', sub: 'Cómo va el negocio', color: t.violet },
+    { icon: Star, label: 'Reseñas', sub: '4,6 de media', color: t.amber },
+    { icon: MessageSquare, label: 'Sugerencias', sub: '2 nuevas', color: t.green },
   ]
 
   return (
@@ -149,21 +143,17 @@ export default function PreviewPanel() {
           ))}
         </div>
 
-        {/* Secciones por grupos — todas a la vista, desglosables */}
-        {GRUPOS.map(g => (
-          <div key={g.titulo} style={{ marginBottom: 26 }}>
-            <p style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: t.text3, fontWeight: 700, margin: '0 2px 12px' }}>{g.titulo}</p>
-            <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: 12 }}>
-              {g.items.map(({ icon: Icon, label, sub, color }) => (
-                <button key={label} style={{ textAlign: 'left', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: 15, cursor: 'pointer', color: t.text, boxShadow: t.shadow }}>
-                  <span style={{ width: 36, height: 36, borderRadius: 10, background: t.tint(color), color, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 11 }}><Icon size={18} /></span>
-                  <p style={{ margin: 0, fontSize: 14.5, fontWeight: 600 }}>{label}</p>
-                  <p style={{ margin: '2px 0 0', fontSize: 12, color: t.text3 }}>{sub}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+        {/* Secciones — todas al mismo nivel, en una rejilla pareja */}
+        <p style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: t.text3, fontWeight: 700, margin: '0 2px 12px' }}>Secciones</p>
+        <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: 12 }}>
+          {SECCIONES.map(({ icon: Icon, label, sub, color }) => (
+            <button key={label} style={{ textAlign: 'left', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: 15, cursor: 'pointer', color: t.text, boxShadow: t.shadow }}>
+              <span style={{ width: 36, height: 36, borderRadius: 10, background: t.tint(color), color, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 11 }}><Icon size={18} /></span>
+              <p style={{ margin: 0, fontSize: 14.5, fontWeight: 600 }}>{label}</p>
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: t.text3 }}>{sub}</p>
+            </button>
+          ))}
+        </div>
 
         <p style={{ textAlign: 'center', fontSize: 11.5, color: t.text3, marginTop: 10, opacity: 0.75 }}>
           Prototipo · panel de control web · sin barra lateral · secciones agrupadas en la página principal
