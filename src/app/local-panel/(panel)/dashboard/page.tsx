@@ -171,10 +171,11 @@ export default function LocalPanelDashboard() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={190}>
-            <LineChart data={kpis?.serie ?? []} margin={{ top: 4, right: 6, left: -14, bottom: 0 }}>
+            <LineChart data={kpis?.serie ?? []} margin={{ top: 4, right: 4, left: -6, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(130,130,150,0.16)" vertical={false} />
               <XAxis dataKey="dia" tick={{ fill: '#9A9AA6', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="left" tick={{ fill: '#9A9AA6', fontSize: 10 }} axisLine={false} tickLine={false} width={36} />
+              <YAxis yAxisId="left" tick={{ fill: '#9A9AA6', fontSize: 10 }} axisLine={false} tickLine={false} width={42}
+                tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k` : String(v)} />
               <YAxis yAxisId="right" orientation="right" tick={{ fill: '#9A9AA6', fontSize: 10 }} axisLine={false} tickLine={false} width={26} />
               <Tooltip contentStyle={{ background: 'var(--p-surface)', border: '1px solid var(--p-border)', borderRadius: 12, fontSize: 12, color: 'var(--p-text)', boxShadow: 'var(--p-shadow)' }}
                 labelStyle={{ color: 'var(--p-text-2)', fontWeight: 600 }} />
