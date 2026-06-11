@@ -6,7 +6,7 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { supabase } from '@/lib/supabase/client'
 import {
   Bell, Sun, Moon, ChevronDown, LogOut, Settings, Users, CreditCard,
-  LifeBuoy, ListChecks, LayoutDashboard,
+  LifeBuoy, ListChecks, LayoutDashboard, ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROL_LABEL, homeDeRol, zonasDeTrabajador, homeDeTrabajador, type ZonaPanel } from '@/lib/permisosLocal'
@@ -133,6 +133,15 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   const inicioHref = `/local-panel/${homeDeRol(rol)}`
   const inicial = (local.nombre || '?').trim().charAt(0).toUpperCase()
 
+  // "Volver atrás": en una subpágina de detalle (≥3 segmentos) sube a su lista;
+  // en una sección de primer nivel vuelve al Inicio. No aparece en el Inicio.
+  const enHome = pathname === inicioHref
+  const volver = () => {
+    const seg = pathname.split('/').filter(Boolean)
+    if (seg.length > 2) router.push('/' + seg.slice(0, -1).join('/'))
+    else router.push(inicioHref)
+  }
+
   return (
     <div data-pt={tema} className="min-h-screen" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       {/* ───────────── Barra superior ───────────── */}
@@ -140,6 +149,14 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
         className="sticky top-0 z-30"
         style={{ background: 'var(--p-surface)', borderBottom: '1px solid var(--p-border)' }}>
         <div className="mx-auto flex h-[60px] items-center gap-3 px-4" style={{ maxWidth: 1120 }}>
+          {/* Volver atrás (en subpáginas) */}
+          {!enHome && (
+            <button onClick={volver} aria-label="Volver atrás"
+              className="-ml-1 grid h-9 w-9 shrink-0 place-items-center rounded-[11px] transition-opacity hover:opacity-70"
+              style={{ color: 'var(--p-text-2)' }}>
+              <ArrowLeft size={20} />
+            </button>
+          )}
           {/* Avatar + menú de cuenta */}
           <div className="relative">
             <button onClick={() => setMenu(m => !m)} aria-label="Tu cuenta"
