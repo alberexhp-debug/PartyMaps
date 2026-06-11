@@ -166,8 +166,8 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
         <div
           className="relative w-full aspect-[4/3] rounded-2xl border border-white/10 overflow-hidden"
           style={{
-            background: '#0C0C15',
-            backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+            background: 'var(--p-plano-bg, #0C0C15)',
+            backgroundImage: 'linear-gradient(var(--p-plano-grid, rgba(255,255,255,0.04)) 1px, transparent 1px), linear-gradient(90deg, var(--p-plano-grid, rgba(255,255,255,0.04)) 1px, transparent 1px)',
             backgroundSize: '6.25% 8.33%',
           }}
         >
