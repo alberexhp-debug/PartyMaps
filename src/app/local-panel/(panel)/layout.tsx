@@ -5,66 +5,24 @@ import Link from 'next/link'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { supabase } from '@/lib/supabase/client'
 import {
-  LayoutDashboard, Settings, Calendar, Bell,
-  Star, BarChart3, Users, CreditCard, LogOut, MessageSquare, MessagesSquare,
-  Beer, Gauge, MoreHorizontal, X, LayoutGrid, Sparkles, Gift, LifeBuoy,
-  TicketPlus, Contact, ListChecks,
+  Bell, Sun, Moon, ChevronDown, LogOut, Settings, Users, CreditCard,
+  LifeBuoy, ListChecks, LayoutDashboard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROL_LABEL, homeDeRol, zonasDeTrabajador, homeDeTrabajador, type ZonaPanel } from '@/lib/permisosLocal'
 import { BadgePuestaAPunto } from '@/components/local-panel/BadgePuestaAPunto'
-import { GuiaPanel } from '@/components/onboarding/GuiaPanel'
 import { AvisoEstadoLocal } from '@/components/local-panel/AvisoEstadoLocal'
 import { sonidoMensaje } from '@/lib/sonido'
 
-type NavItem = { zona: ZonaPanel; href: string; icon: React.ElementType; label: string }
-type NavGroup = { titulo: string; items: NavItem[] }
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    titulo: 'Inicio',
-    items: [
-      { zona: 'dashboard', href: '/local-panel/dashboard', icon: LayoutDashboard, label: 'Resumen' },
-      { zona: 'puesta-a-punto', href: '/local-panel/puesta-a-punto', icon: ListChecks, label: 'Puesta a punto' },
-    ],
-  },
-  {
-    titulo: 'La noche',
-    items: [
-      { zona: 'scanner',     href: '/local-panel/scanner',     icon: Gauge, label: 'Afluencia & Puerta' },
-      { zona: 'taquilla',    href: '/local-panel/taquilla',    icon: TicketPlus, label: 'Taquilla' },
-      { zona: 'pedidos-bar', href: '/local-panel/pedidos-bar', icon: Beer,  label: 'Pedidos' },
-      { zona: 'sala',        href: '/local-panel/sala',        icon: LayoutGrid, label: 'Sala & Mesas' },
-      { zona: 'cortesias',   href: '/local-panel/cortesias',   icon: Gift, label: 'Cortesías' },
-      { zona: 'mensajes',    href: '/local-panel/mensajes',    icon: MessagesSquare, label: 'Mensajes' },
-    ],
-  },
-  {
-    titulo: 'Crecimiento',
-    items: [
-      { zona: 'eventos',        href: '/local-panel/eventos',        icon: Calendar,    label: 'Eventos' },
-      { zona: 'rrpp',           href: '/local-panel/rrpp',           icon: Sparkles,    label: 'RRPP' },
-      { zona: 'notificaciones', href: '/local-panel/notificaciones', icon: Bell,        label: 'Notificaciones' },
-    ],
-  },
-  {
-    titulo: 'Audiencia',
-    items: [
-      { zona: 'crm',         href: '/local-panel/crm',         icon: Contact,       label: 'CRM' },
-      { zona: 'analytics',   href: '/local-panel/analytics',   icon: BarChart3,     label: 'Analítica' },
-      { zona: 'reviews',     href: '/local-panel/reviews',     icon: Star,          label: 'Reseñas' },
-      { zona: 'sugerencias', href: '/local-panel/sugerencias', icon: MessageSquare, label: 'Sugerencias' },
-    ],
-  },
-  {
-    titulo: 'Negocio',
-    items: [
-      { zona: 'facturacion',   href: '/local-panel/facturacion',   icon: CreditCard, label: 'Facturación' },
-      { zona: 'equipo',        href: '/local-panel/equipo',        icon: Users,      label: 'Equipo' },
-      { zona: 'configuracion', href: '/local-panel/configuracion', icon: Settings,   label: 'Configuración' },
-      { zona: 'soporte',       href: '/local-panel/soporte',       icon: LifeBuoy,   label: 'Soporte' },
-    ],
-  },
+// Apartados de cuenta/ajustes que viven detrás del avatar (los operativos están
+// en la rejilla de la home). Se filtran por permisos del rol.
+type CuentaItem = { zona: ZonaPanel; href: string; icon: React.ElementType; label: string }
+const CUENTA_ITEMS: CuentaItem[] = [
+  { zona: 'puesta-a-punto', href: '/local-panel/puesta-a-punto', icon: ListChecks, label: 'Puesta a punto' },
+  { zona: 'configuracion',  href: '/local-panel/configuracion',  icon: Settings,   label: 'Configuración' },
+  { zona: 'equipo',         href: '/local-panel/equipo',         icon: Users,      label: 'Equipo' },
+  { zona: 'facturacion',    href: '/local-panel/facturacion',    icon: CreditCard, label: 'Facturación' },
+  { zona: 'soporte',        href: '/local-panel/soporte',        icon: LifeBuoy,   label: 'Soporte' },
 ]
 
 function zonaActual(pathname: string): ZonaPanel | null {
@@ -77,12 +35,26 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   const pathname = usePathname()
   const { isAuthenticated, local, trabajador, hydrated, logout } = useLocalPanelStore()
   const rol = trabajador?.rol
-  const [showMas, setShowMas] = useState(false)
+  const [menu, setMenu] = useState(false)
+  const [tema, setTema] = useState<'light' | 'dark'>('light')
   const [noLeidosMsg, setNoLeidosMsg] = useState(0)
   const silenciadosRef = useRef<string[]>([])
   // Zonas efectivas (rol base + permisos a medida §2.1). Sin override = rol base.
   const zonasPermitidas = useMemo(() => zonasDeTrabajador(trabajador), [trabajador])
   const tieneMensajes = zonasPermitidas.includes('mensajes')
+
+  // Tema: claro por defecto; se recuerda. Sin parpadeo notable porque el panel
+  // no pinta contenido hasta hidratar.
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('panel-tema') : null
+    if (saved === 'dark' || saved === 'light') setTema(saved)
+  }, [])
+  const toggleTema = () => setTema(prev => {
+    const next = prev === 'light' ? 'dark' : 'light'
+    try { localStorage.setItem('panel-tema', next) } catch {}
+    return next
+  })
+
   // Badge de mensajes no leídos: realtime para que se actualice al instante y
   // suene el ping aunque estés en otra página del panel; sondeo de respaldo.
   useEffect(() => {
@@ -113,17 +85,7 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
     return () => { vivo = false; clearInterval(t); if (ch) supabase.removeChannel(ch) }
   }, [hydrated, isAuthenticated, tieneMensajes, local?.id, rol])
 
-  // Grupos filtrados por permisos del rol (se ocultan grupos vacíos)
-  const grupos = useMemo<NavGroup[]>(() => {
-    if (!rol) return []
-    return NAV_GROUPS
-      .map(g => ({ ...g, items: g.items.filter(it => zonasPermitidas.includes(it.zona)) }))
-      .filter(g => g.items.length > 0)
-  }, [rol, zonasPermitidas])
-
-  // Lista plana en orden de grupo (para la barra inferior móvil)
-  const itemsPlanos = useMemo(() => grupos.flatMap(g => g.items), [grupos])
-
+  // Redirección si la zona no está permitida para el rol
   useEffect(() => {
     if (!hydrated) return
     if (!isAuthenticated) { router.push('/local-panel/login'); return }
@@ -137,17 +99,12 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
   // Verifica que la sesión REAL de Supabase corresponde a este trabajador.
   // Las 4 superficies (PWA/admin/gestor/local) comparten UNA sola sesión de
   // Supabase; si entraste a otro panel después, el store del local sigue
-  // diciendo "dueño" pero la sesión activa es otra → la RLS bloquea escrituras
-  // (p. ej. "new row violates RLS policy" al añadir una mesa). En ese caso,
-  // forzamos re-login para realinear la sesión.
+  // diciendo "dueño" pero la sesión activa es otra → la RLS bloquea escrituras.
+  // En ese caso, forzamos re-login para realinear la sesión.
   useEffect(() => {
     if (!hydrated || !isAuthenticated || !trabajador?.email) return
     let cancelado = false
     ;(async () => {
-      // getSession lee la sesión persistida (cookies) SIN llamada de red, así
-      // que no da falsos positivos por un fallo transitorio. Si no hay sesión
-      // (caducó o se cerró al entrar en otro panel) o es de otra identidad,
-      // forzamos re-login: evita el "No autorizado" sin salida al operar.
       const { data: { session } } = await supabase.auth.getSession()
       if (cancelado) return
       const sesion = session?.user?.email?.trim().toLowerCase()
@@ -160,7 +117,7 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
     return () => { cancelado = true }
   }, [hydrated, isAuthenticated, trabajador?.email, logout, router])
 
-  useEffect(() => { setShowMas(false) }, [pathname])
+  useEffect(() => { setMenu(false) }, [pathname])
 
   if (!hydrated) return null
   if (!isAuthenticated || !local || !rol) return null
@@ -172,159 +129,92 @@ export default function LocalPanelLayout({ children }: { children: React.ReactNo
     router.push('/local-panel/login')
   }
 
-  const esActivo = (href: string) => pathname === href || pathname.startsWith(href + '/')
-
-  // En móvil mostramos hasta 4 accesos directos; si hay más, el 5º es "Más"
-  const directosMovil = itemsPlanos.length <= 5 ? itemsPlanos : itemsPlanos.slice(0, 4)
-  const hayMas = itemsPlanos.length > 5
-  const mensajesEnMas = hayMas && !directosMovil.some(i => i.zona === 'mensajes')
+  const cuenta = CUENTA_ITEMS.filter(it => zonasPermitidas.includes(it.zona))
+  const inicioHref = `/local-panel/${homeDeRol(rol)}`
+  const inicial = (local.nombre || '?').trim().charAt(0).toUpperCase()
 
   return (
-    <div className="min-h-screen flex">
-      {/* ───────────── Sidebar (escritorio) ───────────── */}
-      <aside className="hidden md:flex w-64 flex-col fixed left-0 top-0 bottom-0 z-20 glass-strong border-r border-white/8">
-        <Link href={`/local-panel/${homeDeRol(rol)}`} className="p-4 border-b border-white/8 hover:bg-white/[0.03] transition-colors">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl overflow-hidden bg-white/5 border border-white/10 ring-1 ring-[#E94560]/30">
-              <img src={local.imagenes?.[0] || ''} alt="" className="w-full h-full object-cover"
-                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-            </div>
-            <div className="min-w-0">
-              <p className="font-bold text-white text-sm truncate text-display">{local.nombre}</p>
-              <p className="text-[10px] text-[#E94560] font-bold uppercase tracking-[0.15em] mt-0.5">{ROL_LABEL[rol]}</p>
-            </div>
-          </div>
-          <p className="text-xs text-[#B8B8CC] mt-3 truncate">{trabajador?.nombre}</p>
-        </Link>
-
-        {/* Badge "Puesta a punto" (solo dueño/gestor con pendientes) */}
-        <BadgePuestaAPunto variant="sidebar" />
-
-        <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto scrollbar-hide">
-          {grupos.map(grupo => (
-            <div key={grupo.titulo}>
-              {/* El grupo "Inicio" no necesita encabezado */}
-              {grupo.titulo !== 'Inicio' && (
-                <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#6B6B85]">{grupo.titulo}</p>
-              )}
-              <div className="space-y-0.5">
-                {grupo.items.map(({ href, icon: Icon, label, zona }) => {
-                  const active = esActivo(href)
-                  return (
-                    <Link key={href} href={href}
-                      className={cn(
-                        'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all',
-                        active ? 'bg-[#E94560]/12 text-[#E94560] font-semibold' : 'text-[#B8B8CC] hover:bg-white/5 hover:text-white',
-                      )}>
-                      {active && <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#E94560] rounded-r-full shadow-[0_0_6px_rgba(233,69,96,0.6)]" />}
-                      <Icon size={18} strokeWidth={active ? 2.4 : 1.6} />
-                      {label}
-                      {zona === 'mensajes' && noLeidosMsg > 0 && (
-                        <span className="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-[#E0455E] text-white text-[10px] font-bold flex items-center justify-center">
-                          {noLeidosMsg > 99 ? '99+' : noLeidosMsg}
-                        </span>
-                      )}
+    <div data-pt={tema} className="min-h-screen" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+      {/* ───────────── Barra superior ───────────── */}
+      <header
+        className="sticky top-0 z-30"
+        style={{ background: 'var(--p-surface)', borderBottom: '1px solid var(--p-border)' }}>
+        <div className="mx-auto flex h-[60px] items-center gap-3 px-4" style={{ maxWidth: 1120 }}>
+          {/* Avatar + menú de cuenta */}
+          <div className="relative">
+            <button onClick={() => setMenu(m => !m)} aria-label="Tu cuenta"
+              className="flex items-center gap-2 rounded-xl p-1 transition-opacity hover:opacity-80">
+              <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-[11px] text-sm font-extrabold text-white"
+                style={{ background: 'linear-gradient(135deg, var(--p-accent), #7C5CFF)' }}>
+                {local.imagenes?.[0]
+                  ? <img src={local.imagenes[0]} alt="" className="h-full w-full object-cover"
+                      onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                  : inicial}
+              </span>
+              <ChevronDown size={16} style={{ color: 'var(--p-text-3)' }} />
+            </button>
+            {menu && (
+              <>
+                <div onClick={() => setMenu(false)} className="fixed inset-0 z-40" />
+                <div className="absolute left-0 top-[52px] z-50 w-64 rounded-2xl p-2"
+                  style={{ background: 'var(--p-surface)', border: '1px solid var(--p-border)', boxShadow: 'var(--p-shadow)' }}>
+                  <div className="px-2.5 pb-2.5 pt-2">
+                    <p className="truncate text-sm font-bold" style={{ color: 'var(--p-text)' }}>{local.nombre}</p>
+                    <p className="mt-0.5 text-xs" style={{ color: 'var(--p-text-3)' }}>{trabajador?.nombre} · {ROL_LABEL[rol]}</p>
+                  </div>
+                  <div className="my-1.5 h-px" style={{ background: 'var(--p-border)' }} />
+                  <Link href={inicioHref} className="flex items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-sm"
+                    style={{ color: 'var(--p-text)' }}>
+                    <LayoutDashboard size={16} style={{ color: 'var(--p-text-3)' }} /> Inicio
+                  </Link>
+                  {cuenta.map(({ href, icon: Icon, label }) => (
+                    <Link key={href} href={href} className="flex items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-sm"
+                      style={{ color: 'var(--p-text)' }}>
+                      <Icon size={16} style={{ color: 'var(--p-text-3)' }} /> {label}
                     </Link>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
-        </nav>
+                  ))}
+                  <div className="my-1.5 h-px" style={{ background: 'var(--p-border)' }} />
+                  <button onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-sm font-semibold"
+                    style={{ color: 'var(--p-accent)' }}>
+                    <LogOut size={16} /> Cerrar sesión
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
 
-        <div className="p-3 border-t border-white/8">
-          <button onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#B8B8CC] hover:text-[#E94560] hover:bg-[#E94560]/8 transition-colors">
-            <LogOut size={18} />
-            Cerrar sesión
-          </button>
+          <Link href={inicioHref} className="truncate text-base font-bold" style={{ color: 'var(--p-text)', letterSpacing: '-0.01em' }}>
+            {local.nombre}
+          </Link>
+
+          <div className="ml-auto flex items-center gap-2">
+            {tieneMensajes && (
+              <Link href="/local-panel/mensajes" aria-label="Mensajes" className="relative grid h-[38px] w-[38px] place-items-center rounded-[11px]"
+                style={{ border: '1px solid var(--p-border)', background: 'var(--p-surface)', color: 'var(--p-text-2)' }}>
+                <Bell size={17} />
+                {noLeidosMsg > 0 && (
+                  <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[10px] font-bold text-white"
+                    style={{ background: 'var(--p-accent)' }}>{noLeidosMsg > 99 ? '99+' : noLeidosMsg}</span>
+                )}
+              </Link>
+            )}
+            <button onClick={toggleTema} aria-label="Cambiar tema" className="grid h-[38px] w-[38px] place-items-center rounded-[11px]"
+              style={{ border: '1px solid var(--p-border)', background: 'var(--p-surface)', color: 'var(--p-text-2)' }}>
+              {tema === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+            </button>
+          </div>
         </div>
-      </aside>
+      </header>
 
-      <main className="flex-1 md:ml-64 min-h-screen pb-20 md:pb-0">
+      {/* ───────────── Contenido ───────────── */}
+      <main className="mx-auto min-h-[calc(100vh-60px)]" style={{ maxWidth: 1120 }}>
         <AvisoEstadoLocal />
         {children}
       </main>
 
-      {/* Pill flotante "Terminar (N)" en móvil (solo dueño/gestor con obligatorios pendientes) */}
+      {/* Pill flotante "Terminar (N)" (solo dueño/gestor con obligatorios pendientes) */}
       <BadgePuestaAPunto variant="movil" />
-
-      {/* Guía por página: se lanza sola la 1ª visita de cada página + botón "?" para repetir */}
-      <GuiaPanel />
-
-      {/* ───────────── Barra inferior (móvil) ───────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-white/8 md:hidden safe-bottom">
-        <div className="flex items-center justify-around h-14">
-          {directosMovil.map(({ href, icon: Icon, label, zona }) => {
-            const active = esActivo(href)
-            return (
-              <Link key={href} href={href} aria-label={label} aria-current={active ? 'page' : undefined}
-                className={cn('relative flex flex-col items-center gap-0.5 py-2 px-2', active ? 'text-[#E94560]' : 'text-[#8B8BA8]')}>
-                {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#E94560] rounded-full shadow-[0_0_8px_rgba(233,69,96,0.6)]" />}
-                {zona === 'mensajes' && noLeidosMsg > 0 && <span className="absolute top-1 left-1/2 ml-1.5 w-2 h-2 rounded-full bg-[#E0455E]" />}
-                <Icon size={20} strokeWidth={active ? 2.4 : 1.75} />
-                <span className="text-[9px] font-medium">{label}</span>
-              </Link>
-            )
-          })}
-          {hayMas && (
-            <button onClick={() => setShowMas(true)} aria-label="Más secciones"
-              className={cn('relative flex flex-col items-center gap-0.5 py-2 px-2', showMas ? 'text-[#E94560]' : 'text-[#8B8BA8]')}>
-              <MoreHorizontal size={20} strokeWidth={1.75} />
-              {mensajesEnMas && noLeidosMsg > 0 && <span className="absolute top-1 left-1/2 ml-1.5 w-2 h-2 rounded-full bg-[#E0455E]" />}
-              <span className="text-[9px] font-medium">Más</span>
-            </button>
-          )}
-          {!hayMas && itemsPlanos.length <= 2 && (
-            <button onClick={handleLogout} aria-label="Cerrar sesión"
-              className="flex flex-col items-center gap-0.5 py-2 px-2 text-[#8B8BA8]">
-              <LogOut size={20} strokeWidth={1.75} />
-              <span className="text-[9px] font-medium">Salir</span>
-            </button>
-          )}
-        </div>
-      </nav>
-
-      {/* ───────────── Sheet "Más" (móvil) ───────────── */}
-      {showMas && (
-        <div className="fixed inset-0 z-50 md:hidden flex items-end animate-fade-in" onClick={() => setShowMas(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full glass-strong rounded-t-3xl max-h-[80vh] overflow-y-auto animate-slide-up safe-bottom"
-            onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 pt-4 pb-2">
-              <p className="text-display font-bold text-white">Todas las secciones</p>
-              <button onClick={() => setShowMas(false)} className="p-1.5 text-[#8B8BA8] hover:text-white"><X size={20} /></button>
-            </div>
-            <div className="px-4 pb-4 space-y-4">
-              {grupos.map(grupo => (
-                <div key={grupo.titulo}>
-                  <p className="px-2 mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#6B6B85]">{grupo.titulo}</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {grupo.items.map(({ href, icon: Icon, label, zona }) => {
-                      const active = esActivo(href)
-                      return (
-                        <Link key={href} href={href}
-                          className={cn('relative flex flex-col items-center gap-1.5 p-3 rounded-2xl border text-center',
-                            active ? 'bg-[#E94560]/12 border-[#E94560]/30 text-[#E94560]' : 'bg-white/[0.03] border-white/[0.07] text-[#B8B8CC]')}>
-                          {zona === 'mensajes' && noLeidosMsg > 0 && (
-                            <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-[#E0455E] text-white text-[9px] font-bold flex items-center justify-center">{noLeidosMsg > 99 ? '99+' : noLeidosMsg}</span>
-                          )}
-                          <Icon size={20} strokeWidth={active ? 2.4 : 1.7} />
-                          <span className="text-[11px] font-medium leading-tight">{label}</span>
-                        </Link>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-              <button onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl border border-white/10 text-sm text-[#B8B8CC] hover:text-[#E94560] hover:border-[#E94560]/30 transition-colors">
-                <LogOut size={17} /> Cerrar sesión
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

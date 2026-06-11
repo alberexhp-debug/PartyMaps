@@ -408,3 +408,99 @@ a:focus-visible,
     animation: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PANEL DEL LOCAL · tema claro (por defecto) + oscuro
+   Activado por [data-pt="light"|"dark"] en la raíz del panel.
+   Las pantallas nuevas (cáscara, home) usan los tokens --p-*.
+   Las pantallas legacy (diseñadas en oscuro) se reskinean en CLARO con la
+   capa de compatibilidad de más abajo (selectores de atributo, robustos).
+   ═══════════════════════════════════════════════════════════════════════ */
+[data-pt="light"] {
+  --p-canvas: #FAFAFB;
+  --p-surface: #FFFFFF;
+  --p-surface-2: #F4F4F7;
+  --p-text: #16161D;
+  --p-text-2: #5B5B68;
+  --p-text-3: #8A8A99;
+  --p-border: #ECECF1;
+  --p-border-strong: #DADAE2;
+  --p-accent: #E0455E;
+  --p-accent-soft: #FCEBEE;
+  --p-shadow: 0 1px 2px rgba(16,16,29,0.04), 0 10px 26px -16px rgba(16,16,29,0.16);
+  /* también volcamos los tokens globales para componentes que los usan */
+  --color-text-primary: #16161D;
+  --color-text-secondary: #5B5B68;
+  --color-text-tertiary: #8A8A99;
+  --color-border: #E4E4EC;
+  --color-border-subtle: rgba(16,16,29,0.07);
+  --color-border-strong: rgba(16,16,29,0.13);
+  --color-bg-base: #FAFAFB;
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F4F4F7;
+  --color-bg-tertiary: #EFEFF3;
+}
+[data-pt="dark"] {
+  --p-canvas: #0B0B12;
+  --p-surface: #15151F;
+  --p-surface-2: #1B1B2A;
+  --p-text: #FAFAFC;
+  --p-text-2: #B8B8CC;
+  --p-text-3: #82829A;
+  --p-border: rgba(255,255,255,0.08);
+  --p-border-strong: rgba(255,255,255,0.14);
+  --p-accent: #E94560;
+  --p-accent-soft: rgba(233,69,96,0.14);
+  --p-shadow: 0 10px 30px -16px rgba(0,0,0,0.7);
+}
+
+/* Lienzo del panel */
+[data-pt] { background: var(--p-canvas); color: var(--p-text); min-height: 100vh; }
+
+/* ── Capa de compatibilidad (solo CLARO): clases oscuras → tokens claros ── */
+[data-pt="light"] [class~="text-white"] { color: var(--p-text) !important; }
+[data-pt="light"] [class~="text-[#FAFAFC]"] { color: var(--p-text) !important; }
+[data-pt="light"] [class~="text-[#B8B8CC]"] { color: var(--p-text-2) !important; }
+[data-pt="light"] [class~="text-[#8B8BA8]"] { color: var(--p-text-3) !important; }
+[data-pt="light"] [class~="text-[#6B6B85]"] { color: var(--p-text-3) !important; }
+[data-pt="light"] [class~="text-[#A0A0B8]"] { color: var(--p-text-3) !important; }
+
+[data-pt="light"] [class~="bg-white/5"],
+[data-pt="light"] [class~="bg-white/4"],
+[data-pt="light"] [class~="bg-white/6"],
+[data-pt="light"] [class~="bg-white/[0.03]"],
+[data-pt="light"] [class~="bg-white/[0.04]"],
+[data-pt="light"] [class~="bg-white/[0.06]"] { background-color: var(--p-surface-2) !important; }
+
+[data-pt="light"] [class~="border-white/10"],
+[data-pt="light"] [class~="border-white/8"],
+[data-pt="light"] [class~="border-white/6"],
+[data-pt="light"] [class~="border-white/5"],
+[data-pt="light"] [class~="border-white/[0.07]"],
+[data-pt="light"] [class~="border-white/[0.08]"] { border-color: var(--p-border) !important; }
+[data-pt="light"] [class~="border-white/20"],
+[data-pt="light"] [class~="border-white/15"] { border-color: var(--p-border-strong) !important; }
+
+/* glass / card-premium → superficie blanca limpia */
+[data-pt="light"] .glass,
+[data-pt="light"] .glass-strong,
+[data-pt="light"] .glass-subtle,
+[data-pt="light"] .card-premium {
+  background: var(--p-surface) !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  border-color: var(--p-border) !important;
+  box-shadow: var(--p-shadow) !important;
+}
+[data-pt="light"] .card-premium::before { display: none !important; }
+
+/* Excepciones: el texto sigue BLANCO en botones/superficies de color */
+[data-pt="light"] [class~="text-white"][class~="bg-[#E94560]"],
+[data-pt="light"] [class~="text-white"][class~="bg-[#E0455E]"],
+[data-pt="light"] [class~="text-white"][class~="bg-[#4F8EF7]"],
+[data-pt="light"] [class~="text-white"][class~="bg-[#27AE60]"],
+[data-pt="light"] [class~="text-white"][class~="holo-bg"],
+[data-pt="light"] [class~="text-white"][class~="btn-primary"],
+[data-pt="light"] .btn-primary { color: #fff !important; }
+
+/* Scrollbar claro dentro del panel */
+[data-pt="light"] ::-webkit-scrollbar-thumb { background: rgba(16,16,29,0.14); }
