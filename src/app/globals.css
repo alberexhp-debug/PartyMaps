@@ -467,10 +467,25 @@ a:focus-visible,
 
 [data-pt="light"] [class~="bg-white/5"],
 [data-pt="light"] [class~="bg-white/4"],
+[data-pt="light"] [class~="bg-white/3"],
 [data-pt="light"] [class~="bg-white/6"],
+[data-pt="light"] [class~="bg-white/8"],
+[data-pt="light"] [class~="bg-white/10"],
 [data-pt="light"] [class~="bg-white/[0.03]"],
 [data-pt="light"] [class~="bg-white/[0.04]"],
-[data-pt="light"] [class~="bg-white/[0.06]"] { background-color: var(--p-surface-2) !important; }
+[data-pt="light"] [class~="bg-white/[0.05]"],
+[data-pt="light"] [class~="bg-white/[0.06]"],
+[data-pt="light"] [class~="bg-white/[0.08]"] { background-color: var(--p-surface-2) !important; }
+
+/* Superficies oscuras hardcodeadas (contenedores/tarjetas) → superficie clara */
+[data-pt="light"] [class~="bg-[#15151F]"],
+[data-pt="light"] [class~="bg-[#15152A]"],
+[data-pt="light"] [class~="bg-[#14142A]"],
+[data-pt="light"] [class~="bg-[#0B0B16]"],
+[data-pt="light"] [class~="bg-[#0C0C15]"],
+[data-pt="light"] [class~="bg-[#131320]"],
+[data-pt="light"] [class~="bg-[#1B1B2A]"],
+[data-pt="light"] [class~="bg-[#0E0E1A]"] { background-color: var(--p-surface) !important; }
 
 [data-pt="light"] [class~="border-white/10"],
 [data-pt="light"] [class~="border-white/8"],
