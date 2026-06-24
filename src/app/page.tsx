@@ -11,7 +11,7 @@ export default function RootPage() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) router.replace('/explorar')
-      else router.replace('/login')
+      else router.replace('/explorar') // modo demo: sin login, todos a Explorar
     }
   }, [isAuthenticated, isLoading, router])
 

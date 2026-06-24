@@ -37,7 +37,7 @@ export default function PerfilPage() {
 
   useEffect(() => {
     if (isLoading) return            // esperar a que AuthProvider resuelva la sesión
-    if (!usuario) { router.push('/login'); return }
+    if (!usuario) { router.push('/explorar'); return }
     ;(async () => {
       const [{ count: e }, { count: p }, { count: s }] = await Promise.all([
         supabase.from('entradas').select('id', { count: 'exact', head: true }).eq('usuario_id', usuario.id),
@@ -64,7 +64,7 @@ export default function PerfilPage() {
     setLoggingOut(true)
     await supabase.auth.signOut()
     setUsuario(null)
-    router.push('/login')   // al login del usuario, no a la intro (§6.1)
+    router.push('/explorar')   // al login del usuario, no a la intro (§6.1)
   }
 
   const guardarNombre = async () => {
