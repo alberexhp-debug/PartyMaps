@@ -114,7 +114,7 @@ export default function LocalPanelLoginPage() {
         <div className="holo-bg mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-[0_12px_30px_-8px_rgba(124,92,255,0.6)]">
           <span className="text-xl font-black text-white">T</span>
         </div>
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#B6FF3A]">Negocio</p>
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#B6FF3A]">Tu local</p>
         <h1 className="text-display text-3xl font-bold tracking-tight text-white">Panel del local</h1>
         <p className="mt-2 text-sm text-[#A0A0B8]">
           {paso === 'cred' ? 'Accede con tu usuario o email' : 'Introduce el código de tu authenticator'}

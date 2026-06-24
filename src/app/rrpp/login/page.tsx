@@ -65,8 +65,8 @@ export default function RRPPLoginPage() {
         <div className="holo-bg mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-[0_12px_30px_-8px_rgba(182, 255, 58,0.6)]">
           <Megaphone size={28} className="text-white" />
         </div>
-        <p className="eyebrow eyebrow-rose mb-2">Relaciones públicas</p>
-        <h1 className="text-display text-3xl font-bold tracking-tight text-white">Panel de RRPP</h1>
+        <p className="eyebrow eyebrow-rose mb-2">Organizador</p>
+        <h1 className="text-display text-3xl font-bold tracking-tight text-white">Consola del TO</h1>
         <p className="mt-2 text-sm text-[#A0A0B8]">
           {paso === 'cred' ? 'Accede con tu usuario o email' : 'Introduce el código de tu authenticator'}
         </p>

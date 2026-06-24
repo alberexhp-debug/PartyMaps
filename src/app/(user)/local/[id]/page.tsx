@@ -153,7 +153,7 @@ export default function LocalPerfilPage() {
 
       if (data) {
         setCheckinActivo(data.id)
-        toast.success('¡Check-in realizado! Que disfrutes la noche 🎉')
+        toast.success('¡Check-in realizado! Mucha suerte en el torneo 🎮')
       }
     } catch {
       toast.error('No se pudo obtener tu ubicación. Activa el GPS e inténtalo de nuevo.')
