@@ -77,9 +77,9 @@ function MatchCard({ m, color }: { m: M; color: string }) {
 function Row({ name, score, win, show }: { name: string; score: number; win: boolean; show: boolean }) {
   const empty = name === '—'
   return (
-    <div className={cn('flex items-center justify-between px-3 py-2.5', win && 'bg-[#B6FF3A]/10')}>
-      <span className={cn('text-sm truncate', win ? 'text-[#B6FF3A] font-bold' : empty ? 'text-[#5A5A70]' : 'text-white font-medium')}>{name}</span>
-      <span className={cn('text-sm font-bold text-numeric ml-2 shrink-0', win ? 'text-[#B6FF3A]' : 'text-[#8B8BA8]')}>{show && !empty ? score : ''}</span>
+    <div className={cn('flex items-center justify-between px-3 py-2.5', win && 'bg-[#B6FF3A]')}>
+      <span className={cn('text-sm truncate', win ? 'text-[#0A0A0F] font-bold' : empty ? 'text-[#5A5A70]' : 'text-white font-medium')}>{name}</span>
+      <span className={cn('text-sm font-bold text-numeric ml-2 shrink-0', win ? 'text-[#0A0A0F]' : 'text-[#8B8BA8]')}>{show && !empty ? score : ''}</span>
     </div>
   )
 }
