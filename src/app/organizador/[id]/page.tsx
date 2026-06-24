@@ -24,7 +24,10 @@ export default function OrganizadorPage() {
 
   return (
     <div className="relative min-h-screen pb-10">
-      <div className="relative h-32" style={{ background: `linear-gradient(135deg, ${TO.color}40, #0C0C15 75%)` }}>
+      <div className="relative h-36 overflow-hidden">
+        <div className="absolute inset-0" style={{ background: `radial-gradient(125% 130% at 0% 0%, ${TO.color} 0%, ${TO.color}55 30%, transparent 70%), #0C0E13` }} />
+        <div className="absolute inset-0 opacity-[0.14] mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, #fff .6px, transparent 1.2px), radial-gradient(circle at 75% 65%, #fff .5px, transparent 1px)', backgroundSize: '9px 9px, 13px 13px' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 45%, #0C0E13)' }} />
         <div className="relative flex items-center px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
         </div>
