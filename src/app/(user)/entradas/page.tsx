@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
+import { GameKeyart } from '@/components/todh/GameKeyart'
 import { QrCode, Calendar, MapPin, Trophy } from 'lucide-react'
 
 type Insc = { t: TorneoSample; estado: 'proximo' | 'jugado'; puesto?: string }
@@ -63,8 +64,8 @@ function TicketCard({ insc }: { insc: Insc }) {
   const juego = JUEGOS[t.juego]
   return (
     <Link href={`/torneo/${t.id}`} className="block">
-      <div className="card-premium relative overflow-hidden hover:-translate-y-0.5 transition-transform flex items-stretch">
-        <div className="w-1.5 shrink-0" style={{ background: juego.color }} />
+      <div className="ring-grad card-premium relative overflow-hidden rounded-2xl hover:-translate-y-0.5 transition-transform flex items-stretch">
+        <GameKeyart juegoId={t.juego} className="w-[72px] shrink-0" />
         <div className="flex-1 p-4 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>

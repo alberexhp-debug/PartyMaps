@@ -2,6 +2,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TORNEOS_SAMPLE, JUEGOS } from '@/lib/torneos/sample'
+import { GameKeyart } from '@/components/todh/GameKeyart'
 import {
   ArrowLeft, Calendar, MapPin, Trophy, Users, Lock, Radio, Share2, ListTree, ShieldCheck,
 } from 'lucide-react'
@@ -28,8 +29,9 @@ export default function TorneoDetallePage() {
   return (
     <div className="relative min-h-screen pb-28">
       {/* Banner */}
-      <div className="relative h-44 overflow-hidden" style={{ background: `linear-gradient(135deg, ${juego.color}33, #0C0C15 72%)` }}>
-        <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 18% 0%, ${juego.color}45, transparent 60%)` }} />
+      <div className="relative h-48 overflow-hidden">
+        <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.12) 28%, #08080F)' }} />
         <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
           <div className="flex gap-2">

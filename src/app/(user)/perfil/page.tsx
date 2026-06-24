@@ -14,6 +14,7 @@ import {
   Ticket, Users, Trophy, Edit3, Camera, AlertCircle, Lightbulb, ClipboardCheck,
 } from 'lucide-react'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
+import { CompetitiveCard } from '@/components/todh/CompetitiveCard'
 
 export default function PerfilPage() {
   const router = useRouter()
@@ -147,6 +148,11 @@ export default function PerfilPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Identidad competitiva */}
+        <div className="stagger-item" style={{ ['--delay' as string]: '90ms' }}>
+          <CompetitiveCard />
         </div>
 
         {/* KPI stats premium */}
