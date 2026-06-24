@@ -169,19 +169,19 @@ export default function ExplorarPage() {
             )}
           </div>
         ) : (
-          resultados.map(t => <CardTorneo key={t.id} t={t} />)
+          resultados.map((t, i) => <CardTorneo key={t.id} t={t} i={i} />)
         )}
       </div>
     </div>
   )
 }
 
-function CardTorneo({ t }: { t: TorneoSample }) {
+function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
   const juego = JUEGOS[t.juego]
   const completo = t.inscritos >= t.plazas
   const pct = Math.min(100, Math.round((t.inscritos / t.plazas) * 100))
   return (
-    <Link href={`/torneo/${t.id}`} className="block group">
+    <Link href={`/torneo/${t.id}`} className="block group stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 10) * 45}ms` }}>
       <div className="ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_20px_44px_-20px_rgba(0,0,0,0.8)]">
         <GameKeyart juegoId={t.juego} className="w-[92px] shrink-0" />
         <div className="flex-1 p-3.5 min-w-0">

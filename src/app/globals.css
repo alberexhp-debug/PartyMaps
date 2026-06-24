@@ -346,16 +346,15 @@ input, textarea, select {
 
 /* Foco accesible — visible siempre con teclado/tabulación */
 :focus-visible {
-  outline: 2px solid #A6EE2B;
-  outline-offset: 3px;
-  border-radius: 8px;
+  outline: none;
+  box-shadow: 0 0 0 2px #0C0E13, 0 0 0 4px rgba(182, 255, 58, 0.55);
+  border-radius: 10px;
 }
-/* En cards/botones que ya tienen radius, el outline se redondea con ellos */
 button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible {
-  outline-color: #A6EE2B;
-  outline-width: 2px;
+  outline: none;
+  box-shadow: 0 0 0 2px #0C0E13, 0 0 0 4px rgba(182, 255, 58, 0.55);
 }
 
 /* ─── Botones de marca ───
