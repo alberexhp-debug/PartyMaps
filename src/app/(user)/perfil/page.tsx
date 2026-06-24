@@ -11,7 +11,7 @@ import {
 } from '@/lib/utils'
 import {
   Star, Bell, BellOff, Shield, LogOut, ChevronRight,
-  Ticket, Users, Edit3, Camera, AlertCircle, Lightbulb, ClipboardCheck,
+  Ticket, Users, Trophy, Edit3, Camera, AlertCircle, Lightbulb, ClipboardCheck,
 } from 'lucide-react'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 
@@ -152,22 +152,22 @@ export default function PerfilPage() {
         {/* KPI stats premium */}
         <div className="grid grid-cols-3 gap-3 stagger-item" style={{ ['--delay' as string]: '120ms' }}>
           <KPITile
-            icon={Ticket}
-            label="Entradas"
+            icon={Trophy}
+            label="Torneos"
             value={stats.entradas}
             color="#B6FF3A"
             onClick={() => router.push('/entradas')}
           />
           <KPITile
             icon={Users}
-            label="Planes"
+            label="Crew"
             value={stats.planes}
             color="#7C5CFF"
-            onClick={() => router.push('/planes')}
+            onClick={() => router.push('/amigos')}
           />
           <KPITile
             icon={Bell}
-            label="Sigues"
+            label="Sigo TOs"
             value={stats.suscritos}
             color="#4F8EF7"
             onClick={() => router.push('/suscritos')}
@@ -188,7 +188,7 @@ export default function PerfilPage() {
               <div>
                 <p className="text-sm font-semibold text-white">Notificaciones push</p>
                 <p className="text-xs text-[#A0A0B8] mt-0.5">
-                  {push.estado === 'activado' && 'Recibirás avisos de tus locales'}
+                  {push.estado === 'activado' && 'Recibirás avisos de tus torneos'}
                   {push.estado === 'desactivado' && 'Actívalas para no perderte nada'}
                   {push.estado === 'denegado' && 'Permiso bloqueado en este navegador'}
                   {push.estado === 'no-soportado' && 'Tu navegador no admite Web Push'}

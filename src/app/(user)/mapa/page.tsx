@@ -2,7 +2,6 @@
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import { PageLoader } from '@/components/ui/Spinner'
-import { AvisoMadrugada } from '@/components/user/AvisoMadrugada'
 
 const MapaExplorar = dynamic(() => import('@/components/user/MapaExplorar'), {
   ssr: false,
@@ -13,7 +12,6 @@ export default function ExplorarPage() {
   return (
     <Suspense fallback={<PageLoader />}>
       <MapaExplorar />
-      <AvisoMadrugada />
     </Suspense>
   )
 }
