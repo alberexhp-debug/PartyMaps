@@ -89,7 +89,7 @@ export default function TorneoDetallePage() {
         </div>
 
         {/* Bracket */}
-        <Link href="#" className="mt-5 flex items-center justify-between card-premium p-4 hover:-translate-y-0.5 transition-transform">
+        <Link href={`/torneo/${t.id}/bracket`} className="mt-5 flex items-center justify-between card-premium p-4 hover:-translate-y-0.5 transition-transform">
           <span className="inline-flex items-center gap-2 text-white font-semibold"><ListTree size={18} className="text-[#9B82FF]" /> Ver bracket en vivo</span>
           <span className="text-[#8B8BA8] text-lg">›</span>
         </Link>
