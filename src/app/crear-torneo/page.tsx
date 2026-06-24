@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { JUEGOS } from '@/lib/torneos/sample'
+import { GameKeyart } from '@/components/todh/GameKeyart'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe } from 'lucide-react'
 
@@ -36,6 +37,43 @@ export default function CrearTorneoPage() {
         <div>
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Consola del TO</p>
           <p className="text-base font-bold text-white">Crear torneo</p>
+        </div>
+      </div>
+
+      {/* Vista previa en vivo */}
+      <div className="px-5 pt-4">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-[#8B8BA8] font-bold mb-2">Vista previa en vivo</p>
+        <div className="ring-grad card-premium card-int relative overflow-hidden rounded-2xl flex items-stretch">
+          <GameKeyart juegoId={juego} className="w-[92px] shrink-0" />
+          <div className="flex-1 p-3.5 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${j.color}1F`, color: j.color, border: `1px solid ${j.color}44` }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: j.color }} /> {j.corto}
+              </span>
+              {acceso !== 'abierto' && <span className="ml-auto inline-flex items-center gap-1 px-1.5 h-6 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40"><Lock size={9} /> {acceso}</span>}
+            </div>
+            <p className="font-bold text-white text-display tracking-tight text-[15px] leading-snug truncate">{nombre || 'Nombre de tu torneo'}</p>
+            <div className="mt-1.5 flex items-center gap-2 text-[11px] text-[#A0A0B8] min-w-0">
+              <span className="inline-flex items-center gap-1 text-white shrink-0"><Calendar size={11} className="text-[#B6FF3A]" /> {fecha ? new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : 'Fecha'} · {hora}</span>
+              <span className="text-[#3A3A4A]">·</span>
+              <span className="inline-flex items-center gap-1">{sala === 'online' ? <Globe size={11} /> : <MapPin size={11} />} {sala === 'online' ? 'Online' : 'Tu sala'}</span>
+            </div>
+            <div className="mt-2.5 flex items-end justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between text-[10px] mb-1">
+                  <span className="inline-flex items-center gap-1 text-[#8B8BA8]"><Users size={10} /> <span className="font-mono-num text-[#B8B8CC]">0/{plazas}</span></span>
+                  <span className="font-semibold text-[#B6FF3A]">Abierta</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-white/8 overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: '4%', background: `linear-gradient(90deg, ${j.color}, #C8FF5C)` }} />
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-[8px] text-[#8B8BA8] uppercase tracking-[0.12em] font-bold">{precio > 0 ? 'Bote' : 'Entrada'}</p>
+                <p className="text-[15px] font-bold text-white font-mono-num leading-none mt-0.5">{precio > 0 ? `${Math.round(plazas * precio * 0.8)}€` : 'Free'}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
