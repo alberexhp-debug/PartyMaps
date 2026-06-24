@@ -50,6 +50,13 @@ export default function TorneoDetallePage() {
           <span className="mt-2 inline-flex items-center gap-1 px-2 h-7 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40"><Lock size={11} /> Exclusivo {t.vip}</span>
         )}
 
+        {/* Organizador */}
+        <Link href="/organizador/lima" className="mt-3 flex items-center gap-2.5 w-fit">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#E63E54] text-[#0A0A0F] font-black text-sm">L</span>
+          <span className="text-sm"><span className="text-[#8B8BA8]">Organiza · </span><span className="text-white font-semibold">Lima Esports</span></span>
+          <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#4F8EF7] text-white text-[10px] font-bold">✓</span>
+        </Link>
+
         {/* Directo */}
         {t.enDirecto && (
           <div className="mt-4 aspect-video w-full rounded-2xl border border-white/10 bg-black/40 flex flex-col items-center justify-center gap-2 text-[#8B8BA8]">
