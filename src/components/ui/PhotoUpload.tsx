@@ -96,7 +96,7 @@ export function PhotoUpload({
         disabled={subiendo}
         className={cn(
           sizeClasses,
-          'relative overflow-hidden bg-white/6 border-2 border-dashed border-white/10 flex items-center justify-center hover:border-[#E94560]/50 transition-colors disabled:opacity-50',
+          'relative overflow-hidden bg-white/6 border-2 border-dashed border-white/10 flex items-center justify-center hover:border-[#B6FF3A]/50 transition-colors disabled:opacity-50',
         )}
       >
         {preview ? (
@@ -118,7 +118,7 @@ export function PhotoUpload({
         <button
           type="button"
           onClick={() => { setPreview(null); onUpload('') }}
-          className="mt-2 text-xs text-[#E94560] hover:underline flex items-center gap-1"
+          className="mt-2 text-xs text-[#B6FF3A] hover:underline flex items-center gap-1"
         >
           <X size={12} /> Quitar foto
         </button>

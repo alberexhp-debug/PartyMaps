@@ -14,7 +14,7 @@ export function estadoCodigo(c: Codigo): { label: string; color: string; vivo: b
   const agotado = c.usos_max != null && c.usos_actuales >= c.usos_max
   if (agotado) return { label: 'Canjeado', color: '#27AE60', vivo: false }
   if (!c.activo) return { label: 'Desactivado', color: '#6B6B85', vivo: false }
-  if (c.expira_at && new Date(c.expira_at) < new Date()) return { label: 'Caducado', color: '#E94560', vivo: false }
+  if (c.expira_at && new Date(c.expira_at) < new Date()) return { label: 'Caducado', color: '#B6FF3A', vivo: false }
   if (c.usos_actuales > 0) return { label: 'Canjeado en parte', color: '#F39C12', vivo: true }
   return { label: 'Pendiente de canje', color: '#4F8EF7', vivo: true }
 }
@@ -79,12 +79,12 @@ export function CodigosLocal({ localId, descuentos }: { localId: string; descuen
       {/* Formulario de generación */}
       <div className="space-y-2.5">
         <input value={nombre} onChange={e => setNombre(e.target.value.slice(0, 60))} placeholder="Nombre y apellidos (ej. Laura Gómez)"
-          className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+          className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-2">
             <span className="text-xs text-[#8B8BA8]">Usos</span>
             <input type="number" min={1} value={usos} onChange={e => setUsos(e.target.value)}
-              className="h-11 w-20 rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#E0455E]/60" />
+              className="h-11 w-20 rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60" />
           </div>
           <button onClick={generar} disabled={generando}
             className="flex-1 btn-primary inline-flex items-center justify-center gap-1.5 h-11">
@@ -94,7 +94,7 @@ export function CodigosLocal({ localId, descuentos }: { localId: string; descuen
         {hayDescuento ? (
           <div className="flex flex-wrap gap-1.5">
             {(CATEGORIAS_DESCUENTO as CategoriaDescuento[]).map(c => (descuentos[c] ?? 0) > 0 && (
-              <span key={c} className="text-[11px] font-semibold text-[#E0455E] bg-[#E0455E]/10 rounded-full px-2 py-0.5">{LABEL_CATEGORIA[c]} −{descuentos[c]}%</span>
+              <span key={c} className="text-[11px] font-semibold text-[#B6FF3A] bg-[#B6FF3A]/10 rounded-full px-2 py-0.5">{LABEL_CATEGORIA[c]} −{descuentos[c]}%</span>
             ))}
             <span className="text-[11px] text-[#6B6B85] flex items-center gap-1"><Clock size={10} /> caduca a las 24h</span>
           </div>
@@ -164,9 +164,9 @@ export function QrModal({ codigo, onClose }: { codigo: Codigo; onClose: () => vo
       if (qrUrl && navigator.share) {
         const blob = await (await fetch(qrUrl)).blob()
         const file = new File([blob], `codigo-${codigo.codigo}.png`, { type: 'image/png' })
-        await navigator.share({ title: 'Tu código Rumbo', text: `Código: ${codigo.codigo}`, files: [file] })
+        await navigator.share({ title: 'Tu código TODH', text: `Código: ${codigo.codigo}`, files: [file] })
       } else if (navigator.share) {
-        await navigator.share({ title: 'Tu código Rumbo', text: `Código: ${codigo.codigo}` })
+        await navigator.share({ title: 'Tu código TODH', text: `Código: ${codigo.codigo}` })
       }
     } catch { /* cancelado */ }
   }

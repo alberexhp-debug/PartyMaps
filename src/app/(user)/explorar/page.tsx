@@ -229,7 +229,7 @@ export default function ExplorarPage() {
               onChange={e => setBusca(e.target.value)}
               placeholder="Buscar local…"
               aria-label="Buscar"
-              className="w-full h-11 pl-10 pr-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-[#8B8BA8] focus:border-[#E94560]/60 focus:bg-white/8 focus:ring-2 focus:ring-[#E94560]/20 outline-none transition-all"
+              className="w-full h-11 pl-10 pr-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-[#8B8BA8] focus:border-[#B6FF3A]/60 focus:bg-white/8 focus:ring-2 focus:ring-[#B6FF3A]/20 outline-none transition-all"
             />
           </div>
           <button
@@ -238,7 +238,7 @@ export default function ExplorarPage() {
             className={cn(
               'h-11 px-3 rounded-2xl flex items-center gap-1.5 font-semibold text-sm transition-all',
               numFiltros > 0
-                ? 'bg-[#E94560] text-white shadow-[0_6px_18px_-4px_rgba(233,69,96,0.55)]'
+                ? 'bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_6px_18px_-4px_rgba(182, 255, 58,0.55)]'
                 : 'glass-strong text-[#B8B8CC] hover:text-white'
             )}
           >
@@ -333,7 +333,7 @@ export default function ExplorarPage() {
             <ChipActivo onClick={() => setSoloOfertas(false)}>Ofertas</ChipActivo>
           )}
           {numFiltros > 0 && (
-            <button onClick={limpiarTodo} className="shrink-0 text-xs text-[#E94560] font-semibold hover:underline ml-1">
+            <button onClick={limpiarTodo} className="shrink-0 text-xs text-[#B6FF3A] font-semibold hover:underline ml-1">
               Limpiar
             </button>
           )}
@@ -370,7 +370,7 @@ export default function ExplorarPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white text-display">Filtros</h2>
             {numFiltros > 0 && (
-              <button onClick={limpiarTodo} className="text-sm text-[#E94560] font-semibold">Limpiar todo</button>
+              <button onClick={limpiarTodo} className="text-sm text-[#B6FF3A] font-semibold">Limpiar todo</button>
             )}
           </div>
 
@@ -430,7 +430,7 @@ export default function ExplorarPage() {
                 setFiltros({ precio_min: undefined, precio_max: v >= 50 ? undefined : v })
               }}
               aria-label="Precio máximo de la entrada"
-              className="w-full accent-[#E94560] cursor-pointer"
+              className="w-full accent-[#B6FF3A] cursor-pointer"
             />
             <div className="flex justify-between text-[10px] text-[#6B6B85]">
               <span>Gratis</span>
@@ -472,11 +472,11 @@ export default function ExplorarPage() {
               onClick={() => { setOrden(o); setShowOrden(false) }}
               className={cn(
                 'w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-colors',
-                orden === o ? 'bg-[#E94560]/12 text-white' : 'text-[#B8B8CC] hover:bg-white/5'
+                orden === o ? 'bg-[#B6FF3A]/12 text-[#0A0A0F]' : 'text-[#B8B8CC] hover:bg-white/5'
               )}
             >
               <span className="text-sm font-medium">{ORDEN_LABEL[o]}</span>
-              {orden === o && <Check size={16} className="text-[#E94560]" />}
+              {orden === o && <Check size={16} className="text-[#B6FF3A]" />}
             </button>
           ))}
         </div>
@@ -547,7 +547,7 @@ function CardLocal({ local, ahora }: { local: LocalConAforo; ahora: Date }) {
             <div className="mt-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 {tienePromo && (
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#E94560]/15 text-[#E94560] text-[10px] font-bold uppercase tracking-wider border border-[#E94560]/30">
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#B6FF3A]/15 text-[#B6FF3A] text-[10px] font-bold uppercase tracking-wider border border-[#B6FF3A]/30">
                     <Flame size={9} /> Promo
                   </span>
                 )}
@@ -560,7 +560,7 @@ function CardLocal({ local, ahora }: { local: LocalConAforo; ahora: Date }) {
               <div className="text-right shrink-0">
                 <p className="text-[9px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Desde</p>
                 <p className="text-base font-bold text-white text-numeric flex items-center gap-1">
-                  <Ticket size={11} className="text-[#E94560]" />
+                  <Ticket size={11} className="text-[#B6FF3A]" />
                   {precioMostrar == null || precioMostrar === 0 ? 'Gratis' : formatearPrecio(precioMostrar)}
                 </p>
               </div>
@@ -576,7 +576,7 @@ function ChipActivo({ children, onClick }: { children: React.ReactNode; onClick:
   return (
     <button
       onClick={onClick}
-      className="shrink-0 inline-flex items-center gap-1 px-3 h-8 rounded-full bg-[#E94560]/15 border border-[#E94560]/40 text-xs font-semibold text-white"
+      className="shrink-0 inline-flex items-center gap-1 px-3 h-8 rounded-full bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-xs font-semibold text-[#0A0A0F]"
     >
       {children}
       <X size={11} className="opacity-70" />
@@ -591,7 +591,7 @@ function ChipToggle({ children, activo, onClick }: { children: React.ReactNode; 
       className={cn(
         'px-3 h-9 rounded-xl text-xs font-semibold transition-all',
         activo
-          ? 'bg-[#E94560] text-white shadow-[0_4px_14px_-4px_rgba(233,69,96,0.55)]'
+          ? 'bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_4px_14px_-4px_rgba(182, 255, 58,0.55)]'
           : 'bg-white/5 border border-white/10 text-[#B8B8CC] hover:text-white hover:bg-white/8'
       )}
     >
@@ -615,7 +615,7 @@ function ToggleRow({ label, hint, value, onChange }: {
         aria-pressed={value}
         className={cn(
           'w-11 h-6 rounded-full transition-colors relative shrink-0',
-          value ? 'bg-[#E94560]' : 'bg-white/15'
+          value ? 'bg-[#B6FF3A]' : 'bg-white/15'
         )}
       >
         <span className={cn(

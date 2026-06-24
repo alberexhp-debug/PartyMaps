@@ -71,7 +71,7 @@ export default function LocalPanelRegistroPage() {
     // Todo el alta va por el servidor: la RLS no permite a un usuario normal
     // crear `locales`/`usuario_local` (solo service_role), y allí la cuenta se
     // crea ya confirmada (alta directa, sin correo). El local nace en
-    // `pendiente_verificacion` → solicitud en el panel de admin de Rumbo.
+    // `pendiente_verificacion` → solicitud en el panel de admin de TODH.
     try {
       const res = await fetch('/api/local-panel/registro', {
         method: 'POST',
@@ -127,13 +127,13 @@ export default function LocalPanelRegistroPage() {
         <div>
           <h1 className="text-2xl font-black text-white mb-2">¡Solicitud enviada!</h1>
           <p className="text-[#A0A0B8] max-w-xs">
-            Tu local está pendiente de verificación. El equipo de Rumbo revisará la información y activará tu cuenta en 24-48h.
+            Tu local está pendiente de verificación. El equipo de TODH revisará la información y activará tu cuenta en 24-48h.
           </p>
         </div>
         <div className="glass rounded-2xl p-4 text-sm text-[#A0A0B8] text-left w-full max-w-xs space-y-1">
           <p className="text-white font-semibold mb-2">Próximos pasos:</p>
           <p>1. Tu cuenta ya está creada (sin pasos extra)</p>
-          <p>2. El equipo de Rumbo revisa y aprueba tu local</p>
+          <p>2. El equipo de TODH revisa y aprueba tu local</p>
           <p>3. Cuando se apruebe, accede al panel con tu email y contraseña</p>
         </div>
         <Button onClick={() => router.push('/local-panel/login')}>
@@ -158,15 +158,15 @@ export default function LocalPanelRegistroPage() {
         )}
         <div className="flex-1">
           <div className="h-1 bg-white/6 rounded-full overflow-hidden">
-            <div className="h-full bg-[#E94560] rounded-full transition-all duration-500" style={{ width: `${progreso}%` }} />
+            <div className="h-full bg-[#B6FF3A] rounded-full transition-all duration-500" style={{ width: `${progreso}%` }} />
           </div>
         </div>
       </div>
 
       <div className="flex-1 px-6 pt-6 pb-4 space-y-6">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-[#E94560]/10 border border-[#E94560]/30 rounded-xl flex items-center justify-center">
-            <Store size={20} className="text-[#E94560]" />
+          <div className="w-10 h-10 bg-[#B6FF3A]/10 border border-[#B6FF3A]/30 rounded-xl flex items-center justify-center">
+            <Store size={20} className="text-[#B6FF3A]" />
           </div>
           <div>
             <h1 className="text-xl font-black text-white">
@@ -200,7 +200,7 @@ export default function LocalPanelRegistroPage() {
                 {TIPOS_LOCAL.map(t => (
                   <button key={t.value} onClick={() => update('tipo_local', t.value)}
                     className={cn('flex items-center gap-2 p-3 rounded-xl border text-sm text-left transition-colors',
-                      form.tipo_local === t.value ? 'border-[#E94560] bg-[#E94560]/10 text-white' : 'border-white/10 text-[#A0A0B8] hover:border-[#505065]')}>
+                      form.tipo_local === t.value ? 'border-[#B6FF3A] bg-[#B6FF3A]/10 text-[#0A0A0F]' : 'border-white/10 text-[#A0A0B8] hover:border-[#505065]')}>
                     <span>{t.emoji}</span>
                     <span className="font-medium">{t.label}</span>
                   </button>
@@ -233,7 +233,7 @@ export default function LocalPanelRegistroPage() {
               <label className="text-sm font-medium text-[#A0A0B8]">Descripción breve (opcional)</label>
               <textarea value={form.descripcion} onChange={e => update('descripcion', e.target.value)}
                 placeholder="Cuéntanos brevemente qué tipo de local sois..." rows={3} maxLength={300}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]" />
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50 resize-none placeholder:text-[#6B6B85]" />
             </div>
           </div>
         )}
@@ -271,7 +271,7 @@ export default function LocalPanelRegistroPage() {
         {step === 'cuenta' && (
           <p className="text-center text-sm text-[#6B6B85]">
             ¿Ya tienes cuenta?{' '}
-            <Link href="/local-panel/login" className="text-[#E94560]">Inicia sesión</Link>
+            <Link href="/local-panel/login" className="text-[#B6FF3A]">Inicia sesión</Link>
           </p>
         )}
       </div>

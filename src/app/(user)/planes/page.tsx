@@ -94,7 +94,7 @@ function PlanesContent() {
       <div className="px-5 pt-6 pb-4 safe-top">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.25em] mb-1">Esta noche</p>
+            <p className="text-[10px] font-bold text-[#B6FF3A] uppercase tracking-[0.25em] mb-1">Esta noche</p>
             <h1 className="text-2xl font-bold text-white text-display tracking-tight">Planes</h1>
           </div>
           <Button size="sm" onClick={() => {
@@ -196,7 +196,7 @@ function PlanCard({ plan, currentUserId, onUnirse, onVer, loading }: {
       <button onClick={onVer} className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl">
         <LocalImagen src={plan.locales?.imagenes?.[0]} nombre={plan.locales?.nombre || ''} />
         {esMio && (
-          <span className="absolute left-1 top-1 rounded-full bg-[#E94560] px-1.5 py-px text-[8px] font-bold text-white">Mío</span>
+          <span className="absolute left-1 top-1 rounded-full bg-[#B6FF3A] px-1.5 py-px text-[8px] font-bold text-[#0A0A0F]">Mío</span>
         )}
       </button>
 
@@ -214,7 +214,7 @@ function PlanCard({ plan, currentUserId, onUnirse, onVer, loading }: {
         {/* Plazas */}
         <div className="mt-1.5 flex items-center gap-2">
           <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/8">
-            <div className="h-full rounded-full bg-[#E94560] transition-all" style={{ width: `${pct}%` }} />
+            <div className="h-full rounded-full bg-[#B6FF3A] transition-all" style={{ width: `${pct}%` }} />
           </div>
           <span className="shrink-0 text-[10px] text-[#8B8BA8]"><span className="font-semibold text-white text-numeric">{ocupados}</span>/{plan.total_personas}</span>
         </div>
@@ -257,7 +257,7 @@ function AmigosSalen({ planes, onVer }: { planes: PlanAmigo[]; onVer: (id: strin
             <div className="flex items-center gap-2 px-2 py-2">
               <div className="flex -space-x-1.5">
                 {p.amigos.slice(0, 3).map(a => (
-                  <span key={a.id} className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-[#0E0E1A] bg-gradient-to-br from-[#E94560] to-[#7C5CFF] text-[9px] font-bold text-white">
+                  <span key={a.id} className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-[#0E0E1A] bg-gradient-to-br from-[#B6FF3A] to-[#7C5CFF] text-[9px] font-bold text-white">
                     {a.foto_perfil_url ? <img src={a.foto_perfil_url} alt="" className="h-full w-full object-cover" /> : (a.nombre?.[0] || '?').toUpperCase()}
                   </span>
                 ))}
@@ -331,7 +331,7 @@ function CrearPlanModal({ onClose, onCreado, userId, localPreseleccionado }: {
                   <p className="font-semibold text-white text-sm">{localSeleccionado.nombre}</p>
                   <p className="text-xs text-[#8B8BA8]">{localSeleccionado.ciudad}</p>
                 </div>
-                <span className="text-xs text-[#E94560]">Cambiar</span>
+                <span className="text-xs text-[#B6FF3A]">Cambiar</span>
               </button>
             ) : (
               <div className="space-y-2">

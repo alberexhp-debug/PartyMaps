@@ -3,13 +3,13 @@ import type { Metadata } from 'next'
 import { MapPin, TicketPlus, Contact, Sparkles, Beer, ShieldCheck, ArrowRight, Check } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Rumbo para locales — llena tu local las noches que importan',
+  title: 'TODH para locales — llena tu local las noches que importan',
   description: 'Pon tu local en el mapa de la noche, vende entradas y consumiciones sin comisiones de datáfono, y conoce a tus clientes. Sin permanencia. Empieza gratis.',
 }
 
 const MODULOS = [
   { icon: MapPin, titulo: 'En el mapa de la noche', texto: 'Tu local aparece en el mapa de calor que mira la gente cuando decide a dónde va. Salir, es gratis.' },
-  { icon: TicketPlus, titulo: 'Vende entradas', texto: 'Taquilla en puerta y venta online con QR. El dinero en mano lo cobras tú, sin comisión de Rumbo.' },
+  { icon: TicketPlus, titulo: 'Vende entradas', texto: 'Taquilla en puerta y venta online con QR. El dinero en mano lo cobras tú, sin comisión de TODH.' },
   { icon: Beer, titulo: 'Pedidos sin colas', texto: 'Carta digital: tus clientes piden desde la barra o desde su mesa con un QR. Menos cola, más rondas.' },
   { icon: Contact, titulo: 'Conoce a tus clientes', texto: 'Cada venta alimenta tu CRM: quién viene, cuánto gasta y cada cuánto. Segmenta y fideliza.' },
   { icon: Sparkles, titulo: 'Tus RRPP, ordenados', texto: 'Da de alta a tus RRPP, dales códigos y mira en claro lo que generan y lo que les pagas.' },
@@ -24,10 +24,10 @@ const PASOS = [
 
 const FAQ = [
   { q: '¿Cuánto cuesta?', a: 'Salir en el mapa y vender en taquilla es gratis. Solo cobramos una comisión pequeña sobre lo que vendes por la app (con tope por transacción), y hay planes opcionales con menos comisión. La venta en mano no lleva comisión.' },
-  { q: '¿Tengo que cambiar mi forma de cobrar?', a: 'No. Puedes seguir como estás y usar Rumbo solo para lo que te interese. Cuanto más centralices, más te aprovecha el CRM y las herramientas — pero lo decides tú.' },
-  { q: '¿Y si ya uso otra plataforma?', a: 'Puedes usar ambas. Tú decides cuántas entradas pones a la venta en Rumbo (tu cupo) y nunca vendemos por encima de eso.' },
+  { q: '¿Tengo que cambiar mi forma de cobrar?', a: 'No. Puedes seguir como estás y usar TODH solo para lo que te interese. Cuanto más centralices, más te aprovecha el CRM y las herramientas — pero lo decides tú.' },
+  { q: '¿Y si ya uso otra plataforma?', a: 'Puedes usar ambas. Tú decides cuántas entradas pones a la venta en TODH (tu cupo) y nunca vendemos por encima de eso.' },
   { q: '¿Hay permanencia?', a: 'Ninguna. Es nuestra bandera: te quedas porque te sirve, no porque firmaste.' },
-  { q: '¿Necesito instalar algo?', a: 'No. Tu panel funciona desde el navegador del móvil, la tablet o el ordenador. Tus clientes usan la app de Rumbo.' },
+  { q: '¿Necesito instalar algo?', a: 'No. Tu panel funciona desde el navegador del móvil, la tablet o el ordenador. Tus clientes usan la app de TODH.' },
 ]
 
 export default function ParaLocalesPage() {
@@ -36,7 +36,7 @@ export default function ParaLocalesPage() {
       {/* Barra superior */}
       <header className="sticky top-0 z-20 glass-strong border-b border-white/8">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="font-black text-display text-lg tracking-tight">Rumbo</Link>
+          <Link href="/" className="font-black text-display text-lg tracking-tight">TODH</Link>
           <div className="flex items-center gap-2">
             <Link href="/local-panel/login" className="btn-ghost text-sm h-9">Entrar</Link>
             <Link href="/local-panel/registro" className="btn-primary text-sm h-9">Registra tu local</Link>
@@ -53,7 +53,7 @@ export default function ParaLocalesPage() {
             Llena tu local las noches que importan.
           </h1>
           <p className="text-lg md:text-xl text-[#B8B8CC] mt-5 max-w-2xl">
-            Rumbo pone tu local en el mapa de la noche de Madrid, te deja vender entradas y consumiciones
+            TODH pone tu local en el mapa de la noche de Madrid, te deja vender entradas y consumiciones
             sin colas, y te enseña quiénes son tus clientes. Sin permanencia.
           </p>
           <div className="flex flex-wrap gap-3 mt-8">
@@ -73,8 +73,8 @@ export default function ParaLocalesPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {MODULOS.map(({ icon: Icon, titulo, texto }) => (
             <div key={titulo} className="card-premium p-5">
-              <div className="w-11 h-11 rounded-2xl bg-[#E0455E]/12 flex items-center justify-center mb-3">
-                <Icon size={20} className="text-[#E0455E]" />
+              <div className="w-11 h-11 rounded-2xl bg-[#B6FF3A]/12 flex items-center justify-center mb-3">
+                <Icon size={20} className="text-[#B6FF3A]" />
               </div>
               <h3 className="font-bold text-white">{titulo}</h3>
               <p className="text-sm text-[#B8B8CC] mt-1.5 leading-relaxed">{texto}</p>
@@ -89,7 +89,7 @@ export default function ParaLocalesPage() {
         <div className="grid md:grid-cols-3 gap-4 mt-8">
           {PASOS.map(({ n, titulo, texto }) => (
             <div key={n} className="relative rounded-2xl border border-white/[0.07] bg-white/[0.03] p-5">
-              <span className="text-display text-5xl font-black text-[#E0455E]/30">{n}</span>
+              <span className="text-display text-5xl font-black text-[#B6FF3A]/30">{n}</span>
               <h3 className="font-bold text-white mt-1">{titulo}</h3>
               <p className="text-sm text-[#B8B8CC] mt-1.5 leading-relaxed">{texto}</p>
             </div>
@@ -135,7 +135,7 @@ export default function ParaLocalesPage() {
 
       {/* CTA final + footer */}
       <section className="max-w-5xl mx-auto px-4 pb-16">
-        <div className="rounded-3xl bg-gradient-to-br from-[#E0455E]/15 to-[#7C5CFF]/10 border border-white/10 p-8 md:p-12 text-center">
+        <div className="rounded-3xl bg-gradient-to-br from-[#B6FF3A]/15 to-[#7C5CFF]/10 border border-white/10 p-8 md:p-12 text-center">
           <h2 className="text-display text-2xl md:text-3xl font-bold tracking-tight">¿Listo para llenar tu local?</h2>
           <p className="text-[#B8B8CC] mt-2">Alta en minutos. Sin permanencia.</p>
           <Link href="/local-panel/registro" className="btn-primary h-12 px-7 text-base inline-flex items-center gap-2 mt-6">
@@ -143,7 +143,7 @@ export default function ParaLocalesPage() {
           </Link>
         </div>
         <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 text-sm text-[#6B6B85]">
-          <span>© Rumbo · Ocio nocturno</span>
+          <span>© TODH · Torneos presenciales</span>
           <div className="flex gap-4">
             <Link href="/terminos" className="hover:text-white">Términos</Link>
             <Link href="/privacidad" className="hover:text-white">Privacidad</Link>

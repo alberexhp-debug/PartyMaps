@@ -30,7 +30,7 @@ export function ChecklistCard({ panel }: { panel: string }) {
         <div className="flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6B6B85] mb-1.5">Primeros pasos</p>
           <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
-            <div className="h-full rounded-full" style={{ width: `${data.pct}%`, background: 'linear-gradient(90deg,#E0455E,#7C5CFF)' }} />
+            <div className="h-full rounded-full" style={{ width: `${data.pct}%`, background: 'linear-gradient(90deg,#B6FF3A,#7C5CFF)' }} />
           </div>
         </div>
         <span className="text-xl font-bold text-white text-numeric leading-none">{data.pct}%</span>
@@ -39,7 +39,7 @@ export function ChecklistCard({ panel }: { panel: string }) {
         {pendientes.slice(0, 4).map(p => (
           <Link key={p.id} href={p.ruta} className="flex items-center gap-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] px-3 py-2 hover:bg-white/[0.05] transition-colors">
             {p.tipo === 'obligatorio'
-              ? <span className="w-4 h-4 rounded-full border-2 border-[#E0455E] shrink-0" />
+              ? <span className="w-4 h-4 rounded-full border-2 border-[#B6FF3A] shrink-0" />
               : <Star size={15} className="text-[#D4A84B] shrink-0" />}
             <span className="flex-1 text-sm text-white truncate">{p.titulo}</span>
             <ArrowRight size={14} className="text-[#6B6B85] shrink-0" />

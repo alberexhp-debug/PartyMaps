@@ -28,7 +28,7 @@ export function ActivarPushRRPP() {
         {estado !== 'denegado' && (
           <button onClick={() => (activo ? desactivar() : activar())} disabled={trabajando}
             className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activo ? 'bg-emerald-400/20 text-emerald-300' : 'bg-[#E0455E] text-white'
+              activo ? 'bg-emerald-400/20 text-emerald-300' : 'bg-[#B6FF3A] text-[#0A0A0F]'
             }`}>
             {trabajando ? '…' : activo ? 'Activadas' : 'Activar'}
           </button>

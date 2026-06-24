@@ -43,7 +43,7 @@ export function FiltrosMapa({ open, onClose }: Props) {
       <div className="px-5 pt-2 space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-white">Filtros</h2>
-          <button onClick={clearFiltros} className="text-sm text-[#E94560]">Limpiar todo</button>
+          <button onClick={clearFiltros} className="text-sm text-[#B6FF3A]">Limpiar todo</button>
         </div>
 
         {/* Tipo de local */}
@@ -57,7 +57,7 @@ export function FiltrosMapa({ open, onClose }: Props) {
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors',
                   filtros.tipos.includes(value)
-                    ? 'bg-[#E94560] border-[#E94560] text-white'
+                    ? 'bg-[#B6FF3A] border-[#B6FF3A] text-[#0A0A0F]'
                     : 'bg-white/5 border-white/10 text-[#A0A0B8]'
                 )}
               >
@@ -105,7 +105,7 @@ export function FiltrosMapa({ open, onClose }: Props) {
               <span className="text-sm text-white">{emoji} {label}</span>
               <div className={cn(
                 'w-11 h-6 rounded-full transition-colors relative',
-                filtros[key] ? 'bg-[#E94560]' : 'bg-[#2A2A3E]'
+                filtros[key] ? 'bg-[#B6FF3A]' : 'bg-[#2A2A3E]'
               )}>
                 <div className={cn(
                   'absolute top-1 w-4 h-4 rounded-full bg-white transition-all',

@@ -28,7 +28,7 @@ const LABEL_LAYER = 'pm-locales-label'
 // El AFORO no usa tono: se expresa con el tamaño y la opacidad del halo, para no
 // saturar el mapa de colores. Paleta sobria, armónica sobre el mapa oscuro.
 const COLOR_POR_TIPO: Record<TipoLocal | 'otro', string> = {
-  discoteca:       '#E94560',  // rosa marca — baile
+  discoteca:       '#B6FF3A',  // rosa marca — baile
   bar_copas:       '#4F8EF7',  // azul — copas
   rooftop:         '#9B7BE8',  // violeta — rooftop
   sala_conciertos: '#3FB27F',  // verde — directo
@@ -379,8 +379,8 @@ export default function MapaExplorar() {
 
       {/* Barra superior */}
       <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center gap-2.5 safe-top">
-        <div className="w-9 h-9 rounded-xl bg-[#E94560] flex items-center justify-center shadow-[0_4px_14px_-4px_rgba(233,69,96,0.6)] flex-shrink-0">
-          <span className="text-[10px] font-black text-white tracking-tight">R</span>
+        <div className="w-9 h-9 rounded-xl bg-[#B6FF3A] flex items-center justify-center shadow-[0_4px_14px_-4px_rgba(182, 255, 58,0.6)] flex-shrink-0">
+          <span className="text-[10px] font-black text-white tracking-tight">T</span>
         </div>
         <button
           onClick={() => setShowBuscador(true)}
@@ -393,7 +393,7 @@ export default function MapaExplorar() {
           onClick={() => setShowFiltros(true)}
           className={cn(
             'w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0',
-            filtrosActivos ? 'bg-[#E94560] text-white' : 'glass-strong text-[#A0A0B8] hover:text-white'
+            filtrosActivos ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'glass-strong text-[#A0A0B8] hover:text-[#0A0A0F]'
           )}
         >
           <SlidersHorizontal size={16} />
@@ -405,7 +405,7 @@ export default function MapaExplorar() {
       {filtrosActivos && (
         <div className="absolute top-16 left-0 right-0 z-10 px-4 flex gap-2 overflow-x-auto pb-1">
           {filtros.tipos.map(t => (
-            <span key={t} className="shrink-0 px-3 py-1 bg-[#E94560] text-white text-xs rounded-full font-semibold">{t}</span>
+            <span key={t} className="shrink-0 px-3 py-1 bg-[#B6FF3A] text-[#0A0A0F] text-xs rounded-full font-semibold">{t}</span>
           ))}
           {filtros.solo_con_evento && (
             <span className="shrink-0 px-3 py-1 bg-[#F39C12] text-white text-xs rounded-full font-semibold">Con evento</span>

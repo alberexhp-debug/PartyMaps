@@ -14,7 +14,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/mapa"
-        className="px-6 py-3 bg-[#E94560] rounded-2xl text-white font-semibold text-sm hover:bg-[#c73652] transition-colors"
+        className="px-6 py-3 bg-[#B6FF3A] rounded-2xl text-[#0A0A0F] font-semibold text-sm hover:bg-[#c73652] transition-colors"
       >
         Ir al mapa
       </Link>

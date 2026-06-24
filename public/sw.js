@@ -1,74 +1,24 @@
-const CACHE_NAME = 'partymaps-v1'
-const STATIC_ASSETS = [
-  '/',
-  '/explorar',
-  '/entradas',
-  '/planes',
-  '/suscritos',
-  '/perfil',
-]
-const QR_CACHE_NAME = 'partymaps-qr-v1'
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS)).then(() => self.skipWaiting())
-  )
-})
+/* Service worker — modo PIVOTE TODH.
+ *
+ * El SW anterior cacheaba el shell de Rumbo (cache-first sobre `/`), así que tras
+ * el pivote el navegador seguía sirviendo el HTML viejo y pedía chunks JS de
+ * hashes que ya no existen → la app no hidrataba y se quedaba en el splash
+ * ("pantalla de carga infinita de Rumbo").
+ *
+ * Esto es un "kill-switch": purga TODA la caché y se desregistra. Cualquier
+ * navegador que tuviera el SW viejo de Rumbo se auto-cura en cuanto fetcha este
+ * fichero. No cachea nada (todo va a red). Reintroduciremos un SW/PWA propio de
+ * TODH más adelante, cuando el MVP esté estable.
+ */
+self.addEventListener('install', () => self.skipWaiting())
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME && k !== QR_CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  )
+  event.waitUntil((async () => {
+    const keys = await caches.keys()
+    await Promise.all(keys.map((k) => caches.delete(k)))
+    await self.clients.claim()
+    await self.registration.unregister()
+  })())
 })
 
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url)
-
-  // Cache QR entries for offline wallet
-  if (url.pathname.startsWith('/entradas/') && event.request.method === 'GET') {
-    event.respondWith(
-      caches.open(QR_CACHE_NAME).then(async cache => {
-        const cached = await cache.match(event.request)
-        const networkPromise = fetch(event.request).then(response => {
-          if (response.ok) cache.put(event.request, response.clone())
-          return response
-        })
-        return cached || networkPromise
-      })
-    )
-    return
-  }
-
-  // Network-first for API calls
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/_next/')) {
-    event.respondWith(fetch(event.request).catch(() => new Response('Offline', { status: 503 })))
-    return
-  }
-
-  // Cache-first for static assets
-  event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
-  )
-})
-
-// Push notification handler
-self.addEventListener('push', (event) => {
-  const data = event.data?.json() || {}
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Rumbo', {
-      body: data.body || '',
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      data: { url: data.url || '/' },
-    })
-  )
-})
-
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close()
-  event.waitUntil(
-    clients.openWindow(event.notification.data?.url || '/')
-  )
-})
+/* Sin handler de 'fetch': el SW no intercepta nada; todo se sirve de red. */

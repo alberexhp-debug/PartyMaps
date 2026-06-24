@@ -9,7 +9,7 @@ export function Spinner({ size = 'md', className }: SpinnerProps) {
   const sizes = { sm: 'w-4 h-4 border-2', md: 'w-8 h-8 border-2', lg: 'w-12 h-12 border-3' }
   return (
     <div className={cn(
-      'rounded-full border-white/10 border-t-[#E94560] animate-spin',
+      'rounded-full border-white/10 border-t-[#B6FF3A] animate-spin',
       sizes[size], className
     )} />
   )
@@ -45,7 +45,7 @@ export function BrandLoader({ size = 80 }: { size?: number }) {
       <div
         className="absolute inset-0 rounded-3xl blur-2xl opacity-70"
         style={{
-          background: 'linear-gradient(135deg, #E94560, #7C5CFF, #4F8EF7)',
+          background: 'linear-gradient(135deg, #B6FF3A, #7C5CFF, #4F8EF7)',
           animation: 'holo-rotate 4s ease infinite',
           backgroundSize: '200% 200%',
         }}
@@ -54,7 +54,7 @@ export function BrandLoader({ size = 80 }: { size?: number }) {
       <div
         className="absolute inset-0 rounded-3xl"
         style={{
-          background: 'conic-gradient(from 0deg, transparent 0deg, #E94560 60deg, transparent 120deg, transparent 360deg)',
+          background: 'conic-gradient(from 0deg, transparent 0deg, #B6FF3A 60deg, transparent 120deg, transparent 360deg)',
           animation: 'spotlight-rotate 1.6s linear infinite',
           padding: 2,
           WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
@@ -67,7 +67,7 @@ export function BrandLoader({ size = 80 }: { size?: number }) {
         <span className="text-2xl font-black text-white tracking-tight" style={{
           textShadow: '0 2px 8px rgba(0,0,0,0.4)',
           fontFamily: 'var(--font-display)',
-        }}>R</span>
+        }}>T</span>
       </div>
     </div>
   )

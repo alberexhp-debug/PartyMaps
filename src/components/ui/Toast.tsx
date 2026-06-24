@@ -48,7 +48,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const icons = { success: CheckCircle, error: XCircle, warning: AlertTriangle, info: Info }
   const colors = {
     success: 'border-[#27AE60]/40 bg-[#27AE60]/10 text-[#27AE60]',
-    error: 'border-[#E94560]/40 bg-[#E94560]/10 text-[#E94560]',
+    error: 'border-[#B6FF3A]/40 bg-[#B6FF3A]/10 text-[#B6FF3A]',
     warning: 'border-[#F39C12]/40 bg-[#F39C12]/10 text-[#F39C12]',
     info: 'border-[#4F8EF7]/40 bg-[#4F8EF7]/10 text-[#4F8EF7]',
   }

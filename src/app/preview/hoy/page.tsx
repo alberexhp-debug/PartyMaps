@@ -13,14 +13,14 @@ const TEMA = {
   claro: {
     canvas: '#FBFBFD', surface: '#FFFFFF', surface2: '#F6F6F9',
     text: '#16161D', text2: '#5B5B68', text3: '#9A9AA6',
-    border: '#ECECF1', accent: '#E0455E', accentInk: '#FFFFFF', accentSoft: '#FCEBEE',
+    border: '#ECECF1', accent: '#B6FF3A', accentInk: '#FFFFFF', accentSoft: '#EEFCD9',
     green: '#15803D', amber: '#B45309', greenSoft: '#EAF5EE', amberSoft: '#FBF1E3',
     shadow: '0 1px 2px rgba(16,16,29,0.04), 0 8px 24px -14px rgba(16,16,29,0.18)',
   },
   oscuro: {
     canvas: '#0B0B12', surface: '#15151F', surface2: '#1B1B2A',
     text: '#FAFAFC', text2: '#B8B8CC', text3: '#82829A',
-    border: 'rgba(255,255,255,0.08)', accent: '#E94560', accentInk: '#FFFFFF', accentSoft: 'rgba(233,69,96,0.14)',
+    border: 'rgba(255,255,255,0.08)', accent: '#B6FF3A', accentInk: '#FFFFFF', accentSoft: 'rgba(182, 255, 58,0.14)',
     green: '#34D399', amber: '#F39C12', greenSoft: 'rgba(52,211,153,0.12)', amberSoft: 'rgba(243,156,18,0.12)',
     shadow: '0 10px 30px -16px rgba(0,0,0,0.7)',
   },
@@ -77,7 +77,7 @@ export default function PreviewHoy() {
           </div>
 
           {/* Una sola acción, el único color de marca */}
-          <button style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: t.accent, color: t.accentInk, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', boxShadow: modo === 'claro' ? '0 8px 20px -10px rgba(224,69,94,0.55)' : 'none' }}>
+          <button style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: t.accent, color: t.accentInk, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', boxShadow: modo === 'claro' ? '0 8px 20px -10px rgba(182, 255, 58,0.55)' : 'none' }}>
             <Play size={18} fill="currentColor" /> Operar la noche
           </button>
         </section>

@@ -28,7 +28,7 @@ export function CredencialesModal({ titulo, username, password, onClose }: {
       <div className="w-full max-w-md rounded-t-3xl glass-strong p-6 sm:rounded-3xl" onClick={e => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <KeyRound size={18} className="text-[#E94560]" />
+            <KeyRound size={18} className="text-[#B6FF3A]" />
             <h2 className="text-lg font-bold text-white">{titulo || 'Acceso del trabajador'}</h2>
           </div>
           <button onClick={onClose} aria-label="Cerrar" className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>

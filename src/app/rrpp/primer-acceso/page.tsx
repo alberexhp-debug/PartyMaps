@@ -79,17 +79,17 @@ export default function RrppPrimerAccesoPage() {
     finalizar()
   }
 
-  const finalizar = () => { toast.success('¡Listo! Bienvenido a Rumbo'); router.push('/rrpp') }
+  const finalizar = () => { toast.success('¡Listo! Bienvenido a TODH'); router.push('/rrpp') }
   const copiarSecret = async () => { try { await navigator.clipboard.writeText(secret); toast.success('Clave copiada') } catch { toast.error('No se pudo copiar') } }
 
   if (cargando) {
-    return <div className="flex min-h-screen items-center justify-center bg-[#07070D]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#E94560]" /></div>
+    return <div className="flex min-h-screen items-center justify-center bg-[#07070D]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#B6FF3A]" /></div>
   }
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#07070D] p-6">
       <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#7C5CFF]/22 blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-[#E94560]/20 blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-[#B6FF3A]/20 blur-[120px]" />
 
       <div className="relative mb-6 text-center">
         <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#9B82FF]">Primer acceso</p>

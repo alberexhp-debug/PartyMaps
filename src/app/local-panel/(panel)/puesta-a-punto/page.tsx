@@ -48,7 +48,7 @@ export default function PuestaAPuntoPage() {
             <div className="flex-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6B6B85] mb-2">Progreso</p>
               <div className="h-2 rounded-full bg-white/8 overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{ width: `${data.pct}%`, background: 'linear-gradient(90deg,#E0455E,#7C5CFF)' }} />
+                <div className="h-full rounded-full transition-all" style={{ width: `${data.pct}%`, background: 'linear-gradient(90deg,#B6FF3A,#7C5CFF)' }} />
               </div>
             </div>
             <span className="text-3xl font-bold text-white text-numeric text-display leading-none">{data.pct}%</span>
@@ -86,7 +86,7 @@ export default function PuestaAPuntoPage() {
         <SectionCard>
           <p className="text-sm font-bold text-white mb-3">¿Y ahora qué? 3 hábitos que dan dinero</p>
           <div className="space-y-2">
-            <HabitoRow icon={Calendar} acento="#E0455E" titulo="Publica el evento de cada semana" ruta="/local-panel/eventos" />
+            <HabitoRow icon={Calendar} acento="#B6FF3A" titulo="Publica el evento de cada semana" ruta="/local-panel/eventos" />
             <HabitoRow icon={Contact} acento="#7C5CFF" titulo="Mira quién repite y dale motivos para volver" ruta="/local-panel/clientes" />
             <HabitoRow icon={Sparkles} acento="#F39C12" titulo="Suma un RRPP más" ruta="/local-panel/rrpp" />
           </div>
@@ -102,7 +102,7 @@ function FilaPaso({ paso }: { paso: Paso }) {
     <div className={cn('flex items-center gap-3 py-3', hecho && 'opacity-60')}>
       <span className="shrink-0">
         {hecho ? <CheckCircle2 size={20} className="text-[#27AE60]" />
-          : paso.tipo === 'obligatorio' ? <span className="block w-5 h-5 rounded-full border-2 border-[#E0455E]" />
+          : paso.tipo === 'obligatorio' ? <span className="block w-5 h-5 rounded-full border-2 border-[#B6FF3A]" />
             : <Star size={20} className="text-[#D4A84B]" />}
       </span>
       <div className="flex-1 min-w-0">

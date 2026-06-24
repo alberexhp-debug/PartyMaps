@@ -75,16 +75,16 @@ export function CookieBanner() {
 
         <div className="p-5">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#E94560]/15 border border-[#E94560]/30 flex items-center justify-center shrink-0">
-              <Cookie size={18} className="text-[#E94560]" />
+            <div className="w-10 h-10 rounded-xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/30 flex items-center justify-center shrink-0">
+              <Cookie size={18} className="text-[#B6FF3A]" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.2em]">Privacidad</p>
+              <p className="text-[10px] font-bold text-[#B6FF3A] uppercase tracking-[0.2em]">Privacidad</p>
               <h2 className="text-lg font-bold text-white text-display tracking-tight mt-0.5">Usamos cookies para que esto funcione</h2>
               <p className="text-sm text-[#A0A0B8] mt-1.5 leading-relaxed">
                 Las esenciales hacen funcionar la sesión y el mapa. Las analíticas nos ayudan a mejorar.
                 Las de marketing son para personalizar promos. Puedes elegir qué aceptas.
-                Más info en nuestra <Link href="/privacidad" className="text-[#E94560] underline-offset-2 hover:underline">Política de privacidad</Link>.
+                Más info en nuestra <Link href="/privacidad" className="text-[#B6FF3A] underline-offset-2 hover:underline">Política de privacidad</Link>.
               </p>
             </div>
           </div>
@@ -156,7 +156,7 @@ function ToggleRow({ label, hint, value, onChange, fijo }: {
         disabled={fijo}
         className={cn(
           'w-11 h-6 rounded-full transition-colors relative shrink-0',
-          fijo ? 'bg-[#27AE60] cursor-not-allowed' : value ? 'bg-[#E94560]' : 'bg-white/12'
+          fijo ? 'bg-[#27AE60] cursor-not-allowed' : value ? 'bg-[#B6FF3A]' : 'bg-white/12'
         )}
         aria-label={`${label} ${value ? 'activado' : 'desactivado'}`}
       >

@@ -149,7 +149,7 @@ export default function RRPPPanelLocal() {
               <Sparkles className="w-10 h-10 text-rose-400 mx-auto mb-3" />
               <p className="text-display text-xl mb-1">Aún no tienes RRPPs</p>
               <p className="text-secondary text-sm">
-                Pulsa <strong>Añadir RRPP</strong>: busca a alguien ya en Rumbo
+                Pulsa <strong>Añadir RRPP</strong>: busca a alguien ya en TODH
                 o crea una invitación con su email para mandar por WhatsApp.
               </p>
             </div>
@@ -271,11 +271,11 @@ function DescuentosModal({ relacion, onClose, onGuardado }: {
         <div className="space-y-2.5">
           {(CATEGORIAS_DESCUENTO as CategoriaDescuento[]).map(c => (
             <label key={c} className="flex items-center justify-between gap-3">
-              <span className="text-sm text-white flex items-center gap-2"><Percent size={13} className="text-[#E0455E]" /> {LABEL_CATEGORIA[c]}</span>
+              <span className="text-sm text-white flex items-center gap-2"><Percent size={13} className="text-[#B6FF3A]" /> {LABEL_CATEGORIA[c]}</span>
               <div className="flex items-center gap-1">
                 <input type="number" min={0} max={100} value={vals[c] ?? 0}
                   onChange={e => setVals(v => ({ ...v, [c]: Math.max(0, Math.min(100, Number(e.target.value) || 0)) }))}
-                  className="w-20 h-10 rounded-lg border border-white/10 bg-white/5 px-3 text-white text-right outline-none focus:border-[#E0455E]/60" />
+                  className="w-20 h-10 rounded-lg border border-white/10 bg-white/5 px-3 text-white text-right outline-none focus:border-[#B6FF3A]/60" />
                 <span className="text-tertiary text-sm">%</span>
               </div>
             </label>

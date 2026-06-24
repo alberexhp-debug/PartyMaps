@@ -145,7 +145,7 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
         {plantas.map(p => (
           <button key={p.id} onClick={() => { setPlantaId(p.id); setSelId(null) }}
             className={cn('px-3 py-2 rounded-xl text-sm font-medium border',
-              p.id === plantaId ? 'border-[#E94560]/40 bg-[#E94560]/10 text-[#E94560]' : 'border-white/10 bg-white/[0.03] text-[#B8B8CC]')}>
+              p.id === plantaId ? 'border-[#B6FF3A]/40 bg-[#B6FF3A]/10 text-[#B6FF3A]' : 'border-white/10 bg-white/[0.03] text-[#B8B8CC]')}>
             {p.nombre}
           </button>
         ))}

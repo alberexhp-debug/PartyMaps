@@ -17,7 +17,7 @@ const CORE_LAYER = 'rrpp-core'
 const LABEL_LAYER = 'rrpp-label'
 
 const COLOR_POR_TIPO: Record<TipoLocal | 'otro', string> = {
-  discoteca: '#E94560', bar_copas: '#4F8EF7', rooftop: '#9B7BE8',
+  discoteca: '#B6FF3A', bar_copas: '#4F8EF7', rooftop: '#9B7BE8',
   sala_conciertos: '#3FB27F', bar_cocteleria: '#D4A84B', otro: '#8B8BA8',
 }
 const TIPO_COLOR: mapboxgl.Expression = [
@@ -173,7 +173,7 @@ export default function MapaRRPP() {
         style={{ background: 'linear-gradient(180deg, rgba(6,6,12,0.85) 0%, transparent 100%)' }} />
       <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center gap-2.5 safe-top">
         <div className="w-9 h-9 rounded-xl holo-bg flex items-center justify-center shrink-0">
-          <span className="text-[10px] font-black text-white">R</span>
+          <span className="text-[10px] font-black text-white">T</span>
         </div>
         <div className="flex-1 glass-strong rounded-xl px-3.5 h-10 flex items-center text-sm text-white font-semibold">
           Descubrir locales

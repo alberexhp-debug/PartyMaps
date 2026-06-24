@@ -56,7 +56,7 @@ export default function GrupoRrppPage() {
                       <div className="flex flex-wrap gap-1.5 mt-0.5">
                         {CATEGORIAS_DESCUENTO.some(c => (rel.descuentos?.[c] ?? 0) > 0)
                           ? (CATEGORIAS_DESCUENTO as CategoriaDescuento[]).map(c => (rel.descuentos?.[c] ?? 0) > 0 && (
-                              <span key={c} className="text-[11px] font-semibold text-[#E0455E] bg-[#E0455E]/10 rounded-full px-2 py-0.5">{LABEL_CATEGORIA[c]} −{rel.descuentos[c]}%</span>
+                              <span key={c} className="text-[11px] font-semibold text-[#B6FF3A] bg-[#B6FF3A]/10 rounded-full px-2 py-0.5">{LABEL_CATEGORIA[c]} −{rel.descuentos[c]}%</span>
                             ))
                           : <span className="text-[11px] text-[#6B6B85]">Sin descuentos · pulsa para fijar</span>}
                       </div>
@@ -108,7 +108,7 @@ function DescuentosModal({ rel, localNombre, onClose, onGuardado }: {
         <div className="space-y-2.5">
           {(CATEGORIAS_DESCUENTO as CategoriaDescuento[]).map(c => (
             <label key={c} className="flex items-center justify-between gap-3">
-              <span className="text-sm text-white flex items-center gap-2"><Percent size={13} className="text-[#E0455E]" /> {LABEL_CATEGORIA[c]}</span>
+              <span className="text-sm text-white flex items-center gap-2"><Percent size={13} className="text-[#B6FF3A]" /> {LABEL_CATEGORIA[c]}</span>
               <div className="flex items-center gap-1">
                 <input type="number" min={0} max={100} value={vals[c] ?? 0}
                   onChange={e => setVals(v => ({ ...v, [c]: Math.max(0, Math.min(100, Number(e.target.value) || 0)) }))}

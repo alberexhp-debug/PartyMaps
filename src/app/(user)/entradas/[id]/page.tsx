@@ -80,7 +80,7 @@ export default function EntradaDetallePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#E94560] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#B6FF3A] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -258,12 +258,12 @@ export default function EntradaDetallePage() {
             <span className="text-white">{formatearPrecio(entrada.precio_local)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-[#A0A0B8]">Servicio Rumbo</span>
+            <span className="text-[#A0A0B8]">Servicio TODH</span>
             <span className="text-white">{formatearPrecio(entrada.comision_plataforma)}</span>
           </div>
           <div className="pt-2 border-t border-white/10 flex justify-between font-bold">
             <span className="text-white">Total pagado</span>
-            <span className="text-[#E94560]">{formatearPrecio(entrada.precio_total)}</span>
+            <span className="text-[#B6FF3A]">{formatearPrecio(entrada.precio_total)}</span>
           </div>
         </div>
 

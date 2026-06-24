@@ -19,7 +19,7 @@ interface EnviarResult {
   error?: string
 }
 
-const FROM = process.env.RESEND_FROM || 'Rumbo <noreply@partymaps.es>'
+const FROM = process.env.RESEND_FROM || 'TODH <noreply@partymaps.es>'
 const REPLY_TO = process.env.RESEND_REPLY_TO || 'soporte@partymaps.es'
 
 export async function enviarEmail({ to, subject, html, tag }: EnviarOptions): Promise<EnviarResult> {
@@ -51,7 +51,7 @@ export async function enviarEmail({ to, subject, html, tag }: EnviarOptions): Pr
   }
 }
 
-/** Layout HTML común — header/footer Rumbo. Mantener inline-style por compatibilidad email. */
+/** Layout HTML común — header/footer TODH. Mantener inline-style por compatibilidad email. */
 function envolverPlantilla(contenido: string): string {
   return `<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
@@ -62,8 +62,8 @@ function envolverPlantilla(contenido: string): string {
         <tr><td style="padding:28px 28px 0 28px;">
           <table role="presentation" cellpadding="0" cellspacing="0">
             <tr>
-              <td style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#E94560,#7C5CFF,#4F8EF7);text-align:center;vertical-align:middle;color:#fff;font-weight:900;font-size:14px;line-height:40px;">R</td>
-              <td style="padding-left:12px;color:#FAFAFC;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;font-size:13px;">Rumbo</td>
+              <td style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#B6FF3A,#7C5CFF,#4F8EF7);text-align:center;vertical-align:middle;color:#fff;font-weight:900;font-size:14px;line-height:40px;">R</td>
+              <td style="padding-left:12px;color:#FAFAFC;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;font-size:13px;">TODH</td>
             </tr>
           </table>
         </td></tr>
@@ -72,8 +72,8 @@ function envolverPlantilla(contenido: string): string {
         </td></tr>
         <tr><td style="padding:0 28px 28px 28px;border-top:1px solid rgba(255,255,255,0.06);">
           <p style="margin:18px 0 0 0;color:#6B6B85;font-size:11px;line-height:1.5;">
-            Recibes este email porque tienes una cuenta en Rumbo.<br />
-            ¿Dudas? Escribe a <a href="mailto:${REPLY_TO}" style="color:#E94560;text-decoration:none;">${REPLY_TO}</a>.
+            Recibes este email porque tienes una cuenta en TODH.<br />
+            ¿Dudas? Escribe a <a href="mailto:${REPLY_TO}" style="color:#B6FF3A;text-decoration:none;">${REPLY_TO}</a>.
           </p>
         </td></tr>
       </table>
@@ -108,10 +108,10 @@ export async function emailConfirmacionEntrada(to: string, d: DatosEntrada) {
         <p style="margin:0;color:#6B6B85;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;">Cuándo</p>
         <p style="margin:4px 0 14px 0;font-weight:600;">${fecha}</p>
         <p style="margin:0;color:#6B6B85;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;">Total pagado</p>
-        <p style="margin:4px 0 0 0;font-weight:600;color:#E94560;">${d.precio.toFixed(2)} €</p>
+        <p style="margin:4px 0 0 0;font-weight:600;color:#B6FF3A;">${d.precio.toFixed(2)} €</p>
       </div>
       <p style="margin:0 0 12px 0;">Enseña el QR en la puerta. Lo tienes en la app, en <strong>Entradas</strong>.</p>
-      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://partymaps.es'}/entradas/${d.entradaId}" style="display:inline-block;padding:12px 24px;background:#E94560;color:#fff;text-decoration:none;border-radius:12px;font-weight:600;">Ver mi entrada</a>
+      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://partymaps.es'}/entradas/${d.entradaId}" style="display:inline-block;padding:12px 24px;background:#B6FF3A;color:#fff;text-decoration:none;border-radius:12px;font-weight:600;">Ver mi entrada</a>
     `,
   })
 }
@@ -167,7 +167,7 @@ export async function emailBienvenidaTrabajador(to: string, d: { nombre: string;
         <p style="margin:4px 0 0 0;font-weight:600;font-family:monospace;background:rgba(0,0,0,0.3);padding:8px 12px;border-radius:8px;display:inline-block;">${d.passwordTemporal}</p>
       </div>
       <p style="margin:0 0 16px 0;color:#F39C12;font-size:13px;">⚠️ Cambia esta contraseña cuanto antes desde tu perfil.</p>
-      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://partymaps.es'}/local-panel/login" style="display:inline-block;padding:12px 24px;background:#E94560;color:#fff;text-decoration:none;border-radius:12px;font-weight:600;">Acceder al panel</a>
+      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://partymaps.es'}/local-panel/login" style="display:inline-block;padding:12px 24px;background:#B6FF3A;color:#fff;text-decoration:none;border-radius:12px;font-weight:600;">Acceder al panel</a>
     `,
   })
 }

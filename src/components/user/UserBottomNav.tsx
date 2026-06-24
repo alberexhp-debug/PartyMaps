@@ -30,14 +30,14 @@ export function UserBottomNav() {
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'relative flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all min-w-[56px]',
-                  active ? 'text-[#E94560]' : 'text-[#8B8BA8] hover:text-white'
+                  active ? 'text-[#B6FF3A]' : 'text-[#8B8BA8] hover:text-white'
                 )}
               >
                 {active && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#E94560] rounded-full shadow-[0_0_8px_rgba(233,69,96,0.6)]" />
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#B6FF3A] rounded-full shadow-[0_0_8px_rgba(182, 255, 58,0.6)]" />
                 )}
                 <Icon size={22} strokeWidth={active ? 2.4 : 1.75} />
-                <span className={cn('text-[10px] font-medium tracking-wide', active ? 'text-[#E94560]' : 'text-current')}>
+                <span className={cn('text-[10px] font-medium tracking-wide', active ? 'text-[#B6FF3A]' : 'text-current')}>
                   {label}
                 </span>
               </Link>

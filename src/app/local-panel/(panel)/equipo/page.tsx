@@ -110,8 +110,8 @@ export default function EquipoPage() {
               {ROLES.map(r => (
                 <button key={r.value} onClick={() => setRol(r.value)}
                   className={cn('flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors',
-                    rol === r.value ? 'border-[#E94560] bg-[#E94560]/10' : 'border-white/10 bg-white/5')}>
-                  <Shield size={14} className={rol === r.value ? 'text-[#E94560]' : 'text-[#6B6B85]'} />
+                    rol === r.value ? 'border-[#B6FF3A] bg-[#B6FF3A]/10' : 'border-white/10 bg-white/5')}>
+                  <Shield size={14} className={rol === r.value ? 'text-[#B6FF3A]' : 'text-[#6B6B85]'} />
                   <div>
                     <p className="text-sm font-semibold text-white">{r.label}</p>
                     <p className="text-xs text-[#6B6B85]">{r.desc}</p>

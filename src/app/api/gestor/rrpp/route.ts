@@ -7,7 +7,7 @@ import { crearRrppDirecto } from '@/lib/rrpp/crear'
 const TRIGGERS_DEFECTO = { entrada_vendida: true, escaneada_en_puerta: false, consumo_bar: false }
 
 /**
- * Gestión de RRPP por el RumboGestor, SIEMPRE acotada a un local de su
+ * Gestión de RRPP por el TODHGestor, SIEMPRE acotada a un local de su
  * cartera (?local_id). La invitación se emite en nombre de ese local
  * (invitado_por_local_id), por lo que no requiere migración nueva.
  *

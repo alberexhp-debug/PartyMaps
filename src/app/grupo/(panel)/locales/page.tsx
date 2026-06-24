@@ -12,7 +12,7 @@ type LocalGrupo = {
 const ESTADO_BADGE: Record<string, string> = {
   activo: 'text-[#27AE60] bg-[#27AE60]/12 border-[#27AE60]/30',
   pendiente_verificacion: 'text-[#F39C12] bg-[#F39C12]/12 border-[#F39C12]/30',
-  suspendido: 'text-[#E94560] bg-[#E94560]/12 border-[#E94560]/30',
+  suspendido: 'text-[#B6FF3A] bg-[#B6FF3A]/12 border-[#B6FF3A]/30',
   eliminado: 'text-[#8B8BA8] bg-white/6 border-white/10',
 }
 
@@ -45,7 +45,7 @@ export default function GrupoLocalesPage() {
         <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl skeleton" />)}</div>
       ) : locales.length === 0 ? (
         <EmptyState icon={Store} acento="blue" titulo="Sin locales en el grupo"
-          descripcion="Cuando el equipo de Rumbo asocie locales a tu grupo, aparecerán aquí." />
+          descripcion="Cuando el equipo de TODH asocie locales a tu grupo, aparecerán aquí." />
       ) : (
         <div className="space-y-2">
           {locales.map(l => (

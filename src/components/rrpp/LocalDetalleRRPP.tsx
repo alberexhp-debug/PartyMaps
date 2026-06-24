@@ -50,13 +50,13 @@ export function LocalDetalleRRPP({ localId, onClose }: { localId: string; onClos
               <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-3.5">
                 <p className="eyebrow eyebrow-rose mb-2">Tu acuerdo</p>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                  <span className="text-[#B8B8CC] flex items-center gap-1"><Percent size={13} className="text-[#E0455E]" /> Comisión <b className="text-white">{d.relacion.comision_pct}%</b></span>
+                  <span className="text-[#B8B8CC] flex items-center gap-1"><Percent size={13} className="text-[#B6FF3A]" /> Comisión <b className="text-white">{d.relacion.comision_pct}%</b></span>
                   {d.relacion.tope_por_venta != null && <span className="text-[#8B8BA8] text-xs">tope {d.relacion.tope_por_venta}€</span>}
                 </div>
                 {CATEGORIAS_DESCUENTO.some(c => (d.relacion.descuentos?.[c] ?? 0) > 0) && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {(CATEGORIAS_DESCUENTO as CategoriaDescuento[]).map(c => (d.relacion.descuentos?.[c] ?? 0) > 0 && (
-                      <span key={c} className="text-[11px] font-semibold text-[#E0455E] bg-[#E0455E]/10 rounded-full px-2 py-0.5">{LABEL_CATEGORIA[c]} −{d.relacion.descuentos[c]}%</span>
+                      <span key={c} className="text-[11px] font-semibold text-[#B6FF3A] bg-[#B6FF3A]/10 rounded-full px-2 py-0.5">{LABEL_CATEGORIA[c]} −{d.relacion.descuentos[c]}%</span>
                     ))}
                   </div>
                 )}

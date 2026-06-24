@@ -90,7 +90,7 @@ export default function CompletarPerfilPage() {
 
     try { sessionStorage.removeItem('rumbo_ref') } catch {}
     setUsuario(data)
-    toast.success('¡Listo! Bienvenido/a a Rumbo')
+    toast.success('¡Listo! Bienvenido/a a TODH')
     router.push('/mapa')
   }
 
@@ -98,7 +98,7 @@ export default function CompletarPerfilPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#07070D] px-5 py-10">
-      <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#E94560]/22 blur-[120px]" />
+      <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#B6FF3A]/22 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-[#7C5CFF]/20 blur-[120px]" />
 
       <div className="card-premium w-full max-w-[26rem] rounded-3xl p-6 sm:p-8 animate-slide-up">
@@ -151,17 +151,17 @@ export default function CompletarPerfilPage() {
               type="checkbox"
               checked={aceptaTerminos}
               onChange={e => setAceptaTerminos(e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-[#E94560]"
+              className="mt-0.5 h-4 w-4 accent-[#B6FF3A]"
             />
             <span className="text-xs text-[#A0A0B8]">
               Acepto los{' '}
-              <Link href="/terminos" className="text-[#E94560] hover:underline">Términos</Link> y la{' '}
-              <Link href="/privacidad" className="text-[#E94560] hover:underline">Política de Privacidad</Link>.
+              <Link href="/terminos" className="text-[#B6FF3A] hover:underline">Términos</Link> y la{' '}
+              <Link href="/privacidad" className="text-[#B6FF3A] hover:underline">Política de Privacidad</Link>.
             </span>
           </label>
 
           <Button fullWidth size="lg" onClick={finalizar} loading={loading}>
-            Entrar a Rumbo
+            Entrar a TODH
           </Button>
         </div>
       </div>

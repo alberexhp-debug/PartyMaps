@@ -1,7 +1,7 @@
 {
-  "name": "Rumbo",
-  "short_name": "Rumbo",
-  "description": "Descubre locales, compra entradas y planifica tu noche",
+  "name": "TODH",
+  "short_name": "TODH",
+  "description": "Organiza y descubre torneos presenciales de videojuegos y cartas",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0D0D1A",
@@ -22,6 +22,6 @@
     }
   ],
   "screenshots": [],
-  "categories": ["entertainment", "lifestyle"],
+  "categories": ["sports", "games", "entertainment"],
   "lang": "es"
 }

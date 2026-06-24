@@ -28,7 +28,7 @@ type Vista = {
 const ESTADO_COLOR: Record<string, string> = {
   activo: 'text-[#27AE60] border-[#27AE60]/30 bg-[#27AE60]/10',
   pendiente_verificacion: 'text-[#F39C12] border-[#F39C12]/30 bg-[#F39C12]/10',
-  suspendido: 'text-[#E94560] border-[#E94560]/30 bg-[#E94560]/10',
+  suspendido: 'text-[#B6FF3A] border-[#B6FF3A]/30 bg-[#B6FF3A]/10',
   eliminado: 'text-[#8B8BA8] border-white/15 bg-white/5',
 }
 
@@ -52,7 +52,7 @@ export default function AdminLocalVistaPage({ params }: { params: Promise<{ id: 
     return (
       <div className="p-6 text-center text-[#8B8BA8]">
         No se pudo cargar la vista del local.
-        <div className="mt-4"><Link href="/admin/locales" className="text-[#E94560]">← Volver a Locales</Link></div>
+        <div className="mt-4"><Link href="/admin/locales" className="text-[#B6FF3A]">← Volver a Locales</Link></div>
       </div>
     )
   }
@@ -123,7 +123,7 @@ export default function AdminLocalVistaPage({ params }: { params: Promise<{ id: 
                   <span className="truncate text-white">{m.nombre || m.email}</span>
                   <span className="flex items-center gap-2 shrink-0">
                     <span className="rounded-full border border-white/12 bg-white/5 px-2 py-0.5 text-[11px] text-[#B8B8CC]">{ROL_LABEL[m.rol as RolLocal] ?? m.rol}</span>
-                    {!m.activo && <span className="text-[11px] text-[#E94560]">inactivo</span>}
+                    {!m.activo && <span className="text-[11px] text-[#B6FF3A]">inactivo</span>}
                   </span>
                 </div>
               ))}

@@ -49,7 +49,7 @@ export function Tour({ steps, active, onDone }: { steps: PasoTour[]; active: boo
   return (
     <div className="fixed inset-0 z-[90]" onClick={() => {}}>
       {hueco
-        ? <div className="absolute rounded-2xl pointer-events-none" style={{ ...hueco, boxShadow: '0 0 0 9999px rgba(7,7,13,0.80)', border: '2px solid #E0455E' }} />
+        ? <div className="absolute rounded-2xl pointer-events-none" style={{ ...hueco, boxShadow: '0 0 0 9999px rgba(7,7,13,0.80)', border: '2px solid #B6FF3A' }} />
         : <div className="absolute inset-0" style={{ background: 'rgba(7,7,13,0.80)' }} />}
       <div className="absolute max-w-[300px] card-premium p-4 animate-fade-in" style={globoStyle} onClick={e => e.stopPropagation()}>
         <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6B6B85] mb-1">Guía · {i + 1}/{total}</p>

@@ -136,7 +136,7 @@ export default function CartaBarPage() {
 
       <div className="px-4 mt-4">
         {mesaCodigo && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#E0455E]/10 border border-[#E0455E]/25 text-xs text-white mb-3">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#B6FF3A]/10 border border-[#B6FF3A]/25 text-xs text-[#0A0A0F] mb-3">
             <span className="font-bold shrink-0">📍 Mesa {mesaCodigo}</span>
             <span className="text-[#B8B8CC]">Pides desde tu mesa — te lo llevan.</span>
           </div>
@@ -165,7 +165,7 @@ export default function CartaBarPage() {
                     return (
                       <div key={p.id} className={cn(
                         'card-premium p-3 flex items-center gap-3 transition-all',
-                        qty > 0 && 'ring-1 ring-[#E94560]/50'
+                        qty > 0 && 'ring-1 ring-[#B6FF3A]/50'
                       )}>
                         {p.imagen_url && (
                           <img src={p.imagen_url} alt={p.nombre} className="w-14 h-14 rounded-xl object-cover bg-white/5 shrink-0" />
@@ -188,7 +188,7 @@ export default function CartaBarPage() {
                               <button
                                 onClick={() => setCantidad(p.id, 1)}
                                 aria-label={`Añadir ${p.nombre}`}
-                                className="h-8 px-3 rounded-full bg-[#E94560] text-white text-xs font-bold flex items-center gap-1 shadow-[0_4px_14px_-4px_rgba(233,69,96,0.55)]"
+                                className="h-8 px-3 rounded-full bg-[#B6FF3A] text-[#0A0A0F] text-xs font-bold flex items-center gap-1 shadow-[0_4px_14px_-4px_rgba(182, 255, 58,0.55)]"
                               >
                                 <Plus size={13} /> Añadir
                               </button>
@@ -206,7 +206,7 @@ export default function CartaBarPage() {
                                   onClick={() => setCantidad(p.id, 1)}
                                   aria-label="Añadir uno"
                                   disabled={qty >= 10}
-                                  className="w-8 h-8 rounded-full bg-[#E94560] text-white flex items-center justify-center disabled:opacity-50"
+                                  className="w-8 h-8 rounded-full bg-[#B6FF3A] text-[#0A0A0F] flex items-center justify-center disabled:opacity-50"
                                 >
                                   <Plus size={13} />
                                 </button>
@@ -229,7 +229,7 @@ export default function CartaBarPage() {
         <div className="fixed bottom-20 left-0 right-0 z-20 px-4 safe-bottom">
           <button
             onClick={() => setShowCheckout(true)}
-            className="w-full flex items-center justify-between gap-3 px-5 h-14 rounded-2xl bg-[#E94560] text-white shadow-[0_12px_30px_-8px_rgba(233,69,96,0.65)] active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-between gap-3 px-5 h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_12px_30px_-8px_rgba(182, 255, 58,0.65)] active:scale-[0.98] transition-transform"
           >
             <span className="flex items-center gap-2">
               <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold text-numeric">{totalItems}</span>
@@ -268,7 +268,7 @@ export default function CartaBarPage() {
               onChange={e => setNotas(e.target.value.slice(0, 200))}
               placeholder="Sin hielo, con extra de…"
               rows={2}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-[#8B8BA8] focus:border-[#E94560]/60 outline-none resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-[#8B8BA8] focus:border-[#B6FF3A]/60 outline-none resize-none"
             />
           </div>
 
@@ -278,7 +278,7 @@ export default function CartaBarPage() {
               value={codigo}
               onChange={e => setCodigo(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20))}
               placeholder="Ej. LEO123"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-[#8B8BA8] focus:border-[#E94560]/60 outline-none tracking-[0.1em]"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-[#8B8BA8] focus:border-[#B6FF3A]/60 outline-none tracking-[0.1em]"
             />
             <p className="text-[10px] text-[#8B8BA8]">Si tienes el código de un promotor, el descuento se aplica al confirmar.</p>
           </div>
@@ -289,7 +289,7 @@ export default function CartaBarPage() {
               <span className="text-numeric">{formatearPrecio(subtotal)}</span>
             </div>
             <div className="flex justify-between text-[#B8B8CC]">
-              <span>Comisión Rumbo ({COMISION_PORCENTAJE}%)</span>
+              <span>Comisión TODH ({COMISION_PORCENTAJE}%)</span>
               <span className="text-numeric">{formatearPrecio(comision)}</span>
             </div>
             <div className="flex justify-between text-base font-bold text-white pt-1 border-t border-white/8 mt-2">
@@ -301,7 +301,7 @@ export default function CartaBarPage() {
           {usuario && !consentRespondido && (
             <button type="button" onClick={() => setAceptaMarketing(v => !v)}
               className="w-full flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left">
-              <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-[11px] font-bold text-white ${aceptaMarketing ? 'border-[#E0455E] bg-[#E0455E]' : 'border-[#2A2A3E]'}`}>
+              <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-[11px] font-bold text-[#0A0A0F] ${aceptaMarketing ? 'border-[#B6FF3A] bg-[#B6FF3A]' : 'border-[#2A2A3E]'}`}>
                 {aceptaMarketing ? '✓' : ''}
               </span>
               <span>

@@ -180,7 +180,7 @@ export default function LocalPanelDashboard() {
               <Tooltip contentStyle={{ background: 'var(--p-surface)', border: '1px solid var(--p-border)', borderRadius: 12, fontSize: 12, color: 'var(--p-text)', boxShadow: 'var(--p-shadow)' }}
                 labelStyle={{ color: 'var(--p-text-2)', fontWeight: 600 }} />
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 6 }} iconType="plainline" />
-              <Line yAxisId="left" type="monotone" dataKey="ingresos" name="Ingresos €" stroke="#E0455E" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+              <Line yAxisId="left" type="monotone" dataKey="ingresos" name="Ingresos €" stroke="#B6FF3A" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
               <Line yAxisId="right" type="monotone" dataKey="entradas" name="Entradas" stroke="#4F8EF7" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
               <Line yAxisId="right" type="monotone" dataKey="pedidos" name="Pedidos" stroke="#F39C12" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
             </LineChart>

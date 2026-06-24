@@ -27,7 +27,7 @@ export function PullIndicator({ pullDistance, progress, refreshing, threshold }:
         <div
           className={cn(
             'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200',
-            filled ? 'bg-[#E94560] shadow-[0_6px_18px_-4px_rgba(233,69,96,0.55)]' : 'glass-strong'
+            filled ? 'bg-[#B6FF3A] shadow-[0_6px_18px_-4px_rgba(182, 255, 58,0.55)]' : 'glass-strong'
           )}
           style={{
             opacity: Math.min(1, pullDistance / (threshold * 0.4)),

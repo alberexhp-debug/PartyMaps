@@ -150,7 +150,7 @@ export default function ScannerPage() {
       <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-4 space-y-3 max-w-sm mx-auto w-full">
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-white flex items-center gap-2">
-            <Gauge size={15} className="text-[#E0455E]" /> Afluencia ahora
+            <Gauge size={15} className="text-[#B6FF3A]" /> Afluencia ahora
           </span>
           <span className="text-2xl font-bold text-display text-numeric" style={{ color: colorAforo }}>
             {aforoActual}%
@@ -159,7 +159,7 @@ export default function ScannerPage() {
         <input
           type="range" min={0} max={100} step={5} value={aforoActual}
           onChange={e => setAforoSlider(Number(e.target.value))}
-          className="w-full accent-[#E0455E]"
+          className="w-full accent-[#B6FF3A]"
           aria-label="Afluencia ahora mismo"
         />
         <div className="flex items-center justify-between">
@@ -182,12 +182,12 @@ export default function ScannerPage() {
         {activo && !resultado && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-56 h-56 relative">
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-3 border-l-3 border-[#E94560] rounded-tl-lg" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-3 border-r-3 border-[#E94560] rounded-tr-lg" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-3 border-l-3 border-[#E94560] rounded-bl-lg" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-3 border-r-3 border-[#E94560] rounded-br-lg" />
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-3 border-l-3 border-[#B6FF3A] rounded-tl-lg" />
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-3 border-r-3 border-[#B6FF3A] rounded-tr-lg" />
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-3 border-l-3 border-[#B6FF3A] rounded-bl-lg" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-3 border-r-3 border-[#B6FF3A] rounded-br-lg" />
               {/* Scan line */}
-              <div className="absolute left-0 right-0 h-0.5 bg-[#E94560]/70 animate-[scan_2s_ease-in-out_infinite]"
+              <div className="absolute left-0 right-0 h-0.5 bg-[#B6FF3A]/70 animate-[scan_2s_ease-in-out_infinite]"
                 style={{ top: '50%' }} />
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function ScannerPage() {
         {!activo ? (
           <button
             onClick={iniciarCamara}
-            className="flex-1 h-12 bg-[#E94560] rounded-xl text-white font-bold flex items-center justify-center gap-2"
+            className="flex-1 h-12 bg-[#B6FF3A] rounded-xl text-[#0A0A0F] font-bold flex items-center justify-center gap-2"
           >
             <Camera size={18} /> Iniciar scanner
           </button>
@@ -348,7 +348,7 @@ async function verificarQR(qrData: string, localId: string, modoConsumicion: boo
 
   // Format: PM2:<entrada_id>
   if (!qrData.startsWith('PM2:')) {
-    return { tipo: 'qr_invalido', mensaje: 'QR no reconocido. No es de Rumbo.' }
+    return { tipo: 'qr_invalido', mensaje: 'QR no reconocido. No es de TODH.' }
   }
 
   const entradaId = qrData.split(':')[1]

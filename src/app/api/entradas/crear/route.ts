@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         .eq('id', evento_id)
         .single()
       if (evento && evento.estado === 'publicado') {
-        // Cupo del evento: nunca por encima del aforo que el local puso a la venta en Rumbo (§6.2).
+        // Cupo del evento: nunca por encima del aforo que el local puso a la venta en TODH (§6.2).
         if (evento.aforo_maximo > 0 && evento.entradas_vendidas + cantidad > evento.aforo_maximo) {
           const quedan = Math.max(0, evento.aforo_maximo - evento.entradas_vendidas)
           return NextResponse.json({ error: quedan === 0 ? 'Entradas agotadas para este evento' : `Solo quedan ${quedan} ${quedan === 1 ? 'entrada' : 'entradas'} para este evento` }, { status: 409 })
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         .is('evento_id', null)
         .gte('created_at', inicioHoy.toISOString())
 
-      // Cupo de la noche en Rumbo: nunca por encima de lo que el local pone a la venta aquí (§6.2).
+      // Cupo de la noche en TODH: nunca por encima de lo que el local pone a la venta aquí (§6.2).
       if (local.entradas_disponibles_noche != null && (vendidasHoy ?? 0) + cantidad > local.entradas_disponibles_noche) {
         const quedan = Math.max(0, local.entradas_disponibles_noche - (vendidasHoy ?? 0))
         return NextResponse.json({ error: quedan === 0 ? 'Cupo de entradas de esta noche agotado' : `Solo quedan ${quedan} ${quedan === 1 ? 'entrada' : 'entradas'} esta noche` }, { status: 409 })

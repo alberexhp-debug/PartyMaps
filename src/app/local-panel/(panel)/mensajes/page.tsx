@@ -26,7 +26,7 @@ const CHIP: Record<Tipo, string> = {
 const AVATAR: Record<Tipo, string> = {
   rrpp:     'from-[#7C5CFF] to-[#4F8EF7]',
   empleado: 'from-[#4F8EF7] to-[#34D399]',
-  local:    'from-[#D4A84B] to-[#E0455E]',
+  local:    'from-[#D4A84B] to-[#B6FF3A]',
   gestor:   'from-[#34D399] to-[#4F8EF7]',
 }
 
@@ -142,16 +142,16 @@ export default function MensajesPage() {
       {/* Acceso directo a Soporte (sigue siendo tickets, no chat) */}
       {esGestor && (
         <Link href="/local-panel/soporte"
-          className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3 hover:border-[#E0455E]/40 transition-colors">
-          <div className="w-9 h-9 rounded-xl bg-[#E0455E]/15 flex items-center justify-center shrink-0">
-            <LifeBuoy size={17} className="text-[#E0455E]" />
+          className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3 hover:border-[#B6FF3A]/40 transition-colors">
+          <div className="w-9 h-9 rounded-xl bg-[#B6FF3A]/15 flex items-center justify-center shrink-0">
+            <LifeBuoy size={17} className="text-[#B6FF3A]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">Soporte de Rumbo</p>
+            <p className="text-sm font-semibold text-white">Soporte de TODH</p>
             <p className="text-xs text-[#8B8BA8]">¿Una duda o incidencia? Abre un ticket con nuestro equipo.</p>
           </div>
           {soporteNoLeidos > 0 && (
-            <span className="mr-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E0455E] px-1.5 text-[11px] font-bold text-white">
+            <span className="mr-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#B6FF3A] px-1.5 text-[11px] font-bold text-[#0A0A0F]">
               {soporteNoLeidos > 99 ? '99+' : soporteNoLeidos}
             </span>
           )}
@@ -165,7 +165,7 @@ export default function MensajesPage() {
           {(['todos', ...tipos] as (Tipo | 'todos')[]).map(f => (
             <button key={f} onClick={() => setFiltro(f)}
               className={cn('px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors',
-                filtro === f ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-white/10 text-[#8B8BA8] hover:text-white')}>
+                filtro === f ? 'bg-[#B6FF3A] border-[#B6FF3A] text-[#0A0A0F]' : 'border-white/10 text-[#8B8BA8] hover:text-[#0A0A0F]')}>
               {f === 'todos' ? 'Todos' : f === 'rrpp' ? 'RRPP' : f === 'empleado' ? 'Equipo' : f === 'gestor' ? 'Mi gestor' : 'Local'}
             </button>
           ))}
@@ -188,14 +188,14 @@ export default function MensajesPage() {
         <div className="space-y-2">
           {mostradas.map(c => (
             <div key={c.clave} className={cn('w-full flex items-center gap-2 rounded-2xl border px-3.5 py-3 transition-colors',
-              c.fijado ? 'border-[#E0455E]/25 bg-[#E0455E]/[0.04]' : 'border-white/[0.07] bg-white/[0.03] hover:border-white/15')}>
+              c.fijado ? 'border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.04]' : 'border-white/[0.07] bg-white/[0.03] hover:border-white/15')}>
               <button onClick={() => setAbierta(c)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
                 <div className={cn('w-11 h-11 rounded-2xl bg-gradient-to-br flex items-center justify-center shrink-0 text-white text-sm font-bold', AVATAR[c.tipo])}>
                   {iniciales(c.nombre)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    {c.fijado && <Pin size={12} className="text-[#E0455E] shrink-0" />}
+                    {c.fijado && <Pin size={12} className="text-[#B6FF3A] shrink-0" />}
                     <p className="text-sm font-semibold text-white truncate">{c.nombre}</p>
                     <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full border shrink-0', CHIP[c.tipo])}>{c.rol_label}</span>
                     {c.silenciado && <BellOff size={12} className="text-[#6B6B85] shrink-0" />}
@@ -208,7 +208,7 @@ export default function MensajesPage() {
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <span className="text-[11px] text-[#6B6B85]">{hora(c.ultimo_at)}</span>
                 {c.no_leidos > 0 && (
-                  <span className={cn('min-w-5 h-5 px-1.5 rounded-full text-white text-[11px] font-bold flex items-center justify-center', c.silenciado ? 'bg-white/15' : 'bg-[#E0455E]')}>
+                  <span className={cn('min-w-5 h-5 px-1.5 rounded-full text-[#0A0A0F] text-[11px] font-bold flex items-center justify-center', c.silenciado ? 'bg-white/15' : 'bg-[#B6FF3A]')}>
                     {c.no_leidos > 99 ? '99+' : c.no_leidos}
                   </span>
                 )}

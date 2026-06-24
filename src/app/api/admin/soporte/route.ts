@@ -5,7 +5,7 @@ import { getAdminAutenticado } from '@/lib/admin/auth'
 
 /**
  * GET /api/admin/soporte?estado=abierto
- * Cola global de tickets para el equipo de Rumbo. Une el nombre del local.
+ * Cola global de tickets para el equipo de TODH. Une el nombre del local.
  * Degrada a lista vacía si la migración 028 no está aplicada.
  */
 export async function GET(req: NextRequest) {

@@ -32,7 +32,7 @@ export function colorMesa(tipo: TipoMesa): { bg: string; border: string } {
     case 'reservado': return { bg: 'rgba(212,168,75,0.22)', border: '#D4A84B' }
     case 'barra':     return { bg: 'rgba(79,142,247,0.20)', border: '#4F8EF7' }
     case 'otro':      return { bg: 'rgba(124,124,160,0.18)', border: '#8B8BA8' }
-    default:          return { bg: 'rgba(233,69,96,0.18)', border: '#E94560' }
+    default:          return { bg: 'rgba(182, 255, 58,0.18)', border: '#B6FF3A' }
   }
 }
 
@@ -268,16 +268,16 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
         {plantas.map(p => (
           <div key={p.id} className={cn(
             'flex items-center rounded-xl border overflow-hidden',
-            p.id === plantaId ? 'border-[#E94560]/40 bg-[#E94560]/10' : 'border-white/10 bg-white/[0.03]'
+            p.id === plantaId ? 'border-[#B6FF3A]/40 bg-[#B6FF3A]/10' : 'border-white/10 bg-white/[0.03]'
           )}>
             <button onClick={() => { setPlantaId(p.id); setSelId(null) }}
-              className={cn('px-3 py-2 text-sm font-medium', p.id === plantaId ? 'text-[#E94560]' : 'text-[#B8B8CC]')}>
+              className={cn('px-3 py-2 text-sm font-medium', p.id === plantaId ? 'text-[#B6FF3A]' : 'text-[#B8B8CC]')}>
               {p.nombre}
             </button>
             {p.id === plantaId && (
               <>
                 <button onClick={() => renamePlanta(p)} className="px-2 py-2 text-[#8B8BA8] hover:text-white" aria-label="Renombrar"><Pencil size={13} /></button>
-                <button onClick={() => deletePlanta(p)} className="px-2 py-2 text-[#8B8BA8] hover:text-[#E94560]" aria-label="Eliminar"><Trash2 size={13} /></button>
+                <button onClick={() => deletePlanta(p)} className="px-2 py-2 text-[#8B8BA8] hover:text-[#B6FF3A]" aria-label="Eliminar"><Trash2 size={13} /></button>
               </>
             )}
           </div>
@@ -394,7 +394,7 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
                 <input
                   defaultValue={seleccionada.codigo}
                   onBlur={e => { const v = e.target.value.trim(); if (v && v !== seleccionada.codigo) guardarMesa({ codigo: v }) }}
-                  className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#E94560]/50"
+                  className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50"
                 />
               </label>
 
@@ -403,13 +403,13 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
                   <span className="text-xs text-[#8B8BA8]">Capacidad</span>
                   <input type="number" min={1} defaultValue={seleccionada.capacidad}
                     onBlur={e => { const v = parseInt(e.target.value, 10); if (v > 0 && v !== seleccionada.capacidad) guardarMesa({ capacidad: v }) }}
-                    className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#E94560]/50" />
+                    className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50" />
                 </label>
                 <label className="block">
                   <span className="text-xs text-[#8B8BA8]">Tipo</span>
                   <select value={seleccionada.tipo}
                     onChange={e => guardarMesa({ tipo: e.target.value as TipoMesa })}
-                    className="mt-1 w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#E94560]/50">
+                    className="mt-1 w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50">
                     {(Object.keys(TIPO_LABEL) as TipoMesa[]).map(t => <option key={t} value={t} className="bg-[#15152A]">{TIPO_LABEL[t]}</option>)}
                   </select>
                 </label>
@@ -419,7 +419,7 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
                 <span className="text-xs text-[#8B8BA8]">Forma</span>
                 <select value={seleccionada.forma}
                   onChange={e => guardarMesa({ forma: e.target.value as FormaMesa })}
-                  className="mt-1 w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#E94560]/50">
+                  className="mt-1 w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50">
                   {(Object.keys(FORMA_LABEL) as FormaMesa[]).map(f => <option key={f} value={f} className="bg-[#15152A]">{FORMA_LABEL[f]}</option>)}
                 </select>
               </label>
@@ -428,19 +428,19 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
                 <span className="text-xs text-[#8B8BA8]">Tamaño</span>
                 <input type="range" min={6} max={30} defaultValue={Math.round(seleccionada.ancho * 100)}
                   onChange={e => { const v = parseInt(e.target.value, 10) / 100; guardarMesa({ ancho: v, alto: seleccionada.forma === 'rect' ? seleccionada.alto : v }) }}
-                  className="mt-1 w-full accent-[#E94560]" />
+                  className="mt-1 w-full accent-[#B6FF3A]" />
               </label>
 
               <label className="flex items-center justify-between">
                 <span className="text-xs text-[#8B8BA8]">Reservable por usuarios</span>
                 <input type="checkbox" checked={seleccionada.reservable}
                   onChange={e => guardarMesa({ reservable: e.target.checked })}
-                  className="accent-[#E94560] w-4 h-4" />
+                  className="accent-[#B6FF3A] w-4 h-4" />
               </label>
 
               <button
                 onClick={() => deleteMesa(seleccionada)}
-                className="mt-1 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-[#E94560]/30 text-[#E94560] text-sm hover:bg-[#E94560]/10 transition-colors"
+                className="mt-1 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-[#B6FF3A]/30 text-[#B6FF3A] text-sm hover:bg-[#B6FF3A]/10 transition-colors"
               >
                 <Trash2 size={14} /> Eliminar mesa
               </button>

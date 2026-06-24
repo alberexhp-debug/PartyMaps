@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
             {(['7d', '30d', '90d'] as const).map(p => (
               <button key={p} onClick={() => setPeriodo(p)}
                 className={cn('px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
-                  periodo === p ? 'bg-[#E94560] text-white' : 'text-[#8B8BA8] hover:text-white')}>
+                  periodo === p ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'text-[#8B8BA8] hover:text-[#0A0A0F]')}>
                 {p}
               </button>
             ))}

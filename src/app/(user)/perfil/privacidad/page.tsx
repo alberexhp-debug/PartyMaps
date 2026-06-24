@@ -123,9 +123,9 @@ export default function PrivacidadPage() {
       )}
 
       {/* Eliminar cuenta */}
-      <div className="rounded-2xl border border-[#E94560]/25 bg-[#E94560]/[0.05] p-5 space-y-3">
+      <div className="rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.05] p-5 space-y-3">
         <div className="flex items-center gap-2">
-          <Trash2 size={18} className="text-[#E94560]" />
+          <Trash2 size={18} className="text-[#B6FF3A]" />
           <h2 className="font-semibold text-white">Eliminar mi cuenta</h2>
         </div>
         <p className="text-sm text-[#A0A0B8]">
@@ -137,9 +137,9 @@ export default function PrivacidadPage() {
             <Trash2 size={16} /> Eliminar mi cuenta
           </Button>
         ) : (
-          <div className="rounded-xl border border-[#E94560]/40 bg-[#E94560]/10 p-4 space-y-3">
+          <div className="rounded-xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/10 p-4 space-y-3">
             <div className="flex items-start gap-2">
-              <AlertTriangle size={16} className="text-[#E94560] mt-0.5 shrink-0" />
+              <AlertTriangle size={16} className="text-[#B6FF3A] mt-0.5 shrink-0" />
               <p className="text-sm text-white">¿Seguro? Esta acción no se puede deshacer.</p>
             </div>
             <div className="flex gap-2">

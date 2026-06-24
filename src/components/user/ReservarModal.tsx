@@ -74,7 +74,7 @@ export function ReservarModal({ local, usuario, onClose, onReservado }: Props) {
       <div className="w-full bg-[#0E0E1A] rounded-t-3xl max-h-[92vh] overflow-y-auto">
         <div className="sticky top-0 bg-[#0E0E1A] flex items-center justify-between px-6 pt-5 pb-3 z-10">
           <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2"><Sofa size={18} className="text-[#E94560]" /> Reservar</h2>
+            <h2 className="text-lg font-bold text-white flex items-center gap-2"><Sofa size={18} className="text-[#B6FF3A]" /> Reservar</h2>
             <p className="text-xs text-[#8B8BA8] mt-0.5">{local.nombre} · esta noche</p>
           </div>
           <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
@@ -93,7 +93,7 @@ export function ReservarModal({ local, usuario, onClose, onReservado }: Props) {
                   {plantas.map(p => (
                     <button key={p.id} onClick={() => { setPlantaId(p.id); setMesaId(null) }}
                       className={cn('px-3 py-1.5 rounded-lg text-sm border',
-                        p.id === plantaId ? 'border-[#E94560]/40 bg-[#E94560]/10 text-[#E94560]' : 'border-white/10 text-[#B8B8CC]')}>
+                        p.id === plantaId ? 'border-[#B6FF3A]/40 bg-[#B6FF3A]/10 text-[#B6FF3A]' : 'border-white/10 text-[#B8B8CC]')}>
                       {p.nombre}
                     </button>
                   ))}
@@ -119,9 +119,9 @@ export function ReservarModal({ local, usuario, onClose, onReservado }: Props) {
                         left: `${m.pos_x * 100}%`, top: `${m.pos_y * 100}%`,
                         width: `${m.ancho * 100}%`, height: `${m.alto * 100}%`,
                         transform: 'translate(-50%, -50%)',
-                        background: sel ? 'rgba(233,69,96,0.30)' : 'rgba(255,255,255,0.06)',
-                        border: `2px solid ${sel ? '#E94560' : 'rgba(255,255,255,0.25)'}`,
-                        boxShadow: sel ? '0 0 14px rgba(233,69,96,0.6)' : 'none',
+                        background: sel ? 'rgba(182, 255, 58,0.30)' : 'rgba(255,255,255,0.06)',
+                        border: `2px solid ${sel ? '#B6FF3A' : 'rgba(255,255,255,0.25)'}`,
+                        boxShadow: sel ? '0 0 14px rgba(182, 255, 58,0.6)' : 'none',
                       }}
                     >
                       <span className="text-[10px] font-bold text-white leading-none">{m.codigo}</span>
@@ -136,7 +136,7 @@ export function ReservarModal({ local, usuario, onClose, onReservado }: Props) {
 
               {mesaSel && (
                 <p className="text-sm text-white flex items-center gap-2">
-                  <Sofa size={14} className="text-[#E94560]" /> {mesaSel.codigo} · hasta {mesaSel.capacidad} personas
+                  <Sofa size={14} className="text-[#B6FF3A]" /> {mesaSel.codigo} · hasta {mesaSel.capacidad} personas
                 </p>
               )}
 
@@ -148,27 +148,27 @@ export function ReservarModal({ local, usuario, onClose, onReservado }: Props) {
                     <Users size={15} className="text-[#6B6B85]" />
                     <input type="number" min={1} value={personas}
                       onChange={e => setPersonas(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#E94560]/50" />
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50" />
                   </div>
                 </label>
                 <label className="block">
                   <span className="text-xs text-[#8B8BA8]">Teléfono (opcional)</span>
                   <input value={telefono} onChange={e => setTelefono(e.target.value)} inputMode="tel"
-                    className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#E94560]/50" />
+                    className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50" />
                 </label>
               </div>
 
               <label className="block">
                 <span className="text-xs text-[#8B8BA8]">Nombre de contacto</span>
                 <input value={nombre} onChange={e => setNombre(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#E94560]/50" />
+                  className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50" />
               </label>
 
               <label className="block">
                 <span className="text-xs text-[#8B8BA8]">Notas (opcional)</span>
                 <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={2} maxLength={300}
                   placeholder="Ej: cumpleaños, preferencia de zona…"
-                  className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]" />
+                  className="mt-1 w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50 resize-none placeholder:text-[#6B6B85]" />
               </label>
 
               <p className="text-xs text-[#6B6B85]">Tu solicitud quedará pendiente hasta que el local la confirme.</p>

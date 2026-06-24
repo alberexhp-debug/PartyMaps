@@ -144,7 +144,7 @@ export default function RegistroPage() {
     }
     if (step === 'nacimiento') {
       if (!form.fecha_nacimiento) errs.fecha_nacimiento = 'Introduce tu fecha de nacimiento'
-      else if (calcularEdad(form.fecha_nacimiento) < 18) errs.fecha_nacimiento = 'Debes tener 18 años o más para usar Rumbo'
+      else if (calcularEdad(form.fecha_nacimiento) < 18) errs.fecha_nacimiento = 'Debes tener 18 años o más para usar TODH'
     }
     if (step === 'terminos') {
       if (!form.aceptar_terminos) errs.terminos = 'Debes aceptar los términos para continuar'
@@ -207,7 +207,7 @@ export default function RegistroPage() {
     if (error) {
       toast.error('Error al crear la cuenta. Inténtalo de nuevo.')
     } else {
-      toast.success('¡Cuenta creada! Bienvenido/a a Rumbo')
+      toast.success('¡Cuenta creada! Bienvenido/a a TODH')
       router.push('/mapa')
     }
     setLoading(false)
@@ -227,7 +227,7 @@ export default function RegistroPage() {
 
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden">
-      <div className="absolute top-0 -right-32 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none bg-[#E94560]/30" />
+      <div className="absolute top-0 -right-32 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none bg-[#B6FF3A]/30" />
       <div className="absolute bottom-0 -left-32 w-96 h-96 rounded-full opacity-15 blur-3xl pointer-events-none bg-[#7C5CFF]/25" />
 
       {/* Header */}
@@ -237,7 +237,7 @@ export default function RegistroPage() {
             <ChevronLeft size={22} />
           </Link>
           <div className="w-10 h-10 rounded-xl holo-bg flex items-center justify-center shadow-[0_4px_14px_-4px_rgba(124,92,255,0.6)]">
-            <span className="text-sm font-black text-white">R</span>
+            <span className="text-sm font-black text-white">T</span>
           </div>
         </div>
       ) : (
@@ -248,10 +248,10 @@ export default function RegistroPage() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[10px] font-bold text-[#A0A0B8] uppercase tracking-[0.2em]">Paso {stepIndex + 1} de {STEPS.length}</span>
-              <span className="text-[10px] font-bold text-[#E94560] tracking-wider">{Math.round(progreso)}%</span>
+              <span className="text-[10px] font-bold text-[#B6FF3A] tracking-wider">{Math.round(progreso)}%</span>
             </div>
             <div className="h-1 bg-white/8 rounded-full overflow-hidden">
-              <div className="h-full bg-[#E94560] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(233,69,96,0.6)]" style={{ width: `${progreso}%` }} />
+              <div className="h-full bg-[#B6FF3A] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(182, 255, 58,0.6)]" style={{ width: `${progreso}%` }} />
             </div>
           </div>
         </div>
@@ -323,7 +323,7 @@ export default function RegistroPage() {
                 hint={refInfo ? undefined : '¿Te invitó un RRPP? Pon su código.'}
               />
               {refInfo && (
-                <p className={`mt-1 text-xs ${refInfo.valido ? 'text-emerald-400' : 'text-[#E94560]'}`}>
+                <p className={`mt-1 text-xs ${refInfo.valido ? 'text-emerald-400' : 'text-[#B6FF3A]'}`}>
                   {refInfo.valido ? `✓ Te invita ${refInfo.nombre}` : 'Ese código de referido no existe'}
                 </p>
               )}
@@ -343,7 +343,7 @@ export default function RegistroPage() {
 
             <p className="text-center text-sm text-[#6B6B85]">
               ¿Ya tienes cuenta?{' '}
-              <Link href="/login" className="text-[#E94560] font-semibold">Inicia sesión</Link>
+              <Link href="/login" className="text-[#B6FF3A] font-semibold">Inicia sesión</Link>
             </p>
           </div>
         )}
@@ -351,7 +351,7 @@ export default function RegistroPage() {
         {/* Confirmación de correo enviada */}
         {step === 'metodo' && correoEnviado && (
           <div className="space-y-6 max-w-md mx-auto w-full text-center pt-10">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E94560]/12 text-[#E94560] border border-[#E94560]/25">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#B6FF3A]/12 text-[#B6FF3A] border border-[#B6FF3A]/25">
               <MailCheck size={30} />
             </div>
             <div>
@@ -404,7 +404,7 @@ export default function RegistroPage() {
             </Button>
             <p className="text-center text-sm text-[#6B6B85]">
               ¿Ya tienes cuenta?{' '}
-              <Link href="/login" className="text-[#E94560]">Inicia sesión</Link>
+              <Link href="/login" className="text-[#B6FF3A]">Inicia sesión</Link>
             </p>
           </div>
         )}
@@ -483,8 +483,8 @@ export default function RegistroPage() {
               max={new Date().toISOString().split('T')[0]}
             />
             {errores.fecha_nacimiento?.includes('18') && (
-              <div className="bg-[#E94560]/10 border border-[#E94560]/30 rounded-xl p-4 text-sm text-[#E94560]">
-                Rumbo es solo para mayores de 18 años.
+              <div className="bg-[#B6FF3A]/10 border border-[#B6FF3A]/30 rounded-xl p-4 text-sm text-[#B6FF3A]">
+                TODH es solo para mayores de 18 años.
               </div>
             )}
           </div>
@@ -548,20 +548,20 @@ export default function RegistroPage() {
                 onClick={() => setForm(f => ({ ...f, aceptar_terminos: !f.aceptar_terminos }))}
                 className={cn(
                   'w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors',
-                  form.aceptar_terminos ? 'bg-[#E94560] border-[#E94560]' : 'border-white/10'
+                  form.aceptar_terminos ? 'bg-[#B6FF3A] border-[#B6FF3A]' : 'border-white/10'
                 )}
               >
                 {form.aceptar_terminos && <Check size={14} className="text-white" />}
               </div>
               <p className="text-sm text-[#A0A0B8]">
                 He leído y acepto los{' '}
-                <Link href="/terminos" className="text-[#E94560]">Términos de uso</Link>
+                <Link href="/terminos" className="text-[#B6FF3A]">Términos de uso</Link>
                 {' '}y la{' '}
-                <Link href="/privacidad" className="text-[#E94560]">Política de privacidad</Link>
+                <Link href="/privacidad" className="text-[#B6FF3A]">Política de privacidad</Link>
                 . Confirmo que tengo 18 años o más.
               </p>
             </label>
-            {errores.terminos && <p className="text-sm text-[#E94560]">{errores.terminos}</p>}
+            {errores.terminos && <p className="text-sm text-[#B6FF3A]">{errores.terminos}</p>}
           </div>
         )}
       </div>

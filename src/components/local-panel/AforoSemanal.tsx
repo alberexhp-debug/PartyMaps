@@ -48,8 +48,8 @@ export function AforoSemanal({ local, onSaved }: { local: Local; onSaved?: (l: L
   return (
     <div className="space-y-4">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#E0455E]/10 border border-[#E0455E]/20 flex items-center justify-center shrink-0">
-          <Gauge size={18} className="text-[#E0455E]" />
+        <div className="w-10 h-10 rounded-xl bg-[#B6FF3A]/10 border border-[#B6FF3A]/20 flex items-center justify-center shrink-0">
+          <Gauge size={18} className="text-[#B6FF3A]" />
         </div>
         <div>
           <h2 className="font-semibold text-white text-sm">Cuán lleno se muestra tu local</h2>
@@ -68,12 +68,12 @@ export function AforoSemanal({ local, onSaved }: { local: Local; onSaved?: (l: L
           return (
             <div key={key} className={cn(
               'rounded-2xl p-3 border transition-colors',
-              esHoy ? 'bg-white/[0.05] border-[#E0455E]/25' : 'bg-white/[0.03] border-white/[0.07]',
+              esHoy ? 'bg-white/[0.05] border-[#B6FF3A]/25' : 'bg-white/[0.03] border-white/[0.07]',
             )}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-white flex items-center gap-2">
                   {label}
-                  {esHoy && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E0455E]/15 text-[#E0455E] font-bold uppercase tracking-wide">Hoy</span>}
+                  {esHoy && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#B6FF3A]/15 text-[#B6FF3A] font-bold uppercase tracking-wide">Hoy</span>}
                 </span>
                 <span className="text-sm font-bold text-numeric flex items-center gap-1.5" style={{ color }}>
                   <span className="w-2 h-2 rounded-full" style={{ background: color }} />
@@ -83,7 +83,7 @@ export function AforoSemanal({ local, onSaved }: { local: Local; onSaved?: (l: L
               <input
                 type="range" min={0} max={100} step={5} value={v}
                 onChange={e => set(key, Number(e.target.value))}
-                className="w-full accent-[#E0455E]"
+                className="w-full accent-[#B6FF3A]"
                 aria-label={`Aforo ${label}`}
               />
             </div>

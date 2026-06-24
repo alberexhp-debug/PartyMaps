@@ -73,11 +73,11 @@ export function PWAInstallPrompt() {
       <div className="fixed inset-x-0 bottom-24 z-40 px-4 animate-in slide-in-from-bottom">
         <div className="glass rounded-2xl p-4 shadow-2xl">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-[#E94560]/20 rounded-xl flex items-center justify-center shrink-0">
-              <Download size={20} className="text-[#E94560]" />
+            <div className="w-10 h-10 bg-[#B6FF3A]/20 rounded-xl flex items-center justify-center shrink-0">
+              <Download size={20} className="text-[#B6FF3A]" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-white text-sm">Instala Rumbo</p>
+              <p className="font-semibold text-white text-sm">Instala TODH</p>
               <p className="text-xs text-[#A0A0B8] mt-0.5">
                 Acceso rápido desde tu pantalla de inicio y notificaciones.
               </p>
@@ -108,7 +108,7 @@ export function PWAInstallPrompt() {
               <Share size={20} className="text-[#4F8EF7]" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-white text-sm">Añade Rumbo a tu pantalla</p>
+              <p className="font-semibold text-white text-sm">Añade TODH a tu pantalla</p>
               <p className="text-xs text-[#A0A0B8] mt-1 leading-relaxed">
                 Pulsa <Share size={11} className="inline mb-0.5" /> abajo en Safari y luego{' '}
                 <span className="inline-flex items-center gap-1">
@@ -116,7 +116,7 @@ export function PWAInstallPrompt() {
                 </span>.
                 Las notificaciones solo funcionan instalada.
               </p>
-              <button onClick={dismiss} className="text-xs text-[#E94560] mt-3">
+              <button onClick={dismiss} className="text-xs text-[#B6FF3A] mt-3">
                 Entendido
               </button>
             </div>

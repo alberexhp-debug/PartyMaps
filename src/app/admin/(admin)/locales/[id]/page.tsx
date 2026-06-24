@@ -207,7 +207,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
             <ArrowLeft size={16} className="text-white" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.2em]">Editar local</p>
+            <p className="text-[10px] font-bold text-[#B6FF3A] uppercase tracking-[0.2em]">Editar local</p>
             <h1 className="text-base font-bold text-white truncate">{local.nombre}</h1>
           </div>
           <Button size="sm" loading={saving} onClick={guardar}>
@@ -251,7 +251,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                 {TIPOS_LOCAL.map(t => (
                   <button key={t} onClick={() => setTipoLocal(t)}
                     className={cn('px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors',
-                      tipoLocal === t ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-white/10 text-[#8B8BA8] hover:border-white/20')}>
+                      tipoLocal === t ? 'bg-[#B6FF3A] border-[#B6FF3A] text-[#0A0A0F]' : 'border-white/10 text-[#8B8BA8] hover:border-white/20')}>
                     {getLabelTipoLocal(t)}
                   </button>
                 ))}
@@ -321,7 +321,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                     <div className="flex items-center gap-3">
                       <button onClick={() => toggleDia(dia)}
                         className={cn('w-5 h-5 rounded-md border flex items-center justify-center transition-colors shrink-0',
-                          abierto ? 'bg-[#E94560] border-[#E94560]' : 'border-white/20')}>
+                          abierto ? 'bg-[#B6FF3A] border-[#B6FF3A]' : 'border-white/20')}>
                         {abierto && <Check size={11} className="text-white" />}
                       </button>
                       <span className="text-sm font-semibold text-white w-8">{LABEL_DIA[dia]}</span>
@@ -360,7 +360,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                     </button>
                   </div>
                   {i === 0 && (
-                    <span className="absolute top-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 bg-[#E94560] rounded-md text-white">
+                    <span className="absolute top-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 bg-[#B6FF3A] rounded-md text-[#0A0A0F]">
                       Principal
                     </span>
                   )}
@@ -464,9 +464,9 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                   <button key={t} onClick={() => setTier(t)}
                     className={cn(
                       'p-3 rounded-xl border text-left transition-colors',
-                      tier === t ? 'border-[#E94560] bg-[#E94560]/10' : 'border-white/10 hover:border-white/20',
+                      tier === t ? 'border-[#B6FF3A] bg-[#B6FF3A]/10' : 'border-white/10 hover:border-white/20',
                     )}>
-                    <p className={cn('text-sm font-bold capitalize', tier === t ? 'text-[#E94560]' : 'text-white')}>{t}</p>
+                    <p className={cn('text-sm font-bold capitalize', tier === t ? 'text-[#B6FF3A]' : 'text-white')}>{t}</p>
                     <p className="text-[11px] text-[#6B6B85] mt-0.5">
                       {t === 'visibility' ? 'Gratis, sin venta' :
                        t === 'venta' ? 'Gratis, comisión 4%' :
@@ -483,7 +483,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                 {([
                   { v: 'activo', label: 'Activo', desc: 'Visible y operativo en la app', color: '#27AE60' },
                   { v: 'pendiente_verificacion', label: 'Pendiente', desc: 'Esperando verificación', color: '#F39C12' },
-                  { v: 'suspendido', label: 'Suspendido', desc: 'No visible para usuarios', color: '#E94560' },
+                  { v: 'suspendido', label: 'Suspendido', desc: 'No visible para usuarios', color: '#B6FF3A' },
                 ] as const).map(({ v, label, desc, color }) => {
                   // §5.4 — suspender no visible para 'soporte' (acción destructiva).
                   const bloqueado = v === 'suspendido' && !puedePoder

@@ -34,7 +34,7 @@ export function ModalTeFaltaPoco({
         <div className="mt-3 space-y-2">
           {faltantes.map(f => (
             <div key={f.id} className="flex items-center gap-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] px-3 py-2.5">
-              <span className="w-4 h-4 rounded-full border-2 border-[#E0455E] shrink-0" />
+              <span className="w-4 h-4 rounded-full border-2 border-[#B6FF3A] shrink-0" />
               <span className="flex-1 text-sm text-white">{f.titulo}</span>
               <Badge variant="default" size="sm">{f.tiempo}</Badge>
             </div>

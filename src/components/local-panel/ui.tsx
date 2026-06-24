@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 type AcentoColor = 'rose' | 'blue' | 'violet' | 'gold' | 'green' | 'neutral'
 
 export const ACENTO: Record<AcentoColor, string> = {
-  rose: '#E0455E',
+  rose: '#B6FF3A',
   blue: '#4F8EF7',
   violet: '#7C5CFF',
   gold: '#D4A84B',

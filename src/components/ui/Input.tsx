@@ -24,11 +24,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
           ref={ref}
           className={cn(
             'w-full h-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-[#6B6B85] transition-all',
-            'focus:border-[#E94560]/60 focus:bg-white/8 focus:ring-2 focus:ring-[#E94560]/20',
+            'focus:border-[#B6FF3A]/60 focus:bg-white/8 focus:ring-2 focus:ring-[#B6FF3A]/20',
             'hover:border-white/15',
             icon ? 'pl-11' : 'pl-4',
             iconRight ? 'pr-11' : 'pr-4',
-            error && 'border-[#E94560]/60 focus:border-[#E94560] focus:ring-[#E94560]/30',
+            error && 'border-[#B6FF3A]/60 focus:border-[#B6FF3A] focus:ring-[#B6FF3A]/30',
             className
           )}
           {...props}
@@ -38,7 +38,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
         )}
       </div>
       {hint && !error && <p className="text-xs text-[#6B6B85]">{hint}</p>}
-      {error && <p className="text-sm text-[#E94560]">{error}</p>}
+      {error && <p className="text-sm text-[#B6FF3A]">{error}</p>}
     </div>
   )
 })

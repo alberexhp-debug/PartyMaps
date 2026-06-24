@@ -206,7 +206,7 @@ export default function ProductosLocalPage() {
                   <button
                     onClick={() => eliminar(p)}
                     aria-label="Eliminar"
-                    className="w-8 h-8 rounded-lg bg-[#E94560]/10 border border-[#E94560]/30 flex items-center justify-center text-[#E94560] hover:bg-[#E94560]/20"
+                    className="w-8 h-8 rounded-lg bg-[#B6FF3A]/10 border border-[#B6FF3A]/30 flex items-center justify-center text-[#B6FF3A] hover:bg-[#B6FF3A]/20"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -240,7 +240,7 @@ export default function ProductosLocalPage() {
                 onChange={e => setEditando({ ...editando, descripcion: e.target.value.slice(0, 240) })}
                 placeholder="Ginebra premium con tónica…"
                 rows={2}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#8B8BA8] focus:border-[#E94560]/60 outline-none resize-none"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#8B8BA8] focus:border-[#B6FF3A]/60 outline-none resize-none"
               />
             </div>
 
@@ -250,7 +250,7 @@ export default function ProductosLocalPage() {
                 <select
                   value={editando.categoria}
                   onChange={e => setEditando({ ...editando, categoria: e.target.value as CategoriaProducto })}
-                  className="w-full h-11 bg-white/5 border border-white/10 rounded-xl text-white px-3 text-sm outline-none focus:border-[#E94560]/60"
+                  className="w-full h-11 bg-white/5 border border-white/10 rounded-xl text-white px-3 text-sm outline-none focus:border-[#B6FF3A]/60"
                 >
                   {CATEGORIAS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
@@ -317,7 +317,7 @@ function ToggleRow({ label, hint, value, onChange }: {
         aria-pressed={value}
         className={cn(
           'w-11 h-6 rounded-full transition-colors relative shrink-0',
-          value ? 'bg-[#E94560]' : 'bg-white/15'
+          value ? 'bg-[#B6FF3A]' : 'bg-white/15'
         )}
       >
         <span className={cn(

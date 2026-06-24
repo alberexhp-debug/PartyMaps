@@ -82,7 +82,7 @@ export default function SugerenciasPage() {
             onClick={() => setFiltro(f)}
             className={cn(
               'shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
-              filtro === f ? 'bg-[#E94560] text-white' : 'bg-white/6 text-[#A0A0B8] border border-white/10'
+              filtro === f ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'bg-white/6 text-[#A0A0B8] border border-white/10'
             )}
           >
             {f === 'todas' ? 'Todas' : f === 'nueva' ? `Nuevas (${counts.nueva})` : f === 'leida' ? 'Leídas' : 'Respondidas'}
@@ -103,10 +103,10 @@ export default function SugerenciasPage() {
           {filtradas.map(s => (
             <div key={s.id} className={cn(
               'bg-white/6 rounded-2xl border p-4 space-y-3 transition-all',
-              s.estado === 'nueva' ? 'border-[#E94560]/30' : 'border-white/10'
+              s.estado === 'nueva' ? 'border-[#B6FF3A]/30' : 'border-white/10'
             )}>
               <div className="flex items-start gap-3">
-                <div className={cn('mt-0.5 shrink-0', s.estado === 'nueva' ? 'text-[#E94560]' : s.estado === 'respondida' ? 'text-green-400' : 'text-[#6B6B85]')}>
+                <div className={cn('mt-0.5 shrink-0', s.estado === 'nueva' ? 'text-[#B6FF3A]' : s.estado === 'respondida' ? 'text-green-400' : 'text-[#6B6B85]')}>
                   {s.estado === 'respondida' ? <CheckCircle2 size={16} /> : s.estado === 'nueva' ? <MessageSquare size={16} /> : <Eye size={16} />}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -114,7 +114,7 @@ export default function SugerenciasPage() {
                     <p className="text-sm font-semibold text-white">{s.usuarios?.nombre || 'Usuario anónimo'}</p>
                     <span className="text-xs text-[#6B6B85]">{tiempoRelativo(s.created_at)}</span>
                     {s.estado === 'nueva' && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-[#E94560]/10 border border-[#E94560]/30 rounded-full text-[#E94560] font-semibold">Nueva</span>
+                      <span className="text-[10px] px-1.5 py-0.5 bg-[#B6FF3A]/10 border border-[#B6FF3A]/30 rounded-full text-[#B6FF3A] font-semibold">Nueva</span>
                     )}
                   </div>
                   <p className="text-sm text-[#A0A0B8]">{s.contenido}</p>
@@ -149,7 +149,7 @@ export default function SugerenciasPage() {
                     onChange={e => setNotas(n => ({ ...n, [s.id]: e.target.value }))}
                     placeholder="Nota interna (solo la ve el equipo)..."
                     rows={3}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50 resize-none placeholder:text-[#6B6B85]"
                   />
                   <Button size="sm" onClick={() => guardarNota(s.id)}>
                     Guardar nota

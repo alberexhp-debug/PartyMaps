@@ -5,7 +5,7 @@ import { getMiembroGrupoAutenticado } from '@/lib/grupo/auth'
 
 /** Contraseña temporal legible para entregar al manager. */
 function passwordTemporal(): string {
-  const palabras = ['Rumbo', 'Grupo', 'Noche', 'Madrid', 'Vibe', 'Neon']
+  const palabras = ['TODH', 'Grupo', 'Noche', 'Madrid', 'Vibe', 'Neon']
   const p = palabras[Math.floor(Math.random() * palabras.length)]
   const n = Math.floor(1000 + Math.random() * 9000)
   return `${p}${n}!`

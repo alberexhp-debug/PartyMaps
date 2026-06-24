@@ -39,16 +39,16 @@ export function AvisoEstadoLocal() {
         <Clock size={17} className="mt-0.5 shrink-0 text-[#F39C12]" />
         <p className="text-xs leading-relaxed text-[#E7CB86] sm:text-sm">
           <span className="font-semibold text-white">Tu local está en revisión.</span>{' '}
-          Aún no es visible en el mapa. El equipo de Rumbo lo revisa y lo activa en 24-48&nbsp;h; te avisaremos al aprobarlo. Mientras tanto, puedes ir dejando tu perfil a punto.
+          Aún no es visible en el mapa. El equipo de TODH lo revisa y lo activa en 24-48&nbsp;h; te avisaremos al aprobarlo. Mientras tanto, puedes ir dejando tu perfil a punto.
         </p>
       </div>
     )
   }
   if (estado === 'suspendido') {
     return (
-      <div className="sticky top-0 z-30 flex items-start gap-3 border-b border-[#E0455E]/30 bg-[#E0455E]/[0.09] px-4 py-2.5 backdrop-blur-md">
-        <ShieldAlert size={17} className="mt-0.5 shrink-0 text-[#E0455E]" />
-        <p className="text-xs leading-relaxed text-[#F3B0BA] sm:text-sm">
+      <div className="sticky top-0 z-30 flex items-start gap-3 border-b border-[#B6FF3A]/30 bg-[#B6FF3A]/[0.09] px-4 py-2.5 backdrop-blur-md">
+        <ShieldAlert size={17} className="mt-0.5 shrink-0 text-[#B6FF3A]" />
+        <p className="text-xs leading-relaxed text-[#D9FF9E] sm:text-sm">
           <span className="font-semibold text-white">Tu cuenta está suspendida.</span>{' '}
           Tu local no es visible ahora mismo. Escríbenos desde Soporte para reactivarla.
         </p>

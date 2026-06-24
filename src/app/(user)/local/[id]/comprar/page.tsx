@@ -133,7 +133,7 @@ export default function ComprarEntradaPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setPaso('exito')
-      // Celebración con confeti en la paleta Rumbo
+      // Celebración con confeti en la paleta TODH
       const { dispararConfetiCompra } = await import('@/lib/confeti')
       dispararConfetiCompra()
     } catch (e: unknown) {
@@ -146,7 +146,7 @@ export default function ComprarEntradaPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#E94560] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#B6FF3A] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -251,14 +251,14 @@ export default function ComprarEntradaPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setCantidad(Math.max(1, cantidad - 1))}
-                className="w-8 h-8 rounded-full border border-white/10 text-white flex items-center justify-center hover:border-[#E94560]/50"
+                className="w-8 h-8 rounded-full border border-white/10 text-white flex items-center justify-center hover:border-[#B6FF3A]/50"
               >
                 −
               </button>
               <span className="text-white font-bold w-4 text-center">{cantidad}</span>
               <button
                 onClick={() => setCantidad(Math.min(10, cantidad + 1))}
-                className="w-8 h-8 rounded-full border border-white/10 text-white flex items-center justify-center hover:border-[#E94560]/50"
+                className="w-8 h-8 rounded-full border border-white/10 text-white flex items-center justify-center hover:border-[#B6FF3A]/50"
               >
                 +
               </button>
@@ -276,12 +276,12 @@ export default function ComprarEntradaPage() {
                 className={cn(
                   'w-full flex items-center justify-between p-3 rounded-xl border transition-colors',
                   !consumicionSeleccionada
-                    ? 'border-[#E94560] bg-[#E94560]/10'
+                    ? 'border-[#B6FF3A] bg-[#B6FF3A]/10'
                     : 'border-white/10 bg-white/5'
                 )}
               >
                 <span className="text-sm text-white">Sin consumición</span>
-                {!consumicionSeleccionada && <Check size={16} className="text-[#E94560]" />}
+                {!consumicionSeleccionada && <Check size={16} className="text-[#B6FF3A]" />}
               </button>
               {local.consumiciones_bienvenida.map(c => (
                 <button
@@ -290,7 +290,7 @@ export default function ComprarEntradaPage() {
                   className={cn(
                     'w-full flex items-center justify-between p-3 rounded-xl border transition-colors',
                     consumicionSeleccionada?.id === c.id
-                      ? 'border-[#E94560] bg-[#E94560]/10'
+                      ? 'border-[#B6FF3A] bg-[#B6FF3A]/10'
                       : 'border-white/10 bg-white/5'
                   )}
                 >
@@ -299,8 +299,8 @@ export default function ComprarEntradaPage() {
                     <p className="text-xs text-[#6B6B85]">{c.descripcion}</p>
                   </div>
                   <div className="flex items-center gap-2 ml-3 shrink-0">
-                    <span className="text-sm text-[#E94560] font-semibold">+{formatearPrecio(c.precio)}</span>
-                    {consumicionSeleccionada?.id === c.id && <Check size={16} className="text-[#E94560]" />}
+                    <span className="text-sm text-[#B6FF3A] font-semibold">+{formatearPrecio(c.precio)}</span>
+                    {consumicionSeleccionada?.id === c.id && <Check size={16} className="text-[#B6FF3A]" />}
                   </div>
                 </button>
               ))}
@@ -361,7 +361,7 @@ export default function ComprarEntradaPage() {
           </div>
           <div className="pt-2 border-t border-white/10 flex justify-between">
             <span className="font-bold text-white">Total</span>
-            <span className="font-bold text-[#E94560] text-lg">{formatearPrecio(total)}</span>
+            <span className="font-bold text-[#B6FF3A] text-lg">{formatearPrecio(total)}</span>
           </div>
         </div>
 
@@ -378,7 +378,7 @@ export default function ComprarEntradaPage() {
         <button type="button" onClick={() => setAceptaMarketing(v => !v)}
           className="w-full flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left">
           <span className={cn('mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors',
-            aceptaMarketing ? 'border-[#E0455E] bg-[#E0455E] text-white' : 'border-[#2A2A3E]')}>
+            aceptaMarketing ? 'border-[#B6FF3A] bg-[#B6FF3A] text-[#0A0A0F]' : 'border-[#2A2A3E]')}>
             {aceptaMarketing && <Check size={13} />}
           </span>
           <span>

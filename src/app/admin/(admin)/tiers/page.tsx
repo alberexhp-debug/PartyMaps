@@ -62,7 +62,7 @@ export default function AdminTiersPage() {
     visibility: '#8B8BA8',
     venta: '#4F8EF7',
     basico: '#4F8EF7',     // legacy → mismo color que venta
-    pro: '#E94560',
+    pro: '#B6FF3A',
     destacado: '#D4A84B',
   }
 

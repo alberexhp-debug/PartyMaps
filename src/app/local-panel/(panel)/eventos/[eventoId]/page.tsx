@@ -142,7 +142,7 @@ export default function EventoEditPage() {
           value={form.descripcion || ''}
           onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
           rows={3}
-          className="w-full px-4 py-3 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none"
+          className="w-full px-4 py-3 glass rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50 resize-none"
           placeholder="Describe el evento..."
         />
       </div>
@@ -153,7 +153,7 @@ export default function EventoEditPage() {
           <input type="datetime-local"
             value={form.fecha_inicio ? form.fecha_inicio.slice(0, 16) : ''}
             onChange={e => setForm(f => ({ ...f, fecha_inicio: new Date(e.target.value).toISOString() }))}
-            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50"
           />
         </div>
         <div className="space-y-1.5">
@@ -161,7 +161,7 @@ export default function EventoEditPage() {
           <input type="datetime-local"
             value={form.fecha_fin ? form.fecha_fin.slice(0, 16) : ''}
             onChange={e => setForm(f => ({ ...f, fecha_fin: new Date(e.target.value).toISOString() }))}
-            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50"
           />
         </div>
       </div>
@@ -172,7 +172,7 @@ export default function EventoEditPage() {
           <input type="number" min="0" step="0.5"
             value={form.precio_base || 0}
             onChange={e => setForm(f => ({ ...f, precio_base: parseFloat(e.target.value) }))}
-            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50"
           />
         </div>
         <div className="space-y-1.5">
@@ -180,7 +180,7 @@ export default function EventoEditPage() {
           <input type="number" min="0" step="0.5"
             value={form.precio_maximo ?? ''}
             onChange={e => setForm(f => ({ ...f, precio_maximo: e.target.value === '' ? undefined : parseFloat(e.target.value) }))}
-            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50"
             placeholder="Sin tope"
           />
         </div>
@@ -189,7 +189,7 @@ export default function EventoEditPage() {
           <input type="number" min="1"
             value={form.aforo_maximo || 200}
             onChange={e => setForm(f => ({ ...f, aforo_maximo: parseInt(e.target.value) }))}
-            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-3 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50"
           />
         </div>
       </div>
@@ -241,7 +241,7 @@ export default function EventoEditPage() {
       <div className="glass rounded-xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Coffee size={14} className="text-[#E0455E]" /> Consumiciones incluidas
+            <Coffee size={14} className="text-[#B6FF3A]" /> Consumiciones incluidas
           </h3>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setForm(f => ({ ...f, consumiciones_incluidas: Math.max(0, (f.consumiciones_incluidas ?? 0) - 1) }))}
@@ -257,7 +257,7 @@ export default function EventoEditPage() {
           <>
             <input value={form.consumiciones_descripcion || ''} onChange={e => setForm(f => ({ ...f, consumiciones_descripcion: e.target.value.slice(0, 120) }))}
               placeholder="Qué incluye (ej. cubata, copa o refresco)"
-              className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E0455E]/50" />
+              className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50" />
             <p className="text-[11px] text-[#8B8BA8]">Quien compre esta entrada online la llevará en su QR; se canjean en barra una a una.</p>
           </>
         )}

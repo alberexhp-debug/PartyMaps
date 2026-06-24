@@ -83,7 +83,7 @@ export default function GestorRrppPage() {
             <div className="relative">
               <Store size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B6B85]" />
               <select value={localId} onChange={e => setLocalId(e.target.value)}
-                className="h-12 w-full appearance-none rounded-xl border border-white/10 bg-white/5 pl-11 pr-10 text-white outline-none focus:border-[#E94560]/60">
+                className="h-12 w-full appearance-none rounded-xl border border-white/10 bg-white/5 pl-11 pr-10 text-white outline-none focus:border-[#B6FF3A]/60">
                 {locales.map(l => <option key={l.id} value={l.id} className="bg-[#15151F]">{l.nombre} · {l.ciudad}</option>)}
               </select>
               <ChevronDown size={16} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B6B85]" />
@@ -185,7 +185,7 @@ function RelacionRow({ rel, localId, onChange }: { rel: Relacion; localId: strin
         <div className="relative flex-1">
           <Percent size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#6B6B85]" />
           <input type="number" min={0} max={100} value={pct} onChange={e => setPct(e.target.value)}
-            className="h-10 w-full rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 text-sm text-white outline-none focus:border-[#E94560]/60" />
+            className="h-10 w-full rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 text-sm text-white outline-none focus:border-[#B6FF3A]/60" />
         </div>
         {cambiado && (
           <Button size="sm" loading={guardando} onClick={() => patch({ comision_pct: Number(pct) }, 'Comisión actualizada')}>
@@ -265,7 +265,7 @@ function VincularModal({ localId, onClose, onHecho }: { localId: string; onClose
               </button>
             ))}
             {q.trim().length >= 2 && !buscando && resultados.length === 0 && (
-              <p className="px-1 py-3 text-center text-xs text-[#6B6B85]">Sin resultados. Si no está en Rumbo, invítalo por email.</p>
+              <p className="px-1 py-3 text-center text-xs text-[#6B6B85]">Sin resultados. Si no está en TODH, invítalo por email.</p>
             )}
           </div>
         </div>
@@ -315,7 +315,7 @@ function InvitarModal({ localId, onClose, onHecho }: { localId: string; onClose:
       {link ? (
         <div className="space-y-4 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-500/15 text-green-400"><Check size={26} /></div>
-          <p className="text-sm text-[#A0A0B8]">Esta persona aún no está en Rumbo. Envíale este enlace para que acepte:</p>
+          <p className="text-sm text-[#A0A0B8]">Esta persona aún no está en TODH. Envíale este enlace para que acepte:</p>
           <div className="break-all rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left text-xs text-[#B8B8CC]">{link}</div>
           <div className="flex gap-2">
             <Button variant="outline" fullWidth onClick={copiar}>{copiado ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar enlace</>}</Button>
@@ -364,7 +364,7 @@ function AltaRrppModal({ localId, onClose, onHecho }: { localId: string; onClose
 
   const copiar = () => {
     if (!cred) return
-    navigator.clipboard.writeText(`Acceso RRPP Rumbo\nUsuario: ${cred.username}\nContraseña: ${cred.password}\nEntra en: ${location.origin}/rrpp/login`)
+    navigator.clipboard.writeText(`Acceso RRPP TODH\nUsuario: ${cred.username}\nContraseña: ${cred.password}\nEntra en: ${location.origin}/rrpp/login`)
     setCopiado(true); setTimeout(() => setCopiado(false), 2000)
   }
 

@@ -74,7 +74,7 @@ export function BuscadorDireccion({
           onFocus={() => { if (sugerencias.length) setAbierto(true) }}
           placeholder={placeholder}
           autoComplete="off"
-          className="w-full h-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-[#6B6B85] pl-11 pr-10 outline-none transition-all focus:border-[#E94560]/60 focus:bg-white/8 hover:border-white/15"
+          className="w-full h-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-[#6B6B85] pl-11 pr-10 outline-none transition-all focus:border-[#B6FF3A]/60 focus:bg-white/8 hover:border-white/15"
         />
         {buscando && <Loader2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B6B85] animate-spin" />}
       </div>

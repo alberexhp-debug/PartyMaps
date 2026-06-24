@@ -129,7 +129,7 @@ export default function FichaTrabajadorPage() {
   }
 
   if (loading) {
-    return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#E94560]" /></div>
+    return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#B6FF3A]" /></div>
   }
   if (!worker) {
     return (
@@ -175,8 +175,8 @@ export default function FichaTrabajadorPage() {
             {ROLES.map(r => (
               <button key={r.value} onClick={() => set('rol', r.value)}
                 className={cn('rounded-xl border p-2.5 text-left transition-colors',
-                  form.rol === r.value ? 'border-[#E94560] bg-[#E94560]/10' : 'border-white/10 bg-white/5')}>
-                <div className="flex items-center gap-1.5"><Shield size={12} className={form.rol === r.value ? 'text-[#E94560]' : 'text-[#6B6B85]'} /><p className="text-sm font-semibold text-white">{r.label}</p></div>
+                  form.rol === r.value ? 'border-[#B6FF3A] bg-[#B6FF3A]/10' : 'border-white/10 bg-white/5')}>
+                <div className="flex items-center gap-1.5"><Shield size={12} className={form.rol === r.value ? 'text-[#B6FF3A]' : 'text-[#6B6B85]'} /><p className="text-sm font-semibold text-white">{r.label}</p></div>
                 <p className="mt-0.5 text-[10px] leading-tight text-[#6B6B85]">{r.desc}</p>
               </button>
             ))}
@@ -207,7 +207,7 @@ export default function FichaTrabajadorPage() {
               <button key={z} type="button"
                 onClick={() => setPermisos(prev => { const n = new Set(prev); if (n.has(z)) n.delete(z); else n.add(z); return n })}
                 className={cn('rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
-                  on ? 'border-[#E94560] bg-[#E94560]/12 text-white' : 'border-white/10 bg-white/5 text-[#8B8BA8] hover:text-white')}>
+                  on ? 'border-[#B6FF3A] bg-[#B6FF3A]/12 text-[#0A0A0F]' : 'border-white/10 bg-white/5 text-[#8B8BA8] hover:text-[#0A0A0F]')}>
                 {ZONA_LABEL[z]}
               </button>
             )

@@ -65,7 +65,7 @@ export default function LoginPage() {
     setLoadingGoogle(true)
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/mapa` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/explorar` },
     })
     if (err) {
       toast.error('No se pudo conectar con Google')
@@ -84,7 +84,7 @@ export default function LoginPage() {
       password,
     })
     if (err) toast.error('Correo o contraseña incorrectos')
-    else router.push('/mapa')
+    else router.push('/explorar')
     setLoadingCorreo(false)
   }
 
@@ -120,7 +120,7 @@ export default function LoginPage() {
       phone: telCompleto, token: codigo, type: 'sms',
     })
     if (err) toast.error('Código incorrecto o expirado')
-    else router.push('/mapa')
+    else router.push('/explorar')
     setLoadingTel(false)
   }
 
@@ -134,7 +134,7 @@ export default function LoginPage() {
     <select
       value={prefijo}
       onChange={e => setPrefijo(e.target.value)}
-      className="h-12 bg-white/5 border border-white/10 rounded-xl text-white px-3 text-sm focus:border-[#E94560]/60 outline-none transition-colors"
+      className="h-12 bg-white/5 border border-white/10 rounded-xl text-white px-3 text-sm focus:border-[#B6FF3A]/60 outline-none transition-colors"
     >
       <option value="+34">🇪🇸 +34</option>
       <option value="+1">🇺🇸 +1</option>
@@ -146,7 +146,7 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#07070D] lg:grid lg:grid-cols-[1.05fr_1fr]">
       {/* Halos de fondo (cubren toda la pantalla) */}
-      <div className="pointer-events-none absolute -top-40 -left-40 h-[34rem] w-[34rem] rounded-full bg-[#E94560]/25 blur-[120px]" />
+      <div className="pointer-events-none absolute -top-40 -left-40 h-[34rem] w-[34rem] rounded-full bg-[#B6FF3A]/25 blur-[120px]" />
       <div className="pointer-events-none absolute top-1/3 -right-40 h-[34rem] w-[34rem] rounded-full bg-[#7C5CFF]/22 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-48 left-1/4 h-[30rem] w-[30rem] rounded-full bg-[#4F8EF7]/14 blur-[120px]" />
 
@@ -156,30 +156,30 @@ export default function LoginPage() {
         {/* Marca */}
         <div className="relative flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl holo-bg shadow-[0_8px_28px_-8px_rgba(124,92,255,0.7)]">
-            <span className="text-lg font-black text-white">R</span>
+            <span className="text-lg font-black text-white">T</span>
           </div>
-          <span className="text-2xl font-black text-display uppercase tracking-[0.22em] bg-gradient-to-r from-[#FF6B86] via-[#9B82FF] to-[#5BA0FF] bg-clip-text text-transparent">RUMBO</span>
+          <span className="text-2xl font-black text-display uppercase tracking-[0.22em] bg-gradient-to-r from-[#A6EE2B] via-[#9B82FF] to-[#5BA0FF] bg-clip-text text-transparent">TODH</span>
         </div>
 
         {/* Mensaje */}
         <div className="relative max-w-md">
-          <p className="eyebrow mb-4">Tu noche empieza aquí</p>
+          <p className="eyebrow mb-4">La competición empieza aquí</p>
           <h1 className="text-5xl xl:text-6xl font-bold leading-[1.04] text-white text-display tracking-tight">
-            Toda la noche,<br />en una sola<br />app.
+            Todos los torneos,<br />en una sola<br />app.
           </h1>
           <p className="mt-6 text-lg text-[#B8B8CC] leading-relaxed">
-            Descubre dónde ir, entra sin colas con tu QR y vive la noche.
-            Sin sorpresas.
+            Encuentra torneos de tu juego cerca, apúntate y paga sin líos.
+            Bracket en vivo y ranking.
           </p>
 
           <ul className="mt-10 space-y-4">
             {[
-              { icon: <MapPin size={18} />, t: 'Mira en directo qué local está que arde' },
-              { icon: <Ticket size={18} />, t: 'Entra con tu QR, sin colas ni sorpresas' },
-              { icon: <Sparkles size={18} />, t: 'Acumula y vuelve: tu noche, recompensada' },
+              { icon: <MapPin size={18} />, t: 'Torneos de tu juego cerca de ti, en directo' },
+              { icon: <Ticket size={18} />, t: 'Apúntate y paga desde la app; check-in con QR' },
+              { icon: <Sparkles size={18} />, t: 'Compite, sube en el ranking y gana premios' },
             ].map((f, i) => (
               <li key={i} className="flex items-center gap-3.5 text-[#D4D4E4]">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/8 text-[#E94560] border border-white/10">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/8 text-[#B6FF3A] border border-white/10">
                   {f.icon}
                 </span>
                 <span className="text-[15px]">{f.t}</span>
@@ -188,7 +188,7 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        <p className="relative text-xs text-[#6B6B85] tracking-wide">© Rumbo · La noche es tuya</p>
+        <p className="relative text-xs text-[#6B6B85] tracking-wide">© TODH · Que gane el mejor</p>
       </aside>
 
       {/* ====== Formulario ====== */}
@@ -196,9 +196,9 @@ export default function LoginPage() {
         {/* Marca compacta (solo móvil) */}
         <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl holo-bg shadow-[0_10px_30px_-8px_rgba(124,92,255,0.7)]">
-            <span className="text-xl font-black text-white">R</span>
+            <span className="text-xl font-black text-white">T</span>
           </div>
-          <span className="text-xl font-black text-display uppercase tracking-[0.22em] bg-gradient-to-r from-[#FF6B86] via-[#9B82FF] to-[#5BA0FF] bg-clip-text text-transparent">RUMBO</span>
+          <span className="text-xl font-black text-display uppercase tracking-[0.22em] bg-gradient-to-r from-[#A6EE2B] via-[#9B82FF] to-[#5BA0FF] bg-clip-text text-transparent">TODH</span>
         </div>
 
         {/* Tarjeta de acceso */}
@@ -208,7 +208,7 @@ export default function LoginPage() {
             <h2 className="text-2xl sm:text-3xl font-bold text-white text-display tracking-tight">
               Bienvenido de nuevo
             </h2>
-            <p className="mt-1.5 text-[15px] text-[#A0A0B8]">Entra y sigue viviendo la noche</p>
+            <p className="mt-1.5 text-[15px] text-[#A0A0B8]">Entra y sigue compitiendo</p>
           </div>
 
           {/* Google */}
@@ -357,7 +357,7 @@ export default function LoginPage() {
           {/* Crear cuenta */}
           <p className="mt-6 text-center text-sm text-[#8B8BA8]">
             ¿No tienes una cuenta?{' '}
-            <Link href="/registro" className="font-semibold text-[#E94560] hover:text-[#FF3D71]">
+            <Link href="/registro" className="font-semibold text-[#B6FF3A] hover:text-[#A6EE2B]">
               Crea tu cuenta
             </Link>
           </p>
@@ -368,7 +368,7 @@ export default function LoginPage() {
           <div className="mb-3 flex items-center gap-3">
             <span className="h-px flex-1 bg-white/8" />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6B6B85]">
-              ¿Trabajas en la noche?
+              ¿Organizas torneos o tienes local?
             </span>
             <span className="h-px flex-1 bg-white/8" />
           </div>
@@ -382,8 +382,8 @@ export default function LoginPage() {
                 <Store size={18} />
               </span>
               <span className="flex-1">
-                <span className="block text-sm font-semibold text-white">¿Eres dueño de un local?</span>
-                <span className="block text-xs text-[#8B8BA8]">Inicia sesión y gestiónalo</span>
+                <span className="block text-sm font-semibold text-white">¿Tienes un local?</span>
+                <span className="block text-xs text-[#8B8BA8]">Ofrece tu sala para torneos</span>
               </span>
               <ChevronRight size={18} className="text-[#6B6B85] transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
             </Link>
@@ -392,12 +392,12 @@ export default function LoginPage() {
               href="/rrpp/login"
               className="glass group flex items-center gap-3.5 rounded-2xl px-4 py-3.5 transition-all hover:bg-white/10"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E94560]/15 text-[#FF6B86] border border-white/10">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#B6FF3A]/15 text-[#A6EE2B] border border-white/10">
                 <Megaphone size={18} />
               </span>
               <span className="flex-1">
-                <span className="block text-sm font-semibold text-white">¿Eres RRPP?</span>
-                <span className="block text-xs text-[#8B8BA8]">Accede a tu panel de promotor</span>
+                <span className="block text-sm font-semibold text-white">¿Eres organizador (TO)?</span>
+                <span className="block text-xs text-[#8B8BA8]">Accede a tu panel de torneos</span>
               </span>
               <ChevronRight size={18} className="text-[#6B6B85] transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
             </Link>

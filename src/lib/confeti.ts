@@ -1,8 +1,8 @@
 /**
- * Helpers de confeti — usa canvas-confetti con la paleta de Rumbo.
+ * Helpers de confeti — usa canvas-confetti con la paleta de TODH.
  * Lazy-load para no incluir en el bundle inicial.
  */
-const COLORES_PM = ['#E94560', '#FF3D71', '#7C5CFF', '#4F8EF7', '#FBE08F']
+const COLORES_PM = ['#B6FF3A', '#A6EE2B', '#7C5CFF', '#4F8EF7', '#FBE08F']
 
 export async function dispararConfetiCompra() {
   if (typeof window === 'undefined') return

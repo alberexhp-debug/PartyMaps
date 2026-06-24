@@ -50,7 +50,7 @@ export default function RecuperarClavePage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#07070D] px-5 py-10">
-      <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#E94560]/22 blur-[120px]" />
+      <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#B6FF3A]/22 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-[#7C5CFF]/20 blur-[120px]" />
 
       <div className="card-premium w-full max-w-[26rem] rounded-3xl p-6 sm:p-8 animate-slide-up">

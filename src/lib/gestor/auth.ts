@@ -3,7 +3,7 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 import type { Gestor } from '@/types'
 
 /**
- * Resuelve al RumboGestor autenticado a partir de su sesión Supabase.
+ * Resuelve al TODHGestor autenticado a partir de su sesión Supabase.
  * Sigue el patrón seguro del proyecto: email del JWT, sin JOIN a auth.users.
  * Devuelve la fila completa de `gestores` (solo si activo), o null.
  */
@@ -43,7 +43,7 @@ export async function gestorPoseeLocal(gestorId: string, localId: string): Promi
 
 /** Contraseña temporal legible para entregar al dueño en el alta presencial. */
 export function generarPasswordTemporal(): string {
-  const adjetivos = ['Rumbo', 'Noche', 'Fiesta', 'Madrid', 'Neon', 'Vibe']
+  const adjetivos = ['TODH', 'Noche', 'Fiesta', 'Madrid', 'Neon', 'Vibe']
   const a = adjetivos[Math.floor(Math.random() * adjetivos.length)]
   const n = Math.floor(1000 + Math.random() * 9000)
   return `${a}${n}!`

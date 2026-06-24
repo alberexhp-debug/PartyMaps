@@ -73,7 +73,7 @@ export default function ValoracionesPendientesPage() {
           <ChevronLeft size={20} />
         </button>
         <div>
-          <p className="text-[10px] font-bold text-[#E94560] uppercase tracking-[0.2em]">Pendientes</p>
+          <p className="text-[10px] font-bold text-[#B6FF3A] uppercase tracking-[0.2em]">Pendientes</p>
           <h1 className="text-lg font-bold text-display">Valoraciones de plan</h1>
         </div>
       </div>

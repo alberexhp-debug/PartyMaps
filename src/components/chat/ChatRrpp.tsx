@@ -90,7 +90,7 @@ export function ChatRrpp({
             return (
               <div key={m.id} className={cn('flex', mio ? 'justify-end' : 'justify-start')}>
                 <div className={cn('max-w-[80%] rounded-2xl px-3.5 py-2 text-sm',
-                  mio ? 'bg-[#E94560] text-white rounded-br-md' : 'bg-white/8 text-white rounded-bl-md')}>
+                  mio ? 'bg-[#B6FF3A] text-[#0A0A0F] rounded-br-md' : 'bg-white/8 text-[#0A0A0F] rounded-bl-md')}>
                   {m.mensaje}
                 </div>
               </div>
@@ -104,10 +104,10 @@ export function ChatRrpp({
             value={texto} onChange={e => setTexto(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar() } }}
             placeholder="Escribe un mensaje…"
-            className="h-11 flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 text-sm text-white outline-none focus:border-[#E94560]/60 placeholder:text-[#6B6B85]"
+            className="h-11 flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 text-sm text-white outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]"
           />
           <button onClick={enviar} disabled={enviando || !texto.trim()} aria-label="Enviar"
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E94560] text-white disabled:opacity-40">
+            className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] disabled:opacity-40">
             <Send size={17} />
           </button>
         </div>

@@ -19,13 +19,13 @@ interface LocalImagenProps {
 
 // Paleta de gradientes deterministas — generamos uno consistente por nombre
 const PALETAS = [
-  ['#E94560', '#7C5CFF'],
+  ['#B6FF3A', '#7C5CFF'],
   ['#7C5CFF', '#4F8EF7'],
   ['#4F8EF7', '#27AE60'],
-  ['#F39C12', '#E94560'],
+  ['#F39C12', '#B6FF3A'],
   ['#D4A84B', '#7C5CFF'],
-  ['#FF3D71', '#4F8EF7'],
-  ['#7C5CFF', '#E94560'],
+  ['#A6EE2B', '#4F8EF7'],
+  ['#7C5CFF', '#B6FF3A'],
   ['#4FB2A0', '#7C5CFF'],
 ] as const
 

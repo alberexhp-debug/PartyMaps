@@ -41,7 +41,7 @@ export default function AdminSoportePage() {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-5">
-      <PageHeader eyebrow="Equipo Rumbo" acento="blue" titulo="Soporte"
+      <PageHeader eyebrow="Equipo TODH" acento="blue" titulo="Soporte"
         subtitulo="Tickets de los locales. Responde y cambia el estado." halo={false} />
 
       <div className="flex gap-2 overflow-x-auto scrollbar-hide">
@@ -67,7 +67,7 @@ export default function AdminSoportePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-white truncate">{t.asunto}</p>
-                  {t.no_leido_admin && <span className="shrink-0 w-2 h-2 rounded-full bg-[#E94560]" />}
+                  {t.no_leido_admin && <span className="shrink-0 w-2 h-2 rounded-full bg-[#B6FF3A]" />}
                 </div>
                 <p className="text-xs text-[#8B8BA8] mt-0.5 flex items-center gap-1 truncate">
                   <Store size={11} /> {t.local_nombre} · {CATEGORIA_LABEL[t.categoria]} · {haceTiempo(t.ultimo_mensaje_at)}

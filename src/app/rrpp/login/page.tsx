@@ -58,11 +58,11 @@ export default function RRPPLoginPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#07070D] p-6">
-      <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#E94560]/22 blur-[120px]" />
+      <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#B6FF3A]/22 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-[#7C5CFF]/20 blur-[120px]" />
 
       <div className="relative mb-8 text-center">
-        <div className="holo-bg mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-[0_12px_30px_-8px_rgba(233,69,96,0.6)]">
+        <div className="holo-bg mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-[0_12px_30px_-8px_rgba(182, 255, 58,0.6)]">
           <Megaphone size={28} className="text-white" />
         </div>
         <p className="eyebrow eyebrow-rose mb-2">Relaciones públicas</p>
@@ -100,8 +100,8 @@ export default function RRPPLoginPage() {
       {paso === 'cred' && (
         <div className="relative mt-8 text-center">
           <p className="text-sm text-[#A0A0B8]">
-            ¿Aún no eres RRPP en Rumbo?{' '}
-            <Link href="/login" className="font-semibold text-[#E94560]">Entra como usuario</Link>
+            ¿Aún no eres RRPP en TODH?{' '}
+            <Link href="/login" className="font-semibold text-[#B6FF3A]">Entra como usuario</Link>
           </p>
         </div>
       )}

@@ -113,7 +113,7 @@ export default function NotificacionesPage() {
       {local.tier === 'basico' && (
         <div className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${
           haAlcanzadoLimite
-            ? 'bg-[#E94560]/10 border-[#E94560]/30 text-[#E94560]'
+            ? 'bg-[#B6FF3A]/10 border-[#B6FF3A]/30 text-[#B6FF3A]'
             : 'bg-white/6 border-white/10 text-[#A0A0B8]'
         }`}>
           <div className="flex items-center gap-2 text-sm">
@@ -139,7 +139,7 @@ export default function NotificacionesPage() {
             onChange={e => setTitulo(e.target.value)}
             maxLength={80}
             placeholder="Ej: ¡Esta noche tenemos DJ set!"
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50"
           />
           <p className="text-xs text-right text-[#6B6B85]">{titulo.length}/80</p>
         </div>
@@ -152,7 +152,7 @@ export default function NotificacionesPage() {
             rows={3}
             maxLength={200}
             placeholder="Mensaje breve y directo..."
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50 resize-none"
           />
           <p className="text-xs text-right text-[#6B6B85]">{cuerpo.length}/200</p>
         </div>
@@ -163,7 +163,7 @@ export default function NotificacionesPage() {
             value={enlace}
             onChange={e => setEnlace(e.target.value)}
             placeholder="https://... o /local/..."
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50"
           />
         </div>
 

@@ -68,7 +68,7 @@ export default function MisSugerenciasPage() {
               <div className="flex items-start justify-between gap-2">
                 {s.locales ? (
                   <Link href={`/local/${s.locales.id}`}
-                    className="flex items-center gap-1.5 text-sm font-semibold text-white hover:text-[#E94560]">
+                    className="flex items-center gap-1.5 text-sm font-semibold text-white hover:text-[#B6FF3A]">
                     <MapPin size={12} className="text-[#6B6B85]" />
                     {s.locales.nombre}
                   </Link>

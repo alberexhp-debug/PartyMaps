@@ -80,7 +80,7 @@ export function EditarPerfilRRPP({ rrpp, onClose, onSaved }: {
       <style jsx>{`
         :global(.inp){width:100%;height:2.75rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);padding:0 .9rem;color:#fff;outline:none}
         :global(textarea.inp){height:auto;padding-top:.6rem;padding-bottom:.6rem}
-        :global(.inp:focus){border-color:rgba(224,69,94,.6)}
+        :global(.inp:focus){border-color:rgba(182, 255, 58,.6)}
       `}</style>
     </div>
   )

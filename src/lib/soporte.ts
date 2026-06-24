@@ -43,7 +43,7 @@ export const PRIORIDAD_COLOR: Record<PrioridadTicket, string> = {
   baja: '#8B8BA8',
   normal: '#4F8EF7',
   alta: '#F39C12',
-  urgente: '#E94560',
+  urgente: '#B6FF3A',
 }
 
 export const CATEGORIAS: CategoriaTicket[] = ['general', 'tecnico', 'facturacion', 'cuenta', 'sugerencia', 'otro']

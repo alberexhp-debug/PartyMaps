@@ -8,7 +8,7 @@ const TIPOS_VALIDOS: TipoLocal[] = ['discoteca', 'bar_copas', 'rooftop', 'sala_c
 
 /**
  * GET /api/gestor/locales
- * Cartera del RumboGestor autenticado: locales con su gestor_id.
+ * Cartera del TODHGestor autenticado: locales con su gestor_id.
  */
 export async function GET(req: NextRequest) {
   const ctx = await getGestorAutenticado(req)
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       modulos_activos: [],
       consumiciones_bienvenida: [],
       horario: {},
-      // El Gestor es personal de Rumbo (onboarding presencial), así que el
+      // El Gestor es personal de TODH (onboarding presencial), así que el
       // local nace ACTIVO y se ve en el mapa al instante. (El auto-registro de
       // un dueño desde la web sí queda pendiente de verificación.)
       estado: 'activo',

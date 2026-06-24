@@ -382,7 +382,7 @@ function ConfiguracionContent() {
                     <button
                       onClick={() => setForm(f => ({ ...f, horario: { ...f.horario, [dia]: h ? null : { apertura: '23:00', cierre: '06:00' } } }))}
                       className={cn('text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors',
-                        h ? 'text-[#E94560] bg-[#E94560]/10 hover:bg-[#E94560]/15' : 'text-[#4F8EF7] bg-[#4F8EF7]/10 hover:bg-[#4F8EF7]/15')}
+                        h ? 'text-[#B6FF3A] bg-[#B6FF3A]/10 hover:bg-[#B6FF3A]/15' : 'text-[#4F8EF7] bg-[#4F8EF7]/10 hover:bg-[#4F8EF7]/15')}
                     >
                       {h ? 'Cerrar' : 'Abrir'}
                     </button>
@@ -455,8 +455,8 @@ function ConfiguracionContent() {
           <div className="space-y-6 max-w-2xl">
             <div className="bg-white/3 border border-white/6 rounded-2xl p-5 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#E94560]/10 border border-[#E94560]/20 flex items-center justify-center">
-                  <Ticket size={18} className="text-[#E94560]" />
+                <div className="w-10 h-10 rounded-xl bg-[#B6FF3A]/10 border border-[#B6FF3A]/20 flex items-center justify-center">
+                  <Ticket size={18} className="text-[#B6FF3A]" />
                 </div>
                 <div>
                   <h2 className="font-semibold text-white text-sm">Cupo de entradas por noche</h2>
@@ -608,7 +608,7 @@ function ConfiguracionContent() {
                   <span className="text-sm font-semibold text-white">Consumición {i + 1}</span>
                   <button
                     onClick={() => setForm(f => ({ ...f, consumiciones_bienvenida: f.consumiciones_bienvenida?.filter(x => x.id !== c.id) }))}
-                    className="p-1 text-[#E94560]/60 hover:text-[#E94560] transition-colors"
+                    className="p-1 text-[#B6FF3A]/60 hover:text-[#B6FF3A] transition-colors"
                   >
                     <Trash2 size={15} />
                   </button>
@@ -704,7 +704,7 @@ function ConfiguracionContent() {
                         <button onClick={() => setEditandoBar({ id: p.id, nombre: p.nombre, descripcion: p.descripcion ?? '', categoria: p.categoria, precio: p.precio.toString(), coste: p.coste?.toString() ?? '', disponible: p.disponible, es_pack: p.es_pack, unidades_pack: p.unidades_pack?.toString() ?? '' })} className="w-8 h-8 rounded-lg bg-white/4 flex items-center justify-center text-[#B8B8CC] hover:text-white transition-colors">
                           <Edit3 size={13} />
                         </button>
-                        <button onClick={() => eliminarBar(p)} className="w-8 h-8 rounded-lg bg-[#E94560]/8 border border-[#E94560]/20 flex items-center justify-center text-[#E94560] hover:bg-[#E94560]/15 transition-colors">
+                        <button onClick={() => eliminarBar(p)} className="w-8 h-8 rounded-lg bg-[#B6FF3A]/8 border border-[#B6FF3A]/20 flex items-center justify-center text-[#B6FF3A] hover:bg-[#B6FF3A]/15 transition-colors">
                           <Trash2 size={13} />
                         </button>
                       </div>
@@ -755,8 +755,8 @@ function ConfiguracionContent() {
           <div className="space-y-6 max-w-2xl">
             <div className="bg-white/3 border border-white/6 rounded-2xl p-5 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#E94560]/10 border border-[#E94560]/20 flex items-center justify-center">
-                  <AtSign size={18} className="text-[#E94560]" />
+                <div className="w-10 h-10 rounded-xl bg-[#B6FF3A]/10 border border-[#B6FF3A]/20 flex items-center justify-center">
+                  <AtSign size={18} className="text-[#B6FF3A]" />
                 </div>
                 <div>
                   <h2 className="font-semibold text-white text-sm">Cuenta de Instagram</h2>
@@ -799,7 +799,7 @@ function MargenHint({ precio, coste }: { precio: string; coste: string }) {
   }
   const margen = p - c
   const pct = p > 0 ? Math.round((margen / p) * 100) : 0
-  const color = margen >= 0 ? '#27AE60' : '#E94560'
+  const color = margen >= 0 ? '#27AE60' : '#B6FF3A'
   return (
     <div className="h-11 flex flex-col justify-center px-1">
       <p className="text-[11px] text-[#8B8BA8]">Beneficio / unidad</p>
@@ -819,7 +819,7 @@ function ToggleSimple({ label, hint, value, onChange }: {
         <p className="text-sm font-semibold text-white">{label}</p>
         {hint && <p className="text-xs text-[#B8B8CC] mt-0.5">{hint}</p>}
       </div>
-      <button onClick={() => onChange(!value)} className={cn('w-11 h-6 rounded-full transition-colors relative shrink-0', value ? 'bg-[#E94560]' : 'bg-white/15')}>
+      <button onClick={() => onChange(!value)} className={cn('w-11 h-6 rounded-full transition-colors relative shrink-0', value ? 'bg-[#B6FF3A]' : 'bg-white/15')}>
         <span className={cn('absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all', value ? 'left-[22px]' : 'left-0.5')} />
       </button>
     </div>

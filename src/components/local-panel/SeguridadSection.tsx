@@ -78,7 +78,7 @@ export function SeguridadSection() {
         <Button loading={cargando} onClick={iniciar}><ShieldCheck size={16} /> Activar verificación en dos pasos</Button>
       )}
       {fase === 'idle' && activado && (
-        <button onClick={desactivar} disabled={cargando} className="text-sm text-[#E0455E] hover:underline">Desactivar</button>
+        <button onClick={desactivar} disabled={cargando} className="text-sm text-[#B6FF3A] hover:underline">Desactivar</button>
       )}
 
       {fase === 'setup' && (
@@ -92,7 +92,7 @@ export function SeguridadSection() {
           )}
           <p className="text-sm text-white font-semibold pt-1">2. Escribe el código de 6 dígitos</p>
           <input value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" inputMode="numeric"
-            className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white text-center text-xl tracking-[0.4em] outline-none focus:border-[#E0455E]/60" />
+            className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white text-center text-xl tracking-[0.4em] outline-none focus:border-[#B6FF3A]/60" />
           <div className="flex gap-2">
             <button onClick={() => { setFase('idle'); setCode('') }} className="flex-1 h-11 rounded-xl border border-white/10 text-sm text-[#B8B8CC] hover:text-white">Cancelar</button>
             <Button className="flex-1" loading={cargando} disabled={code.length !== 6} onClick={confirmar}>Confirmar y activar</Button>

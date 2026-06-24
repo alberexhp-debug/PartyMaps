@@ -20,7 +20,7 @@ const ESTADO: Record<Liq['estado'], { label: string; color: string }> = {
   pendiente: { label: 'Por pagar', color: '#F39C12' },
   marcado_pagado: { label: 'Pagado · esperando RRPP', color: '#4F8EF7' },
   confirmado: { label: 'Confirmado', color: '#27AE60' },
-  disputado: { label: 'En disputa', color: '#E94560' },
+  disputado: { label: 'En disputa', color: '#B6FF3A' },
 }
 
 /** Sección "Pagos a RRPP" del panel del local: marca como pagado lo que debes. */

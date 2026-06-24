@@ -156,7 +156,7 @@ function CrearListaModal({ venues, onClose, onCreada }: {
         </div>
         <div className="space-y-4">
           <Campo label="Local">
-            <select value={localId} onChange={e => setLocalId(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#E0455E]/60">
+            <select value={localId} onChange={e => setLocalId(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60">
               {venues.map(v => <option key={v.id} value={v.id} className="bg-[#15151F]">{v.nombre}</option>)}
             </select>
           </Campo>
@@ -164,7 +164,7 @@ function CrearListaModal({ venues, onClose, onCreada }: {
             {cargandoEv ? <p className="text-xs text-[#6B6B85]">Cargando eventos…</p>
               : eventos.length === 0 ? <p className="text-xs text-[#6B6B85]">Este local no tiene eventos próximos publicados.</p>
               : (
-                <select value={eventoId} onChange={e => setEventoId(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#E0455E]/60">
+                <select value={eventoId} onChange={e => setEventoId(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60">
                   <option value="" className="bg-[#15151F]">Elige un evento…</option>
                   {eventos.map(ev => (
                     <option key={ev.id} value={ev.id} className="bg-[#15151F]">
@@ -175,21 +175,21 @@ function CrearListaModal({ venues, onClose, onCreada }: {
               )}
           </Campo>
           <Campo label="Nombre de la lista (opcional)">
-            <input value={nombre} onChange={e => setNombre(e.target.value.slice(0, 60))} placeholder="Ej. Lista de Leo" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+            <input value={nombre} onChange={e => setNombre(e.target.value.slice(0, 60))} placeholder="Ej. Lista de Leo" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
           </Campo>
           <div className="grid grid-cols-2 gap-3">
             <Campo label="Tipo">
-              <select value={tipo} onChange={e => setTipo(e.target.value as 'cerrada' | 'abierta')} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#E0455E]/60">
+              <select value={tipo} onChange={e => setTipo(e.target.value as 'cerrada' | 'abierta')} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60">
                 <option value="cerrada" className="bg-[#15151F]">Cerrada</option>
                 <option value="abierta" className="bg-[#15151F]">Abierta</option>
               </select>
             </Campo>
             <Campo label="Cupo máx (opcional)">
-              <input type="number" min={1} value={cupo} onChange={e => setCupo(e.target.value)} placeholder="Sin límite" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+              <input type="number" min={1} value={cupo} onChange={e => setCupo(e.target.value)} placeholder="Sin límite" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
             </Campo>
           </div>
           <Campo label="Hora límite de entrada (opcional)">
-            <input type="time" value={horaLimite} onChange={e => setHoraLimite(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+            <input type="time" value={horaLimite} onChange={e => setHoraLimite(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
           </Campo>
           {error && <p className="text-rose-300 text-sm">{error}</p>}
           <button onClick={crear} disabled={!localId || !eventoId || creando} className="btn-primary w-full">{creando ? 'Creando…' : 'Crear lista'}</button>
@@ -242,9 +242,9 @@ function ListaDetalleModal({ lista, localNombre, onClose }: { lista: Lista; loca
         <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-3.5 mb-4">
           <p className="eyebrow eyebrow-violet mb-2.5 flex items-center gap-1.5"><UserPlus size={12} /> Añadir invitado</p>
           <div className="space-y-2.5">
-            <input value={nombre} onChange={e => setNombre(e.target.value.slice(0, 60))} placeholder="Nombre y apellidos" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+            <input value={nombre} onChange={e => setNombre(e.target.value.slice(0, 60))} placeholder="Nombre y apellidos" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
             <div className="flex gap-2">
-              <input value={contacto} onChange={e => setContacto(e.target.value)} placeholder="Email o teléfono" className="h-11 flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+              <input value={contacto} onChange={e => setContacto(e.target.value)} placeholder="Email o teléfono" className="h-11 flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
               <button onClick={añadir} disabled={añadiendo} className="btn-primary px-4 inline-flex items-center gap-1.5">
                 <Plus size={15} /> {añadiendo ? '…' : 'Añadir'}
               </button>

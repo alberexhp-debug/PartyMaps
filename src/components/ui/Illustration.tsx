@@ -1,6 +1,6 @@
 /**
  * Ilustraciones SVG abstractas para empty states. Más personalidad que un
- * icono lucide genérico. Todas usan la paleta Rumbo y se animan.
+ * icono lucide genérico. Todas usan la paleta TODH y se animan.
  */
 
 interface IllustrationProps {
@@ -14,12 +14,12 @@ export function IlustracionBola({ className, size = 120 }: IllustrationProps) {
     <svg viewBox="0 0 160 160" width={size} height={size} className={className}>
       <defs>
         <radialGradient id="bola-halo" cx="50%" cy="50%" r="55%">
-          <stop offset="0%" stopColor="#E94560" stopOpacity="0.6" />
+          <stop offset="0%" stopColor="#B6FF3A" stopOpacity="0.6" />
           <stop offset="60%" stopColor="#7C5CFF" stopOpacity="0.25" />
           <stop offset="100%" stopColor="transparent" />
         </radialGradient>
         <linearGradient id="bola-rim" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FF8FA8" />
+          <stop offset="0%" stopColor="#C9FF6B" />
           <stop offset="50%" stopColor="#7C5CFF" />
           <stop offset="100%" stopColor="#4F8EF7" />
         </linearGradient>
@@ -40,7 +40,7 @@ export function IlustracionBola({ className, size = 120 }: IllustrationProps) {
         <line x1="112" y1="50" x2="48" y2="114" />
       </g>
       {/* Diamantes brillantes */}
-      <circle cx="68" cy="62" r="3" fill="#FFE7EF">
+      <circle cx="68" cy="62" r="3" fill="#EEFCD9">
         <animate attributeName="opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite" />
       </circle>
       <circle cx="98" cy="78" r="2" fill="#FBE08F">
@@ -59,11 +59,11 @@ export function IlustracionTickets({ className, size = 120 }: IllustrationProps)
     <svg viewBox="0 0 160 160" width={size} height={size} className={className}>
       <defs>
         <linearGradient id="ticket-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#E94560" />
+          <stop offset="0%" stopColor="#B6FF3A" />
           <stop offset="100%" stopColor="#7C5CFF" />
         </linearGradient>
         <radialGradient id="ticket-halo" cx="50%" cy="50%" r="55%">
-          <stop offset="0%" stopColor="#E94560" stopOpacity="0.45" />
+          <stop offset="0%" stopColor="#B6FF3A" stopOpacity="0.45" />
           <stop offset="100%" stopColor="transparent" />
         </radialGradient>
       </defs>
@@ -81,7 +81,7 @@ export function IlustracionTickets({ className, size = 120 }: IllustrationProps)
         <circle cx="62" cy="87" r="5" fill="#06060C" />
         <circle cx="98" cy="87" r="5" fill="#06060C" />
         <line x1="62" y1="87" x2="98" y2="87" stroke="rgba(255,255,255,0.5)" strokeDasharray="3 3" />
-        <text x="44" y="79" fill="#fff" fontSize="9" fontWeight="800" fontFamily="Inter, sans-serif" letterSpacing="0.15em">R</text>
+        <text x="44" y="79" fill="#fff" fontSize="9" fontWeight="800" fontFamily="Inter, sans-serif" letterSpacing="0.15em">T</text>
         <text x="44" y="103" fill="#fff" fontSize="6" fontWeight="600" fontFamily="Inter, sans-serif" letterSpacing="0.15em" opacity="0.7">ADMIT</text>
         <text x="100" y="103" fill="#fff" fontSize="6" fontWeight="600" fontFamily="Inter, sans-serif" letterSpacing="0.15em" opacity="0.7">ONE</text>
       </g>
@@ -110,7 +110,7 @@ export function IlustracionRadar({ className, size = 120 }: IllustrationProps) {
       <circle cx="80" cy="80" r="10" fill="#7C5CFF" />
       <circle cx="80" cy="80" r="6" fill="#FAFAFC" />
       {/* Pings */}
-      <circle cx="118" cy="58" r="3" fill="#E94560">
+      <circle cx="118" cy="58" r="3" fill="#B6FF3A">
         <animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite" />
       </circle>
       <circle cx="46" cy="98" r="2.5" fill="#4F8EF7">
@@ -145,8 +145,8 @@ export function IlustracionEstrellas({ className, size = 120 }: IllustrationProp
       <circle cx="120" cy="108" r="2" fill="#FAFAFC">
         <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
       </circle>
-      <circle cx="116" cy="42" r="1.5" fill="#FFE7EF" />
-      <circle cx="42" cy="118" r="2" fill="#FFE7EF" />
+      <circle cx="116" cy="42" r="1.5" fill="#EEFCD9" />
+      <circle cx="42" cy="118" r="2" fill="#EEFCD9" />
     </svg>
   )
 }

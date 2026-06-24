@@ -14,7 +14,7 @@ type Grupo = { id: string; nombre: string; emoji: string | null; creador_id: str
 function Avatar({ nombre, foto, size = 40 }: { nombre: string; foto: string | null; size?: number }) {
   const ini = (nombre?.trim()?.[0] || '?').toUpperCase()
   return (
-    <span className="shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#E94560] to-[#7C5CFF] flex items-center justify-center font-bold text-white"
+    <span className="shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#B6FF3A] to-[#7C5CFF] flex items-center justify-center font-bold text-white"
       style={{ width: size, height: size, fontSize: size * 0.4 }}>
       {foto ? <img src={foto} alt="" className="h-full w-full object-cover" /> : ini}
     </span>
@@ -62,8 +62,8 @@ export default function AmigosPage() {
   }
   const compartir = async () => {
     const url = `${location.origin}/amigo/${usuario!.id}`
-    const texto = `Añádeme en Rumbo y salimos juntos 🌙`
-    if (navigator.share) { try { await navigator.share({ title: 'Rumbo', text: texto, url }) } catch { /* cancelado */ } }
+    const texto = `Añádeme en TODH y salimos juntos 🌙`
+    if (navigator.share) { try { await navigator.share({ title: 'TODH', text: texto, url }) } catch { /* cancelado */ } }
     else { await navigator.clipboard.writeText(url); toast.success('Enlace copiado') }
   }
   const salirGrupo = async (id: string) => {
@@ -84,7 +84,7 @@ export default function AmigosPage() {
           <button onClick={() => router.back()} className="text-[#8B8BA8] hover:text-white"><ArrowLeft size={20} /></button>
           <h1 className="text-2xl font-black text-white">Amigos</h1>
         </div>
-        <button onClick={compartir} className="inline-flex items-center gap-1.5 rounded-xl bg-[#E94560] px-3 py-2 text-sm font-semibold text-white">
+        <button onClick={compartir} className="inline-flex items-center gap-1.5 rounded-xl bg-[#B6FF3A] px-3 py-2 text-sm font-semibold text-[#0A0A0F]">
           <Share2 size={15} /> Invitar
         </button>
       </div>
@@ -94,10 +94,10 @@ export default function AmigosPage() {
         {(['amigos', 'grupos'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={cn('flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium border transition-colors',
-              tab === t ? 'bg-[#E94560] border-[#E94560] text-white' : 'border-white/10 text-[#8B8BA8] hover:text-white')}>
+              tab === t ? 'bg-[#B6FF3A] border-[#B6FF3A] text-[#0A0A0F]' : 'border-white/10 text-[#8B8BA8] hover:text-[#0A0A0F]')}>
             {t === 'amigos' ? <Users size={15} /> : <UserCog size={15} />}
             {t === 'amigos' ? 'Amigos' : 'Grupos'}
-            {t === 'amigos' && recibidas.length > 0 && <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-white/90 px-1 text-[11px] font-bold text-[#E94560]">{recibidas.length}</span>}
+            {t === 'amigos' && recibidas.length > 0 && <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-white/90 px-1 text-[11px] font-bold text-[#B6FF3A]">{recibidas.length}</span>}
           </button>
         ))}
       </div>
@@ -128,7 +128,7 @@ export default function AmigosPage() {
               <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3">
                 <Avatar nombre={p.nombre} foto={p.foto_perfil_url} />
                 <p className="flex-1 min-w-0 truncate text-sm font-semibold text-white">{p.nombre}</p>
-                <button onClick={() => quitar(p.id)} aria-label="Quitar amigo" className="flex h-9 w-9 items-center justify-center rounded-xl text-[#6B6B85] hover:text-[#E94560]"><Trash2 size={16} /></button>
+                <button onClick={() => quitar(p.id)} aria-label="Quitar amigo" className="flex h-9 w-9 items-center justify-center rounded-xl text-[#6B6B85] hover:text-[#B6FF3A]"><Trash2 size={16} /></button>
               </div>
             ))}
           </section>
@@ -142,7 +142,7 @@ export default function AmigosPage() {
                   <Avatar nombre={p.nombre} foto={p.foto_perfil_url} size={36} />
                   <p className="flex-1 min-w-0 truncate text-sm text-white">{p.nombre}</p>
                   <span className="text-xs text-[#8B8BA8]">Enviada</span>
-                  <button onClick={() => quitar(p.id)} aria-label="Cancelar solicitud" className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6B6B85] hover:text-[#E94560]"><X size={15} /></button>
+                  <button onClick={() => quitar(p.id)} aria-label="Cancelar solicitud" className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6B6B85] hover:text-[#B6FF3A]"><X size={15} /></button>
                 </div>
               ))}
             </section>
@@ -150,7 +150,7 @@ export default function AmigosPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          <button onClick={() => setCrear(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E94560]/40 bg-[#E94560]/[0.06] px-4 py-3 text-sm font-semibold text-[#E94560]">
+          <button onClick={() => setCrear(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.06] px-4 py-3 text-sm font-semibold text-[#B6FF3A]">
             <Plus size={17} /> Crear un grupo
           </button>
           {grupos.length === 0 ? (
@@ -168,7 +168,7 @@ export default function AmigosPage() {
                   </p>
                   <p className="text-xs text-[#8B8BA8]">{g.miembros.length} {g.miembros.length === 1 ? 'miembro' : 'miembros'}</p>
                 </div>
-                <button onClick={() => salirGrupo(g.id)} className="text-xs text-[#8B8BA8] hover:text-[#E94560]">Salir</button>
+                <button onClick={() => salirGrupo(g.id)} className="text-xs text-[#8B8BA8] hover:text-[#B6FF3A]">Salir</button>
               </div>
               <div className="mt-3 flex -space-x-2">
                 {g.miembros.slice(0, 8).map(m => <Avatar key={m.id} nombre={m.nombre} foto={m.foto_perfil_url} size={28} />)}
@@ -187,10 +187,10 @@ export default function AmigosPage() {
 function EmptyInvite({ onInvite }: { onInvite: () => void }) {
   return (
     <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-8 text-center">
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E94560]/15 text-[#E94560]"><UserPlus size={22} /></div>
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#B6FF3A]/15 text-[#B6FF3A]"><UserPlus size={22} /></div>
       <p className="font-semibold text-white">Aún no tienes amigos aquí</p>
       <p className="mx-auto mt-1 max-w-xs text-sm text-[#8B8BA8]">Comparte tu enlace para que te añadan y salgáis juntos.</p>
-      <button onClick={onInvite} className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#E94560] px-4 py-2 text-sm font-semibold text-white"><Share2 size={15} /> Compartir mi enlace</button>
+      <button onClick={onInvite} className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#B6FF3A] px-4 py-2 text-sm font-semibold text-[#0A0A0F]"><Share2 size={15} /> Compartir mi enlace</button>
     </div>
   )
 }
@@ -227,12 +227,12 @@ function CrearGrupoModal({ amigos, onClose, onCreado }: { amigos: Persona[]; onC
           <div className="flex gap-2">
             <div className="flex flex-wrap gap-1.5">
               {EMOJIS.map(e => (
-                <button key={e} onClick={() => setEmoji(e)} className={cn('h-10 w-10 rounded-xl text-xl', emoji === e ? 'bg-[#E94560]/20 ring-1 ring-[#E94560]' : 'bg-white/5')}>{e}</button>
+                <button key={e} onClick={() => setEmoji(e)} className={cn('h-10 w-10 rounded-xl text-xl', emoji === e ? 'bg-[#B6FF3A]/20 ring-1 ring-[#B6FF3A]' : 'bg-white/5')}>{e}</button>
               ))}
             </div>
           </div>
           <input value={nombre} onChange={e => setNombre(e.target.value)} maxLength={60} placeholder="Nombre del grupo (p. ej. La cuadrilla)"
-            className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#E94560]/60" />
+            className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#B6FF3A]/60" />
           <div>
             <p className="mb-2 text-sm font-medium text-[#A0A0B8]">Añade amigos</p>
             {amigos.length === 0 ? (
@@ -243,17 +243,17 @@ function CrearGrupoModal({ amigos, onClose, onCreado }: { amigos: Persona[]; onC
                   const on = sel.has(a.id)
                   return (
                     <button key={a.id} onClick={() => setSel(prev => { const n = new Set(prev); n.has(a.id) ? n.delete(a.id) : n.add(a.id); return n })}
-                      className={cn('flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left', on ? 'border-[#E94560] bg-[#E94560]/10' : 'border-white/8 bg-white/[0.03]')}>
+                      className={cn('flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left', on ? 'border-[#B6FF3A] bg-[#B6FF3A]/10' : 'border-white/8 bg-white/[0.03]')}>
                       <Avatar nombre={a.nombre} foto={a.foto_perfil_url} size={32} />
                       <span className="flex-1 truncate text-sm text-white">{a.nombre}</span>
-                      {on && <Check size={16} className="text-[#E94560]" />}
+                      {on && <Check size={16} className="text-[#B6FF3A]" />}
                     </button>
                   )
                 })}
               </div>
             )}
           </div>
-          <button onClick={crear} disabled={guardando} className="h-12 w-full rounded-xl bg-[#E94560] font-semibold text-white disabled:opacity-50">
+          <button onClick={crear} disabled={guardando} className="h-12 w-full rounded-xl bg-[#B6FF3A] font-semibold text-[#0A0A0F] disabled:opacity-50">
             {guardando ? 'Creando…' : 'Crear grupo'}
           </button>
         </div>

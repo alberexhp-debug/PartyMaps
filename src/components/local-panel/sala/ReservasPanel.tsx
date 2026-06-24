@@ -29,7 +29,7 @@ const ESTADO_LABEL: Record<EstadoReserva, { label: string; color: string }> = {
   solicitada: { label: 'Solicitada', color: '#F39C12' },
   confirmada: { label: 'Confirmada', color: '#D4A84B' },
   sentada:    { label: 'Sentada', color: '#27AE60' },
-  rechazada:  { label: 'Rechazada', color: '#E94560' },
+  rechazada:  { label: 'Rechazada', color: '#B6FF3A' },
   cancelada:  { label: 'Cancelada', color: '#6B6B85' },
   no_show:    { label: 'No-show', color: '#6B6B85' },
 }
@@ -112,7 +112,7 @@ export function ReservasPanel({ localId, mesas, puedeGestionar }: Props) {
         {filtros.map(f => (
           <button key={f.key} onClick={() => setFiltro(f.key)}
             className={cn('flex-1 py-2 rounded-lg text-sm font-medium transition-colors',
-              filtro === f.key ? 'bg-[#E94560] text-white' : 'text-[#8B8BA8] hover:text-white')}>
+              filtro === f.key ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'text-[#8B8BA8] hover:text-[#0A0A0F]')}>
             {f.label}
           </button>
         ))}
@@ -204,12 +204,12 @@ function ConfirmarReservaModal({ reserva, onClose, onConfirmar }: {
           <div>
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5 flex items-center gap-1.5"><Euro size={13} /> Mínimo de consumo (opcional)</label>
             <input type="number" min={0} step="10" value={minimo} onChange={e => setMinimo(e.target.value)} placeholder="Ej. 200"
-              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#E94560]/60" />
+              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#B6FF3A]/60" />
           </div>
           <div>
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5 flex items-center gap-1.5"><Wallet size={13} /> Depósito por adelantado (opcional)</label>
             <input type="number" min={0} step="10" value={deposito} onChange={e => setDeposito(e.target.value)} placeholder="Ej. 50"
-              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#E94560]/60" />
+              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#B6FF3A]/60" />
             <p className="text-[11px] text-[#6B6B85] mt-1">Lo cobras tú al cliente; luego lo marcas como cobrado en la reserva.</p>
           </div>
           <Button fullWidth size="lg" loading={enviando}

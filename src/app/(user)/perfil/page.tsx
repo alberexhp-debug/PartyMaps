@@ -97,14 +97,14 @@ export default function PerfilPage() {
                 {usuario.foto_perfil_url ? (
                   <img src={usuario.foto_perfil_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#E94560] to-[#7C5CFF]">
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#B6FF3A] to-[#7C5CFF]">
                     <span className="text-display text-4xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
                       {(usuario.nombre?.[0] || '?').toUpperCase()}
                     </span>
                   </div>
                 )}
               </div>
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#E94560] rounded-full flex items-center justify-center shadow-[0_6px_14px_rgba(233,69,96,0.6)] border-2 border-[#0B0B16]">
+              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#B6FF3A] rounded-full flex items-center justify-center shadow-[0_6px_14px_rgba(182, 255, 58,0.6)] border-2 border-[#0B0B16]">
                 <Camera size={13} className="text-white" />
               </button>
             </div>
@@ -114,7 +114,7 @@ export default function PerfilPage() {
                   <input
                     value={nuevoNombre}
                     onChange={e => setNuevoNombre(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/5 border border-[#E94560]/60 rounded-xl text-white text-base outline-none focus:ring-2 focus:ring-[#E94560]/30"
+                    className="w-full px-3 py-2 bg-white/5 border border-[#B6FF3A]/60 rounded-xl text-white text-base outline-none focus:ring-2 focus:ring-[#B6FF3A]/30"
                     autoFocus
                     onKeyDown={e => { if (e.key === 'Enter') guardarNombre() }}
                   />
@@ -155,7 +155,7 @@ export default function PerfilPage() {
             icon={Ticket}
             label="Entradas"
             value={stats.entradas}
-            color="#E94560"
+            color="#B6FF3A"
             onClick={() => router.push('/entradas')}
           />
           <KPITile
@@ -199,7 +199,7 @@ export default function PerfilPage() {
               <button
                 onClick={() => push.desactivar().then(() => toast.info('Notificaciones desactivadas'))}
                 disabled={push.trabajando}
-                className="text-xs text-[#E94560] font-semibold disabled:opacity-50 self-center"
+                className="text-xs text-[#B6FF3A] font-semibold disabled:opacity-50 self-center"
               >
                 Desactivar
               </button>
@@ -221,7 +221,7 @@ export default function PerfilPage() {
           {push.estado === 'denegado' && (
             <div className="mt-3 flex items-start gap-2 text-xs text-[#F39C12] bg-[#F39C12]/10 border border-[#F39C12]/30 rounded-xl p-2.5">
               <AlertCircle size={14} className="shrink-0 mt-0.5" />
-              <span>Ve a los ajustes del navegador → Notificaciones y permite Rumbo.</span>
+              <span>Ve a los ajustes del navegador → Notificaciones y permite TODH.</span>
             </div>
           )}
         </div>
@@ -250,8 +250,8 @@ export default function PerfilPage() {
           onClick={logout}
           disabled={loggingOut}
           className={cn(
-            'w-full flex items-center justify-center gap-2 h-12 rounded-2xl border border-[#E94560]/30 text-[#E94560] text-sm font-semibold transition-colors disabled:opacity-50',
-            'hover:bg-[#E94560]/10'
+            'w-full flex items-center justify-center gap-2 h-12 rounded-2xl border border-[#B6FF3A]/30 text-[#B6FF3A] text-sm font-semibold transition-colors disabled:opacity-50',
+            'hover:bg-[#B6FF3A]/10'
           )}
         >
           <LogOut size={16} />
@@ -259,7 +259,7 @@ export default function PerfilPage() {
         </button>
 
         <div className="divider-gradient mt-6" />
-        <p className="text-center text-[10px] text-[#6B6B85] tracking-[0.18em] uppercase pb-2">Rumbo · v0.1.0</p>
+        <p className="text-center text-[10px] text-[#6B6B85] tracking-[0.18em] uppercase pb-2">TODH · v0.1.0</p>
       </div>
     </div>
   )
@@ -298,7 +298,7 @@ function OpcionPerfil({ icon: Icon, label, onClick, badge }: {
       </div>
       <span className="flex-1 text-sm text-white font-medium text-left">{label}</span>
       {badge != null && badge > 0 && (
-        <span className="px-2 py-0.5 rounded-full bg-[#E94560] text-white text-[11px] font-bold">{badge}</span>
+        <span className="px-2 py-0.5 rounded-full bg-[#B6FF3A] text-[#0A0A0F] text-[11px] font-bold">{badge}</span>
       )}
       <ChevronRight size={16} className="text-[#6B6B85]" />
     </button>

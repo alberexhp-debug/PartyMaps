@@ -13,10 +13,10 @@
   --color-bg-elevated: #17172420;
 
   /* Acentos — rosa de marca algo menos neón; el resto se usa con moderación */
-  --color-accent: #E0455E;
-  --color-accent-strong: #ED4D6B;
-  --color-accent-soft: rgba(224, 69, 94, 0.10);
-  --color-accent-glow: rgba(224, 69, 94, 0.28);
+  --color-accent: #B6FF3A;
+  --color-accent-strong: #A6EE2B;
+  --color-accent-soft: rgba(182, 255, 58, 0.10);
+  --color-accent-glow: rgba(182, 255, 58, 0.28);
   --color-accent-blue: #4F8EF7;
   --color-accent-violet: #7C5CFF;
   --color-accent-gold: #D4A84B;
@@ -30,7 +30,7 @@
   /* Estados */
   --color-success: #27AE60;
   --color-warning: #F39C12;
-  --color-danger: #E94560;
+  --color-danger: #FF4D6A;
 
   /* Bordes */
   --color-border: #2A2A3E;
@@ -54,7 +54,7 @@ html {
 body {
   background:
     radial-gradient(1100px 650px at 30% -15%, rgba(124, 92, 255, 0.05), transparent 55%),
-    radial-gradient(900px 550px at 95% 5%, rgba(224, 69, 94, 0.035), transparent 55%),
+    radial-gradient(900px 550px at 95% 5%, rgba(182, 255, 58, 0.035), transparent 55%),
     #07070D;
   color: #FAFAFC;
   overscroll-behavior: none;
@@ -96,8 +96,8 @@ body {
   100% { background-position: 0% 50%; }
 }
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 16px rgba(224, 69, 94, 0.16), 0 0 0 1px rgba(224, 69, 94, 0.12) inset; }
-  50% { box-shadow: 0 0 28px rgba(224, 69, 94, 0.30), 0 0 0 1px rgba(224, 69, 94, 0.20) inset; }
+  0%, 100% { box-shadow: 0 0 16px rgba(182, 255, 58, 0.16), 0 0 0 1px rgba(182, 255, 58, 0.12) inset; }
+  50% { box-shadow: 0 0 28px rgba(182, 255, 58, 0.30), 0 0 0 1px rgba(182, 255, 58, 0.20) inset; }
 }
 @keyframes float-soft {
   0%, 100% { transform: translateY(0); }
@@ -173,11 +173,11 @@ body {
 .holo-bg {
   background:
     linear-gradient(135deg,
-      #E94560 0%,
+      #B6FF3A 0%,
       #7C5CFF 25%,
       #4F8EF7 50%,
       #7C5CFF 75%,
-      #E94560 100%
+      #B6FF3A 100%
     );
   background-size: 300% 300%;
   animation: holo-rotate 8s ease infinite;
@@ -205,7 +205,7 @@ body {
 
 /* ---------- Glow accents (más contenidos) ---------- */
 .glow-accent {
-  box-shadow: 0 6px 18px -8px rgba(224, 69, 94, 0.40), 0 0 0 1px rgba(224, 69, 94, 0.14) inset;
+  box-shadow: 0 6px 18px -8px rgba(182, 255, 58, 0.40), 0 0 0 1px rgba(182, 255, 58, 0.14) inset;
 }
 .glow-violet {
   box-shadow: 0 6px 18px -8px rgba(124, 92, 255, 0.40), 0 0 0 1px rgba(124, 92, 255, 0.14) inset;
@@ -241,7 +241,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: #E94560;
+  color: #B6FF3A;
 }
 .eyebrow-muted { color: #A0A0B8; }
 .eyebrow-blue { color: #4F8EF7; }
@@ -261,7 +261,7 @@ body {
   left: -10%;
   width: 60%;
   height: 60%;
-  background: radial-gradient(circle, rgba(224, 69, 94, 0.09), transparent 60%);
+  background: radial-gradient(circle, rgba(182, 255, 58, 0.09), transparent 60%);
   filter: blur(70px);
   pointer-events: none;
 }
@@ -309,11 +309,11 @@ input, textarea, select {
 }
 
 /* Selección de texto */
-::selection { background: rgba(224, 69, 94, 0.4); color: #fff; }
+::selection { background: rgba(182, 255, 58, 0.4); color: #fff; }
 
 /* Foco accesible — visible siempre con teclado/tabulación */
 :focus-visible {
-  outline: 2px solid #ED4D6B;
+  outline: 2px solid #A6EE2B;
   outline-offset: 3px;
   border-radius: 8px;
 }
@@ -321,7 +321,7 @@ input, textarea, select {
 button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible {
-  outline-color: #ED4D6B;
+  outline-color: #A6EE2B;
   outline-width: 2px;
 }
 
@@ -338,7 +338,7 @@ a:focus-visible,
     padding: 0.625rem 1.25rem;
     font-weight: 600;
     line-height: 1.2;
-    color: #fff;
+    color: #0A0A0F;
     background: var(--color-accent);
     box-shadow: 0 8px 22px -8px var(--color-accent-glow);
     cursor: pointer;
@@ -425,8 +425,8 @@ a:focus-visible,
   --p-text-3: #8A8A99;
   --p-border: #ECECF1;
   --p-border-strong: #DADAE2;
-  --p-accent: #E0455E;
-  --p-accent-soft: #FCEBEE;
+  --p-accent: #B6FF3A;
+  --p-accent-soft: #EEFCD9;
   --p-plano-bg: #F1F1F5;
   --p-plano-grid: rgba(16,16,29,0.05);
   --p-shadow: 0 1px 2px rgba(16,16,29,0.04), 0 10px 26px -16px rgba(16,16,29,0.16);
@@ -451,8 +451,8 @@ a:focus-visible,
   --p-text-3: #82829A;
   --p-border: rgba(255,255,255,0.08);
   --p-border-strong: rgba(255,255,255,0.14);
-  --p-accent: #E94560;
-  --p-accent-soft: rgba(233,69,96,0.14);
+  --p-accent: #B6FF3A;
+  --p-accent-soft: rgba(182, 255, 58,0.14);
   --p-plano-bg: #0C0C15;
   --p-plano-grid: rgba(255,255,255,0.04);
   --p-shadow: 0 10px 30px -16px rgba(0,0,0,0.7);
@@ -516,14 +516,12 @@ a:focus-visible,
 }
 [data-pt="light"] .card-premium::before { display: none !important; }
 
-/* Excepciones: el texto sigue BLANCO en botones/superficies de color */
-[data-pt="light"] [class~="text-white"][class~="bg-[#E94560]"],
-[data-pt="light"] [class~="text-white"][class~="bg-[#E0455E]"],
+/* Excepciones (tema claro): texto BLANCO solo sobre azul/verde/holo */
 [data-pt="light"] [class~="text-white"][class~="bg-[#4F8EF7]"],
 [data-pt="light"] [class~="text-white"][class~="bg-[#27AE60]"],
-[data-pt="light"] [class~="text-white"][class~="holo-bg"],
-[data-pt="light"] [class~="text-white"][class~="btn-primary"],
-[data-pt="light"] .btn-primary { color: #fff !important; }
+[data-pt="light"] [class~="text-white"][class~="holo-bg"] { color: #fff !important; }
+/* Botón de marca lima: texto oscuro para legibilidad */
+[data-pt="light"] .btn-primary { color: #0A0A0F !important; }
 
 /* Scrollbar claro dentro del panel */
 [data-pt="light"] ::-webkit-scrollbar-thumb { background: rgba(16,16,29,0.14); }

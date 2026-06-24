@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     // Pendiente: si la envió el otro, la acepto → mutua.
     if (previa.receptor_id === yo.id) {
       await db.from('amistades').update({ estado: 'aceptada', updated_at: new Date().toISOString() }).eq('id', previa.id)
-      enviarPushAUsuario(destino, { title: '¡Nueva amistad!', body: `${yo.nombre} y tú ya sois amigos en Rumbo`, url: '/amigos' }).catch(() => {})
+      enviarPushAUsuario(destino, { title: '¡Nueva amistad!', body: `${yo.nombre} y tú ya sois amigos en TODH`, url: '/amigos' }).catch(() => {})
       return NextResponse.json({ ok: true, estado: 'aceptada', nombre: existeDestino.nombre })
     }
     return NextResponse.json({ ok: true, estado: 'pendiente', nombre: existeDestino.nombre })
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     if (error.code === '42P01') return NextResponse.json({ error: 'Los amigos se activan muy pronto.' }, { status: 409 })
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
-  enviarPushAUsuario(destino, { title: 'Nueva solicitud de amistad', body: `${yo.nombre} quiere ser tu amigo en Rumbo`, url: '/amigos' }).catch(() => {})
+  enviarPushAUsuario(destino, { title: 'Nueva solicitud de amistad', body: `${yo.nombre} quiere ser tu amigo en TODH`, url: '/amigos' }).catch(() => {})
   return NextResponse.json({ ok: true, estado: 'pendiente', nombre: existeDestino.nombre })
 }
 

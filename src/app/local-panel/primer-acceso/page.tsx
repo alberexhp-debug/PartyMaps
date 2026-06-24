@@ -39,7 +39,7 @@ export default function PrimerAccesoPage() {
     setTrabajador(fresco)
     setLocal(fresco.locales)
     const { homeDeRol } = await import('@/lib/permisosLocal')
-    toast.success('¡Listo! Bienvenido a Rumbo')
+    toast.success('¡Listo! Bienvenido a TODH')
     router.push(`/local-panel/${homeDeRol(fresco.rol)}`)
   }, [router, setLocal, setTrabajador, toast])
 
@@ -106,13 +106,13 @@ export default function PrimerAccesoPage() {
   }
 
   if (cargando) {
-    return <div className="flex min-h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#E94560]" /></div>
+    return <div className="flex min-h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#B6FF3A]" /></div>
   }
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
       <div className="pointer-events-none absolute top-0 -left-32 h-96 w-96 rounded-full bg-[#7C5CFF]/30 opacity-30 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 -right-32 h-96 w-96 rounded-full bg-[#E94560]/25 opacity-20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 -right-32 h-96 w-96 rounded-full bg-[#B6FF3A]/25 opacity-20 blur-3xl" />
 
       <div className="relative mb-6 text-center">
         <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#9B82FF]">Primer acceso</p>

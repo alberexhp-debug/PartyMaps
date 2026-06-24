@@ -58,7 +58,7 @@ export function BadgePuestaAPunto({ variant }: { variant: 'sidebar' | 'movil' })
           <span className="text-sm font-bold text-white text-numeric">{pct}%</span>
         </div>
         <div className="mt-1.5 h-1.5 rounded-full bg-white/8 overflow-hidden">
-          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#E0455E,#7C5CFF)' }} />
+          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#B6FF3A,#7C5CFF)' }} />
         </div>
         {obligatoriosPendientes > 0 ? (
           <p className="mt-1.5 text-[11px] text-[#F39C12] flex items-center gap-1">

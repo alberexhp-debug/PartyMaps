@@ -23,7 +23,7 @@ function EsperaChip({ pagadoAt }: { pagadoAt: string }) {
     return () => clearInterval(t)
   }, [])
   const mins = Math.max(0, Math.floor((Date.now() - new Date(pagadoAt).getTime()) / 60000))
-  const color = mins >= 10 ? '#E94560' : mins >= 5 ? '#F39C12' : '#8B8BA8'
+  const color = mins >= 10 ? '#B6FF3A' : mins >= 5 ? '#F39C12' : '#8B8BA8'
   return (
     <span className="inline-flex items-center gap-1 mt-0.5 text-[11px] font-semibold text-numeric" style={{ color }}>
       <Clock size={10} /> {mins < 1 ? 'ahora' : `${mins} min`}
@@ -125,7 +125,7 @@ export default function PedidosBarPanelPage() {
         {([{ id: 'barra', label: 'Barra' }, { id: 'mesas', label: 'Mesas' }] as { id: 'barra' | 'mesas'; label: string }[]).map(t => (
           <button key={t.id} onClick={() => setVista(t.id)}
             className={cn('flex-1 py-2.5 text-sm font-semibold transition-all rounded-xl',
-              vista === t.id ? 'bg-[#E94560] text-white shadow-[0_6px_20px_-4px_rgba(233,69,96,0.6)]' : 'text-[#B8B8CC] hover:text-white')}>
+              vista === t.id ? 'bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_6px_20px_-4px_rgba(182, 255, 58,0.6)]' : 'text-[#B8B8CC] hover:text-[#0A0A0F]')}>
             {t.label}
           </button>
         ))}
@@ -147,7 +147,7 @@ export default function PedidosBarPanelPage() {
             className={cn(
               'flex-1 py-2.5 text-sm font-semibold transition-all rounded-xl',
               filtro === t.id
-                ? 'bg-[#E94560] text-white shadow-[0_6px_20px_-4px_rgba(233,69,96,0.6)]'
+                ? 'bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_6px_20px_-4px_rgba(182, 255, 58,0.6)]'
                 : 'text-[#B8B8CC] hover:text-white'
             )}
           >
@@ -213,7 +213,7 @@ export default function PedidosBarPanelPage() {
               <div className="mt-3 space-y-1 pl-13">
                 {p.pedido_items.map(it => (
                   <div key={it.id} className="flex items-center gap-2 text-sm">
-                    <span className="font-bold text-[#E94560] text-numeric w-7 text-right">{it.cantidad}×</span>
+                    <span className="font-bold text-[#B6FF3A] text-numeric w-7 text-right">{it.cantidad}×</span>
                     <span className="text-white truncate flex-1">{it.nombre_snapshot}</span>
                   </div>
                 ))}
@@ -286,7 +286,7 @@ function ConfigPrioridad({ onClose }: { onClose: () => void }) {
           <div key={z.key} className="flex items-center justify-between gap-3">
             <span className="text-sm text-white">{z.label}</span>
             <select value={prio[z.key]} onChange={e => setPrio(p => ({ ...p, [z.key]: e.target.value }))}
-              className="h-10 rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#E0455E]/60">
+              className="h-10 rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60">
               <option value="alta" className="bg-[#15151F]">Alta</option>
               <option value="media" className="bg-[#15151F]">Media</option>
               <option value="baja" className="bg-[#15151F]">Baja</option>

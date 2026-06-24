@@ -90,7 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
         <div className="p-3 border-t border-white/8 space-y-0.5">
           <button onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#A0A0B8] hover:text-[#E94560] hover:bg-[#E94560]/8 transition-colors">
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#A0A0B8] hover:text-[#B6FF3A] hover:bg-[#B6FF3A]/8 transition-colors">
             <LogOut size={16} /> Cerrar sesión
           </button>
         </div>

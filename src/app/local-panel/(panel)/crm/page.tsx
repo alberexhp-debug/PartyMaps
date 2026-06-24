@@ -80,7 +80,7 @@ function CRMContent() {
         {TABS.map(t => (
           <button key={t.id} onClick={() => irTab(t.id)}
             className={cn('shrink-0 px-3.5 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
-              tab === t.id ? 'border-[#E0455E] text-[#FAFAFC]' : 'border-transparent text-[#8B8BA8] hover:text-white')}>
+              tab === t.id ? 'border-[#B6FF3A] text-[#FAFAFC]' : 'border-transparent text-[#8B8BA8] hover:text-white')}>
             {t.label}
           </button>
         ))}
@@ -162,7 +162,7 @@ function ClientesTab({ clientes, loading, chip, setChip, onActualizar }: { clien
         {CHIPS.map(c => (
           <button key={c.id} onClick={() => setChip(c.id)}
             className={cn('shrink-0 px-3 h-8 rounded-full text-xs font-semibold transition-colors',
-              chip === c.id ? 'bg-[#E0455E] text-white' : 'glass-subtle text-[#B8B8CC] hover:text-white')}>
+              chip === c.id ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'glass-subtle text-[#B8B8CC] hover:text-[#0A0A0F]')}>
             {c.label}
           </button>
         ))}
@@ -179,7 +179,7 @@ function ClientesTab({ clientes, loading, chip, setChip, onActualizar }: { clien
             {filtrados.map(c => (
               <button key={c.usuario_id} onClick={() => setDetalle(c)}
                 className="w-full text-left rounded-2xl bg-white/[0.03] border border-white/[0.07] p-3.5 flex items-center gap-3 hover:bg-white/[0.06] transition-colors">
-                <div className="w-11 h-11 rounded-full bg-[#E94560]/15 flex items-center justify-center shrink-0 text-white font-semibold overflow-hidden">
+                <div className="w-11 h-11 rounded-full bg-[#B6FF3A]/15 flex items-center justify-center shrink-0 text-[#0A0A0F] font-semibold overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {c.foto ? <img src={c.foto} alt="" className="w-full h-full object-cover" /> : c.nombre.slice(0, 1).toUpperCase()}
                 </div>
@@ -259,7 +259,7 @@ function ClienteFicha({ cliente, onClose, onSaved }: { cliente: Cliente; onClose
       <div className="card-premium w-full max-w-2xl rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-14 h-14 rounded-full bg-[#E94560]/15 flex items-center justify-center shrink-0 text-white font-semibold text-lg overflow-hidden">
+            <div className="w-14 h-14 rounded-full bg-[#B6FF3A]/15 flex items-center justify-center shrink-0 text-[#0A0A0F] font-semibold text-lg overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {cliente.foto ? <img src={cliente.foto} alt="" className="w-full h-full object-cover" /> : cliente.nombre.slice(0, 1).toUpperCase()}
             </div>
@@ -289,7 +289,7 @@ function ClienteFicha({ cliente, onClose, onSaved }: { cliente: Cliente; onClose
 
         {/* Historial */}
         <div className="space-y-2 mb-4">
-          <Acordeon icon={Ticket} color="#E0455E" titulo="Entradas" n={hist?.entradas.length ?? 0}>
+          <Acordeon icon={Ticket} color="#B6FF3A" titulo="Entradas" n={hist?.entradas.length ?? 0}>
             {hist?.entradas.map(e => <FilaHist key={e.id} fecha={e.fecha} concepto="Entrada" importe={e.importe} />)}
           </Acordeon>
           <Acordeon icon={Beer} color="#D4A84B" titulo="Barra" n={hist?.barra.length ?? 0}>
@@ -315,7 +315,7 @@ function ClienteFicha({ cliente, onClose, onSaved }: { cliente: Cliente; onClose
             ))}
             <input value={nuevaEtiqueta} onChange={e => setNuevaEtiqueta(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addEtiqueta() } }}
-              placeholder="+ Añadir" className="px-2.5 h-7 rounded-full bg-transparent border border-dashed border-[#2A2A3E] text-xs text-white outline-none placeholder:text-[#6B6B85] w-24 focus:border-[#E0455E]/60" />
+              placeholder="+ Añadir" className="px-2.5 h-7 rounded-full bg-transparent border border-dashed border-[#2A2A3E] text-xs text-white outline-none placeholder:text-[#6B6B85] w-24 focus:border-[#B6FF3A]/60" />
           </div>
         </div>
 
@@ -327,7 +327,7 @@ function ClienteFicha({ cliente, onClose, onSaved }: { cliente: Cliente; onClose
           <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', vip ? 'bg-[#F39C12]/20 text-[#F39C12]' : 'bg-white/8 text-[#8B8BA8]')}>{vip ? 'Sí' : 'No'}</span>
         </button>
         <textarea value={notas} onChange={e => setNotas(e.target.value.slice(0, 500))} rows={3} placeholder="Notas internas (bebida favorita, alergias, incidencias…)"
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white outline-none focus:border-[#E94560]/60 resize-none placeholder:text-[#6B6B85]" />
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white outline-none focus:border-[#B6FF3A]/60 resize-none placeholder:text-[#6B6B85]" />
 
         <button onClick={guardar} disabled={guardando} className="mt-4 w-full btn-primary inline-flex items-center justify-center gap-2">
           <Save size={16} /> {guardando ? 'Guardando…' : 'Guardar'}
@@ -398,7 +398,7 @@ function SegmentosTab({ clientes, esPro, contratoOk, loading, onIrAjustes }: { c
         return (
           <div key={s.id} className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-4 hover:bg-white/[0.06] transition-colors relative">
             {!s.pre_creado && (
-              <button onClick={() => eliminar(s.id)} className="absolute top-2 right-2 text-[#6B6B85] hover:text-[#E94560]" aria-label="Eliminar"><Trash2 size={13} /></button>
+              <button onClick={() => eliminar(s.id)} className="absolute top-2 right-2 text-[#6B6B85] hover:text-[#B6FF3A]" aria-label="Eliminar"><Trash2 size={13} /></button>
             )}
             <button onClick={() => setSel(s)} className="w-full text-left">
               <div className="flex items-center gap-2 mb-1">
@@ -417,7 +417,7 @@ function SegmentosTab({ clientes, esPro, contratoOk, loading, onIrAjustes }: { c
       })}
       {esPro && (
         <button onClick={() => setBuilder(true)}
-          className="rounded-2xl border border-dashed border-[#2A2A3E] p-4 flex flex-col items-center justify-center gap-1.5 text-[#8B8BA8] hover:border-[#E0455E]/60 hover:text-white transition-colors min-h-[120px]">
+          className="rounded-2xl border border-dashed border-[#2A2A3E] p-4 flex flex-col items-center justify-center gap-1.5 text-[#8B8BA8] hover:border-[#B6FF3A]/60 hover:text-white transition-colors min-h-[120px]">
           <Plus size={20} /> <span className="text-sm font-medium">Nuevo segmento</span>
         </button>
       )}
@@ -584,7 +584,7 @@ function BuilderModal({ clientes, onClose, onGuardado }: { clientes: Cliente[]; 
                 {def.tipo === 'bool'
                   ? <select value={String(f.valor)} onChange={e => setFila(i, { valor: e.target.value === 'true' })} className="w-16 rounded-lg bg-white/5 border border-white/10 text-xs text-white px-2 py-2 outline-none"><option value="true">Sí</option><option value="false">No</option></select>
                   : <input value={String(f.valor ?? '')} onChange={e => setFila(i, { valor: def.tipo === 'num' ? Number(e.target.value) : e.target.value })} type={def.tipo === 'num' ? 'number' : 'text'} className="w-16 rounded-lg bg-white/5 border border-white/10 text-xs text-white px-2 py-2 outline-none" />}
-                {filtros.length > 1 && <button onClick={() => setFiltros(prev => prev.filter((_, j) => j !== i))} className="text-[#6B6B85] hover:text-[#E94560] shrink-0"><X size={14} /></button>}
+                {filtros.length > 1 && <button onClick={() => setFiltros(prev => prev.filter((_, j) => j !== i))} className="text-[#6B6B85] hover:text-[#B6FF3A] shrink-0"><X size={14} /></button>}
               </div>
             )
           })}
@@ -635,7 +635,7 @@ function ExportModal({ filtros, onClose }: { filtros: FiltroSegmento[]; onClose:
         <div className="flex items-center justify-between mb-4"><p className="font-bold text-white text-display">Exportar clientes</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
         <div className="grid grid-cols-2 gap-2 mb-4">
           {(['operativo', 'marketing'] as const).map(m => (
-            <button key={m} onClick={() => setModo(m)} className={cn('rounded-xl border p-3 text-left transition-colors', modo === m ? 'border-[#E0455E]/50 bg-[#E0455E]/10' : 'border-white/10 bg-white/[0.03]')}>
+            <button key={m} onClick={() => setModo(m)} className={cn('rounded-xl border p-3 text-left transition-colors', modo === m ? 'border-[#B6FF3A]/50 bg-[#B6FF3A]/10' : 'border-white/10 bg-white/[0.03]')}>
               <p className="text-sm font-semibold text-white capitalize">{m}</p>
               <p className="text-[11px] text-[#8B8BA8] mt-0.5">{m === 'operativo' ? 'Todos los clientes' : 'Solo contactables'}</p>
             </button>
@@ -646,7 +646,7 @@ function ExportModal({ filtros, onClose }: { filtros: FiltroSegmento[]; onClose:
           {COLS_EXPORT.map(c => {
             const on = cols.includes(c.id)
             return <button key={c.id} onClick={() => setCols(prev => on ? prev.filter(x => x !== c.id) : [...prev, c.id])}
-              className={cn('px-2.5 h-7 rounded-full text-xs transition-colors', on ? 'bg-[#E0455E] text-white' : 'bg-white/[0.06] text-[#B8B8CC]')}>{c.label}</button>
+              className={cn('px-2.5 h-7 rounded-full text-xs transition-colors', on ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'bg-white/[0.06] text-[#B8B8CC]')}>{c.label}</button>
           })}
         </div>
         <p className="text-[11px] text-[#F39C12] bg-[#F39C12]/10 border border-[#F39C12]/25 rounded-xl px-3 py-2 mb-4">Estos datos son responsabilidad de tu local. Úsalos conforme a la ley (RGPD/LSSI).</p>
@@ -705,7 +705,7 @@ function CampanasTab({ esPro }: { esPro: boolean }) {
     <div className="space-y-2 max-w-3xl">
       {campanas.map(c => (
         <div key={c.id} className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-3.5 flex items-center gap-3">
-          <span className="w-9 h-9 rounded-xl bg-[#E0455E]/15 flex items-center justify-center shrink-0"><Send size={15} className="text-[#E0455E]" /></span>
+          <span className="w-9 h-9 rounded-xl bg-[#B6FF3A]/15 flex items-center justify-center shrink-0"><Send size={15} className="text-[#B6FF3A]" /></span>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white truncate">{c.titulo || 'Push'}</p>
             <p className="text-[11px] text-[#8B8BA8]">{c.segmento_nombre ?? '—'} · {new Date(c.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</p>
@@ -739,7 +739,7 @@ function AjustesTab() {
           <span className="w-9 h-9 rounded-xl bg-[#27AE60]/15 border border-[#27AE60]/25 flex items-center justify-center shrink-0"><ShieldCheck size={16} className="text-[#27AE60]" /></span>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white">Protección de datos</p>
-            <p className="text-xs text-[#8B8BA8] mt-0.5">Contrato de encargo (art. 28 RGPD): tú eres el responsable de los datos; Rumbo, el encargado.</p>
+            <p className="text-xs text-[#8B8BA8] mt-0.5">Contrato de encargo (art. 28 RGPD): tú eres el responsable de los datos; TODH, el encargado.</p>
             {aceptado ? (
               <div className="mt-2 flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#27AE60]/15 text-[#27AE60] border border-[#27AE60]/25">Aceptado el {fecha(aceptado)}</span>
@@ -775,10 +775,10 @@ function AjustesTab() {
 
 const CONTRATO_ENCARGO_TXT = `CONTRATO DE ENCARGO DEL TRATAMIENTO (art. 28 RGPD) — [PENDIENTE REVISIÓN LEGAL]
 
-1. Objeto: Rumbo trata por cuenta del LOCAL (responsable) los datos de sus clientes con el único fin de prestar el servicio de CRM.
+1. Objeto: TODH trata por cuenta del LOCAL (responsable) los datos de sus clientes con el único fin de prestar el servicio de CRM.
 2. Duración: mientras esté activa la cuenta del local.
 3. Tipos de datos: identificativos y de contacto (nombre, teléfono), y de actividad (visitas, consumo).
-4. Confidencialidad: Rumbo y su personal guardan secreto sobre los datos.
+4. Confidencialidad: TODH y su personal guardan secreto sobre los datos.
 5. Sub-encargados: Supabase (base de datos), Vercel (hosting), Brevo (email, si se activa).
 6. Medidas de seguridad: cifrado en tránsito y reposo, control de acceso por rol, auditoría de exportaciones.
 7. Fin del encargo: a la terminación, devolución o supresión de los datos a elección del responsable.
@@ -829,7 +829,7 @@ function BrevoCard() {
           <p className="text-xs text-[#8B8BA8] truncate">{conectada ? (estado?.cuenta || 'Cuenta conectada') : 'Conecta tu cuenta para sincronizar segmentos.'}</p>
         </div>
         {conectada
-          ? <button onClick={desconectar} className="text-xs text-[#8B8BA8] hover:text-[#E94560] shrink-0">Desconectar</button>
+          ? <button onClick={desconectar} className="text-xs text-[#8B8BA8] hover:text-[#B6FF3A] shrink-0">Desconectar</button>
           : <button onClick={() => setModal(true)} className="text-xs px-3 h-8 rounded-lg border border-white/15 text-white hover:bg-white/5 shrink-0">Conectar</button>}
       </div>
       {modal && <BrevoModal onClose={() => setModal(false)} onConectado={() => { setModal(false); cargar() }} />}
@@ -923,7 +923,7 @@ function ImportarModal({ onClose }: { onClose: () => void }) {
         {headers.length === 0 ? (
           <>
             <p className="text-xs text-[#8B8BA8] mb-3">Sube un CSV con columnas de nombre, teléfono y (opcional) email. El teléfono es la llave: las fichas se fusionan solas si la persona se registra.</p>
-            <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 cursor-pointer hover:border-[#E0455E]/50 transition-colors">
+            <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 cursor-pointer hover:border-[#B6FF3A]/50 transition-colors">
               <Upload size={22} className="text-[#8B8BA8]" />
               <span className="text-sm text-white">Elegir archivo CSV</span>
               <input type="file" accept=".csv,text/csv" onChange={onFile} className="hidden" />
@@ -939,7 +939,7 @@ function ImportarModal({ onClose }: { onClose: () => void }) {
             </div>
             <div className="rounded-xl glass-subtle p-3 text-sm text-[#B8B8CC] mb-3">{rows.length} filas · <span className="text-white font-semibold">{validas}</span> con teléfono{sinTel > 0 && ` · ${sinTel} sin teléfono (se omiten)`}</div>
             <label className="flex items-start gap-2.5 mb-4 cursor-pointer">
-              <input type="checkbox" checked={decl} onChange={e => setDecl(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#E0455E]" />
+              <input type="checkbox" checked={decl} onChange={e => setDecl(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#B6FF3A]" />
               <span className="text-[12px] text-[#B8B8CC] leading-snug">Declaro que obtuve estos datos de forma legal y que estas personas aceptaron recibir comunicaciones de mi local. Soy responsable de poder demostrarlo.</span>
             </label>
             <button onClick={importarFn} disabled={importando || !decl || validas === 0} className="w-full btn-primary inline-flex items-center justify-center gap-2 disabled:opacity-50"><Upload size={16} /> {importando ? 'Importando…' : `Importar ${validas}`}</button>

@@ -24,7 +24,7 @@ export function ErrorState({
   variante = 'error',
 }: ErrorStateProps) {
   const Icon = variante === 'offline' ? WifiOff : AlertCircle
-  const color = variante === 'offline' ? '#F39C12' : '#E94560'
+  const color = variante === 'offline' ? '#F39C12' : '#B6FF3A'
   const tituloFinal = titulo || (variante === 'offline' ? 'Sin conexión' : 'Algo ha fallado')
   const mensajeFinal = mensaje || (variante === 'offline'
     ? 'Revisa tu Wi-Fi o datos móviles y vuelve a intentarlo.'

@@ -223,7 +223,7 @@ export default function LocalPerfilPage() {
             placeholder="Ej: Podrían mejorar el volumen en la zona VIP..."
             rows={4}
             maxLength={400}
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50 resize-none placeholder:text-[#6B6B85]"
           />
           <p className="text-xs text-[#6B6B85] text-right">{texto.length}/400</p>
           <Button fullWidth loading={loading} onClick={enviar}>
@@ -315,7 +315,7 @@ export default function LocalPerfilPage() {
               placeholder="Cuéntanos tu experiencia..."
               rows={4}
               maxLength={500}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 resize-none placeholder:text-[#6B6B85]"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50 resize-none placeholder:text-[#6B6B85]"
             />
             <p className="text-xs text-[#6B6B85] text-right">{comentario.length}/500</p>
           </div>
@@ -450,12 +450,12 @@ export default function LocalPerfilPage() {
               'group relative h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] overflow-hidden flex items-center justify-center gap-2',
               suscrito
                 ? 'glass border border-white/15 text-white hover:border-white/25'
-                : 'bg-[#E94560] text-white shadow-[0_12px_28px_-10px_rgba(233,69,96,0.55)] hover:bg-[#FF3D71]'
+                : 'bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_12px_28px_-10px_rgba(182, 255, 58,0.55)] hover:bg-[#A6EE2B]'
             )}
           >
             {suscrito ? (
               <>
-                <Bell size={18} className="fill-current text-[#E94560]" />
+                <Bell size={18} className="fill-current text-[#B6FF3A]" />
                 <span>Siguiendo</span>
               </>
             ) : (
@@ -624,7 +624,7 @@ export default function LocalPerfilPage() {
               onClick={() => setTab(key as 'info' | 'reviews')}
               className={cn(
                 'flex-1 py-2 rounded-lg text-sm font-medium transition-colors',
-                tab === key ? 'bg-[#E94560] text-white' : 'text-[#6B6B85]'
+                tab === key ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'text-[#6B6B85]'
               )}
             >
               {label}
@@ -679,7 +679,7 @@ export default function LocalPerfilPage() {
                       <p className="text-sm font-medium text-white">{c.nombre}</p>
                       <p className="text-xs text-[#6B6B85]">{c.descripcion}</p>
                     </div>
-                    <span className="text-[#E94560] font-semibold">{formatearPrecio(c.precio)}</span>
+                    <span className="text-[#B6FF3A] font-semibold">{formatearPrecio(c.precio)}</span>
                   </div>
                 ))}
               </div>
@@ -707,16 +707,16 @@ export default function LocalPerfilPage() {
             {usuario && !miReview && (
               <button
                 onClick={() => setShowReviewModal(true)}
-                className="w-full flex items-center gap-3 p-4 bg-white/6 border border-dashed border-[#E94560]/40 rounded-2xl hover:border-[#E94560] transition-colors"
+                className="w-full flex items-center gap-3 p-4 bg-white/6 border border-dashed border-[#B6FF3A]/40 rounded-2xl hover:border-[#B6FF3A] transition-colors"
               >
-                <PenLine size={18} className="text-[#E94560]" />
+                <PenLine size={18} className="text-[#B6FF3A]" />
                 <span className="text-sm font-medium text-[#A0A0B8]">Escribe tu opinión sobre {local.nombre}</span>
               </button>
             )}
             {usuario && miReview && (
-              <div className="p-3 bg-[#E94560]/10 border border-[#E94560]/30 rounded-xl flex items-center gap-2">
-                <Star size={14} className="text-[#E94560] fill-current" />
-                <span className="text-sm text-[#E94560]">Ya dejaste una review ({miReview.puntuacion} ★)</span>
+              <div className="p-3 bg-[#B6FF3A]/10 border border-[#B6FF3A]/30 rounded-xl flex items-center gap-2">
+                <Star size={14} className="text-[#B6FF3A] fill-current" />
+                <span className="text-sm text-[#B6FF3A]">Ya dejaste una review ({miReview.puntuacion} ★)</span>
               </div>
             )}
             {!usuario && (
@@ -778,8 +778,8 @@ export default function LocalPerfilPage() {
                     </div>
                     {review.comentario && <p className="text-sm text-[#A0A0B8]">{review.comentario}</p>}
                     {review.respuesta_local && (
-                      <div className="mt-2 p-3 bg-white/5 rounded-xl border-l-2 border-[#E94560]">
-                        <p className="text-xs text-[#E94560] font-medium mb-1">Respuesta del local</p>
+                      <div className="mt-2 p-3 bg-white/5 rounded-xl border-l-2 border-[#B6FF3A]">
+                        <p className="text-xs text-[#B6FF3A] font-medium mb-1">Respuesta del local</p>
                         <p className="text-xs text-[#A0A0B8]">{review.respuesta_local}</p>
                       </div>
                     )}
@@ -849,7 +849,7 @@ export default function LocalPerfilPage() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div className="relative w-full sm:max-w-md glass-strong rounded-t-3xl sm:rounded-3xl p-5 animate-slide-up safe-bottom" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-1">
-              <Beer size={18} className="text-[#E94560]" />
+              <Beer size={18} className="text-[#B6FF3A]" />
               <h3 className="text-lg font-bold text-white text-display">Consumición de bienvenida</h3>
             </div>
             <p className="text-sm text-[#8B8BA8] mb-4">Este local te incluye una consumición. Elige la tuya y la verás aplicada en la compra.</p>
@@ -859,20 +859,20 @@ export default function LocalPerfilPage() {
                 return (
                   <button key={c.id} onClick={() => setBienvenidaSel(c.id)}
                     className={cn('w-full flex items-center justify-between gap-3 p-3 rounded-xl border text-left transition-colors',
-                      sel ? 'bg-[#E94560]/12 border-[#E94560]/40' : 'bg-white/4 border-white/8 hover:bg-white/8')}>
+                      sel ? 'bg-[#B6FF3A]/12 border-[#B6FF3A]/40' : 'bg-white/4 border-white/8 hover:bg-white/8')}>
                     <div className="min-w-0">
                       <p className="font-semibold text-white text-sm truncate">{c.nombre || 'Consumición'}</p>
                       {c.descripcion && <p className="text-xs text-[#8B8BA8] truncate">{c.descripcion}</p>}
                     </div>
-                    {sel && <Check size={16} className="text-[#E94560] shrink-0" />}
+                    {sel && <Check size={16} className="text-[#B6FF3A] shrink-0" />}
                   </button>
                 )
               })}
               <button onClick={() => setBienvenidaSel(null)}
                 className={cn('w-full flex items-center justify-between gap-3 p-3 rounded-xl border text-left transition-colors',
-                  bienvenidaSel === null ? 'bg-[#E94560]/12 border-[#E94560]/40' : 'bg-white/4 border-white/8 hover:bg-white/8')}>
+                  bienvenidaSel === null ? 'bg-[#B6FF3A]/12 border-[#B6FF3A]/40' : 'bg-white/4 border-white/8 hover:bg-white/8')}>
                 <span className="text-sm text-white">Ninguna, gracias</span>
-                {bienvenidaSel === null && <Check size={16} className="text-[#E94560] shrink-0" />}
+                {bienvenidaSel === null && <Check size={16} className="text-[#B6FF3A] shrink-0" />}
               </button>
             </div>
             <Button fullWidth size="lg" className="mt-4" onClick={continuarCompra}>

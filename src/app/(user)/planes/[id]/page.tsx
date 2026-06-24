@@ -151,7 +151,7 @@ export default function PlanDetallePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#E94560] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#B6FF3A] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -200,7 +200,7 @@ export default function PlanDetallePage() {
               onClick={() => setTab(t)}
               className={cn(
                 'flex-1 py-2.5 text-sm font-semibold border-b-2 transition-colors capitalize',
-                tab === t ? 'border-[#E94560] text-white' : 'border-transparent text-[#6B6B85]'
+                tab === t ? 'border-[#B6FF3A] text-white' : 'border-transparent text-[#6B6B85]'
               )}
             >
               {t === 'chat' ? (
@@ -212,7 +212,7 @@ export default function PlanDetallePage() {
                 <span className="flex items-center justify-center gap-1.5">
                   <Users size={14} />
                   Miembros {solicitudesPendientes.length > 0 && soyCreador && (
-                    <span className="w-4 h-4 bg-[#E94560] rounded-full text-[10px] text-white flex items-center justify-center">
+                    <span className="w-4 h-4 bg-[#B6FF3A] rounded-full text-[10px] text-[#0A0A0F] flex items-center justify-center">
                       {solicitudesPendientes.length}
                     </span>
                   )}
@@ -352,7 +352,7 @@ export default function PlanDetallePage() {
                     {!esMio && <Avatar usuario={msg.usuarios} size={28} />}
                     <div className={cn(
                       'max-w-[75%] rounded-2xl px-3 py-2',
-                      esMio ? 'bg-[#E94560] rounded-br-sm' : 'bg-white/6 rounded-bl-sm'
+                      esMio ? 'bg-[#B6FF3A] rounded-br-sm' : 'bg-white/6 rounded-bl-sm'
                     )}>
                       {!esMio && (
                         <p className="text-xs font-semibold text-[#A0A0B8] mb-1">{msg.usuarios?.nombre}</p>
@@ -378,12 +378,12 @@ export default function PlanDetallePage() {
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje() } }}
                 placeholder="Mensaje..."
                 maxLength={500}
-                className="flex-1 px-4 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#E94560]/50 placeholder:text-[#6B6B85]"
+                className="flex-1 px-4 py-2.5 glass rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50 placeholder:text-[#6B6B85]"
               />
               <button
                 onClick={enviarMensaje}
                 disabled={!mensaje.trim() || enviando}
-                className="w-10 h-10 bg-[#E94560] rounded-xl flex items-center justify-center disabled:opacity-50 shrink-0"
+                className="w-10 h-10 bg-[#B6FF3A] rounded-xl flex items-center justify-center disabled:opacity-50 shrink-0"
               >
                 <Send size={16} className="text-white" />
               </button>
@@ -491,16 +491,16 @@ function InvitarAmigosModal({ planId, yaParticipantes, huecos, onClose, onInvita
               const on = sel.has(a.id)
               return (
                 <button key={a.id} onClick={() => setSel(prev => { const n = new Set(prev); if (n.has(a.id)) n.delete(a.id); else n.add(a.id); return n })}
-                  className={cn('flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left', on ? 'border-[#E94560] bg-[#E94560]/10' : 'border-white/8 bg-white/[0.03]')}>
+                  className={cn('flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left', on ? 'border-[#B6FF3A] bg-[#B6FF3A]/10' : 'border-white/8 bg-white/[0.03]')}>
                   <Avatar usuario={{ nombre: a.nombre, foto_perfil_url: a.foto_perfil_url ?? undefined }} size={32} />
                   <span className="flex-1 truncate text-sm text-white">{a.nombre}</span>
-                  {on && <Check size={16} className="text-[#E94560]" />}
+                  {on && <Check size={16} className="text-[#B6FF3A]" />}
                 </button>
               )
             })}
           </div>
         )}
-        <button onClick={invitar} disabled={enviando || !sel.size} className="mt-4 h-12 w-full rounded-xl bg-[#E94560] font-semibold text-white disabled:opacity-50">
+        <button onClick={invitar} disabled={enviando || !sel.size} className="mt-4 h-12 w-full rounded-xl bg-[#B6FF3A] font-semibold text-[#0A0A0F] disabled:opacity-50">
           {enviando ? 'Invitando…' : `Invitar${sel.size ? ` (${sel.size})` : ''}`}
         </button>
       </div>

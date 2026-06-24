@@ -3,13 +3,13 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'Rumbo — Ocio nocturno',
-  description: 'Descubre qué local merece la pena esta noche. Mapa en tiempo real, entradas, planes y más.',
+  title: 'TODH — Torneos presenciales de juegos',
+  description: 'Organiza y descubre torneos presenciales de videojuegos y cartas. Brackets en vivo, inscripción, ranking y comunidad.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Rumbo',
+    title: 'TODH',
   },
   icons: {
     icon: '/icon-192.png',
@@ -41,9 +41,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Providers>{children}</Providers>
-        <script dangerouslySetInnerHTML={{
-          __html: `if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(() => {}) }`
-        }} />
+        {/* SW sin registrar durante el pivote TODH: evita caché vieja de TODH
+            (el /sw.js es ahora un kill-switch que purga y se desregistra). */}
       </body>
     </html>
   )

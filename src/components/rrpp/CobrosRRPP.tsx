@@ -19,7 +19,7 @@ const ESTADO: Record<Liquidacion['estado'], { label: string; color: string }> = 
   pendiente: { label: 'Pendiente de pago', color: '#F39C12' },
   marcado_pagado: { label: 'El local dice que pagó', color: '#4F8EF7' },
   confirmado: { label: 'Cobrado', color: '#27AE60' },
-  disputado: { label: 'En disputa', color: '#E94560' },
+  disputado: { label: 'En disputa', color: '#B6FF3A' },
 }
 
 /** Sección "Cobros" del dashboard del RRPP: confirmar o disputar lo que el local marca como pagado. */

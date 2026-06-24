@@ -145,14 +145,14 @@ export default function ModeracionPage() {
       {!loading && tab === 'reportes' && (reportes.length === 0
         ? <Vacio mensaje="Sin reportes pendientes" />
         : reportes.map(r => (
-          <div key={r.id} className="bg-white/6 rounded-2xl border border-[#E94560]/30 p-4 space-y-3">
+          <div key={r.id} className="bg-white/6 rounded-2xl border border-[#B6FF3A]/30 p-4 space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-xs text-[#6B6B85]">
                   Reportó <span className="text-white">{r.reportador?.nombre || 'Anónimo'}</span>
                 </p>
                 <p className="text-sm text-white mt-1">
-                  <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-white/5 text-[#E94560]">{r.tipo_contenido}</span>
+                  <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-white/5 text-[#B6FF3A]">{r.tipo_contenido}</span>
                   <span className="ml-2 text-xs text-[#6B6B85]">motivo: {r.motivo}</span>
                 </p>
                 {r.descripcion && <p className="text-xs text-[#A0A0B8] mt-2 bg-white/5 rounded p-2">{r.descripcion}</p>}

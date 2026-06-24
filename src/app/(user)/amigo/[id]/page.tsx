@@ -37,11 +37,11 @@ export default function AmigoInvitePage() {
 
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-center px-6 text-center">
-      {estado === 'cargando' && <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/20 border-t-[#E94560]" />}
+      {estado === 'cargando' && <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/20 border-t-[#B6FF3A]" />}
 
       {estado === 'enviada' && (
         <Card icon={<Clock size={30} className="text-[#F39C12]" />} titulo="Solicitud enviada"
-          texto={`Le hemos enviado tu solicitud a ${nombre}. Cuando la acepte, seréis amigos en Rumbo.`}
+          texto={`Le hemos enviado tu solicitud a ${nombre}. Cuando la acepte, seréis amigos en TODH.`}
           cta={{ href: '/amigos', label: 'Ver mis amigos' }} />
       )}
       {estado === 'aceptada' && (
@@ -50,13 +50,13 @@ export default function AmigoInvitePage() {
           cta={{ href: '/amigos', label: 'Ver mis amigos' }} />
       )}
       {estado === 'yo' && (
-        <Card icon={<UserPlus size={30} className="text-[#E94560]" />} titulo="Este es tu enlace"
+        <Card icon={<UserPlus size={30} className="text-[#B6FF3A]" />} titulo="Este es tu enlace"
           texto="Compártelo con quien quieras para que te añada como amigo."
           cta={{ href: '/amigos', label: 'Ir a Amigos' }} />
       )}
       {estado === 'login' && (
-        <Card icon={<LogIn size={30} className="text-[#E94560]" />} titulo="Entra para añadir a tu amigo"
-          texto="Inicia sesión o crea tu cuenta en Rumbo y os conectaréis al instante."
+        <Card icon={<LogIn size={30} className="text-[#B6FF3A]" />} titulo="Entra para añadir a tu amigo"
+          texto="Inicia sesión o crea tu cuenta en TODH y os conectaréis al instante."
           cta={{ href: '/login', label: 'Entrar o registrarme' }} />
       )}
       {estado === 'error' && (
@@ -76,7 +76,7 @@ function Card({ icon, titulo, texto, cta }: { icon: React.ReactNode; titulo: str
         <h1 className="text-xl font-black text-white">{titulo}</h1>
         <p className="mt-1.5 text-sm text-[#A0A0B8]">{texto}</p>
       </div>
-      <Link href={cta.href} className="inline-flex items-center gap-1.5 rounded-xl bg-[#E94560] px-5 py-2.5 text-sm font-semibold text-white">
+      <Link href={cta.href} className="inline-flex items-center gap-1.5 rounded-xl bg-[#B6FF3A] px-5 py-2.5 text-sm font-semibold text-[#0A0A0F]">
         {cta.label} <ArrowRight size={15} />
       </Link>
     </div>

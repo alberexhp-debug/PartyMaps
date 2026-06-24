@@ -50,7 +50,7 @@ export default function GrupoDashboardPage() {
       <div className="grid grid-cols-3 gap-2.5">
         <KpiBold icon={Store} color="#4F8EF7" label="Locales activos" value={cargando ? '—' : (r?.locales_activos ?? 0)} />
         <KpiBold icon={Users} color="#7C5CFF" label="Suscriptores" value={cargando ? '—' : (r?.suscriptores ?? 0).toLocaleString('es-ES')} />
-        <KpiBold icon={Ticket} color="#E0455E" label="Entradas mes" value={cargando ? '—' : (r?.entradas_mes ?? 0)} />
+        <KpiBold icon={Ticket} color="#B6FF3A" label="Entradas mes" value={cargando ? '—' : (r?.entradas_mes ?? 0)} />
       </div>
 
       <SectionCard>

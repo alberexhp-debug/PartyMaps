@@ -56,7 +56,7 @@ export function aforoVisible(local: {
 export function getColorTemperatura(temp: TemperaturaAforo): string {
   if (temp === 'fria') return '#4F8EF7'
   if (temp === 'templada') return '#F39C12'
-  return '#E94560'
+  return '#B6FF3A'
 }
 
 export function getLabelTemperatura(temp: TemperaturaAforo): string {

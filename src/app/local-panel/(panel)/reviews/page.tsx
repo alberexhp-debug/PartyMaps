@@ -132,8 +132,8 @@ export default function ReviewsPage() {
 
             {/* Respuesta del local */}
             {review.respuesta_local && (
-              <div className="bg-white/5 rounded-xl p-3 border-l-2 border-[#E94560]">
-                <p className="text-xs font-semibold text-[#E94560] mb-1">{local.nombre} respondió:</p>
+              <div className="bg-white/5 rounded-xl p-3 border-l-2 border-[#B6FF3A]">
+                <p className="text-xs font-semibold text-[#B6FF3A] mb-1">{local.nombre} respondió:</p>
                 <p className="text-xs text-[#A0A0B8]">{review.respuesta_local}</p>
               </div>
             )}
@@ -147,7 +147,7 @@ export default function ReviewsPage() {
                   rows={2}
                   maxLength={500}
                   placeholder="Escribe tu respuesta..."
-                  className="w-full px-3 py-2 bg-white/5 border border-[#E94560]/50 rounded-xl text-white text-sm outline-none resize-none"
+                  className="w-full px-3 py-2 bg-white/5 border border-[#B6FF3A]/50 rounded-xl text-white text-sm outline-none resize-none"
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => responder(review.id)}>

@@ -52,7 +52,7 @@ export function BuscadorLocales({ open, onClose, locales, onSelect }: Props) {
               <button
                 key={local.id}
                 onClick={() => onSelect(local)}
-                className="w-full flex items-center gap-4 p-4 glass rounded-xl hover:border-[#E94560]/30 transition-colors text-left"
+                className="w-full flex items-center gap-4 p-4 glass rounded-xl hover:border-[#B6FF3A]/30 transition-colors text-left"
               >
                 <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[#2A2A3E]">
                   <img

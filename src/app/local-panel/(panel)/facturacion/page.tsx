@@ -61,7 +61,7 @@ const TIERS: Tier[] = [
     nombre: 'Pro',
     cuota: 49,
     comision: 2.5,
-    color: '#E94560',
+    color: '#B6FF3A',
     icono: Sparkles,
     vende: true,
     destacado: true,
@@ -203,7 +203,7 @@ export default function FacturacionPage() {
             type="range" min={0} max={20000} step={100}
             value={volumenMensual}
             onChange={e => setVolumenMensual(Number(e.target.value))}
-            className="w-full accent-[#E94560] mt-2"
+            className="w-full accent-[#B6FF3A] mt-2"
             aria-label="Volumen mensual estimado"
           />
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -242,11 +242,11 @@ export default function FacturacionPage() {
               key={t.id}
               className={cn(
                 'relative card-premium p-5 flex flex-col',
-                t.destacado && 'ring-1 ring-[#E94560]/40',
+                t.destacado && 'ring-1 ring-[#B6FF3A]/40',
               )}
             >
               {t.destacado && (
-                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#E94560] text-white text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#B6FF3A] text-[#0A0A0F] text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
                   Más usado
                 </div>
               )}
@@ -334,7 +334,7 @@ export default function FacturacionPage() {
           <li className="flex gap-2 text-[#B8B8CC]"><Zap size={13} className="text-[#F39C12] mt-0.5 shrink-0" />
             <span><strong className="text-white">3 meses gratis</strong> al cambiar a Pro por primera vez (cuota + comisión reducida desde el día 1).</span></li>
           <li className="flex gap-2 text-[#B8B8CC]"><Check size={13} className="text-[#27AE60] mt-0.5 shrink-0" />
-            <span>Sin comisión en reembolsos: si cancelas un evento, Rumbo no cobra esa comisión.</span></li>
+            <span>Sin comisión en reembolsos: si cancelas un evento, TODH no cobra esa comisión.</span></li>
           <li className="flex gap-2 text-[#B8B8CC]"><CreditCard size={13} className="text-[#4F8EF7] mt-0.5 shrink-0" />
             <span>Pago real con Stripe en breve. De momento las solicitudes se registran y te contactamos.</span></li>
         </ul>
@@ -395,8 +395,8 @@ function FacturaModal({ localId, localNombre, localCif, localDireccion, tier, cu
         <div id="factura-doc" className="bg-white text-gray-900 rounded-xl p-7 sm:p-9">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <p className="text-2xl font-black tracking-tight" style={{ color: '#E94560' }}>RUMBO</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">Rumbo · plataforma de ocio nocturno</p>
+              <p className="text-2xl font-black tracking-tight" style={{ color: '#B6FF3A' }}>TODH</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">TODH · plataforma de ocio nocturno</p>
             </div>
             <div className="text-right text-xs text-gray-500">
               <p className="font-bold text-gray-900">Factura {numFactura}</p>
@@ -408,7 +408,7 @@ function FacturaModal({ localId, localNombre, localCif, localDireccion, tier, cu
           <div className="grid grid-cols-2 gap-4 mb-6 text-xs">
             <div>
               <p className="font-bold text-gray-400 uppercase tracking-wide mb-1">De</p>
-              <p className="font-semibold text-gray-900">Rumbo</p>
+              <p className="font-semibold text-gray-900">TODH</p>
               <p className="text-gray-500">rumbomap.com</p>
             </div>
             <div>
@@ -445,7 +445,7 @@ function FacturaModal({ localId, localNombre, localCif, localDireccion, tier, cu
           </div>
 
           <p className="text-[10px] text-gray-400 mt-7 leading-relaxed border-t border-gray-100 pt-3">
-            Documento informativo generado por Rumbo. La venta en taquilla (efectivo) no genera comisión. El cobro real se
+            Documento informativo generado por TODH. La venta en taquilla (efectivo) no genera comisión. El cobro real se
             gestionará vía Stripe próximamente. Las comisiones reflejadas corresponden a operaciones del periodo indicado.
           </p>
         </div>

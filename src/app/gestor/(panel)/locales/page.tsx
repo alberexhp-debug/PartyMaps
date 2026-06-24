@@ -159,7 +159,7 @@ function AltaLocalModal({ onClose, onCreado }: { onClose: () => void; onCreado: 
 
   const copiar = () => {
     if (!credenciales) return
-    navigator.clipboard.writeText(`Acceso Rumbo\nEmail: ${credenciales.email}\nContraseña: ${credenciales.password}\nEntra en: ${location.origin}/local-panel/login`)
+    navigator.clipboard.writeText(`Acceso TODH\nEmail: ${credenciales.email}\nContraseña: ${credenciales.password}\nEntra en: ${location.origin}/local-panel/login`)
     setCopiado(true)
     setTimeout(() => setCopiado(false), 2000)
   }
@@ -207,14 +207,14 @@ function AltaLocalModal({ onClose, onCreado }: { onClose: () => void; onCreado: 
             </div>
 
             <div className="space-y-4">
-              <Input label="Nombre del local" icon={<Building2 size={16} />} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Sala Rumbo" />
+              <Input label="Nombre del local" icon={<Building2 size={16} />} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Sala TODH" />
 
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-[#A0A0B8]">Tipo</label>
                 <select
                   value={tipo}
                   onChange={e => setTipo(e.target.value as TipoLocal)}
-                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#E94560]/60"
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#B6FF3A]/60"
                 >
                   {TIPOS.map(t => <option key={t.value} value={t.value} className="bg-[#15151F]">{t.label}</option>)}
                 </select>

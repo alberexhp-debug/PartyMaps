@@ -18,7 +18,7 @@ function estadoCodigo(c: Codigo): { label: string; color: string; vivo: boolean 
   const agotado = c.usos_max != null && c.usos_actuales >= c.usos_max
   if (agotado) return { label: 'Canjeado', color: '#27AE60', vivo: false }
   if (!c.activo) return { label: 'Desactivado', color: '#6B6B85', vivo: false }
-  if (c.expira_at && new Date(c.expira_at) < new Date()) return { label: 'Caducado', color: '#E94560', vivo: false }
+  if (c.expira_at && new Date(c.expira_at) < new Date()) return { label: 'Caducado', color: '#B6FF3A', vivo: false }
   if (c.usos_actuales > 0) return { label: 'Canjeado en parte', color: '#F39C12', vivo: true }
   return { label: 'Pendiente de canje', color: '#4F8EF7', vivo: true }
 }
@@ -120,7 +120,7 @@ export default function RrppCodigosPage() {
                     <span className={usado ? 'text-emerald-300' : 'text-[#6B6B85]'}>· {usado ? 'Utilizado' : 'Sin usar'}</span>
                     {est.vivo && c.expira_at && <span className="flex items-center gap-1"><Clock size={11} /> {restante(c.expira_at)}</span>}
                     {CATEGORIAS_DESCUENTO.filter(cat => (c.descuentos?.[cat] ?? 0) > 0).map(cat => (
-                      <span key={cat} className="text-[#E0455E]">· {LABEL_CATEGORIA[cat]} -{c.descuentos[cat]}%</span>
+                      <span key={cat} className="text-[#B6FF3A]">· {LABEL_CATEGORIA[cat]} -{c.descuentos[cat]}%</span>
                     ))}
                   </div>
                 </div>
@@ -180,19 +180,19 @@ function CrearCodigoModal({ locales, onClose, onCreado }: {
           <div>
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Local</label>
             <select value={localId} onChange={e => setLocalId(e.target.value)}
-              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#E0455E]/60">
+              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#B6FF3A]/60">
               {locales.map(l => <option key={l.id} value={l.id} className="bg-[#15151F]">{l.nombre}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Persona (para que sepas de quién es)</label>
             <input value={etiqueta} onChange={e => setEtiqueta(e.target.value.slice(0, 60))} placeholder="Ej. Laura · grupo de 4"
-              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#E0455E]/60" />
+              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#B6FF3A]/60" />
           </div>
           <div>
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Número de usos</label>
             <input type="number" min={1} value={usos} onChange={e => setUsos(e.target.value)} placeholder="1"
-              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#E0455E]/60" />
+              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#B6FF3A]/60" />
             <p className="text-xs text-[#6B6B85] mt-1">Cuántas veces vale este código (p. ej. 4 si entra con su grupo).</p>
           </div>
           <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-3.5">
@@ -200,7 +200,7 @@ function CrearCodigoModal({ locales, onClose, onCreado }: {
             {hayDescuento ? (
               <div className="flex flex-wrap gap-2">
                 {(CATEGORIAS_DESCUENTO as CategoriaDescuento[]).map(c => (descuentos[c] ?? 0) > 0 && (
-                  <span key={c} className="text-xs font-semibold text-[#E0455E] bg-[#E0455E]/10 rounded-full px-2.5 py-1">
+                  <span key={c} className="text-xs font-semibold text-[#B6FF3A] bg-[#B6FF3A]/10 rounded-full px-2.5 py-1">
                     {LABEL_CATEGORIA[c]} −{descuentos[c]}%
                   </span>
                 ))}
@@ -239,9 +239,9 @@ function QrModal({ codigo, onClose }: { codigo: Codigo; onClose: () => void }) {
       if (qrUrl && navigator.share) {
         const blob = await (await fetch(qrUrl)).blob()
         const file = new File([blob], `codigo-${codigo.codigo}.png`, { type: 'image/png' })
-        await navigator.share({ title: 'Tu código Rumbo', text: `Código: ${codigo.codigo}`, files: [file] })
+        await navigator.share({ title: 'Tu código TODH', text: `Código: ${codigo.codigo}`, files: [file] })
       } else if (navigator.share) {
-        await navigator.share({ title: 'Tu código Rumbo', text: `Código: ${codigo.codigo}` })
+        await navigator.share({ title: 'Tu código TODH', text: `Código: ${codigo.codigo}` })
       }
     } catch { /* cancelado */ }
   }

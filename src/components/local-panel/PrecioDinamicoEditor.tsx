@@ -52,7 +52,7 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-white flex items-center gap-2">
-            <Zap size={14} className="text-[#E94560]" /> Precio dinámico
+            <Zap size={14} className="text-[#B6FF3A]" /> Precio dinámico
           </p>
           {ayuda && <p className="text-xs text-[#6B6B85] mt-1">{ayuda}</p>}
         </div>
@@ -61,7 +61,7 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
             type="checkbox"
             checked={config.activo}
             onChange={e => update({ activo: e.target.checked })}
-            className="w-4 h-4 accent-[#E94560]"
+            className="w-4 h-4 accent-[#B6FF3A]"
           />
           <span className="text-sm text-white">Activo</span>
         </label>
@@ -79,7 +79,7 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
                   onClick={() => update({ curva: c })}
                   className={`px-3 py-2 rounded-xl text-sm border transition-colors ${
                     config.curva === c
-                      ? 'bg-[#E94560] border-[#E94560] text-white'
+                      ? 'bg-[#B6FF3A] border-[#B6FF3A] text-[#0A0A0F]'
                       : 'border-white/10 text-[#A0A0B8] hover:border-[#505065]'
                   }`}
                 >
@@ -126,7 +126,7 @@ export function PrecioDinamicoEditor({ value, onChange, precioMin, precioMax, ay
                   <button
                     type="button"
                     onClick={() => removeTramo(i)}
-                    className="p-1.5 text-[#E94560] hover:bg-[#E94560]/10 rounded-lg"
+                    className="p-1.5 text-[#B6FF3A] hover:bg-[#B6FF3A]/10 rounded-lg"
                     aria-label="Eliminar tramo"
                   >
                     <Trash2 size={14} />

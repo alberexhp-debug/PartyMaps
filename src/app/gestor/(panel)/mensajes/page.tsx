@@ -102,7 +102,7 @@ export default function GestorMensajesPage() {
               <div className="flex shrink-0 flex-col items-end gap-1">
                 <span className="text-[11px] text-[#6B6B85]">{hora(c.ultimo_at)}</span>
                 {c.no_leidos > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E0455E] px-1.5 text-[11px] font-bold text-white">
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#B6FF3A] px-1.5 text-[11px] font-bold text-[#0A0A0F]">
                     {c.no_leidos > 99 ? '99+' : c.no_leidos}
                   </span>
                 )}

@@ -107,14 +107,14 @@ export default function LocalPanelLoginPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
-      <div className="pointer-events-none absolute top-0 -left-32 h-96 w-96 rounded-full bg-[#E94560]/30 opacity-30 blur-3xl" />
+      <div className="pointer-events-none absolute top-0 -left-32 h-96 w-96 rounded-full bg-[#B6FF3A]/30 opacity-30 blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 -right-32 h-96 w-96 rounded-full bg-[#D4A84B]/25 opacity-20 blur-3xl" />
 
       <div className="relative mb-8 text-center">
         <div className="holo-bg mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-[0_12px_30px_-8px_rgba(124,92,255,0.6)]">
-          <span className="text-xl font-black text-white">R</span>
+          <span className="text-xl font-black text-white">T</span>
         </div>
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#E94560]">Negocio</p>
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#B6FF3A]">Negocio</p>
         <h1 className="text-display text-3xl font-bold tracking-tight text-white">Panel del local</h1>
         <p className="mt-2 text-sm text-[#A0A0B8]">
           {paso === 'cred' ? 'Accede con tu usuario o email' : 'Introduce el código de tu authenticator'}
@@ -178,8 +178,8 @@ export default function LocalPanelLoginPage() {
       {paso === 'cred' && (
         <div className="relative mt-8 space-y-2 text-center">
           <p className="text-sm text-[#A0A0B8]">
-            ¿Tu local aún no está en Rumbo?{' '}
-            <Link href="/local-panel/registro" className="font-semibold text-[#E94560]">Regístralo gratis</Link>
+            ¿Tu local aún no está en TODH?{' '}
+            <Link href="/local-panel/registro" className="font-semibold text-[#B6FF3A]">Regístralo gratis</Link>
             {' '}·{' '}
             <Link href="/para-locales" className="font-semibold text-[#A0A0B8] hover:text-white">Más información</Link>
           </p>

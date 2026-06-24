@@ -91,8 +91,8 @@ function SinInvitacion() {
       <ShieldOff className="w-12 h-12 text-amber-400 mb-4" />
       <h1 className="text-display text-3xl mb-2">No tienes acceso al modo RRPP</h1>
       <p className="text-secondary text-sm max-w-md mb-6">
-        Para ser RRPP en Rumbo debes ser invitado por un local que quiera trabajar contigo
-        o dado de alta por el equipo de Rumbo. No es un perfil que puedas activar por tu cuenta —
+        Para ser RRPP en TODH debes ser invitado por un local que quiera trabajar contigo
+        o dado de alta por el equipo de TODH. No es un perfil que puedas activar por tu cuenta —
         así controlamos quién promociona y la calidad de la red.
       </p>
       <div className="space-y-2 text-sm">
@@ -172,7 +172,7 @@ function CompletarPerfil({ rrpp, onListo }: { rrpp: RRPP; onListo: () => void })
           <input type="checkbox" checked={aceptaEdad}
             onChange={e => setAceptaEdad(e.target.checked)} className="mt-1" />
           <span>Confirmo que soy mayor de 18 años y que cualquier obligación fiscal por
-            comisiones cobradas es mía, no de Rumbo.</span>
+            comisiones cobradas es mía, no de TODH.</span>
         </label>
         {error && <p className="text-rose-300 text-sm">{error}</p>}
         <button onClick={enviar} disabled={!nombrePublico || !aceptaEdad || enviando}
@@ -268,7 +268,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
         {/* HERO — cabecera con balance destacado */}
         <div className="relative -mx-4 sm:-mx-6 -mt-4 sm:-mt-6">
           <div className="relative overflow-hidden rounded-b-[2rem] px-5 sm:px-7 pt-9 pb-7 border-b border-white/[0.06]"
-            style={{ background: 'radial-gradient(130% 110% at 50% -10%, rgba(224,69,94,0.20), rgba(124,92,255,0.12) 45%, rgba(7,7,13,0) 78%)' }}>
+            style={{ background: 'radial-gradient(130% 110% at 50% -10%, rgba(182, 255, 58,0.20), rgba(124,92,255,0.12) 45%, rgba(7,7,13,0) 78%)' }}>
             <div className="pointer-events-none absolute -top-24 -right-10 w-64 h-64 rounded-full bg-[#7C5CFF]/20 blur-[80px]" />
             <button onClick={() => setEditarPerfil(true)} aria-label="Editar perfil"
               className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
@@ -278,7 +278,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
               <div className="relative shrink-0">
                 {rrpp.foto_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={rrpp.foto_url} alt="" className="w-16 h-16 rounded-2xl object-cover ring-2 ring-[#E0455E]/50 shadow-[0_8px_24px_-6px_rgba(224,69,94,0.7)]" />
+                  <img src={rrpp.foto_url} alt="" className="w-16 h-16 rounded-2xl object-cover ring-2 ring-[#B6FF3A]/50 shadow-[0_8px_24px_-6px_rgba(182, 255, 58,0.7)]" />
                 ) : (
                   <div className="w-16 h-16 rounded-2xl holo-bg flex items-center justify-center text-display text-2xl font-black ring-2 ring-white/20 shadow-[0_8px_24px_-6px_rgba(124,92,255,0.7)]">
                     {rrpp.nombre_publico.slice(0, 1).toUpperCase()}
@@ -329,8 +329,8 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
               <AreaChart data={serie}>
                 <defs>
                   <linearGradient id="gradRrpp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#E0455E" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#E0455E" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#B6FF3A" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#B6FF3A" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -340,14 +340,14 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
                   contentStyle={{ background: 'rgba(14,14,26,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
                   formatter={(v: unknown) => [eur(Number(v)), 'Ganado'] as [string, string]}
                 />
-                <Area type="monotone" dataKey="total" stroke="#E0455E" fill="url(#gradRrpp)" strokeWidth={2} dot={false} />
+                <Area type="monotone" dataKey="total" stroke="#B6FF3A" fill="url(#gradRrpp)" strokeWidth={2} dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
             <div className="relative overflow-hidden rounded-xl border border-white/[0.06] px-4 py-6 text-center"
-              style={{ background: 'linear-gradient(160deg, rgba(224,69,94,0.10), rgba(124,92,255,0.05) 70%, transparent)' }}>
-              <div className="w-11 h-11 mx-auto rounded-xl bg-[#E0455E]/15 flex items-center justify-center mb-2.5">
-                <TrendingUp className="w-5 h-5 text-[#E0455E]" />
+              style={{ background: 'linear-gradient(160deg, rgba(182, 255, 58,0.10), rgba(124,92,255,0.05) 70%, transparent)' }}>
+              <div className="w-11 h-11 mx-auto rounded-xl bg-[#B6FF3A]/15 flex items-center justify-center mb-2.5">
+                <TrendingUp className="w-5 h-5 text-[#B6FF3A]" />
               </div>
               <p className="text-white font-semibold text-sm">Aún sin ganancias</p>
               <p className="text-xs text-[#8B8BA8] mt-1 max-w-[16rem] mx-auto">Comparte tu código y tu link. Cuando la gente compre con tu atribución, lo verás crecer aquí.</p>
@@ -375,7 +375,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
                       <p className="text-sm font-semibold text-white truncate">{p.nombre}</p>
                       <p className="text-[11px] text-[#8B8BA8]">{p.ventas} {p.ventas === 1 ? 'venta' : 'ventas'}</p>
                     </div>
-                    <p className="text-base font-bold text-[#E0455E] text-numeric shrink-0">{eur(p.monto)}</p>
+                    <p className="text-base font-bold text-[#B6FF3A] text-numeric shrink-0">{eur(p.monto)}</p>
                   </div>
                 ))}
               </div>
@@ -401,7 +401,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
             </button>
           </div>
           <p className="text-[#8B8BA8] text-xs mt-2">
-            Dáselo a la gente: al registrarse en Rumbo con tu código, contamos sus entradas y consumiciones a tu nombre durante 24h.
+            Dáselo a la gente: al registrarse en TODH con tu código, contamos sus entradas y consumiciones a tu nombre durante 24h.
           </p>
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2">
             <LinkIcon className="w-4 h-4 shrink-0 text-[#A0A0B8]" />
@@ -454,7 +454,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-white truncate">{v.locales.nombre}</p>
-                      <p className="text-[#8B8BA8] text-xs">Te ofrece <span className="text-[#E0455E] font-semibold">{v.comision_pct}%</span> por venta</p>
+                      <p className="text-[#8B8BA8] text-xs">Te ofrece <span className="text-[#B6FF3A] font-semibold">{v.comision_pct}%</span> por venta</p>
                     </div>
                   </div>
                   <div className="mt-2.5 flex gap-2">
@@ -525,7 +525,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
         </SectionCard>
 
         <footer className="text-center text-[#6B6B85] text-xs pt-4 border-t border-white/5">
-          Rumbo no procesa el pago entre tú y el local. Las cifras de arriba son
+          TODH no procesa el pago entre tú y el local. Las cifras de arriba son
           lo que el local te debe según las ventas atribuidas. El pago lo gestionáis vosotros.
         </footer>
       </div>

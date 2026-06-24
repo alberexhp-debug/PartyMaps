@@ -45,7 +45,7 @@ export default function GestorDashboardPage() {
         <div className="relative overflow-hidden rounded-b-[2rem] px-5 sm:px-7 pt-9 pb-7 border-b border-white/[0.06]"
           style={{ background: 'radial-gradient(130% 110% at 50% -10%, rgba(124,92,255,0.22), rgba(79,142,247,0.10) 45%, rgba(7,7,13,0) 78%)' }}>
           <div className="pointer-events-none absolute -top-24 -right-10 w-64 h-64 rounded-full bg-[#7C5CFF]/25 blur-[80px]" />
-          <p className="eyebrow eyebrow-violet mb-1">RumboGestor · tu cartera</p>
+          <p className="eyebrow eyebrow-violet mb-1">TODHGestor · tu cartera</p>
           <h1 className="text-display text-2xl md:text-3xl font-bold leading-tight">Hola, {gestor?.nombre?.split(' ')[0] || 'Gestor'}</h1>
           <div className="relative mt-7 flex items-end justify-between gap-3">
             <div>
@@ -66,7 +66,7 @@ export default function GestorDashboardPage() {
       <div className="grid grid-cols-3 gap-2.5">
         <KpiBold icon={Store} color="#7C5CFF" label="Locales activos" value={cargando ? '—' : (resumen?.locales_activos ?? 0)} />
         <KpiBold icon={Megaphone} color="#4F8EF7" label="RRPP activos" value={cargando ? '—' : (resumen?.rrpp_activos ?? 0)} />
-        <KpiBold icon={Wallet} color="#E0455E" label="Tu incentivo" value={`${gestor?.incentivo_pct ?? 0}%`} />
+        <KpiBold icon={Wallet} color="#B6FF3A" label="Tu incentivo" value={`${gestor?.incentivo_pct ?? 0}%`} />
       </div>
 
       {/* Gráfica: evolución 6 meses */}
@@ -81,8 +81,8 @@ export default function GestorDashboardPage() {
                   <stop offset="95%" stopColor="#7C5CFF" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradGestorInc" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#E94560" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#E94560" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#B6FF3A" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#B6FF3A" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -93,7 +93,7 @@ export default function GestorDashboardPage() {
                 formatter={(v: unknown, n: unknown) => [eur(Number(v)), n === 'incentivo' ? 'Tu incentivo' : 'Comisión'] as [string, string]}
               />
               <Area type="monotone" dataKey="comision" stroke="#7C5CFF" fill="url(#gradGestor)" strokeWidth={2} dot={false} />
-              <Area type="monotone" dataKey="incentivo" stroke="#E94560" fill="url(#gradGestorInc)" strokeWidth={2} dot={false} />
+              <Area type="monotone" dataKey="incentivo" stroke="#B6FF3A" fill="url(#gradGestorInc)" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         ) : (

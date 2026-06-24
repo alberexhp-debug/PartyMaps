@@ -72,7 +72,7 @@ export default function SalaPage() {
             onClick={() => setTab(key)}
             className={cn(
               'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors',
-              tab === key ? 'bg-[#E94560] text-white' : 'text-[#8B8BA8] hover:text-white'
+              tab === key ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'text-[#8B8BA8] hover:text-[#0A0A0F]'
             )}
           >
             <Icon size={15} /> {label}

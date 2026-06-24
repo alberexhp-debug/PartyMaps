@@ -14,35 +14,35 @@ export default function TerminosPage() {
 
         <div className="space-y-8 text-sm text-[#A0A0B8] leading-relaxed">
           <Section title="1. Aceptación de los términos">
-            Al crear una cuenta en Rumbo y usar la plataforma, aceptas estos Términos de Uso. Si no estás de acuerdo, no debes usar el servicio. Rumbo está destinado exclusivamente a personas mayores de 18 años.
+            Al crear una cuenta en TODH y usar la plataforma, aceptas estos Términos de Uso. Si no estás de acuerdo, no debes usar el servicio. TODH está destinado exclusivamente a personas mayores de 18 años.
           </Section>
 
           <Section title="2. Registro y cuenta">
-            Para acceder a las funcionalidades completas debes registrarte con un número de teléfono válido. Eres responsable de mantener la seguridad de tu cuenta y de toda la actividad que ocurra en ella. Rumbo no se responsabiliza del uso no autorizado de tu cuenta.
+            Para acceder a las funcionalidades completas debes registrarte con un número de teléfono válido. Eres responsable de mantener la seguridad de tu cuenta y de toda la actividad que ocurra en ella. TODH no se responsabiliza del uso no autorizado de tu cuenta.
           </Section>
 
           <Section title="3. Uso permitido">
-            Puedes usar Rumbo para descubrir locales de ocio nocturno, comprar entradas, organizar planes con otros usuarios y participar en experiencias dentro de los locales. Queda prohibido el uso fraudulento, la reventa no autorizada de entradas, o cualquier actividad ilegal.
+            Puedes usar TODH para descubrir locales de ocio nocturno, comprar entradas, organizar planes con otros usuarios y participar en experiencias dentro de los locales. Queda prohibido el uso fraudulento, la reventa no autorizada de entradas, o cualquier actividad ilegal.
           </Section>
 
           <Section title="4. Entradas y pagos">
-            Las entradas compradas a través de Rumbo son nominales y no transferibles salvo indicación contraria. Los precios incluyen la comisión de servicio de Rumbo, que varía según el tier del local (5-7%). Una vez completada la compra, las entradas no son reembolsables salvo cancelación del evento por parte del local.
+            Las entradas compradas a través de TODH son nominales y no transferibles salvo indicación contraria. Los precios incluyen la comisión de servicio de TODH, que varía según el tier del local (5-7%). Una vez completada la compra, las entradas no son reembolsables salvo cancelación del evento por parte del local.
           </Section>
 
           <Section title="5. Reviews y contenido generado por usuarios">
-            Al publicar una review, otorgas a Rumbo una licencia no exclusiva para mostrarla en la plataforma. Rumbo se reserva el derecho de eliminar contenido que incumpla las normas de la comunidad, sea ofensivo o falso.
+            Al publicar una review, otorgas a TODH una licencia no exclusiva para mostrarla en la plataforma. TODH se reserva el derecho de eliminar contenido que incumpla las normas de la comunidad, sea ofensivo o falso.
           </Section>
 
           <Section title="6. Planes públicos">
-            Los planes públicos son iniciativas de los propios usuarios. Rumbo actúa como intermediario técnico y no se responsabiliza de las interacciones entre participantes.
+            Los planes públicos son iniciativas de los propios usuarios. TODH actúa como intermediario técnico y no se responsabiliza de las interacciones entre participantes.
           </Section>
 
           <Section title="7. Modificaciones">
-            Rumbo puede modificar estos términos en cualquier momento. Se notificará a los usuarios mediante la app cuando se produzcan cambios significativos.
+            TODH puede modificar estos términos en cualquier momento. Se notificará a los usuarios mediante la app cuando se produzcan cambios significativos.
           </Section>
 
           <Section title="8. Contacto">
-            Para cualquier consulta sobre estos términos: <span className="text-[#E94560]">legal@partymaps.com</span>
+            Para cualquier consulta sobre estos términos: <span className="text-[#B6FF3A]">legal@partymaps.com</span>
           </Section>
         </div>
       </div>

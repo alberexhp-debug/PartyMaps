@@ -104,7 +104,7 @@ export default function TaquillaPage() {
           <p className="text-white font-bold text-lg">Venta registrada</p>
           <p className="text-[#8B8BA8] text-sm">{resultado.length} {resultado.length === 1 ? 'entrada' : 'entradas'} · {eur(resultado.reduce((s, e) => s + Number(e.precio_total), 0))} en {metodo}</p>
           {consumiciones > 0 && (
-            <p className="text-[#E0455E] text-xs mt-1.5 flex items-center justify-center gap-1.5">
+            <p className="text-[#B6FF3A] text-xs mt-1.5 flex items-center justify-center gap-1.5">
               <Coffee size={12} /> Incluye {consumiciones} {consumiciones === 1 ? 'consumición' : 'consumiciones'}{consumicionTexto.trim() ? ` · ${consumicionTexto.trim()}` : ''}
             </p>
           )}
@@ -133,7 +133,7 @@ export default function TaquillaPage() {
 
       {!eventoId && cupoNoche && (
         <div className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${cupoNoche.quedan <= Math.max(5, cupoNoche.limite * 0.1) ? 'bg-[#F39C12]/10 border-[#F39C12]/30' : 'bg-white/[0.03] border-white/[0.07]'}`}>
-          <span className="text-sm text-[#B8B8CC]">Cupo de esta noche en Rumbo</span>
+          <span className="text-sm text-[#B8B8CC]">Cupo de esta noche en TODH</span>
           <span className="text-sm font-bold text-white">Quedan {cupoNoche.quedan} de {cupoNoche.limite}</span>
         </div>
       )}
@@ -144,7 +144,7 @@ export default function TaquillaPage() {
           <div>
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Evento</label>
             <select value={eventoId} onChange={e => elegirEvento(e.target.value)}
-              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#E94560]/60">
+              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#B6FF3A]/60">
               <option value="" className="bg-[#15151F]">Entrada general (sin evento)</option>
               {eventos.map(ev => (
                 <option key={ev.id} value={ev.id} className="bg-[#15151F]">
@@ -160,7 +160,7 @@ export default function TaquillaPage() {
               <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Precio por entrada</label>
               <div className="relative">
                 <input type="number" min={0} step="0.5" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="0"
-                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-4 pr-8 text-white text-lg font-bold outline-none focus:border-[#E94560]/60" />
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-4 pr-8 text-white text-lg font-bold outline-none focus:border-[#B6FF3A]/60" />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B8BA8]">€</span>
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function TaquillaPage() {
               {METODOS.map(({ key, label, icon: Icon }) => (
                 <button key={key} onClick={() => setMetodo(key)}
                   className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border text-sm transition-colors ${
-                    metodo === key ? 'border-[#E94560] bg-[#E94560]/10 text-white' : 'border-white/10 text-[#8B8BA8] hover:border-white/25'
+                    metodo === key ? 'border-[#B6FF3A] bg-[#B6FF3A]/10 text-[#0A0A0F]' : 'border-white/10 text-[#8B8BA8] hover:border-white/25'
                   }`}>
                   <Icon size={18} /> {label}
                 </button>
@@ -194,9 +194,9 @@ export default function TaquillaPage() {
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <input value={nombre} onChange={e => setNombre(e.target.value.slice(0, 80))} placeholder="Nombre (opcional)"
-                  className="h-11 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E94560]/60 placeholder:text-[#6B6B85]" />
+                  className="h-11 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
                 <input value={telefono} onChange={e => setTelefono(e.target.value.slice(0, 30))} placeholder="Teléfono (opcional)"
-                  className="h-11 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E94560]/60 placeholder:text-[#6B6B85]" />
+                  className="h-11 rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
               </div>
               {telefono.trim() && (
                 <button type="button" onClick={() => setAceptaMarketing(v => !v)}
@@ -205,7 +205,7 @@ export default function TaquillaPage() {
                     <span className="block text-sm text-white">¿Acepta promos del local?</span>
                     <span className="block text-[11px] text-[#8B8BA8]">Marca solo si el cliente da su consentimiento para recibir promociones.</span>
                   </span>
-                  <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${aceptaMarketing ? 'bg-[#E0455E]' : 'bg-white/15'}`}>
+                  <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${aceptaMarketing ? 'bg-[#B6FF3A]' : 'bg-white/15'}`}>
                     <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${aceptaMarketing ? 'left-[22px]' : 'left-0.5'}`} />
                   </span>
                 </button>
@@ -221,7 +221,7 @@ export default function TaquillaPage() {
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-white flex items-center gap-2">
-                <Coffee size={15} className="text-[#E0455E]" /> Consumiciones incluidas
+                <Coffee size={15} className="text-[#B6FF3A]" /> Consumiciones incluidas
               </span>
               <div className="flex items-center gap-2">
                 <button type="button" onClick={() => setConsumiciones(c => Math.max(0, c - 1))} disabled={consumiciones === 0}
@@ -235,7 +235,7 @@ export default function TaquillaPage() {
               <>
                 <input value={consumicionTexto} onChange={e => setConsumicionTexto(e.target.value.slice(0, 120))}
                   placeholder="Qué incluye (ej. cubata, copa o refresco)"
-                  className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+                  className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
                 <p className="text-[11px] text-[#8B8BA8]">Van dentro del QR de la entrada y se canjean en barra una a una. Sin papelitos: imposible de falsificar.</p>
               </>
             )}
@@ -250,7 +250,7 @@ export default function TaquillaPage() {
             className="w-full btn-primary inline-flex items-center justify-center gap-2 h-12 text-base">
             <Check size={18} /> {vendiendo ? 'Generando…' : 'Cobrar y generar entrada'}
           </button>
-          <p className="text-center text-[11px] text-[#6B6B85]">El dinero lo cobras tú en mano. Sin comisión de Rumbo en taquilla.</p>
+          <p className="text-center text-[11px] text-[#6B6B85]">El dinero lo cobras tú en mano. Sin comisión de TODH en taquilla.</p>
         </div>
       </SectionCard>
     </div>

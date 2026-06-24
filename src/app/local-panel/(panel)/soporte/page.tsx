@@ -40,7 +40,7 @@ export default function SoporteLocalPage() {
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-5">
       <PageHeader
         eyebrow="Ayuda" titulo="Soporte"
-        subtitulo="Abre un ticket y el equipo de Rumbo te responde por aquí."
+        subtitulo="Abre un ticket y el equipo de TODH te responde por aquí."
         acciones={puedeAbrir ? <Button size="sm" onClick={() => setAbrirNuevo(true)}><Plus size={16} /> Abrir ticket</Button> : undefined}
       />
 
@@ -58,7 +58,7 @@ export default function SoporteLocalPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-white truncate">{t.asunto}</p>
-                  {t.no_leido_local && <span className="shrink-0 w-2 h-2 rounded-full bg-[#E94560]" />}
+                  {t.no_leido_local && <span className="shrink-0 w-2 h-2 rounded-full bg-[#B6FF3A]" />}
                 </div>
                 <p className="text-xs text-[#8B8BA8] mt-0.5">
                   {CATEGORIA_LABEL[t.categoria]} · {haceTiempo(t.ultimo_mensaje_at)}
@@ -111,20 +111,20 @@ function NuevoTicketModal({ onClose, onCreado, toastError }: { onClose: () => vo
           <div>
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Asunto</label>
             <input value={asunto} onChange={e => setAsunto(e.target.value)} placeholder="Resume el problema en una línea"
-              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#E94560]/60" />
+              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#B6FF3A]/60" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Categoría</label>
               <select value={categoria} onChange={e => setCategoria(e.target.value as CategoriaTicket)}
-                className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#E94560]/60">
+                className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#B6FF3A]/60">
                 {CATEGORIAS.map(c => <option key={c} value={c} className="bg-[#15151F]">{CATEGORIA_LABEL[c]}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Prioridad</label>
               <select value={prioridad} onChange={e => setPrioridad(e.target.value as PrioridadTicket)}
-                className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#E94560]/60">
+                className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#B6FF3A]/60">
                 {PRIORIDADES.map(p => <option key={p} value={p} className="bg-[#15151F]">{PRIORIDAD_LABEL[p]}</option>)}
               </select>
             </div>
@@ -132,7 +132,7 @@ function NuevoTicketModal({ onClose, onCreado, toastError }: { onClose: () => vo
           <div>
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Mensaje</label>
             <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} rows={4} placeholder="Cuéntanos con detalle qué ocurre"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-[#E94560]/60 resize-none" />
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-[#B6FF3A]/60 resize-none" />
           </div>
           <Button fullWidth size="lg" loading={enviando} onClick={crear}>Enviar ticket</Button>
         </div>
@@ -189,9 +189,9 @@ function TicketModal({ id, onClose }: { id: string; onClose: () => void }) {
           {mensajes.map(m => (
             <div key={m.id} className={`flex ${m.autor === 'local' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm ${
-                m.autor === 'local' ? 'bg-[#E94560]/15 text-white rounded-br-sm' : 'bg-white/[0.06] text-[#E8E8F0] rounded-bl-sm'
+                m.autor === 'local' ? 'bg-[#B6FF3A]/15 text-[#0A0A0F] rounded-br-sm' : 'bg-white/[0.06] text-[#E8E8F0] rounded-bl-sm'
               }`}>
-                <p className="text-[10px] uppercase tracking-wide opacity-60 mb-0.5">{m.autor === 'local' ? 'Tú' : 'Soporte Rumbo'}</p>
+                <p className="text-[10px] uppercase tracking-wide opacity-60 mb-0.5">{m.autor === 'local' ? 'Tú' : 'Soporte TODH'}</p>
                 <p className="whitespace-pre-wrap break-words">{m.mensaje}</p>
                 <p className="text-[10px] opacity-50 mt-1">{haceTiempo(m.created_at)}</p>
               </div>
@@ -204,9 +204,9 @@ function TicketModal({ id, onClose }: { id: string; onClose: () => void }) {
           <div className="px-4 py-3 border-t border-white/8 flex items-center gap-2">
             <input value={texto} onChange={e => setTexto(e.target.value)} placeholder="Escribe una respuesta"
               onKeyDown={e => { if (e.key === 'Enter') responder() }}
-              className="flex-1 h-11 rounded-xl border border-white/10 bg-white/5 px-4 text-white text-sm outline-none focus:border-[#E94560]/60" />
+              className="flex-1 h-11 rounded-xl border border-white/10 bg-white/5 px-4 text-white text-sm outline-none focus:border-[#B6FF3A]/60" />
             <button onClick={responder} disabled={enviando || !texto.trim()}
-              className="shrink-0 h-11 w-11 rounded-xl bg-[#E94560] flex items-center justify-center text-white disabled:opacity-40">
+              className="shrink-0 h-11 w-11 rounded-xl bg-[#B6FF3A] flex items-center justify-center text-[#0A0A0F] disabled:opacity-40">
               <Send size={17} />
             </button>
           </div>

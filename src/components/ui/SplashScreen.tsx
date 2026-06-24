@@ -40,8 +40,8 @@ export function SplashScreen() {
         <BrandLoader size={96} />
       </div>
       <div className="mt-8 flex flex-col items-center gap-2">
-        <p className="text-2xl font-bold text-white text-display tracking-tight">Rumbo</p>
-        <p className="text-[10px] uppercase tracking-[0.4em] text-[#A0A0B8] font-bold">Ocio nocturno</p>
+        <p className="text-2xl font-bold text-white text-display tracking-tight">TODH</p>
+        <p className="text-[10px] uppercase tracking-[0.4em] text-[#A0A0B8] font-bold">Torneos presenciales</p>
       </div>
     </div>
   )

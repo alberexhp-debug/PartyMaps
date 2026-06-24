@@ -78,7 +78,7 @@ export default function SuscritosPage() {
             <IlustracionRadar size={140} />
             <p className="text-[#FAFAFC] text-xl font-semibold text-display max-w-xs">Tu radar está vacío</p>
             <p className="text-[#A0A0B8] text-sm max-w-xs">Sigue tus locales favoritos para recibir avisos de aforo, eventos y promos sin tener que abrir la app.</p>
-            <button onClick={() => router.push('/explorar')} className="text-sm text-[#E94560] font-semibold mt-2">
+            <button onClick={() => router.push('/explorar')} className="text-sm text-[#B6FF3A] font-semibold mt-2">
               Explorar locales →
             </button>
           </div>

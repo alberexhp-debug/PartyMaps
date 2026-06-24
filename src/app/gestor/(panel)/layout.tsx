@@ -75,10 +75,10 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
         <div className="p-4 border-b border-white/8">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl holo-bg flex items-center justify-center shadow-[0_4px_14px_-4px_rgba(124,92,255,0.6)]">
-              <span className="text-sm font-black text-white">R</span>
+              <span className="text-sm font-black text-white">T</span>
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#9B82FF]">RumboGestor</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#9B82FF]">TODHGestor</p>
               <p className="text-sm font-semibold text-white truncate">{gestor.nombre}</p>
             </div>
           </div>
@@ -96,7 +96,7 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
                 <Icon size={16} strokeWidth={active ? 2.4 : 1.6} />
                 {label}
                 {href === '/gestor/mensajes' && noLeidos > 0 && (
-                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E0455E] px-1.5 text-[10px] font-bold text-white">
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#B6FF3A] px-1.5 text-[10px] font-bold text-[#0A0A0F]">
                     {noLeidos > 99 ? '99+' : noLeidos}
                   </span>
                 )}
@@ -106,7 +106,7 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
         </nav>
         <div className="p-3 border-t border-white/8">
           <button onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#A0A0B8] hover:text-[#E94560] hover:bg-[#E94560]/8 transition-colors">
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#A0A0B8] hover:text-[#B6FF3A] hover:bg-[#B6FF3A]/8 transition-colors">
             <LogOut size={16} /> Salir
           </button>
         </div>
@@ -117,14 +117,14 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg holo-bg flex items-center justify-center">
-              <span className="text-xs font-black text-white">R</span>
+              <span className="text-xs font-black text-white">T</span>
             </div>
             <div className="leading-tight">
-              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#9B82FF]">RumboGestor</p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#9B82FF]">TODHGestor</p>
               <p className="text-sm font-semibold text-white truncate max-w-[40vw]">{gestor.nombre}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="text-[#B8B8CC] hover:text-[#E94560] transition-colors"><LogOut size={18} /></button>
+          <button onClick={handleLogout} className="text-[#B8B8CC] hover:text-[#B6FF3A] transition-colors"><LogOut size={18} /></button>
         </div>
       </header>
 
@@ -143,7 +143,7 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
                 {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#7C5CFF] rounded-full shadow-[0_0_8px_rgba(124,92,255,0.6)]" />}
                 <Icon size={20} strokeWidth={active ? 2.4 : 1.75} />
                 {href === '/gestor/mensajes' && noLeidos > 0 && (
-                  <span className="absolute top-1 left-1/2 ml-2 h-2 w-2 rounded-full bg-[#E0455E]" />
+                  <span className="absolute top-1 left-1/2 ml-2 h-2 w-2 rounded-full bg-[#B6FF3A]" />
                 )}
                 <span className="text-[9px] font-medium">{label}</span>
               </Link>

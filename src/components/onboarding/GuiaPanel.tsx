@@ -55,7 +55,7 @@ export function GuiaPanel() {
         <button
           onClick={abrir}
           aria-label="Ver la guía de esta página"
-          className="fixed left-4 bottom-20 md:left-auto md:right-6 md:bottom-6 z-30 w-11 h-11 rounded-full glass-strong border border-white/12 text-[#E0455E] flex items-center justify-center shadow-lg hover:bg-white/5 transition-colors"
+          className="fixed left-4 bottom-20 md:left-auto md:right-6 md:bottom-6 z-30 w-11 h-11 rounded-full glass-strong border border-white/12 text-[#B6FF3A] flex items-center justify-center shadow-lg hover:bg-white/5 transition-colors"
         >
           <HelpCircle size={22} />
         </button>

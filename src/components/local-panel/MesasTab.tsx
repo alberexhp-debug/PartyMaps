@@ -82,11 +82,11 @@ export function MesasTab() {
           const pendientes = m.sesion?.pedidos_pendientes || 0
           const rosa = m.estado === 'ocupada' && pendientes > 0
           return (
-            <div key={m.id} className={cn('rounded-2xl border p-3 flex flex-col gap-1.5 min-h-32', rosa ? 'bg-[#E0455E]/8 border-[#E0455E]/30' : ui.bg)}>
+            <div key={m.id} className={cn('rounded-2xl border p-3 flex flex-col gap-1.5 min-h-32', rosa ? 'bg-[#B6FF3A]/8 border-[#B6FF3A]/30' : ui.bg)}>
               <div className="flex items-center justify-between gap-1">
                 <span className="font-bold text-white text-display truncate">{m.codigo}</span>
                 <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border shrink-0"
-                  style={{ color: rosa ? '#E0455E' : ui.color, borderColor: (rosa ? '#E0455E' : ui.color) + '55' }}>
+                  style={{ color: rosa ? '#B6FF3A' : ui.color, borderColor: (rosa ? '#B6FF3A' : ui.color) + '55' }}>
                   {rosa ? `${pendientes} ped.` : ui.label}
                 </span>
               </div>
@@ -105,7 +105,7 @@ export function MesasTab() {
               ) : (
                 <>
                   {m.reserva && <p className="text-[11px] text-[#F39C12] truncate">Reserva: {m.reserva.nombre} ({m.reserva.personas}p)</p>}
-                  <button onClick={() => setSentando(m)} className="mt-auto text-xs font-semibold py-1.5 rounded-lg bg-[#E94560] text-white hover:bg-[#ED4D6B] transition-colors">Sentar</button>
+                  <button onClick={() => setSentando(m)} className="mt-auto text-xs font-semibold py-1.5 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] hover:bg-[#A6EE2B] transition-colors">Sentar</button>
                 </>
               )}
             </div>
@@ -158,10 +158,10 @@ function SentarSheet({ mesa, onClose, onDone }: { mesa: Mesa; onClose: () => voi
         </div>
 
         <input value={nombre} onChange={e => setNombre(e.target.value.slice(0, 80))} placeholder="Nombre (opcional)"
-          className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+          className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
         <div>
           <input value={telefono} onChange={e => setTelefono(e.target.value.slice(0, 30))} placeholder="Teléfono (opcional)" inputMode="tel"
-            className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#E0455E]/60 placeholder:text-[#6B6B85]" />
+            className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
           <p className="text-[11px] text-[#8B8BA8] mt-1">Con su teléfono, el cliente entra en tu CRM.</p>
         </div>
 

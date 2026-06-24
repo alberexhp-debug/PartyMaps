@@ -131,7 +131,7 @@ export default function EventosPage() {
             className={cn(
               'shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium border capitalize transition-colors',
               filtro === f
-                ? 'bg-[#E94560] border-[#E94560] text-white'
+                ? 'bg-[#B6FF3A] border-[#B6FF3A] text-[#0A0A0F]'
                 : 'border-white/10 text-[#6B6B85] hover:text-white'
             )}
           >
@@ -176,7 +176,7 @@ export default function EventosPage() {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="bg-white/5 rounded-xl p-2">
-                  <Ticket size={12} className="text-[#E94560] mx-auto mb-1" />
+                  <Ticket size={12} className="text-[#B6FF3A] mx-auto mb-1" />
                   <p className="text-xs text-[#6B6B85]">Vendidas</p>
                   <p className="text-sm font-bold text-white">{evento.entradas_vendidas}</p>
                 </div>
@@ -200,7 +200,7 @@ export default function EventosPage() {
                 </div>
                 <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                   <div
-                    className={cn('h-full rounded-full transition-all', ocupacion > 90 ? 'bg-[#E94560]' : ocupacion > 60 ? 'bg-[#F39C12]' : 'bg-[#4F8EF7]')}
+                    className={cn('h-full rounded-full transition-all', ocupacion > 90 ? 'bg-[#B6FF3A]' : ocupacion > 60 ? 'bg-[#F39C12]' : 'bg-[#4F8EF7]')}
                     style={{ width: `${ocupacion}%` }}
                   />
                 </div>
@@ -220,7 +220,7 @@ export default function EventosPage() {
               <div className="flex gap-2 pt-1">
                 <button
                   onClick={() => router.push(`/local-panel/eventos/${evento.id}`)}
-                  className="flex-1 flex items-center justify-center gap-1.5 h-9 border border-white/10 rounded-xl text-sm text-[#A0A0B8] hover:border-[#E94560]/50 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 h-9 border border-white/10 rounded-xl text-sm text-[#A0A0B8] hover:border-[#B6FF3A]/50 hover:text-white transition-colors"
                 >
                   <Edit2 size={13} /> Editar
                 </button>

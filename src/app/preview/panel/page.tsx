@@ -19,7 +19,7 @@ const TEMA = {
   claro: {
     canvas: '#FAFAFB', surface: '#FFFFFF', surface2: '#F4F4F7',
     text: '#16161D', text2: '#5B5B68', text3: '#9A9AA6',
-    border: '#ECECF1', accent: '#E0455E',
+    border: '#ECECF1', accent: '#B6FF3A',
     green: '#15803D', amber: '#B45309', blue: '#2563EB', violet: '#7C5CFF',
     shadow: '0 1px 2px rgba(16,16,29,0.04), 0 10px 26px -16px rgba(16,16,29,0.16)',
     tint: (c: string) => `${c}14`,
@@ -27,7 +27,7 @@ const TEMA = {
   oscuro: {
     canvas: '#0B0B12', surface: '#15151F', surface2: '#1B1B2A',
     text: '#FAFAFC', text2: '#B8B8CC', text3: '#82829A',
-    border: 'rgba(255,255,255,0.08)', accent: '#E94560',
+    border: 'rgba(255,255,255,0.08)', accent: '#B6FF3A',
     green: '#34D399', amber: '#F39C12', blue: '#4F8EF7', violet: '#9B82FF',
     shadow: '0 10px 30px -16px rgba(0,0,0,0.7)',
     tint: (c: string) => `${c}22`,

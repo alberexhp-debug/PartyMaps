@@ -100,11 +100,11 @@ export default function GrupoEquipoPage() {
                       <p className="text-sm font-semibold text-white truncate">{m.nombre || m.email}</p>
                       <p className="text-xs text-[#8B8BA8] truncate">{m.email}</p>
                     </div>
-                    {!m.activo && <span className="text-[10px] text-[#E94560] font-semibold">Pausado</span>}
+                    {!m.activo && <span className="text-[10px] text-[#B6FF3A] font-semibold">Pausado</span>}
                     <button onClick={() => toggleActivo(m)} title={m.activo ? 'Pausar' : 'Reactivar'}
                       className="shrink-0 w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#B8B8CC] hover:text-white"><Power size={14} /></button>
                     <button onClick={() => quitar(m)} title="Quitar"
-                      className="shrink-0 w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#B8B8CC] hover:text-[#E94560]"><Trash2 size={14} /></button>
+                      className="shrink-0 w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#B8B8CC] hover:text-[#B6FF3A]"><Trash2 size={14} /></button>
                   </div>
                   <div className="mt-2 pl-12 text-xs text-[#9DA0B5]">
                     {m.locales_asignados && m.locales_asignados.length > 0
@@ -166,7 +166,7 @@ function NuevoManagerModal({ locales, onClose, onHecho, toastError }: {
               <p className="mt-2 font-mono">{cred.password}</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" fullWidth onClick={() => { navigator.clipboard?.writeText(`Acceso Rumbo (Grupo)\nEmail: ${cred.email}\nContraseña: ${cred.password}\n/grupo/login`); setCopiado(true); setTimeout(() => setCopiado(false), 1500) }}>
+              <Button variant="outline" fullWidth onClick={() => { navigator.clipboard?.writeText(`Acceso TODH (Grupo)\nEmail: ${cred.email}\nContraseña: ${cred.password}\n/grupo/login`); setCopiado(true); setTimeout(() => setCopiado(false), 1500) }}>
                 {copiado ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
               </Button>
               <Button fullWidth onClick={onHecho}>Hecho</Button>

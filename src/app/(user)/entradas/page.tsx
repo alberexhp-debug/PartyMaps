@@ -76,7 +76,7 @@ export default function EntradasPage() {
               className={cn(
                 'flex-1 py-2.5 text-sm font-semibold transition-all capitalize rounded-xl',
                 tab === t
-                  ? 'bg-[#E94560] text-white shadow-[0_6px_20px_-4px_rgba(233,69,96,0.6)]'
+                  ? 'bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_6px_20px_-4px_rgba(182, 255, 58,0.6)]'
                   : 'text-[#A0A0B8] hover:text-white'
               )}
             >
@@ -103,7 +103,7 @@ export default function EntradasPage() {
             {tab === 'activas' && (
               <button
                 onClick={() => router.push('/explorar')}
-                className="text-sm text-[#E94560] font-semibold flex items-center gap-1 mt-2"
+                className="text-sm text-[#B6FF3A] font-semibold flex items-center gap-1 mt-2"
               >
                 Explorar locales →
               </button>

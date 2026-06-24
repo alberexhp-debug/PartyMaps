@@ -84,7 +84,7 @@ export default function GrupoPanelLayout({ children }: { children: React.ReactNo
         </nav>
         <div className="p-3 border-t border-white/8">
           <button onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#A0A0B8] hover:text-[#E94560] hover:bg-[#E94560]/8 transition-colors">
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#A0A0B8] hover:text-[#B6FF3A] hover:bg-[#B6FF3A]/8 transition-colors">
             <LogOut size={16} /> Salir
           </button>
         </div>
@@ -101,7 +101,7 @@ export default function GrupoPanelLayout({ children }: { children: React.ReactNo
               <p className="text-sm font-semibold text-white truncate max-w-[40vw]">{miembro.grupo?.nombre || 'Grupo'}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="text-[#B8B8CC] hover:text-[#E94560] transition-colors"><LogOut size={18} /></button>
+          <button onClick={handleLogout} className="text-[#B8B8CC] hover:text-[#B6FF3A] transition-colors"><LogOut size={18} /></button>
         </div>
       </header>
 

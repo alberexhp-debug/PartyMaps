@@ -161,7 +161,7 @@ export default function AdminDashboard() {
             <span className="text-2xl font-bold text-white text-numeric leading-none">{onb.pct}%</span>
           </div>
           <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
-            <div className="h-full rounded-full" style={{ width: `${onb.pct}%`, background: onb.pct >= 80 ? '#27AE60' : onb.pct >= 50 ? '#F39C12' : '#E94560' }} />
+            <div className="h-full rounded-full" style={{ width: `${onb.pct}%`, background: onb.pct >= 80 ? '#27AE60' : onb.pct >= 50 ? '#F39C12' : '#B6FF3A' }} />
           </div>
           <p className="text-[11px] text-[#8B8BA8] mt-2">
             {onb.completos}/{onb.total} con datos, horarios, fotos y aforo.
