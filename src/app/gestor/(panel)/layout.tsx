@@ -69,7 +69,7 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="min-h-screen flex bg-[#07070D]">
+    <div className="min-h-screen flex bg-[#0C0E13]">
       {/* Sidebar (escritorio) */}
       <aside className="hidden md:flex w-60 flex-col fixed left-0 top-0 bottom-0 z-20 glass-strong border-r border-white/8">
         <div className="p-4 border-b border-white/8">

@@ -29,7 +29,7 @@ export default function BracketPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#08080F]/92 backdrop-blur-md border-b border-white/6">
+      <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0C0E13]/92 backdrop-blur-md border-b border-white/6">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0">
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Bracket en vivo · Doble eliminación</p>

@@ -48,7 +48,7 @@ export default function RrppListasPage() {
   const nombreLocal = (id: string) => venues.find(v => v.id === id)?.nombre ?? 'Local'
 
   return (
-    <div className="min-h-screen bg-[#07070D] text-white pb-24">
+    <div className="min-h-screen bg-[#0C0E13] text-white pb-24">
       <div className="max-w-md mx-auto p-4 sm:p-6 space-y-5">
         <HeroBanner acento="violet" bleed="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6"
           eyebrow="Tus listas" titulo="Listas de invitados"

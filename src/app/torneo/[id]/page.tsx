@@ -31,7 +31,7 @@ export default function TorneoDetallePage() {
       {/* Banner */}
       <div className="relative h-48 overflow-hidden">
         <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.12) 28%, #08080F)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.12) 28%, #0C0E13)' }} />
         <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
           <div className="flex gap-2">
@@ -122,7 +122,7 @@ export default function TorneoDetallePage() {
       </div>
 
       {/* CTA fija */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#08080F] via-[#08080F] to-transparent">
+      <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0C0E13] via-[#0C0E13] to-transparent">
         <div className="max-w-lg mx-auto">
           {t.vip ? (
             <button className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2"><Lock size={16} /> Requiere tier {t.vip}</button>

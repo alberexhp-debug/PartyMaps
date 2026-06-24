@@ -6,7 +6,7 @@
 
 @theme {
   /* Base — Nocturno Premium (neutros más fríos y sobrios) */
-  --color-bg-base: #07070D;
+  --color-bg-base: #0C0E13;
   --color-bg-primary: #0C0C15;
   --color-bg-secondary: #131320;
   --color-bg-tertiary: #1B1B2A;
@@ -62,7 +62,7 @@ body {
   background:
     radial-gradient(1100px 650px at 30% -15%, rgba(124, 92, 255, 0.05), transparent 55%),
     radial-gradient(900px 550px at 95% 5%, rgba(182, 255, 58, 0.035), transparent 55%),
-    #07070D;
+    #0C0E13;
   color: #FAFAFC;
   overscroll-behavior: none;
   margin: 0;
@@ -522,7 +522,7 @@ a:focus-visible,
 [data-pt="light"] [class*="bg-[#131320]"],
 [data-pt="light"] [class*="bg-[#1B1B2A]"],
 [data-pt="light"] [class*="bg-[#0E0E1A]"],
-[data-pt="light"] [class*="bg-[#07070D]"],
+[data-pt="light"] [class*="bg-[#0C0E13]"],
 [data-pt="light"] [class*="bg-[#0A0A14]"] { background-color: var(--p-surface) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 
 [data-pt="light"] [class~="border-white/10"],

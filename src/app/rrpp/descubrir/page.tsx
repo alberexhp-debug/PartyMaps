@@ -22,7 +22,7 @@ export default function RrppDescubrirPage() {
   }, [router])
 
   if (estado !== 'ok') {
-    return <div className="min-h-screen bg-[#07070D] flex items-center justify-center text-[#6B6B85]">Cargando…</div>
+    return <div className="min-h-screen bg-[#0C0E13] flex items-center justify-center text-[#6B6B85]">Cargando…</div>
   }
   return (
     <>

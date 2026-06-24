@@ -144,7 +144,7 @@ export default function LoginPage() {
   )
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#07070D] lg:grid lg:grid-cols-[1.05fr_1fr]">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#0C0E13] lg:grid lg:grid-cols-[1.05fr_1fr]">
       {/* Halos de fondo (cubren toda la pantalla) */}
       <div className="pointer-events-none absolute -top-40 -left-40 h-[34rem] w-[34rem] rounded-full bg-[#B6FF3A]/25 blur-[120px]" />
       <div className="pointer-events-none absolute top-1/3 -right-40 h-[34rem] w-[34rem] rounded-full bg-[#7C5CFF]/22 blur-[120px]" />

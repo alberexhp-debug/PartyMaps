@@ -55,8 +55,8 @@ export async function enviarEmail({ to, subject, html, tag }: EnviarOptions): Pr
 function envolverPlantilla(contenido: string): string {
   return `<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
-<body style="margin:0;padding:0;background:#08080F;font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;color:#FAFAFC;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#08080F;">
+<body style="margin:0;padding:0;background:#0C0E13;font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;color:#FAFAFC;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0C0E13;">
     <tr><td align="center" style="padding:32px 16px;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#14142A;border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
         <tr><td style="padding:28px 28px 0 28px;">

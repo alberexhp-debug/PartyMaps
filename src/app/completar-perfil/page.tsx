@@ -97,7 +97,7 @@ export default function CompletarPerfilPage() {
   if (cargando) return <PageLoader />
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#07070D] px-5 py-10">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0C0E13] px-5 py-10">
       <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#B6FF3A]/22 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-[#7C5CFF]/20 blur-[120px]" />
 
