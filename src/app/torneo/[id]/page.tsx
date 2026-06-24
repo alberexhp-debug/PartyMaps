@@ -78,6 +78,23 @@ export default function TorneoDetallePage() {
           </div>
         </div>
 
+        {/* Participantes */}
+        <div className="mt-4">
+          <p className="eyebrow eyebrow-muted mb-2">Participantes</p>
+          <div className="flex items-center">
+            {['Kaze', 'Vito', 'Sora', 'Lumi', 'Nox', 'Ren'].map((n, i) => {
+              const cols = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
+              return (
+                <span key={n} className="inline-flex items-center justify-center rounded-full text-[#0A0A0F] font-black border-2 border-[#0C0C15]"
+                  style={{ width: 38, height: 38, marginLeft: i ? -10 : 0, background: cols[i % cols.length], zIndex: 10 - i }}>
+                  {n[0]}
+                </span>
+              )
+            })}
+            {t.inscritos > 6 && <span className="ml-3 text-sm text-[#B8B8CC] font-medium">+{t.inscritos - 6} más</span>}
+          </div>
+        </div>
+
         {/* Reglas */}
         <div className="mt-5">
           <p className="eyebrow eyebrow-muted mb-2">Reglas</p>
