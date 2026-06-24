@@ -118,10 +118,10 @@ export default function RankingPage() {
                     {first && <Crown size={22} className="absolute -top-4 left-1/2 -translate-x-1/2 text-[#E0BE63]" fill="#E0BE63" />}
                   </div>
                   <p className="mt-2 text-sm font-bold text-white truncate max-w-full">{p.nombre}</p>
-                  <p className="text-[12px] font-bold font-mono-num" style={{ color: first ? '#E0BE63' : '#B6FF3A' }}>{p.rating}</p>
+                  <p className="text-[15px] font-bold text-score" style={{ color: first ? '#E0BE63' : '#B6FF3A' }}>{p.rating}</p>
                   <div className="mt-2 w-full rounded-t-xl flex items-start justify-center pt-1.5 ring-grad relative overflow-hidden"
                     style={{ height: alturas[i], background: `linear-gradient(180deg, ${medallas[i]}2E, ${medallas[i]}08)`, borderTop: `2px solid ${medallas[i]}` }}>
-                    <span className="text-xl font-black font-mono-num" style={{ color: medallas[i] }}>{first ? 1 : i === 0 ? 2 : 3}</span>
+                    <span className="text-3xl font-bold text-score" style={{ color: medallas[i] }}>{first ? 1 : i === 0 ? 2 : 3}</span>
                   </div>
                 </div>
               )

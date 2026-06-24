@@ -79,7 +79,7 @@ function Row({ name, score, win, show }: { name: string; score: number; win: boo
   return (
     <div className={cn('flex items-center justify-between px-3 py-2.5', win && 'bg-[#B6FF3A]')}>
       <span className={cn('text-sm truncate', win ? 'text-[#0A0A0F] font-bold' : empty ? 'text-[#5A5A70]' : 'text-white font-medium')}>{name}</span>
-      <span className={cn('text-sm font-bold text-numeric ml-2 shrink-0', win ? 'text-[#0A0A0F]' : 'text-[#8B8BA8]')}>{show && !empty ? score : ''}</span>
+      <span className={cn('text-[17px] font-bold text-score ml-2 shrink-0', win ? 'text-[#0A0A0F]' : 'text-[#8B8BA8]')}>{show && !empty ? score : ''}</span>
     </div>
   )
 }

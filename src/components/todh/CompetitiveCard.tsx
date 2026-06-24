@@ -42,7 +42,7 @@ export function CompetitiveCard() {
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-[10px] uppercase tracking-[0.18em] text-[#8B8BA8] font-bold mb-0.5">Rating</p>
-            <p className="text-[44px] font-black font-mono-num leading-none" style={{ color: j.color }}>{s.rating}</p>
+            <p className="text-[50px] font-bold text-score leading-none" style={{ color: j.color }}>{s.rating}</p>
           </div>
           <div className="text-right">
             <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-xs font-bold bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40">{s.tier}</span>

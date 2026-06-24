@@ -41,6 +41,7 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Sora', 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --font-condensed: 'Oswald', 'Sora', system-ui, sans-serif;
 
   /* === v2 PRO === */
   --color-lime-bright: #C8FF5C;
@@ -246,6 +247,8 @@ body {
 
 /* ─── v2 PRO: utilidades ─── */
 .font-mono-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+/* Scoreboard: condensada para scores/ratings/seeds grandes (estilo FACEIT/start.gg) */
+.text-score { font-family: var(--font-condensed); font-variant-numeric: tabular-nums; letter-spacing: 0.005em; }
 .glow-lime { box-shadow: 0 10px 34px -10px var(--color-accent-glow), 0 0 0 1px rgba(182,255,58,0.12) inset; }
 .badge-live {
   display: inline-flex; align-items: center; gap: 5px;
