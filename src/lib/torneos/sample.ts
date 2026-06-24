@@ -47,7 +47,7 @@ export const TORNEOS_SAMPLE: TorneoSample[] = [
   {
     id: 't2', nombre: 'Liga Magic Standard — Jornada 5', juego: 'magic', formato: 'Suizo',
     fechaLabel: 'Hoy · 19:30', esHoy: true, local: 'La Tienda del Dragón', ciudad: 'Madrid',
-    distanciaKm: 2.6, inscritos: 24, plazas: 32, precio: 12, bote: 0, enDirecto: false,
+    distanciaKm: 2.6, inscritos: 24, plazas: 32, precio: 12, bote: 0, enDirecto: true,
     vip: null, popularidad: 86,
   },
   {
@@ -59,7 +59,7 @@ export const TORNEOS_SAMPLE: TorneoSample[] = [
   {
     id: 't4', nombre: 'TFT Iberian Cup — Clasificatorio', juego: 'tft', formato: 'Pools → Top cut',
     fechaLabel: 'Sáb 28 jun · 17:00', local: 'Online + Gamba', ciudad: 'Madrid',
-    distanciaKm: 1.2, inscritos: 96, plazas: 128, precio: 5, bote: 500, enDirecto: false,
+    distanciaKm: 1.2, inscritos: 96, plazas: 128, precio: 5, bote: 500, enDirecto: true,
     vip: null, popularidad: 90,
   },
   {

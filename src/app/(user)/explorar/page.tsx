@@ -55,6 +55,32 @@ export default function ExplorarPage() {
         </p>
       </div>
 
+      {/* En directo ahora */}
+      {TORNEOS_SAMPLE.some(t => t.enDirecto) && (
+        <div className="relative mt-1">
+          <div className="flex items-center gap-2 px-5 mb-2">
+            <span className="dot-live" />
+            <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-white">En directo ahora</p>
+          </div>
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1">
+            {TORNEOS_SAMPLE.filter(t => t.enDirecto).map(t => {
+              const jj = JUEGOS[t.juego]
+              return (
+                <Link key={t.id} href={`/torneo/${t.id}`} className="relative shrink-0 w-[170px] h-[104px] rounded-2xl overflow-hidden ring-grad group">
+                  <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0 transition-transform duration-300 group-hover:scale-105" />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,.86) 8%, rgba(0,0,0,.12) 55%, transparent)' }} />
+                  <span className="badge-live absolute top-2 left-2">Live</span>
+                  <div className="absolute bottom-2 left-2.5 right-2.5">
+                    <p className="text-[12.5px] font-bold text-white leading-tight truncate text-display">{t.nombre}</p>
+                    <p className="text-[10px] text-white/75 font-mono-num mt-0.5">{jj.corto} · {Math.round(t.popularidad * 1.4)} viendo</p>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Buscador + orden */}
       <div className="relative px-4 mt-3 space-y-2.5">
         <div className="flex items-center gap-2.5">
