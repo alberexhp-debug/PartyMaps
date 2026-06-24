@@ -2,30 +2,30 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
-import { Map, Users, Sparkles, ArrowRight } from 'lucide-react'
+import { Map, Users, Trophy, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const slides = [
   {
     icon: Map,
     color: '#B6FF3A',
-    eyebrow: 'Mapa en vivo',
-    title: 'La noche\nde Madrid\nen un vistazo',
-    description: 'Mapa de calor en tiempo real con la afluencia de cada local. Decide antes de salir.',
+    eyebrow: 'Mapa de torneos',
+    title: 'Todos los\ntorneos cerca\nde ti',
+    description: 'Smash, Magic, Pokémon, TFT… Filtra por juego, fecha y distancia, y encuentra dónde competir.',
   },
   {
     icon: Users,
     color: '#7C5CFF',
-    eyebrow: 'Planes con tu grupo',
-    title: 'Quedad\nsin perderse\nningún plan',
-    description: 'Pago en grupo, entradas individuales y planes para conocer gente que va al mismo sitio.',
+    eyebrow: 'Comunidad',
+    title: 'Sigue a tus TOs\ny a tus rivales',
+    description: 'Únete a la comunidad de tus organizadores, mira en qué torneos están tus amigos y haz crew.',
   },
   {
-    icon: Sparkles,
+    icon: Trophy,
     color: '#D4A84B',
-    eyebrow: 'Dentro del local',
-    title: 'Pide en la barra\nsin colas',
-    description: 'Tu noche va más allá de entrar. Pide y paga desde la app, sin esperas.',
+    eyebrow: 'En directo',
+    title: 'Compite y sube\nen el ranking',
+    description: 'Apúntate y paga desde la app, sigue tu bracket en vivo, reporta el resultado y escala posiciones.',
   },
 ]
 

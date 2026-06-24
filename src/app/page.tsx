@@ -10,7 +10,7 @@ export default function RootPage() {
 
   useEffect(() => {
     if (!isLoading) {
-      if (isAuthenticated) router.replace('/mapa')
+      if (isAuthenticated) router.replace('/explorar')
       else router.replace('/login')
     }
   }, [isAuthenticated, isLoading, router])

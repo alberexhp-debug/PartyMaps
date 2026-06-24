@@ -92,7 +92,7 @@ export default function RegistroPage() {
     setLoadingGoogle(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/mapa` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/explorar` },
     })
     if (error) {
       toast.error('No se pudo conectar con Google')
@@ -113,7 +113,7 @@ export default function RegistroPage() {
     const { data, error } = await supabase.auth.signUp({
       email: form.email.trim(),
       password: form.password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/mapa` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/explorar` },
     })
     if (error) {
       toast.error(error.message || 'No se pudo crear la cuenta')
@@ -208,7 +208,7 @@ export default function RegistroPage() {
       toast.error('Error al crear la cuenta. Inténtalo de nuevo.')
     } else {
       toast.success('¡Cuenta creada! Bienvenido/a a TODH')
-      router.push('/mapa')
+      router.push('/explorar')
     }
     setLoading(false)
   }
@@ -265,7 +265,7 @@ export default function RegistroPage() {
             <div>
               <p className="eyebrow mb-2">Únete</p>
               <h1 className="text-3xl font-bold text-white text-display tracking-tight mb-1.5">Crea tu cuenta</h1>
-              <p className="text-[#A0A0B8]">Empieza a vivir la noche</p>
+              <p className="text-[#A0A0B8]">Crea tu cuenta y empieza a competir</p>
             </div>
 
             <button
