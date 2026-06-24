@@ -3,8 +3,9 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
+import { GameKeyart } from '@/components/todh/GameKeyart'
 import {
-  Search, Lock, Trophy, Calendar, MapPin, Users, Radio, Check, ArrowUpDown,
+  Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown,
 } from 'lucide-react'
 
 type Orden = 'popularidad' | 'fecha' | 'precio'
@@ -154,59 +155,44 @@ function CardTorneo({ t }: { t: TorneoSample }) {
   const completo = t.inscritos >= t.plazas
   const pct = Math.min(100, Math.round((t.inscritos / t.plazas) * 100))
   return (
-    <Link href={`/torneo/${t.id}`} className="block">
-      <div className="card-premium relative overflow-hidden hover:-translate-y-0.5 transition-transform">
-        <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ background: juego.color }} />
-        <div className="p-4 pl-5">
-          {/* Juego + estados */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[11px] font-bold"
+    <Link href={`/torneo/${t.id}`} className="block group">
+      <div className="ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_20px_44px_-20px_rgba(0,0,0,0.8)]">
+        <GameKeyart juegoId={t.juego} className="w-[92px] shrink-0" />
+        <div className="flex-1 p-3.5 min-w-0">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold"
               style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
             </span>
-            {t.enDirecto && (
-              <span className="inline-flex items-center gap-1 px-2 h-7 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#E63E54]/15 text-[#FF6076] border border-[#E63E54]/40">
-                <Radio size={10} className="animate-pulse-heat" /> En directo
-              </span>
-            )}
+            {t.enDirecto && <span className="badge-live">Live</span>}
             {t.vip && (
-              <span className="ml-auto inline-flex items-center gap-1 px-2 h-7 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40">
-                <Lock size={10} /> {t.vip}
+              <span className="ml-auto inline-flex items-center gap-1 px-1.5 h-6 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40">
+                <Lock size={9} /> {t.vip}
               </span>
             )}
           </div>
 
-          {/* Título */}
-          <p className="font-bold text-white text-display tracking-tight text-[17px] leading-snug">{t.nombre}</p>
+          <p className="font-bold text-white text-display tracking-tight text-[15px] leading-snug truncate">{t.nombre}</p>
 
-          {/* Meta */}
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#A0A0B8]">
-            <span className="inline-flex items-center gap-1"><Trophy size={12} /> {t.formato}</span>
-            <span className="inline-flex items-center gap-1 text-white font-medium"><Calendar size={12} className="text-[#B6FF3A]" /> {t.fechaLabel}</span>
-          </div>
-          <div className="mt-1 flex items-center gap-1 text-[12px] text-[#8B8BA8]">
-            <MapPin size={12} className="shrink-0" />
-            <span className="truncate">{t.local} · {t.ciudad}{t.distanciaKm > 0 ? ` · ${t.distanciaKm} km` : ''}</span>
+          <div className="mt-1.5 flex items-center gap-2 text-[11px] text-[#A0A0B8] min-w-0">
+            <span className="inline-flex items-center gap-1 text-white shrink-0"><Calendar size={11} className="text-[#B6FF3A]" /> {t.fechaLabel}</span>
+            <span className="text-[#3A3A4A]">·</span>
+            <span className="inline-flex items-center gap-1 min-w-0"><MapPin size={11} className="shrink-0" /> <span className="truncate">{t.local}</span></span>
           </div>
 
-          {/* Footer: plazas + precio/bote */}
-          <div className="mt-3 flex items-end justify-between gap-3">
+          <div className="mt-2.5 flex items-end justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between text-[11px] mb-1">
-                <span className="inline-flex items-center gap-1 text-[#B8B8CC]"><Users size={11} /> {t.inscritos}/{t.plazas} inscritos</span>
-                <span className={cn('font-semibold', completo ? 'text-[#FF8A5C]' : 'text-[#B6FF3A]')}>
-                  {completo ? 'Lista de espera' : 'Abierta'}
-                </span>
+              <div className="flex items-center justify-between text-[10px] mb-1">
+                <span className="inline-flex items-center gap-1 text-[#8B8BA8]"><Users size={10} /> <span className="font-mono-num text-[#B8B8CC]">{t.inscritos}/{t.plazas}</span></span>
+                <span className={cn('font-semibold', completo ? 'text-[#FF8A5C]' : 'text-[#B6FF3A]')}>{completo ? 'Lista de espera' : 'Abierta'}</span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-white/8 overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: completo ? '#FF8A5C' : '#B6FF3A' }} />
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)` }} />
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-[9px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{t.bote ? 'Bote' : 'Inscripción'}</p>
-              <p className="text-base font-bold text-white text-numeric">
-                {t.bote ? `${t.bote}€` : t.precio === 0 ? 'Gratis' : `${t.precio}€`}
-              </p>
+              <p className="text-[8px] text-[#8B8BA8] uppercase tracking-[0.12em] font-bold">{t.bote ? 'Bote' : 'Entrada'}</p>
+              <p className="text-[15px] font-bold text-white font-mono-num leading-none mt-0.5">{t.bote ? `${t.bote}€` : t.precio === 0 ? 'Free' : `${t.precio}€`}</p>
             </div>
           </div>
         </div>

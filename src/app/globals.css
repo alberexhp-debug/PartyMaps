@@ -40,6 +40,13 @@
   /* Fuentes */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Sora', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* === v2 PRO === */
+  --color-lime-bright: #C8FF5C;
+  --color-lime-deep: #93E61E;
+  --color-live: #FF3D71;
+  --color-accent-cyan: #2FD4C0;
 }
 
 * { box-sizing: border-box; }
@@ -231,8 +238,31 @@ body {
   line-height: 1.05;
 }
 .text-numeric {
+  font-family: var(--font-mono);
   font-feature-settings: 'tnum', 'lnum';
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ─── v2 PRO: utilidades ─── */
+.font-mono-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.glow-lime { box-shadow: 0 10px 34px -10px var(--color-accent-glow), 0 0 0 1px rgba(182,255,58,0.12) inset; }
+.badge-live {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-weight: 700; font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: #FF7095; background: rgba(255,61,113,0.13);
+  border: 1px solid rgba(255,61,113,0.42); border-radius: 999px; padding: 3px 9px;
+}
+.badge-live::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: #FF3D71; box-shadow: 0 0 8px #FF3D71; animation: pulse-heat 1.5s ease-in-out infinite; }
+.dot-live { display: inline-block; width: 7px; height: 7px; border-radius: 999px; background: #FF3D71; box-shadow: 0 0 10px #FF3D71; animation: pulse-heat 1.5s ease-in-out infinite; }
+/* Borde gradiente premium reutilizable */
+.ring-grad { position: relative; }
+.ring-grad::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.02) 45%, transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
 }
 
 /* Eyebrow / kicker — texto pequeño con tracking */
