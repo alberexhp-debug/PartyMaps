@@ -105,20 +105,27 @@ export default function RankingPage() {
         <>
           {/* Podio */}
           <div className="relative px-4 mt-5 flex items-end justify-center gap-3">
-            {podio.map((p, i) => (
-              <div key={p.nombre} className="flex flex-col items-center" style={{ width: 92 }}>
-                <div className="relative">
-                  <Avatar name={p.nombre} size={i === 1 ? 64 : 52} />
-                  {i === 1 && <Crown size={20} className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#E0BE63]" fill="#E0BE63" />}
+            {podio.map((p, i) => {
+              const first = i === 1
+              const jColor = JUEGOS[juego].color
+              return (
+                <div key={p.nombre} className="flex flex-col items-center" style={{ width: 96 }}>
+                  <div className="relative">
+                    {first && <div className="absolute -inset-2.5 rounded-full blur-xl opacity-50" style={{ background: jColor }} />}
+                    <div className="relative rounded-full p-[2.5px]" style={{ background: first ? `linear-gradient(135deg, #E0BE63, ${jColor})` : `${medallas[i]}55` }}>
+                      <Avatar name={p.nombre} size={first ? 66 : 50} />
+                    </div>
+                    {first && <Crown size={22} className="absolute -top-4 left-1/2 -translate-x-1/2 text-[#E0BE63]" fill="#E0BE63" />}
+                  </div>
+                  <p className="mt-2 text-sm font-bold text-white truncate max-w-full">{p.nombre}</p>
+                  <p className="text-[12px] font-bold font-mono-num" style={{ color: first ? '#E0BE63' : '#B6FF3A' }}>{p.rating}</p>
+                  <div className="mt-2 w-full rounded-t-xl flex items-start justify-center pt-1.5 ring-grad relative overflow-hidden"
+                    style={{ height: alturas[i], background: `linear-gradient(180deg, ${medallas[i]}2E, ${medallas[i]}08)`, borderTop: `2px solid ${medallas[i]}` }}>
+                    <span className="text-xl font-black font-mono-num" style={{ color: medallas[i] }}>{first ? 1 : i === 0 ? 2 : 3}</span>
+                  </div>
                 </div>
-                <p className="mt-2 text-sm font-bold text-white truncate max-w-full">{p.nombre}</p>
-                <p className="text-[11px] text-[#B6FF3A] font-semibold text-numeric">{p.rating}</p>
-                <div className="mt-2 w-full rounded-t-xl flex items-start justify-center pt-1.5"
-                  style={{ height: alturas[i], background: `linear-gradient(180deg, ${medallas[i]}33, ${medallas[i]}0D)`, borderTop: `2px solid ${medallas[i]}` }}>
-                  <span className="text-lg font-black" style={{ color: medallas[i] }}>{i === 1 ? 1 : i === 0 ? 2 : 3}</span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Tabla */}
