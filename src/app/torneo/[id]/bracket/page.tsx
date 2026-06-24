@@ -37,6 +37,13 @@ export default function BracketPage() {
         </div>
       </div>
 
+      <div className="px-4 pt-4">
+        <button onClick={() => router.push(`/torneo/${id}/resultados`)} className="w-full flex items-center justify-between rounded-2xl bg-[#E0BE63]/10 border border-[#E0BE63]/30 px-4 py-3 hover:bg-[#E0BE63]/15 transition-colors">
+          <span className="inline-flex items-center gap-2 text-[#E0BE63] font-semibold text-sm">🏆 Ver clasificación final y premios</span>
+          <span className="text-[#E0BE63] text-lg">›</span>
+        </button>
+      </div>
+
       <div className="overflow-x-auto px-4 py-6">
         <div className="flex gap-7 min-w-max">
           {cols.map(([titulo, matches]) => (
