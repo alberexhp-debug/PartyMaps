@@ -123,6 +123,8 @@ body {
 .animate-shimmer { animation: shimmer 2.5s linear infinite; }
 .animate-glow-pulse { animation: glow-pulse 2.5s ease-in-out infinite; }
 .animate-float-soft { animation: float-soft 4s ease-in-out infinite; }
+@keyframes pop { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
+.animate-pop { animation: pop 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
 
 /* Stagger para listas (combinar con --delay style) */
 .stagger-item {

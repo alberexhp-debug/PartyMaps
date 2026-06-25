@@ -1,25 +1,33 @@
 'use client'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
+import { JUEGOS, TORNEOS_SAMPLE, getTorneo, type TorneoSample } from '@/lib/torneos/sample'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
+import { TicketModal } from '@/components/todh/TicketModal'
 import { QrCode, Calendar, MapPin, Trophy } from 'lucide-react'
 
 type Insc = { t: TorneoSample; estado: 'proximo' | 'jugado'; puesto?: string }
 const pick = (id: string) => TORNEOS_SAMPLE.find(x => x.id === id)!
-const INSCRIPCIONES: Insc[] = [
-  { t: pick('t1'), estado: 'proximo' },
-  { t: pick('t4'), estado: 'proximo' },
+// Próximos por defecto (demo) + historial jugado
+const DEFAULT_PROXIMOS = ['t4']
+const HISTORIAL: Insc[] = [
   { t: pick('t8'), estado: 'jugado', puesto: 'Top 4' },
   { t: pick('t5'), estado: 'jugado', puesto: '9º' },
 ]
 
 export default function EntradasPage() {
   const [tab, setTab] = useState<'proximos' | 'historial'>('proximos')
-  const proximos = INSCRIPCIONES.filter(i => i.estado === 'proximo')
-  const historial = INSCRIPCIONES.filter(i => i.estado === 'jugado')
-  const lista = tab === 'proximos' ? proximos : historial
+  const [ticket, setTicket] = useState<TorneoSample | null>(null)
+  const inscritos = useDemoStore(s => s.inscritos)
+
+  const proximos: Insc[] = useMemo(() => {
+    const ids = Array.from(new Set([...inscritos, ...DEFAULT_PROXIMOS]))
+    return ids.map(id => getTorneo(id)).filter(Boolean).map(t => ({ t: t!, estado: 'proximo' as const }))
+  }, [inscritos])
+
+  const lista = tab === 'proximos' ? proximos : HISTORIAL
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -29,7 +37,7 @@ export default function EntradasPage() {
         <p className="eyebrow mb-2">Tu cartera</p>
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Mis torneos</h1>
         <p className="text-[#A0A0B8] mt-2 text-sm">
-          {proximos.length} {proximos.length === 1 ? 'inscripción activa' : 'inscripciones activas'}
+          <span className="text-white font-bold font-mono-num">{proximos.length}</span> {proximos.length === 1 ? 'inscripción activa' : 'inscripciones activas'}
         </p>
 
         <div className="flex gap-1 glass-subtle rounded-2xl p-1 mt-5">
@@ -37,7 +45,7 @@ export default function EntradasPage() {
             <button key={t} onClick={() => setTab(t)}
               className={cn('flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all',
                 tab === t ? 'bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_6px_20px_-4px_rgba(182,255,58,0.6)]' : 'text-[#A0A0B8] hover:text-white')}>
-              {t === 'proximos' ? `Próximos · ${proximos.length}` : `Historial · ${historial.length}`}
+              {t === 'proximos' ? `Próximos · ${proximos.length}` : `Historial · ${HISTORIAL.length}`}
             </button>
           ))}
         </div>
@@ -53,18 +61,20 @@ export default function EntradasPage() {
             </p>
             {tab === 'proximos' && <Link href="/explorar" className="mt-1 px-4 h-10 inline-flex items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">Explorar torneos</Link>}
           </div>
-        ) : lista.map(i => <TicketCard key={i.t.id + i.estado} insc={i} />)}
+        ) : lista.map(i => <TicketCard key={i.t.id + i.estado} insc={i} onQr={() => setTicket(i.t)} />)}
       </div>
+
+      {ticket && <TicketModal torneo={ticket} onClose={() => setTicket(null)} />}
     </div>
   )
 }
 
-function TicketCard({ insc }: { insc: Insc }) {
+function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
   const { t, estado, puesto } = insc
   const juego = JUEGOS[t.juego]
   return (
-    <Link href={`/torneo/${t.id}`} className="block">
-      <div className="ring-grad card-premium relative overflow-hidden rounded-2xl hover:-translate-y-0.5 transition-transform flex items-stretch">
+    <div className="ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch">
+      <Link href={`/torneo/${t.id}`} className="flex items-stretch flex-1 min-w-0 card-int">
         <GameKeyart juegoId={t.juego} className="w-[72px] shrink-0" />
         <div className="flex-1 p-4 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
@@ -79,17 +89,18 @@ function TicketCard({ insc }: { insc: Insc }) {
             <span className="inline-flex items-center gap-1 min-w-0"><MapPin size={12} className="shrink-0" /> <span className="truncate">{t.local}</span></span>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center px-4 border-l border-dashed border-white/12 shrink-0">
-          {estado === 'proximo' ? (
-            <>
-              <QrCode size={30} className="text-white" />
-              <span className="text-[9px] text-[#B6FF3A] font-bold uppercase tracking-wider mt-1">Entrada</span>
-            </>
-          ) : (
-            <span className="text-[10px] text-[#6B6B85] font-semibold uppercase tracking-wider">Jugado</span>
-          )}
-        </div>
-      </div>
-    </Link>
+      </Link>
+      <button onClick={onQr} aria-label="Ver entrada QR"
+        className="flex flex-col items-center justify-center px-4 border-l border-dashed border-white/12 shrink-0 hover:bg-white/5 transition-colors">
+        {estado === 'proximo' ? (
+          <>
+            <QrCode size={30} className="text-white" />
+            <span className="text-[9px] text-[#B6FF3A] font-bold uppercase tracking-wider mt-1">Entrada</span>
+          </>
+        ) : (
+          <span className="text-[10px] text-[#6B6B85] font-semibold uppercase tracking-wider">Jugado</span>
+        )}
+      </button>
+    </div>
   )
 }
