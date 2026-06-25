@@ -30,14 +30,12 @@ export default function ConsolaTOPage() {
         </div>
       </div>
 
-      <div className="px-5 -mt-8">
+      <div className="px-5 -mt-9">
         {/* Identidad */}
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl text-2xl font-black text-[#0A0A0F] border-4 border-[#0C0E13]" style={{ background: org.color }}>{org.nombre[0]}</span>
-          <div>
-            <p className="text-lg font-bold text-white text-display leading-tight">{org.nombre}</p>
-            <p className="text-xs text-[#8B8BA8] inline-flex items-center gap-1"><Star size={11} className="text-[#E0BE63]" /> {org.rating} · {org.tier} · {org.seguidores.toLocaleString('es')} seguidores</p>
-          </div>
+        <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-2xl font-black text-[#0A0A0F] border-4 border-[#0C0E13]" style={{ background: org.color }}>{org.nombre[0]}</span>
+        <div className="mt-2.5">
+          <p className="text-lg font-bold text-white text-display leading-tight">{org.nombre}</p>
+          <p className="text-xs text-[#8B8BA8] inline-flex items-center gap-1 mt-0.5"><Star size={11} className="text-[#E0BE63]" /> {org.rating} · {org.tier} · {org.seguidores.toLocaleString('es')} seguidores</p>
         </div>
 
         {/* Aviso accionable */}
@@ -103,16 +101,16 @@ export default function ConsolaTOPage() {
           ))}
         </div>
 
-        {/* Negociación con locales (teaser) */}
+        {/* Negociación con locales */}
         <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Buscar sala</p>
-        <div className="card-premium p-4 flex items-center gap-3">
+        <Link href="/mapa" className="card-premium card-int p-4 flex items-center gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#4F8EF7]/15 text-[#4F8EF7]"><Store size={18} /></span>
           <div className="flex-1">
             <p className="text-sm font-semibold text-white">3 locales con disponibilidad</p>
             <p className="text-xs text-[#8B8BA8]">Reserva directa o envía solicitud para tu próximo torneo</p>
           </div>
           <ChevronRight size={18} className="text-[#6B6B85]" />
-        </div>
+        </Link>
       </div>
     </div>
   )

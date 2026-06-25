@@ -25,6 +25,7 @@ export default function SedePage() {
     { id: 's2', org: 'respawn-to', fecha: 'Dom 29 jun · 17-21h', personas: 24, juego: 'sf6' },
   ])
   const ocupados = SETUPS.filter(s => s.estado === 'ocupado').length
+  const [dispoPublicada, setDispoPublicada] = useState(false)
 
   return (
     <div className="relative min-h-screen pb-10 max-w-xl mx-auto">
@@ -37,13 +38,11 @@ export default function SedePage() {
         </div>
       </div>
 
-      <div className="px-5 -mt-8">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl text-2xl font-black text-[#0A0A0F] border-4 border-[#0C0E13]" style={{ background: local.color }}>{local.nombre[0]}</span>
-          <div>
-            <p className="text-lg font-bold text-white text-display leading-tight">{local.nombre}</p>
-            <p className="text-xs text-[#8B8BA8] inline-flex items-center gap-1"><Star size={11} className="text-[#E0BE63]" /> {local.rating} · {local.zona} · {local.setups} setups</p>
-          </div>
+      <div className="px-5 -mt-9">
+        <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-2xl font-black text-[#0A0A0F] border-4 border-[#0C0E13]" style={{ background: local.color }}>{local.nombre[0]}</span>
+        <div className="mt-2.5">
+          <p className="text-lg font-bold text-white text-display leading-tight">{local.nombre}</p>
+          <p className="text-xs text-[#8B8BA8] inline-flex items-center gap-1 mt-0.5"><Star size={11} className="text-[#E0BE63]" /> {local.rating} · {local.zona} · {local.setups} setups</p>
         </div>
 
         {/* KPIs */}
@@ -109,15 +108,16 @@ export default function SedePage() {
           ))}
         </div>
 
-        {/* Disponibilidad teaser */}
-        <div className="mt-6 card-premium p-4 flex items-center gap-3">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#B6FF3A]/15 text-[#B6FF3A]"><ShieldCheck size={18} /></span>
+        {/* Disponibilidad */}
+        <button onClick={() => setDispoPublicada(v => !v)}
+          className={`mt-6 w-full card-premium card-int p-4 flex items-center gap-3 text-left transition-colors ${dispoPublicada ? 'border border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.06]' : ''}`}>
+          <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${dispoPublicada ? 'bg-[#B6FF3A]/25 text-[#B6FF3A]' : 'bg-[#B6FF3A]/15 text-[#B6FF3A]'}`}>{dispoPublicada ? <Check size={18} /> : <ShieldCheck size={18} />}</span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-white">Publica tu disponibilidad</p>
-            <p className="text-xs text-[#8B8BA8]">Horario recurrente + precio. Los TOs de confianza reservan directo.</p>
+            <p className="text-sm font-semibold text-white">{dispoPublicada ? 'Disponibilidad publicada' : 'Publica tu disponibilidad'}</p>
+            <p className="text-xs text-[#8B8BA8]">{dispoPublicada ? 'Mar y Jue 18-23h · 8 setups · 60€/noche. Visible para los TOs.' : 'Horario recurrente + precio. Los TOs de confianza reservan directo.'}</p>
           </div>
-          <ChevronRight size={18} className="text-[#6B6B85]" />
-        </div>
+          {!dispoPublicada && <ChevronRight size={18} className="text-[#6B6B85]" />}
+        </button>
       </div>
     </div>
   )
