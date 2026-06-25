@@ -21,7 +21,7 @@ export default function ResultadosPage() {
   const medallas = ['#E0BE63', '#C0C7D1', '#CD7F45']
 
   return (
-    <div className="relative min-h-screen pb-10">
+    <div className="relative min-h-screen pb-10 max-w-xl mx-auto">
       <div className="relative h-28" style={{ background: 'linear-gradient(135deg, rgba(224,190,99,0.35), #0C0C15 75%)' }}>
         <div className="relative flex items-center px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>

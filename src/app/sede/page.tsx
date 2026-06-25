@@ -27,7 +27,7 @@ export default function SedePage() {
   const ocupados = SETUPS.filter(s => s.estado === 'ocupado').length
 
   return (
-    <div className="relative min-h-screen pb-10">
+    <div className="relative min-h-screen pb-10 max-w-xl mx-auto">
       <div className="relative h-32 overflow-hidden">
         <div className="absolute inset-0" style={{ background: `radial-gradient(120% 130% at 0% 0%, ${local.color} 0%, ${local.color}44 32%, transparent 70%), #0C0E13` }} />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, #0C0E13)' }} />

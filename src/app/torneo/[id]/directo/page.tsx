@@ -32,7 +32,7 @@ export default function DirectoPage() {
   }
 
   return (
-    <div className="relative min-h-screen pb-4">
+    <div className="relative min-h-screen pb-4 max-w-xl mx-auto">
       {/* Reproductor */}
       <div className="relative aspect-video w-full bg-black overflow-hidden">
         <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0 opacity-40" />

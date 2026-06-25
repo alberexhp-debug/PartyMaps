@@ -77,7 +77,7 @@ export default function TorneoDetallePage() {
   }
 
   return (
-    <div className="relative min-h-screen pb-28">
+    <div className="relative min-h-screen pb-28 max-w-xl mx-auto">
       {/* Banner */}
       <div className="relative h-48 overflow-hidden">
         <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />
