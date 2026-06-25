@@ -48,6 +48,7 @@ export default function InicioPage() {
               Soy organizador
             </Link>
           </div>
+          <Link href="/sede" className="mt-3 inline-block text-sm text-[#8B8BA8] hover:text-white transition-colors">¿Tienes un local? <span className="text-[#B6FF3A] font-semibold">Abre el panel de tu sede →</span></Link>
         </div>
       </div>
 

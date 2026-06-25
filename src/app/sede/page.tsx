@@ -1,0 +1,134 @@
+'use client'
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { TORNEOS_SAMPLE, LOCALES, ORGANIZADORES, JUEGOS } from '@/lib/torneos/sample'
+import {
+  ArrowLeft, Monitor, Wallet, Star, CalendarClock, Check, X, ChevronRight,
+  Tv, ShieldCheck, Users, Trophy,
+} from 'lucide-react'
+
+type Setup = { n: number; tipo: string; estado: 'libre' | 'ocupado'; stream?: boolean }
+const SETUPS: Setup[] = [
+  { n: 1, tipo: 'Consola', estado: 'ocupado' }, { n: 2, tipo: 'Consola', estado: 'ocupado' },
+  { n: 3, tipo: 'PC', estado: 'libre' }, { n: 4, tipo: 'PC', estado: 'ocupado' },
+  { n: 5, tipo: 'Stream', estado: 'ocupado', stream: true }, { n: 6, tipo: 'Consola', estado: 'libre' },
+]
+
+export default function SedePage() {
+  const router = useRouter()
+  const local = LOCALES.gamba
+  const torneos = TORNEOS_SAMPLE.filter(t => t.localId === local.id)
+  const ingresos = torneos.reduce((a, t) => a + Math.round(t.inscritos * t.precio * 0.3), 0)
+  const [solicitudes, setSolicitudes] = useState([
+    { id: 's1', org: 'arcade-to', fecha: 'Vie 27 jun · 20-23h', personas: 32, juego: 'tekken' },
+    { id: 's2', org: 'respawn-to', fecha: 'Dom 29 jun · 17-21h', personas: 24, juego: 'sf6' },
+  ])
+  const ocupados = SETUPS.filter(s => s.estado === 'ocupado').length
+
+  return (
+    <div className="relative min-h-screen pb-10">
+      <div className="relative h-32 overflow-hidden">
+        <div className="absolute inset-0" style={{ background: `radial-gradient(120% 130% at 0% 0%, ${local.color} 0%, ${local.color}44 32%, transparent 70%), #0C0E13` }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, #0C0E13)' }} />
+        <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
+          <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold">Panel de la sede · Demo</span>
+        </div>
+      </div>
+
+      <div className="px-5 -mt-8">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl text-2xl font-black text-[#0A0A0F] border-4 border-[#0C0E13]" style={{ background: local.color }}>{local.nombre[0]}</span>
+          <div>
+            <p className="text-lg font-bold text-white text-display leading-tight">{local.nombre}</p>
+            <p className="text-xs text-[#8B8BA8] inline-flex items-center gap-1"><Star size={11} className="text-[#E0BE63]" /> {local.rating} · {local.zona} · {local.setups} setups</p>
+          </div>
+        </div>
+
+        {/* KPIs */}
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <KPI icon={<Monitor size={16} className="text-[#B6FF3A]" />} value={`${ocupados}/${SETUPS.length}`} label="Setups en uso" />
+          <KPI icon={<Trophy size={16} className="text-[#9B82FF]" />} value={String(torneos.length)} label="Torneos este mes" />
+          <KPI icon={<Wallet size={16} className="text-[#E0BE63]" />} value={`${ingresos}€`} label="Ingresos del mes" />
+          <KPI icon={<Users size={16} className="text-[#4F8EF7]" />} value={String(ORGANIZADORES ? 3 : 0)} label="TOs de confianza" />
+        </div>
+
+        {/* Solicitudes de TOs */}
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Solicitudes de organizadores</p>
+        <div className="space-y-2">
+          {solicitudes.length === 0 && <p className="text-sm text-[#8B8BA8] card-premium p-4 text-center">No hay solicitudes pendientes.</p>}
+          {solicitudes.map(s => {
+            const org = ORGANIZADORES[s.org]
+            const j = JUEGOS[s.juego]
+            return (
+              <div key={s.id} className="card-premium p-3.5">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-[#0A0A0F] font-black" style={{ background: org.color }}>{org.nombre[0]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate flex items-center gap-1">{org.nombre} {org.verificado && <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#4F8EF7] text-white text-[8px] items-center justify-center">✓</span>}</p>
+                    <p className="text-[11px] text-[#8B8BA8] inline-flex items-center gap-1"><CalendarClock size={11} /> {s.fecha} · {s.personas} pers · {j.corto}</p>
+                  </div>
+                </div>
+                <div className="mt-2.5 flex gap-2">
+                  <button onClick={() => setSolicitudes(p => p.filter(x => x.id !== s.id))} className="flex-1 h-9 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[12px] font-bold inline-flex items-center justify-center gap-1"><Check size={14} /> Aceptar</button>
+                  <button className="flex-1 h-9 rounded-lg bg-white/8 text-white text-[12px] font-bold">Contraofertar</button>
+                  <button onClick={() => setSolicitudes(p => p.filter(x => x.id !== s.id))} aria-label="Rechazar" className="h-9 w-9 rounded-lg bg-white/6 text-[#FF6076] inline-flex items-center justify-center"><X size={15} /></button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Setups en vivo */}
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Estado de los setups</p>
+        <div className="grid grid-cols-3 gap-2">
+          {SETUPS.map(s => (
+            <div key={s.n} className="card-premium p-2.5 text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                {s.stream ? <Tv size={13} className="text-[#9B82FF]" /> : <Monitor size={13} className="text-[#8B8BA8]" />}
+                <span className="text-xs font-bold text-white">#{s.n}</span>
+              </div>
+              <span className={`inline-block text-[10px] font-bold uppercase tracking-wide ${s.estado === 'ocupado' ? 'text-[#B6FF3A]' : 'text-[#6FB0FF]'}`}>{s.estado === 'ocupado' ? 'En uso' : 'Libre'}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Torneos alojados */}
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Torneos alojados</p>
+        <div className="space-y-2">
+          {torneos.map(t => (
+            <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-center gap-3 card-premium card-int p-3">
+              <span className="w-1 self-stretch rounded-full" style={{ background: JUEGOS[t.juego].color }} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
+                <p className="text-[11px] text-[#8B8BA8]">{t.fechaLabel} · {ORGANIZADORES[t.organizadorId!]?.nombre}</p>
+              </div>
+              <ChevronRight size={16} className="text-[#6B6B85]" />
+            </Link>
+          ))}
+        </div>
+
+        {/* Disponibilidad teaser */}
+        <div className="mt-6 card-premium p-4 flex items-center gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#B6FF3A]/15 text-[#B6FF3A]"><ShieldCheck size={18} /></span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-white">Publica tu disponibilidad</p>
+            <p className="text-xs text-[#8B8BA8]">Horario recurrente + precio. Los TOs de confianza reservan directo.</p>
+          </div>
+          <ChevronRight size={18} className="text-[#6B6B85]" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function KPI({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
+  return (
+    <div className="card-premium p-3.5">
+      <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center mb-2">{icon}</div>
+      <p className="text-2xl font-bold text-white text-display font-mono-num leading-none">{value}</p>
+      <p className="text-[10px] uppercase tracking-[0.12em] text-[#8B8BA8] font-semibold mt-1.5">{label}</p>
+    </div>
+  )
+}
