@@ -126,6 +126,19 @@ body {
 @keyframes pop { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
 .animate-pop { animation: pop 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
 
+/* ── Bracket con conectores tipo elbow ────────────────────────────────── */
+.bkt { --bkt-line: rgba(255,255,255,0.14); display: flex; align-items: stretch; }
+.bkt-round { display: flex; flex-direction: column; justify-content: space-around; }
+.bkt-cell { flex: 1 1 0; display: flex; align-items: center; }
+/* columna de conexión: cada celda dibuja un codo (top+bottom+right border) */
+.bkt-conn { display: flex; flex-direction: column; justify-content: space-around; width: 26px; }
+.bkt-conn-cell { flex: 1 1 0; display: flex; align-items: center; }
+.bkt-elbow { width: 100%; height: 50%; border-top: 2px solid var(--bkt-line); border-bottom: 2px solid var(--bkt-line); border-right: 2px solid var(--bkt-line); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+/* stub corto que entra a la siguiente ronda */
+.bkt-round + .bkt-conn + .bkt-round .bkt-cell { position: relative; }
+.bkt-stub-in { position: relative; }
+.bkt-stub-in::before { content: ''; position: absolute; right: 100%; top: 50%; width: 14px; height: 2px; background: var(--bkt-line); }
+
 /* Stagger para listas (combinar con --delay style) */
 .stagger-item {
   opacity: 0;

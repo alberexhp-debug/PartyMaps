@@ -60,9 +60,10 @@ export default function PerfilPage() {
   }, [usuario])
 
   const nombre = usuario?.nombre || 'Invitado'
-  const torneosJugados = (demo ? 23 : stats.entradas) + inscritos.length
+  // Identidad de showcase (no hay aún tabla competitiva real): siempre poblada
+  const torneosJugados = 23 + Math.max(inscritos.length, stats.entradas)
   const crew = 12
-  const sigoTOs = (demo ? 3 : 0) + seguidos.length
+  const sigoTOs = 3 + seguidos.length
 
   const logout = async () => {
     setLoggingOut(true)

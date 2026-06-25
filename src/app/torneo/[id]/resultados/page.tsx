@@ -1,9 +1,9 @@
 'use client'
 import { useParams, useRouter } from 'next/navigation'
-import { TORNEOS_SAMPLE, JUEGOS } from '@/lib/torneos/sample'
+import { getTorneo, STANDINGS_SAMPLE } from '@/lib/torneos/sample'
 import { ArrowLeft, Crown, Trophy } from 'lucide-react'
 
-const STANDINGS = ['Kaze', 'Sora', 'Vito', 'Ren', 'Lumi', 'Nox', 'Drako', 'Bel']
+const STANDINGS = STANDINGS_SAMPLE
 
 function avatarColor(name: string) {
   const c = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
@@ -15,7 +15,7 @@ function avatarColor(name: string) {
 export default function ResultadosPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const t = TORNEOS_SAMPLE.find(x => x.id === id)
+  const t = getTorneo(id)
   const bote = t?.bote || 0
   const premios = [Math.round(bote * 0.7), Math.round(bote * 0.2), Math.round(bote * 0.1)]
   const medallas = ['#E0BE63', '#C0C7D1', '#CD7F45']
