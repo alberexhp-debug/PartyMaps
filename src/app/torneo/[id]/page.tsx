@@ -12,7 +12,7 @@ import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import type { Jugador } from '@/lib/torneos/sample'
 import {
   ArrowLeft, Calendar, MapPin, Trophy, Users, Lock, Radio, Share2, ListTree, ShieldCheck,
-  Check, Star, Coins, Wifi, X,
+  Check, Star, Coins, Wifi, X, MessageSquare,
 } from 'lucide-react'
 
 // Comisión de plataforma por tramo (la paga el jugador encima del precio)
@@ -110,6 +110,21 @@ export default function TorneoDetallePage() {
             <span className="inline-flex items-center gap-1 px-2 h-7 rounded-full text-[11px] font-bold bg-[#B6FF3A]/15 text-[#B6FF3A] border border-[#B6FF3A]/40"><Check size={12} /> Inscrito</span>
           )}
         </div>
+
+        {/* Tu combate (inscrito + en directo) */}
+        {inscrito && t.enDirecto && (
+          <div className="mt-4 rounded-2xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.08] p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="dot-live" /><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#B6FF3A]">Tu combate está listo</p>
+            </div>
+            <p className="text-sm text-white font-semibold">Cuartos vs <span className="text-white">Sora</span> · Setup 3</p>
+            <p className="text-xs text-[#A0A0B8] mt-0.5">Preséntate en tu estación. Reporta el resultado al terminar.</p>
+            <div className="mt-3 flex gap-2">
+              <Link href={`/torneo/${t.id}/directo`} className="flex-1 h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-1.5"><MessageSquare size={15} /> Chat del combate</Link>
+              <Link href={`/torneo/${t.id}/bracket`} className="flex-1 h-10 rounded-xl bg-white/8 text-white text-sm font-bold flex items-center justify-center gap-1.5"><ListTree size={15} /> Ver bracket</Link>
+            </div>
+          </div>
+        )}
 
         {t.descripcion && <p className="mt-3 text-sm text-[#B8B8CC] leading-relaxed">{t.descripcion}</p>}
 
