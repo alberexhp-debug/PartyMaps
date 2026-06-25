@@ -507,7 +507,7 @@ export default function RegistroPage() {
                 onError={msg => toast.error(msg)}
               />
               <p className="text-sm text-[#6B6B85] text-center max-w-xs">
-                JPG, PNG o WEBP · Hasta 5MB. Se mostrará en tu carta de perfil y en planes.
+                JPG, PNG o WEBP · Hasta 5MB. Se mostrará en tu perfil competitivo y en el bracket.
               </p>
             </div>
           </div>
@@ -521,8 +521,8 @@ export default function RegistroPage() {
             </div>
             <div className="space-y-4">
               {[
-                { icon: '📍', title: 'Ubicación', desc: 'Para centrar el mapa y verificar que estás en el local' },
-                { icon: '🔔', title: 'Notificaciones', desc: 'Para alertas de locales que sigues y del sistema' },
+                { icon: '📍', title: 'Ubicación', desc: 'Para mostrarte los torneos cercanos y el check-in en la sede' },
+                { icon: '🔔', title: 'Notificaciones', desc: 'Para avisos de tus combates, disputas y organizadores que sigues' },
                 { icon: '📷', title: 'Cámara y galería', desc: 'Para tu foto de perfil' },
               ].map(p => (
                 <div key={p.title} className="flex gap-4 p-4 glass rounded-xl">

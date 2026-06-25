@@ -92,7 +92,15 @@ export default function InicioPage() {
             Explorar torneos <ArrowRight size={18} />
           </Link>
         </div>
-        <p className="text-[10px] text-[#6B6B85] uppercase tracking-[0.2em] mt-8">© TODH · Que gane el mejor</p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-[#6B6B85]">
+          <span className="uppercase tracking-[0.18em]">Paneles demo:</span>
+          <Link href="/consola" className="hover:text-[#B6FF3A]">Organizador</Link>
+          <span>·</span>
+          <Link href="/sede" className="hover:text-[#B6FF3A]">Local</Link>
+          <span>·</span>
+          <Link href="/admin-demo" className="hover:text-[#B6FF3A]">Admin</Link>
+        </div>
+        <p className="text-[10px] text-[#6B6B85] uppercase tracking-[0.2em] mt-4">© TODH · Que gane el mejor</p>
       </div>
     </div>
   )
