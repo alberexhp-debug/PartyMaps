@@ -234,9 +234,9 @@ export default function TorneoDetallePage() {
           </div>
         )}
 
-        {/* Bracket */}
+        {/* Bracket / clasificación */}
         <Link href={`/torneo/${t.id}/bracket`} className="mt-5 flex items-center justify-between card-premium card-int p-4">
-          <span className="inline-flex items-center gap-2 text-white font-semibold"><ListTree size={18} className="text-[#9B82FF]" /> Ver bracket en vivo</span>
+          <span className="inline-flex items-center gap-2 text-white font-semibold"><ListTree size={18} className="text-[#9B82FF]" /> {t.formato === 'Suizo' || t.formato === 'Round robin' ? 'Ver clasificación en vivo' : 'Ver bracket en vivo'}</span>
           <span className="text-[#8B8BA8] text-lg">›</span>
         </Link>
       </div>

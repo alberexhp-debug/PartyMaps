@@ -383,5 +383,18 @@ export function bracketDobleDe(_torneoId: string): BracketDoble {
   }
 }
 
+// Clasificación de Suizo / Round robin (no hay cuadro de eliminación: hay rondas + tabla)
+export type FilaSuizo = { nombre: string; bandera: string; v: number; d: number; e?: number; puntos: number; omw: number }
+export function standingsSuizoDe(juegoId: string, rondasJugadas = 4): { rondaActual: number; totalRondas: number; filas: FilaSuizo[] } {
+  const base = rankingPorJuego(juegoId).slice(0, 12)
+  const totalRondas = 6
+  const filas: FilaSuizo[] = base.map((p, i) => {
+    const v = Math.max(0, rondasJugadas - Math.floor(i / 2) - (i % 2))
+    const d = rondasJugadas - v
+    return { nombre: p.nombre, bandera: p.bandera, v, d, puntos: v * 3 + 0, omw: +(66 - i * 1.7).toFixed(1) }
+  }).sort((a, b) => b.puntos - a.puntos || b.omw - a.omw)
+  return { rondaActual: rondasJugadas, totalRondas, filas }
+}
+
 // Clasificación final de muestra
 export const STANDINGS_SAMPLE = ['Kaze', 'Sora', 'Volt', 'Zen', 'Drako', 'Lux', 'Vega', 'Kira']

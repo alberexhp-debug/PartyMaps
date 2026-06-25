@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, rankingPorJuego, type MatchSample, type RondaSample, type Jugador } from '@/lib/torneos/sample'
+import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, standingsSuizoDe, rankingPorJuego, type MatchSample, type RondaSample, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Crown } from 'lucide-react'
@@ -14,6 +14,7 @@ export default function BracketPage() {
   const ranking = t ? rankingPorJuego(t.juego) : []
   const [sel, setSel] = useState<Jugador | null>(null)
   const esDoble = t?.formato === 'Doble eliminación'
+  const esTabla = t?.formato === 'Suizo' || t?.formato === 'Round robin'
   const [vista, setVista] = useState<'winners' | 'losers'>('winners')
 
   const doble = esDoble ? bracketDobleDe(id) : null
@@ -25,19 +26,21 @@ export default function BracketPage() {
     if (j) setSel(j)
   }
 
+  const labelFormato = esTabla ? 'Clasificación en vivo' : 'Bracket en vivo'
+
   return (
     <div className="min-h-screen">
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0C0E13]/92 backdrop-blur-md border-b border-white/6">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0">
-          <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Bracket en vivo · {t?.formato || 'Eliminación'}</p>
+          <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{labelFormato} · {t?.formato || 'Eliminación'}</p>
           <p className="text-base font-bold text-white truncate">{t?.nombre || 'Torneo'}</p>
         </div>
       </div>
 
       <div className="px-4 pt-4 space-y-3">
         {/* Conmutador Winners/Losers */}
-        {esDoble && (
+        {esDoble && !esTabla && (
           <div className="grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
             {([['winners', 'Winners'], ['losers', 'Losers']] as const).map(([k, label]) => (
               <button key={k} onClick={() => setVista(k)}
@@ -54,10 +57,12 @@ export default function BracketPage() {
         </button>
       </div>
 
-      <BracketGrid rondas={rondas} color={color} onPick={abrirJugador} />
+      {esTabla
+        ? <StandingsSuizo torneoId={id} juego={t!.juego} formato={t!.formato} color={color} onPick={abrirJugador} />
+        : <BracketGrid rondas={rondas} color={color} onPick={abrirJugador} />}
 
       {/* Gran final (doble elim) */}
-      {doble && (
+      {doble && !esTabla && (
         <div className="px-4 pb-6">
           <p className="eyebrow eyebrow-muted mb-2">Gran final</p>
           <div className="max-w-[200px]">
@@ -68,6 +73,47 @@ export default function BracketPage() {
       )}
 
       {sel && <MiniPerfil jugador={sel} onClose={() => setSel(null)} />}
+    </div>
+  )
+}
+
+function StandingsSuizo({ torneoId, juego, formato, color, onPick }: { torneoId: string; juego: string; formato: string; color: string; onPick: (n: string) => void }) {
+  const { rondaActual, totalRondas, filas } = standingsSuizoDe(juego)
+  const esRR = formato === 'Round robin'
+  return (
+    <div className="px-4 py-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="eyebrow eyebrow-muted">Clasificación</p>
+        <span className="inline-flex items-center gap-1.5 text-[12px] font-bold text-white">
+          <span className="dot-live" /> {esRR ? `Jornada ${rondaActual}` : `Ronda ${rondaActual}`} de {totalRondas}
+        </span>
+      </div>
+      {/* Cabecera */}
+      <div className="flex items-center gap-3 px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[#6B6B85]">
+        <span className="w-6 text-center">#</span><span className="flex-1">Jugador</span>
+        <span className="w-12 text-center">V-D</span><span className="w-10 text-right">Pts</span><span className="w-12 text-right">OMW%</span>
+      </div>
+      <div className="space-y-1.5">
+        {filas.map((f, i) => {
+          const clasifica = i < 8
+          return (
+            <button key={f.nombre} onClick={() => onPick(f.nombre)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 hover:bg-white/[0.07] transition-colors text-left">
+              <span className="w-6 text-center text-sm font-bold font-mono-num" style={{ color: clasifica ? color : '#8B8BA8' }}>{i + 1}</span>
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full text-[#0A0A0F] font-black shrink-0 text-sm" style={{ background: color }}>{f.nombre[0]}</span>
+              <span className="flex-1 min-w-0 text-sm font-bold text-white truncate">{f.nombre} <span className="text-xs">{f.bandera}</span></span>
+              <span className="w-12 text-center text-[13px] font-mono-num text-[#B8B8CC]">{f.v}-{f.d}</span>
+              <span className="w-10 text-right text-[15px] font-bold text-score" style={{ color }}>{f.puntos}</span>
+              <span className="w-12 text-right text-[12px] font-mono-num text-[#8B8BA8]">{f.omw}</span>
+            </button>
+          )
+        })}
+      </div>
+      <p className="mt-3 text-[11px] text-[#8B8BA8]">
+        {esRR
+          ? 'Round robin: todos contra todos. Clasificación por victorias → enfrentamiento directo → diferencia de juegos.'
+          : 'Suizo: empareja por puntos cada ronda. Desempate por OMW% (rivales) → GW% → OGW%. Top 8 pasa a corte.'}
+      </p>
     </div>
   )
 }
