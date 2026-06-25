@@ -108,6 +108,22 @@ export default function SedePage() {
           ))}
         </div>
 
+        {/* Lista de confianza */}
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">TOs de confianza</p>
+        <div className="card-premium p-3.5 space-y-2.5">
+          {[ORGANIZADORES.lima, ORGANIZADORES['dragon-to']].map(o => (
+            <div key={o.id} className="flex items-center gap-3">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#0A0A0F] font-black text-sm shrink-0" style={{ background: o.color }}>{o.nombre[0]}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white truncate flex items-center gap-1">{o.nombre} {o.verificado && <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#4F8EF7] text-white text-[8px] items-center justify-center">✓</span>}</p>
+                <p className="text-[11px] text-[#8B8BA8]"><Star size={9} className="inline text-[#E0BE63]" /> {o.rating} · {o.torneosOrg} torneos · reserva directa</p>
+              </div>
+              <span className="text-[10px] text-[#B6FF3A] font-bold uppercase tracking-wide">Confianza</span>
+            </div>
+          ))}
+          <button className="w-full mt-1 h-9 rounded-lg border border-dashed border-white/15 text-[#B8B8CC] text-xs font-semibold">+ Añadir organizador de confianza</button>
+        </div>
+
         {/* Disponibilidad */}
         <button onClick={() => setDispoPublicada(v => !v)}
           className={`mt-6 w-full card-premium card-int p-4 flex items-center gap-3 text-left transition-colors ${dispoPublicada ? 'border border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.06]' : ''}`}>

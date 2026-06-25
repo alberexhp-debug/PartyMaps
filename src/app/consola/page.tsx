@@ -101,6 +101,29 @@ export default function ConsolaTOPage() {
           ))}
         </div>
 
+        {/* Comunidad */}
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Comunidad</p>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className="card-premium p-3.5">
+            <Users size={15} className="text-[#9B82FF] mb-1.5" />
+            <p className="text-xl font-bold text-white font-mono-num leading-none">{org.seguidores.toLocaleString('es')}</p>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-[#8B8BA8] font-semibold mt-1">Seguidores</p>
+          </div>
+          <div className="card-premium p-3.5">
+            <Megaphone size={15} className="text-[#B6FF3A] mb-1.5" />
+            <p className="text-xl font-bold text-white font-mono-num leading-none">2</p>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-[#8B8BA8] font-semibold mt-1">Grupos</p>
+          </div>
+        </div>
+        <div className="card-premium p-3.5 flex items-center gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-xl">🎮</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-white">Crew de Gamba</p>
+            <p className="text-[11px] text-[#8B8BA8]">128 miembros · canal Avisos + General</p>
+          </div>
+          <span className="inline-flex items-center gap-1 px-2.5 h-8 rounded-lg bg-[#B6FF3A]/15 text-[#B6FF3A] text-[12px] font-bold"><Megaphone size={13} /> Difundir</span>
+        </div>
+
         {/* Negociación con locales */}
         <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Buscar sala</p>
         <Link href="/mapa" className="card-premium card-int p-4 flex items-center gap-3">
