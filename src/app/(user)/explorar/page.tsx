@@ -6,7 +6,7 @@ import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import {
-  Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown,
+  Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown, Bell,
 } from 'lucide-react'
 
 type Orden = 'popularidad' | 'fecha' | 'precio'
@@ -24,6 +24,7 @@ export default function ExplorarPage() {
   const [orden, setOrden] = useState<Orden>('popularidad')
   const [showOrden, setShowOrden] = useState(false)
   const creados = useDemoStore(s => s.creados)
+  const noLeidas = useDemoStore(s => s.notificaciones.filter(n => !n.leida).length)
 
   const resultados = useMemo(() => {
     let r = [...creados, ...TORNEOS_SAMPLE]
@@ -47,8 +48,20 @@ export default function ExplorarPage() {
     <div className="relative min-h-screen overflow-hidden">
       <div className="hero-halo-rose" />
 
+      {/* Top bar */}
+      <div className="relative flex items-center justify-between px-5 pt-5 safe-top">
+        <span className="text-lg font-black text-display tracking-tight text-white">TODH</span>
+        <div className="flex items-center gap-2">
+          <Link href="/buscar" aria-label="Buscar" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><Search size={18} /></Link>
+          <Link href="/notificaciones" aria-label="Notificaciones" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white relative">
+            <Bell size={18} />
+            {noLeidas > 0 && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF3D71] text-white text-[10px] font-bold flex items-center justify-center font-mono-num">{noLeidas}</span>}
+          </Link>
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="relative px-5 pt-6 pb-3 safe-top">
+      <div className="relative px-5 pt-3 pb-3">
         <p className="eyebrow mb-2">Próximos torneos</p>
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Explorar</h1>
         <p className="text-sm text-[#B8B8CC] mt-2">
