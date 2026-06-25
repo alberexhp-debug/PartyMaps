@@ -3,15 +3,17 @@ import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import { PageLoader } from '@/components/ui/Spinner'
 
-const MapaExplorar = dynamic(() => import('@/components/user/MapaExplorar'), {
+// Mapa de TORNEOS (un marcador por evento) — componente propio de TODH, con datos
+// de muestra y Mapbox. Reemplaza al mapa nocturno de locales de Rumbo.
+const MapaTorneos = dynamic(() => import('@/components/todh/MapaTorneos'), {
   ssr: false,
   loading: () => <PageLoader />,
 })
 
-export default function ExplorarPage() {
+export default function MapaPage() {
   return (
     <Suspense fallback={<PageLoader />}>
-      <MapaExplorar />
+      <MapaTorneos />
     </Suspense>
   )
 }
