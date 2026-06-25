@@ -39,7 +39,7 @@ export default function ParaLocalesPage() {
           <Link href="/" className="font-black text-display text-lg tracking-tight">TODH</Link>
           <div className="flex items-center gap-2">
             <Link href="/local-panel/login" className="btn-ghost text-sm h-9">Entrar</Link>
-            <Link href="/local-panel/registro" className="btn-primary text-sm h-9">Registra tu local</Link>
+            <Link href="/local-panel/registro" className="btn-primary text-sm h-9">Registra tu sala</Link>
           </div>
         </div>
       </header>
