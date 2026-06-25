@@ -43,6 +43,10 @@ export default function PerfilPage() {
 
   const inscritos = useDemoStore(s => s.inscritos)
   const seguidos = useDemoStore(s => s.seguidos)
+  const avatarEmoji = useDemoStore(s => s.avatarEmoji)
+  const setAvatarEmoji = useDemoStore(s => s.setAvatarEmoji)
+  const [avatarPicker, setAvatarPicker] = useState(false)
+  const AVATARS = ['🎮', '⚔️', '🃏', '🏆', '👾', '🔥', '⚡', '🦾', '🐉', '🌟', '🎯', '🕹️']
 
   useEffect(() => {
     if (!usuario) return
@@ -97,17 +101,30 @@ export default function PerfilPage() {
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-[0_10px_28px_-10px_rgba(0,0,0,0.7)] ring-1 ring-white/12">
-                {usuario?.foto_perfil_url ? (
+                {usuario?.foto_perfil_url && !avatarEmoji ? (
                   <img src={usuario.foto_perfil_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#B6FF3A] to-[#7C5CFF]">
-                    <span className="text-display text-4xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">{(nombre[0] || '?').toUpperCase()}</span>
+                    {avatarEmoji
+                      ? <span className="text-5xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">{avatarEmoji}</span>
+                      : <span className="text-display text-4xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">{(nombre[0] || '?').toUpperCase()}</span>}
                   </div>
                 )}
               </div>
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#B6FF3A] rounded-full flex items-center justify-center shadow-[0_6px_14px_rgba(182,255,58,0.6)] border-2 border-[#0B0B16]">
+              <button onClick={() => setAvatarPicker(v => !v)} aria-label="Cambiar avatar" className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#B6FF3A] rounded-full flex items-center justify-center shadow-[0_6px_14px_rgba(182,255,58,0.6)] border-2 border-[#0B0B16]">
                 <Camera size={13} className="text-[#0A0A0F]" />
               </button>
+              {avatarPicker && (
+                <div className="absolute z-20 top-full mt-2 left-0 w-64 p-2.5 rounded-2xl bg-[#1A1A26] border border-white/12 shadow-xl animate-slide-up-sm">
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {AVATARS.map(e => (
+                      <button key={e} onClick={() => { setAvatarEmoji(e); setAvatarPicker(false) }}
+                        className={cn('h-9 rounded-lg text-xl flex items-center justify-center transition-colors', avatarEmoji === e ? 'bg-[#B6FF3A]/20 ring-1 ring-[#B6FF3A]' : 'hover:bg-white/8')}>{e}</button>
+                    ))}
+                  </div>
+                  {avatarEmoji && <button onClick={() => { setAvatarEmoji(null); setAvatarPicker(false) }} className="mt-2 w-full h-8 rounded-lg bg-white/6 text-[#B8B8CC] text-xs font-semibold">Quitar</button>}
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               {editandoNombre ? (

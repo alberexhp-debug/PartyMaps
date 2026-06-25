@@ -24,6 +24,7 @@ interface DemoState {
   creados: TorneoSample[]             // torneos creados por el TO en demo
   notificaciones: Notificacion[]
   juegoPerfil: string                 // juego activo en el perfil
+  avatarEmoji: string | null          // avatar elegido en el perfil (demo)
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string) => void
   desinscribir: (torneoId: string) => void
@@ -35,6 +36,7 @@ interface DemoState {
   marcarLeidas: () => void
   noLeidas: () => number
   setJuegoPerfil: (j: string) => void
+  setAvatarEmoji: (e: string | null) => void
 }
 
 let nid = 0
@@ -55,6 +57,7 @@ export const useDemoStore = create<DemoState>()(
       creados: [],
       notificaciones: NOTIS_INICIALES,
       juegoPerfil: 'smash',
+      avatarEmoji: null,
 
       inscribir: (torneoId, nombreTorneo) => set((s) => {
         if (s.inscritos.includes(torneoId)) return s
@@ -93,6 +96,7 @@ export const useDemoStore = create<DemoState>()(
       marcarLeidas: () => set((s) => ({ notificaciones: s.notificaciones.map(n => ({ ...n, leida: true })) })),
       noLeidas: () => get().notificaciones.filter(n => !n.leida).length,
       setJuegoPerfil: (juegoPerfil) => set({ juegoPerfil }),
+      setAvatarEmoji: (avatarEmoji) => set({ avatarEmoji }),
     }),
     { name: 'todh-demo' }
   )
