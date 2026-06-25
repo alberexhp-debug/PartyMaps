@@ -180,11 +180,11 @@ export default function ExplorarPage() {
       </div>
 
       {/* CTA organizador */}
-      <Link href="/crear-torneo" className="relative mx-4 mt-3 flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.08] px-4 py-3 hover:bg-[#B6FF3A]/[0.12] transition-colors">
+      <Link href="/consola" className="relative mx-4 mt-3 flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.08] px-4 py-3 hover:bg-[#B6FF3A]/[0.12] transition-colors">
         <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#B6FF3A]/20 text-[#B6FF3A]"><Trophy size={17} /></span>
         <span className="flex-1 min-w-0">
           <span className="block text-sm font-semibold text-white">¿Organizas torneos?</span>
-          <span className="block text-xs text-[#A0A0B8]">Publícalo en TODH en un minuto</span>
+          <span className="block text-xs text-[#A0A0B8]">Abre tu consola de TO y publícalo en un minuto</span>
         </span>
         <span className="text-[#B6FF3A] text-lg">›</span>
       </Link>

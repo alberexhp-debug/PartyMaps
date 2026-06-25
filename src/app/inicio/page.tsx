@@ -44,7 +44,7 @@ export default function InicioPage() {
             <Link href="/explorar" className="h-14 px-8 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] glow-lime active:scale-[0.98] transition-transform">
               Explorar torneos <ArrowRight size={18} />
             </Link>
-            <Link href="/crear-torneo" className="h-14 px-8 inline-flex items-center justify-center gap-2 rounded-2xl glass-strong text-white font-bold text-[15px] hover:bg-white/10 transition-colors">
+            <Link href="/consola" className="h-14 px-8 inline-flex items-center justify-center gap-2 rounded-2xl glass-strong text-white font-bold text-[15px] hover:bg-white/10 transition-colors">
               Soy organizador
             </Link>
           </div>
