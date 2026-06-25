@@ -6,7 +6,7 @@ export function GameKeyart({ juegoId, className = '', label = true }: { juegoId:
   const j = JUEGOS[juegoId] || { color: '#B6FF3A', corto: '' }
   return (
     <div
-      className={`relative overflow-hidden ${className}`}
+      className={`relative overflow-hidden pointer-events-none ${className}`}
       style={{ background: `radial-gradient(135% 120% at 0% 0%, ${j.color} 0%, ${j.color}5C 34%, transparent 72%), #0A0A12` }}
       aria-hidden="true"
     >

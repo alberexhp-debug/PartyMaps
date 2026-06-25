@@ -97,7 +97,7 @@ export default function PerfilPage() {
 
       <div className="relative px-4 space-y-5 mt-4">
         {/* Tarjeta usuario */}
-        <div className="card-premium p-5 stagger-item" style={{ ['--delay' as string]: '40ms' }}>
+        <div className={cn('card-premium p-5 stagger-item relative', avatarPicker && 'z-30')} style={{ ['--delay' as string]: '40ms' }}>
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-[0_10px_28px_-10px_rgba(0,0,0,0.7)] ring-1 ring-white/12">
