@@ -329,5 +329,59 @@ export function bracketDe(_torneoId: string): RondaSample[] {
   ]
 }
 
+// Bracket de doble eliminación (winners + losers + gran final)
+export type BracketDoble = { winners: RondaSample[]; losers: RondaSample[]; granFinal: RondaSample }
+
+export function bracketDobleDe(_torneoId: string): BracketDoble {
+  const N = BRACKET_NOMBRES
+  return {
+    winners: [
+      {
+        nombre: 'WB Cuartos',
+        matches: [
+          { id: 'wq1', a: N[0], b: N[7], scoreA: 2, scoreB: 0, estado: 'jugado', ganador: 'a', setup: 'Setup 1' },
+          { id: 'wq2', a: N[3], b: N[4], scoreA: 1, scoreB: 2, estado: 'jugado', ganador: 'b', setup: 'Setup 2' },
+          { id: 'wq3', a: N[1], b: N[6], scoreA: 2, scoreB: 1, estado: 'jugado', ganador: 'a', setup: 'Setup 3' },
+          { id: 'wq4', a: N[2], b: N[5], scoreA: 1, scoreB: 1, estado: 'en-juego', setup: 'Stream' },
+        ],
+      },
+      {
+        nombre: 'WB Semis',
+        matches: [
+          { id: 'ws1', a: N[0], b: N[4], scoreA: null, scoreB: null, estado: 'pendiente' },
+          { id: 'ws2', a: N[1], b: '—', scoreA: null, scoreB: null, estado: 'pendiente' },
+        ],
+      },
+      {
+        nombre: 'WB Final',
+        matches: [{ id: 'wf1', a: '—', b: '—', scoreA: null, scoreB: null, estado: 'pendiente' }],
+      },
+    ],
+    losers: [
+      {
+        nombre: 'LB Ronda 1',
+        matches: [
+          { id: 'lr1', a: N[7], b: N[3], scoreA: 2, scoreB: 1, estado: 'jugado', ganador: 'a', setup: 'Setup 4' },
+          { id: 'lr2', a: N[6], b: N[5], scoreA: null, scoreB: null, estado: 'pendiente' },
+        ],
+      },
+      {
+        nombre: 'LB Ronda 2',
+        matches: [
+          { id: 'lr3', a: N[7], b: '—', scoreA: null, scoreB: null, estado: 'pendiente' },
+        ],
+      },
+      {
+        nombre: 'LB Final',
+        matches: [{ id: 'lf1', a: '—', b: '—', scoreA: null, scoreB: null, estado: 'pendiente' }],
+      },
+    ],
+    granFinal: {
+      nombre: 'Gran Final',
+      matches: [{ id: 'gf1', a: '—', b: '—', scoreA: null, scoreB: null, estado: 'pendiente' }],
+    },
+  }
+}
+
 // Clasificación final de muestra
 export const STANDINGS_SAMPLE = ['Kaze', 'Sora', 'Volt', 'Zen', 'Drako', 'Lux', 'Vega', 'Kira']

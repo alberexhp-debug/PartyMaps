@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getTorneo, JUEGOS, bracketDe, rankingPorJuego, type MatchSample, type Jugador } from '@/lib/torneos/sample'
+import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, rankingPorJuego, type MatchSample, type RondaSample, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Crown } from 'lucide-react'
@@ -11,9 +11,13 @@ export default function BracketPage() {
   const router = useRouter()
   const t = getTorneo(id)
   const color = t ? JUEGOS[t.juego].color : '#B6FF3A'
-  const rondas = bracketDe(id)
   const ranking = t ? rankingPorJuego(t.juego) : []
   const [sel, setSel] = useState<Jugador | null>(null)
+  const esDoble = t?.formato === 'Doble eliminación'
+  const [vista, setVista] = useState<'winners' | 'losers'>('winners')
+
+  const doble = esDoble ? bracketDobleDe(id) : null
+  const rondas: RondaSample[] = doble ? (vista === 'winners' ? doble.winners : doble.losers) : bracketDe(id)
 
   function abrirJugador(nombre: string) {
     if (nombre === '—') return
@@ -31,46 +35,74 @@ export default function BracketPage() {
         </div>
       </div>
 
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-4 space-y-3">
+        {/* Conmutador Winners/Losers */}
+        {esDoble && (
+          <div className="grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
+            {([['winners', 'Winners'], ['losers', 'Losers']] as const).map(([k, label]) => (
+              <button key={k} onClick={() => setVista(k)}
+                className={cn('h-9 rounded-xl text-sm font-bold transition-all', vista === k ? 'bg-white/12 text-white shadow-sm' : 'text-[#8B8BA8] hover:text-white')}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         <button onClick={() => router.push(`/torneo/${id}/resultados`)} className="w-full flex items-center justify-between rounded-2xl bg-[#E0BE63]/10 border border-[#E0BE63]/30 px-4 py-3 hover:bg-[#E0BE63]/15 transition-colors">
           <span className="inline-flex items-center gap-2 text-[#E0BE63] font-semibold text-sm">🏆 Ver clasificación final y premios</span>
           <span className="text-[#E0BE63] text-lg">›</span>
         </button>
       </div>
 
-      <div className="overflow-x-auto px-4 py-6 scrollbar-hide">
-        <div className="bkt min-w-max min-h-[460px]" style={{ ['--bkt-line' as string]: 'rgba(255,255,255,0.14)' }}>
-          {rondas.map((ronda, ri) => (
-            <div key={ronda.nombre} className="contents">
-              <div className="flex flex-col" style={{ minWidth: 184 }}>
-                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8] mb-3 px-1 h-4 shrink-0">{ronda.nombre}</p>
-                <div className="bkt-round flex-1">
-                  {ronda.matches.map(m => (
-                    <div key={m.id} className="bkt-cell">
-                      <div className={cn('w-full', ri > 0 && 'bkt-stub-in')}>
-                        <MatchCard m={m} color={color} onPick={abrirJugador} />
-                      </div>
+      <BracketGrid rondas={rondas} color={color} onPick={abrirJugador} />
+
+      {/* Gran final (doble elim) */}
+      {doble && (
+        <div className="px-4 pb-6">
+          <p className="eyebrow eyebrow-muted mb-2">Gran final</p>
+          <div className="max-w-[200px]">
+            <MatchCard m={doble.granFinal.matches[0]} color={color} onPick={abrirJugador} />
+          </div>
+          <p className="mt-2 text-[11px] text-[#8B8BA8]">El que llega de Losers debe ganar dos sets (bracket reset).</p>
+        </div>
+      )}
+
+      {sel && <MiniPerfil jugador={sel} onClose={() => setSel(null)} />}
+    </div>
+  )
+}
+
+function BracketGrid({ rondas, color, onPick }: { rondas: RondaSample[]; color: string; onPick: (n: string) => void }) {
+  return (
+    <div className="overflow-x-auto px-4 py-5 scrollbar-hide">
+      <div className="bkt min-w-max min-h-[440px]" style={{ ['--bkt-line' as string]: 'rgba(255,255,255,0.14)' }}>
+        {rondas.map((ronda, ri) => (
+          <div key={ronda.nombre} className="contents">
+            <div className="flex flex-col" style={{ minWidth: 184 }}>
+              <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8] mb-3 px-1 h-4 shrink-0">{ronda.nombre}</p>
+              <div className="bkt-round flex-1">
+                {ronda.matches.map(m => (
+                  <div key={m.id} className="bkt-cell">
+                    <div className={cn('w-full', ri > 0 && 'bkt-stub-in')}>
+                      <MatchCard m={m} color={color} onPick={onPick} />
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {ri < rondas.length - 1 && (
+              <div className="flex flex-col">
+                <div className="h-4 mb-3 shrink-0" />
+                <div className="bkt-conn flex-1">
+                  {Array.from({ length: rondas[ri + 1].matches.length }).map((_, ci) => (
+                    <div key={ci} className="bkt-conn-cell"><div className="bkt-elbow" /></div>
                   ))}
                 </div>
               </div>
-              {/* columna de conexión hacia la siguiente ronda */}
-              {ri < rondas.length - 1 && (
-                <div className="flex flex-col">
-                  <div className="h-4 mb-3 shrink-0" />
-                  <div className="bkt-conn flex-1">
-                    {Array.from({ length: rondas[ri + 1].matches.length }).map((_, ci) => (
-                      <div key={ci} className="bkt-conn-cell"><div className="bkt-elbow" /></div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        ))}
       </div>
-
-      {sel && <MiniPerfil jugador={sel} onClose={() => setSel(null)} />}
     </div>
   )
 }
