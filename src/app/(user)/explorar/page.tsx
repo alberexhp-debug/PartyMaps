@@ -6,8 +6,10 @@ import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import {
-  Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown, Bell,
+  Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown, Bell, SlidersHorizontal, X,
 } from 'lucide-react'
+
+const FORMATOS_ALL = ['Doble eliminación', 'Eliminación simple', 'Suizo', 'Pools → Top cut', 'Round robin']
 
 type Orden = 'popularidad' | 'fecha' | 'precio'
 const ORDEN_LABEL: Record<Orden, string> = {
@@ -23,6 +25,11 @@ export default function ExplorarPage() {
   const [soloGratis, setSoloGratis] = useState(false)
   const [orden, setOrden] = useState<Orden>('popularidad')
   const [showOrden, setShowOrden] = useState(false)
+  const [showFiltros, setShowFiltros] = useState(false)
+  const [formatos, setFormatos] = useState<Set<string>>(new Set())
+  const [precioMax, setPrecioMax] = useState<number | null>(null)
+  const [soloLibres, setSoloLibres] = useState(false)
+  const [soloAbiertos, setSoloAbiertos] = useState(false)
   const creados = useDemoStore(s => s.creados)
   const noLeidas = useDemoStore(s => s.notificaciones.filter(n => !n.leida).length)
 
@@ -33,16 +40,21 @@ export default function ExplorarPage() {
     if (juego) r = r.filter(t => t.juego === juego)
     if (soloHoy) r = r.filter(t => t.esHoy)
     if (soloGratis) r = r.filter(t => t.precio === 0)
+    if (formatos.size) r = r.filter(t => formatos.has(t.formato))
+    if (precioMax != null) r = r.filter(t => t.precio <= precioMax)
+    if (soloLibres) r = r.filter(t => t.inscritos < t.plazas)
+    if (soloAbiertos) r = r.filter(t => !t.vip)
     switch (orden) {
       case 'fecha': r.sort((a, b) => (b.esHoy ? 1 : 0) - (a.esHoy ? 1 : 0)); break
       case 'precio': r.sort((a, b) => a.precio - b.precio); break
       default: r.sort((a, b) => (b.enDirecto ? 1 : 0) - (a.enDirecto ? 1 : 0) || b.popularidad - a.popularidad)
     }
     return r
-  }, [busca, juego, soloHoy, soloGratis, orden, creados])
+  }, [busca, juego, soloHoy, soloGratis, formatos, precioMax, soloLibres, soloAbiertos, orden, creados])
 
-  const numFiltros = (juego ? 1 : 0) + (soloHoy ? 1 : 0) + (soloGratis ? 1 : 0)
-  const limpiar = () => { setJuego(null); setSoloHoy(false); setSoloGratis(false) }
+  const numFiltros = (juego ? 1 : 0) + (soloHoy ? 1 : 0) + (soloGratis ? 1 : 0) + formatos.size + (precioMax != null ? 1 : 0) + (soloLibres ? 1 : 0) + (soloAbiertos ? 1 : 0)
+  const limpiar = () => { setJuego(null); setSoloHoy(false); setSoloGratis(false); setFormatos(new Set()); setPrecioMax(null); setSoloLibres(false); setSoloAbiertos(false) }
+  const toggleFormato = (f: string) => setFormatos(prev => { const n = new Set(prev); n.has(f) ? n.delete(f) : n.add(f); return n })
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -114,6 +126,13 @@ export default function ExplorarPage() {
             className="h-11 px-3 rounded-2xl flex items-center gap-1.5 font-semibold text-sm glass-strong text-[#B8B8CC] hover:text-white transition-all"
           >
             <ArrowUpDown size={15} /> <span className="hidden sm:inline">{ORDEN_LABEL[orden]}</span>
+          </button>
+          <button
+            onClick={() => setShowFiltros(true)}
+            className={cn('h-11 px-3 rounded-2xl flex items-center gap-1.5 font-semibold text-sm glass-strong transition-all relative', numFiltros > 0 ? 'text-[#B6FF3A]' : 'text-[#B8B8CC] hover:text-white')}
+          >
+            <SlidersHorizontal size={15} />
+            {numFiltros > 0 && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#B6FF3A] text-[#0A0A0F] text-[10px] font-bold flex items-center justify-center font-mono-num">{numFiltros}</span>}
           </button>
         </div>
 
@@ -187,7 +206,72 @@ export default function ExplorarPage() {
           resultados.map((t, i) => <CardTorneo key={t.id} t={t} i={i} />)
         )}
       </div>
+
+      {/* Hoja de filtros */}
+      {showFiltros && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowFiltros(false)} />
+          <div className="relative w-full max-w-lg bg-[#101019] border-t border-white/10 rounded-t-3xl pb-6 animate-slide-up-sm max-h-[85vh] overflow-y-auto">
+            <div className="sticky top-0 bg-[#101019] pt-3 pb-2 px-5 flex items-center justify-between z-10 border-b border-white/5">
+              <span className="absolute left-1/2 -translate-x-1/2 top-2 w-10 h-1 rounded-full bg-white/15" />
+              <p className="text-[15px] font-bold text-white mt-2">Filtros</p>
+              <button onClick={() => setShowFiltros(false)} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC] mt-1"><X size={16} /></button>
+            </div>
+            <div className="px-5 pt-4 space-y-5">
+              {/* Formato */}
+              <div>
+                <p className="eyebrow eyebrow-muted mb-2.5">Formato</p>
+                <div className="flex flex-wrap gap-2">
+                  {FORMATOS_ALL.map(f => (
+                    <button key={f} onClick={() => toggleFormato(f)}
+                      className={cn('px-3 h-9 rounded-xl text-xs font-semibold border transition-all',
+                        formatos.has(f) ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border-[#B6FF3A]/45' : 'bg-white/4 text-[#B8B8CC] border-white/10')}>
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Precio máximo */}
+              <div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <p className="eyebrow eyebrow-muted">Precio máximo</p>
+                  <span className="text-sm font-bold text-white font-mono-num">{precioMax == null ? 'Cualquiera' : precioMax === 0 ? 'Gratis' : `${precioMax}€`}</span>
+                </div>
+                <input type="range" min={0} max={20} step={1} value={precioMax ?? 20}
+                  onChange={e => setPrecioMax(Number(e.target.value) >= 20 ? null : Number(e.target.value))}
+                  className="w-full accent-[#B6FF3A]" />
+                <div className="flex justify-between text-[10px] text-[#6B6B85] mt-1"><span>Gratis</span><span>20€+</span></div>
+              </div>
+              {/* Toggles */}
+              <div className="space-y-2">
+                <ToggleRow label="Solo con plazas libres" on={soloLibres} onClick={() => setSoloLibres(v => !v)} />
+                <ToggleRow label="Solo torneos abiertos (no VIP)" on={soloAbiertos} onClick={() => setSoloAbiertos(v => !v)} />
+                <ToggleRow label="Solo hoy" on={soloHoy} onClick={() => setSoloHoy(v => !v)} />
+                <ToggleRow label="Solo gratis" on={soloGratis} onClick={() => setSoloGratis(v => !v)} />
+              </div>
+            </div>
+            {/* CTA */}
+            <div className="px-5 pt-5 flex gap-2.5">
+              <button onClick={limpiar} className="h-12 px-5 rounded-2xl bg-white/8 text-white font-semibold text-sm">Limpiar</button>
+              <button onClick={() => setShowFiltros(false)} className="flex-1 h-12 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-sm">
+                Ver {resultados.length} {resultados.length === 1 ? 'torneo' : 'torneos'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+function ToggleRow({ label, on, onClick }: { label: string; on: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="w-full flex items-center justify-between py-2.5">
+      <span className="text-sm text-white font-medium">{label}</span>
+      <span className={cn('relative w-11 h-6 rounded-full transition-colors', on ? 'bg-[#B6FF3A]' : 'bg-white/12')}>
+        <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all', on ? 'left-[22px]' : 'left-0.5')} />
+      </span>
+    </button>
   )
 }
 
