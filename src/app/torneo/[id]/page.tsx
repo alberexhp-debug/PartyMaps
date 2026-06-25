@@ -8,9 +8,11 @@ import {
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { InscripcionSheet } from '@/components/todh/InscripcionSheet'
+import { MiniPerfil } from '@/components/todh/MiniPerfil'
+import type { Jugador } from '@/lib/torneos/sample'
 import {
   ArrowLeft, Calendar, MapPin, Trophy, Users, Lock, Radio, Share2, ListTree, ShieldCheck,
-  Check, Star, Coins, Wifi,
+  Check, Star, Coins, Wifi, X,
 } from 'lucide-react'
 
 // Comisión de plataforma por tramo (la paga el jugador encima del precio)
@@ -33,6 +35,8 @@ export default function TorneoDetallePage() {
   const router = useRouter()
   const [sheet, setSheet] = useState(false)
   const [copiado, setCopiado] = useState(false)
+  const [verParts, setVerParts] = useState(false)
+  const [selJugador, setSelJugador] = useState<Jugador | null>(null)
 
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
   const t = getTorneo(id) || creado
@@ -172,8 +176,11 @@ export default function TorneoDetallePage() {
 
         {/* Participantes */}
         <div className="mt-4">
-          <p className="eyebrow eyebrow-muted mb-2">Participantes destacados</p>
-          <div className="flex items-center">
+          <div className="flex items-center justify-between mb-2">
+            <p className="eyebrow eyebrow-muted">Participantes destacados</p>
+            <button onClick={() => setVerParts(true)} className="text-xs text-[#B6FF3A] font-semibold">Ver todos ›</button>
+          </div>
+          <button onClick={() => setVerParts(true)} className="flex items-center">
             {participantes.map((p, i) => {
               const cols = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
               return (
@@ -184,7 +191,7 @@ export default function TorneoDetallePage() {
               )
             })}
             {t.inscritos > 6 && <span className="ml-3 text-sm text-[#B8B8CC] font-medium">+{t.inscritos - 6} más</span>}
-          </div>
+          </button>
         </div>
 
         {/* Reglas */}
@@ -243,6 +250,36 @@ export default function TorneoDetallePage() {
           onClose={() => setSheet(false)} onConfirm={confirmarInscripcion}
         />
       )}
+
+      {/* Modal participantes con seeds */}
+      {verParts && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setVerParts(false)} />
+          <div className="relative w-full max-w-lg bg-[#101019] border-t border-white/10 rounded-t-3xl pb-6 animate-slide-up-sm max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-[#101019] pt-3 pb-2 px-5 flex items-center justify-between z-10 border-b border-white/5">
+              <span className="absolute left-1/2 -translate-x-1/2 top-2 w-10 h-1 rounded-full bg-white/15" />
+              <p className="text-[15px] font-bold text-white mt-2">Participantes · seeding</p>
+              <button onClick={() => setVerParts(false)} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC] mt-1"><X size={16} /></button>
+            </div>
+            <div className="px-4 pt-3 space-y-1.5">
+              {rankingPorJuego(t.juego).map((p, i) => (
+                <button key={p.id} onClick={() => { setSelJugador(p); setVerParts(false) }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 hover:bg-white/[0.07] transition-colors text-left">
+                  <span className="w-7 text-center text-xs font-bold text-[#8B8BA8] font-mono-num">#{i + 1}</span>
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-full text-[#0A0A0F] font-black shrink-0" style={{ background: juego.color }}>{p.nombre[0]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{p.nombre} <span className="text-xs">{p.bandera}</span></p>
+                    <p className="text-[11px] text-[#8B8BA8] font-mono-num">{p.rating} · {p.tier} · {p.main}</p>
+                  </div>
+                  <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wide">Seed {i + 1}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selJugador && <MiniPerfil jugador={selJugador} onClose={() => setSelJugador(null)} />}
     </div>
   )
 }
