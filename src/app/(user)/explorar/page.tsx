@@ -56,6 +56,23 @@ export default function ExplorarPage() {
   const limpiar = () => { setJuego(null); setSoloHoy(false); setSoloGratis(false); setFormatos(new Set()); setPrecioMax(null); setSoloLibres(false); setSoloAbiertos(false) }
   const toggleFormato = (f: string) => setFormatos(prev => { const n = new Set(prev); n.has(f) ? n.delete(f) : n.add(f); return n })
 
+  // Secciones del feed (solo sin búsqueda ni filtros): cada torneo va a la 1ª que encaje
+  const sectioned = !busca.trim() && numFiltros === 0
+  const secciones = useMemo(() => {
+    if (!sectioned) return null
+    const hoy: TorneoSample[] = [], cerca: TorneoSample[] = [], resto: TorneoSample[] = []
+    for (const t of resultados) {
+      if (t.esHoy) hoy.push(t)
+      else if (!t.online && t.distanciaKm > 0 && t.distanciaKm <= 3) cerca.push(t)
+      else resto.push(t)
+    }
+    return [
+      { titulo: 'Empieza hoy', sub: 'No te lo pierdas', items: hoy },
+      { titulo: 'Cerca de ti', sub: 'A menos de 3 km', items: cerca },
+      { titulo: 'Más torneos', sub: 'Esta semana y siguientes', items: resto },
+    ].filter(s => s.items.length > 0)
+  }, [sectioned, resultados])
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="hero-halo-rose" />
@@ -202,6 +219,19 @@ export default function ExplorarPage() {
               <button onClick={limpiar} className="mt-1 px-4 h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">Quitar filtros</button>
             )}
           </div>
+        ) : secciones ? (
+          secciones.map(sec => (
+            <section key={sec.titulo} className="space-y-3">
+              <div className="flex items-baseline justify-between pt-1">
+                <div>
+                  <p className="text-base font-bold text-white text-display tracking-tight">{sec.titulo}</p>
+                  <p className="text-[11px] text-[#8B8BA8]">{sec.sub}</p>
+                </div>
+                <span className="text-[11px] font-mono-num text-[#6B6B85]">{sec.items.length}</span>
+              </div>
+              {sec.items.map((t, i) => <CardTorneo key={t.id} t={t} i={i} />)}
+            </section>
+          ))
         ) : (
           resultados.map((t, i) => <CardTorneo key={t.id} t={t} i={i} />)
         )}
