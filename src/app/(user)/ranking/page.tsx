@@ -116,7 +116,7 @@ export default function RankingPage() {
       </div>
 
       {/* Tabla */}
-      <div className="relative px-4 mt-4 space-y-1.5">
+      <div className="relative px-4 mt-4 space-y-1.5 pb-28">
         {resto.map((p, i) => {
           const puesto = i + 4
           return (
