@@ -11,6 +11,25 @@ import {
 type Persona = { amistad_id?: string; id: string; nombre: string; foto_perfil_url: string | null; created_at?: string }
 type Grupo = { id: string; nombre: string; emoji: string | null; creador_id: string; miembros: { id: string; nombre: string; foto_perfil_url: string | null }[] }
 
+// Datos de demo cuando no hay sesión real con datos (modo demo)
+const DEMO_AMIGOS: Persona[] = [
+  { id: 'd1', nombre: 'Kaze', foto_perfil_url: null },
+  { id: 'd2', nombre: 'Sora', foto_perfil_url: null },
+  { id: 'd3', nombre: 'Volt', foto_perfil_url: null },
+  { id: 'd4', nombre: 'Lux', foto_perfil_url: null },
+  { id: 'd5', nombre: 'Drako', foto_perfil_url: null },
+]
+const DEMO_RECIBIDAS: Persona[] = [
+  { amistad_id: 'r1', id: 'd6', nombre: 'Nyx', foto_perfil_url: null },
+]
+const DEMO_GRUPOS: Grupo[] = [
+  { id: 'g1', nombre: 'Crew de Gamba', emoji: '🎮', creador_id: 'me', miembros: [
+    { id: 'd1', nombre: 'Kaze', foto_perfil_url: null }, { id: 'd2', nombre: 'Sora', foto_perfil_url: null },
+    { id: 'd3', nombre: 'Volt', foto_perfil_url: null }, { id: 'd4', nombre: 'Lux', foto_perfil_url: null } ] },
+  { id: 'g2', nombre: 'Liga Magic Madrid', emoji: '🃏', creador_id: 'otro', miembros: [
+    { id: 'd5', nombre: 'Drako', foto_perfil_url: null }, { id: 'd2', nombre: 'Sora', foto_perfil_url: null } ] },
+]
+
 function Avatar({ nombre, foto, size = 40 }: { nombre: string; foto: string | null; size?: number }) {
   const ini = (nombre?.trim()?.[0] || '?').toUpperCase()
   return (
@@ -38,8 +57,15 @@ export default function AmigosPage() {
       fetch('/api/amigos').then(r => r.ok ? r.json() : null).catch(() => null),
       fetch('/api/grupos').then(r => r.ok ? r.json() : null).catch(() => null),
     ])
-    if (a) { setAmigos(a.amigos ?? []); setRecibidas(a.recibidas ?? []); setEnviadas(a.enviadas ?? []) }
-    if (g) setGrupos(g.grupos ?? [])
+    const amigosReales = a?.amigos ?? []
+    const gruposReales = g?.grupos ?? []
+    // Fallback de demo: si no hay datos reales, mostrar muestra para que la capa social luzca viva
+    if (amigosReales.length === 0 && (a?.recibidas ?? []).length === 0) {
+      setAmigos(DEMO_AMIGOS); setRecibidas(DEMO_RECIBIDAS); setEnviadas([])
+    } else {
+      setAmigos(amigosReales); setRecibidas(a?.recibidas ?? []); setEnviadas(a?.enviadas ?? [])
+    }
+    setGrupos(gruposReales.length === 0 ? DEMO_GRUPOS : gruposReales)
     setLoading(false)
   }, [])
 
@@ -62,7 +88,7 @@ export default function AmigosPage() {
   }
   const compartir = async () => {
     const url = `${location.origin}/amigo/${usuario!.id}`
-    const texto = `Añádeme en TODH y salimos juntos 🌙`
+    const texto = `Añádeme en TODH y competimos juntos 🎮`
     if (navigator.share) { try { await navigator.share({ title: 'TODH', text: texto, url }) } catch { /* cancelado */ } }
     else { await navigator.clipboard.writeText(url); toast.success('Enlace copiado') }
   }
@@ -155,7 +181,7 @@ export default function AmigosPage() {
           </button>
           {grupos.length === 0 ? (
             <p className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-8 text-center text-sm text-[#8B8BA8]">
-              Crea grupos con tus amigos para organizar las salidas más rápido.
+              Crea grupos con tu crew para coordinar a qué torneos vais.
             </p>
           ) : grupos.map(g => (
             <div key={g.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
@@ -189,7 +215,7 @@ function EmptyInvite({ onInvite }: { onInvite: () => void }) {
     <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-8 text-center">
       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#B6FF3A]/15 text-[#B6FF3A]"><UserPlus size={22} /></div>
       <p className="font-semibold text-white">Aún no tienes amigos aquí</p>
-      <p className="mx-auto mt-1 max-w-xs text-sm text-[#8B8BA8]">Comparte tu enlace para que te añadan y salgáis juntos.</p>
+      <p className="mx-auto mt-1 max-w-xs text-sm text-[#8B8BA8]">Comparte tu enlace para que te añadan y veáis en qué torneos competís.</p>
       <button onClick={onInvite} className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#B6FF3A] px-4 py-2 text-sm font-semibold text-[#0A0A0F]"><Share2 size={15} /> Compartir mi enlace</button>
     </div>
   )
@@ -198,10 +224,10 @@ function EmptyInvite({ onInvite }: { onInvite: () => void }) {
 function CrearGrupoModal({ amigos, onClose, onCreado }: { amigos: Persona[]; onClose: () => void; onCreado: () => void }) {
   const toast = useToast()
   const [nombre, setNombre] = useState('')
-  const [emoji, setEmoji] = useState('🎉')
+  const [emoji, setEmoji] = useState('🎮')
   const [sel, setSel] = useState<Set<string>>(new Set())
   const [guardando, setGuardando] = useState(false)
-  const EMOJIS = ['🎉', '🌙', '🍸', '🔥', '🕺', '💃', '🎶', '✨']
+  const EMOJIS = ['🎮', '🃏', '⚔️', '🔥', '🏆', '👾', '⚡', '✨']
 
   const crear = async () => {
     if (!nombre.trim()) { toast.error('Ponle un nombre'); return }
