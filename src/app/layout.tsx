@@ -12,8 +12,8 @@ export const metadata: Metadata = {
     title: 'TODH',
   },
   icons: {
-    icon: '/icon-192.png',
-    apple: '/icon-192.png',
+    icon: '/icons/icon-192.png',
+    apple: '/icons/icon-192.png',
   },
 }
 
