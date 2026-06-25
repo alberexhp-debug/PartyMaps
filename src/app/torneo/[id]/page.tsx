@@ -31,10 +31,11 @@ function repartoBote(bote: number): { puesto: string; pct: number; importe: numb
 export default function TorneoDetallePage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const t = getTorneo(id)
   const [sheet, setSheet] = useState(false)
   const [copiado, setCopiado] = useState(false)
 
+  const creado = useDemoStore(s => s.creados.find(c => c.id === id))
+  const t = getTorneo(id) || creado
   const inscrito = useDemoStore(s => s.inscritos.includes(id))
   const inscribir = useDemoStore(s => s.inscribir)
 

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import {
   Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown,
@@ -22,9 +23,10 @@ export default function ExplorarPage() {
   const [soloGratis, setSoloGratis] = useState(false)
   const [orden, setOrden] = useState<Orden>('popularidad')
   const [showOrden, setShowOrden] = useState(false)
+  const creados = useDemoStore(s => s.creados)
 
   const resultados = useMemo(() => {
-    let r = [...TORNEOS_SAMPLE]
+    let r = [...creados, ...TORNEOS_SAMPLE]
     const q = busca.trim().toLowerCase()
     if (q) r = r.filter(t => t.nombre.toLowerCase().includes(q) || JUEGOS[t.juego].nombre.toLowerCase().includes(q))
     if (juego) r = r.filter(t => t.juego === juego)
@@ -36,7 +38,7 @@ export default function ExplorarPage() {
       default: r.sort((a, b) => (b.enDirecto ? 1 : 0) - (a.enDirecto ? 1 : 0) || b.popularidad - a.popularidad)
     }
     return r
-  }, [busca, juego, soloHoy, soloGratis, orden])
+  }, [busca, juego, soloHoy, soloGratis, orden, creados])
 
   const numFiltros = (juego ? 1 : 0) + (soloHoy ? 1 : 0) + (soloGratis ? 1 : 0)
   const limpiar = () => { setJuego(null); setSoloHoy(false); setSoloGratis(false) }

@@ -1,10 +1,14 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { JUEGOS } from '@/lib/torneos/sample'
+import Link from 'next/link'
+import { JUEGOS, type TorneoSample, type FormatoTorneo, type Tier } from '@/lib/torneos/sample'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe } from 'lucide-react'
+import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe, Check, Eye } from 'lucide-react'
+
+let creadoSeq = 0
 
 const FORMATOS = ['Doble eliminación', 'Eliminación simple', 'Suizo', 'Pools → Top cut', 'Round robin']
 const REPARTOS = ['100%', '70/30', '70/20/10', '50/30/20']
@@ -27,7 +31,28 @@ export default function CrearTorneoPage() {
   const [acceso, setAcceso] = useState<typeof ACCESOS[number]['id']>('abierto')
   const [sala, setSala] = useState<'local' | 'online'>('local')
   const [reparto, setReparto] = useState(REPARTOS[1])
+  const [publicado, setPublicado] = useState<TorneoSample | null>(null)
+  const crearTorneo = useDemoStore(s => s.crearTorneo)
   const j = JUEGOS[juego]
+
+  function publicar() {
+    if (!nombre.trim()) return
+    const id = `c${Date.now().toString(36)}${creadoSeq++}`
+    const fechaLabel = fecha
+      ? `${new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} · ${hora}`
+      : `Próximamente · ${hora}`
+    const vipMap: Record<string, Tier | null> = { abierto: null, oro: 'Oro', diamante: 'Diamante', platino: 'Platino' }
+    const t: TorneoSample = {
+      id, nombre: nombre.trim(), juego, formato: formato as FormatoTorneo, fechaLabel,
+      online: sala === 'online', local: sala === 'online' ? 'Online' : 'Tu sala', localId: sala === 'online' ? undefined : 'gamba',
+      ciudad: sala === 'online' ? 'Online' : 'Madrid', distanciaKm: sala === 'online' ? 0 : 1.2,
+      inscritos: 0, plazas, precio, bote: precio > 0 ? Math.round(plazas * precio * 0.8) : 0,
+      enDirecto: false, vip: vipMap[acceso], organizadorId: 'lima', popularidad: 50,
+      bestOf: 'Bo3', descripcion: `Torneo de ${j.nombre} organizado por ti. ¡Inscripciones abiertas!`,
+    }
+    crearTorneo(t)
+    setPublicado(t)
+  }
 
   return (
     <div className="relative min-h-screen pb-28">
@@ -183,12 +208,28 @@ export default function CrearTorneoPage() {
       {/* CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0C0E13] via-[#0C0E13] to-transparent">
         <div className="max-w-lg mx-auto">
-          <button className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform disabled:opacity-50"
+          <button onClick={publicar} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform disabled:opacity-50"
             disabled={!nombre.trim()}>
             Publicar torneo de {j.corto}
           </button>
         </div>
       </div>
+
+      {/* Éxito */}
+      {publicado && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
+          <div className="relative w-full max-w-sm card-premium p-6 text-center animate-pop">
+            <div className="h-16 w-16 mx-auto rounded-full bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 flex items-center justify-center"><Check size={32} className="text-[#B6FF3A]" /></div>
+            <p className="mt-4 text-xl font-bold text-white text-display">¡Torneo publicado!</p>
+            <p className="mt-1.5 text-sm text-[#B8B8CC]">«{publicado.nombre}» ya es visible en Explorar y tu comunidad recibirá el aviso.</p>
+            <div className="mt-5 space-y-2">
+              <Link href={`/torneo/${publicado.id}`} className="w-full h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold flex items-center justify-center gap-2"><Eye size={16} /> Ver la ficha</Link>
+              <Link href="/explorar" className="w-full h-12 rounded-xl bg-white/8 text-white font-semibold flex items-center justify-center">Ir a Explorar</Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
