@@ -68,7 +68,7 @@ export default function ConsolaTOPage() {
         {proximo && (
           <>
             <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Próximo torneo</p>
-            <Link href={`/torneo/${proximo.id}`} className="block ring-grad card-premium card-int relative overflow-hidden rounded-2xl flex items-stretch">
+            <Link href={`/gestionar/${proximo.id}`} className="block ring-grad card-premium card-int relative overflow-hidden rounded-2xl flex items-stretch">
               <GameKeyart juegoId={proximo.juego} className="w-[92px] shrink-0" />
               <div className="flex-1 p-3.5 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -90,7 +90,7 @@ export default function ConsolaTOPage() {
         <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Mis torneos</p>
         <div className="space-y-2">
           {misTorneos.map(t => (
-            <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-center gap-3 card-premium card-int p-3">
+            <Link key={t.id} href={`/gestionar/${t.id}`} className="flex items-center gap-3 card-premium card-int p-3">
               <span className="w-1 self-stretch rounded-full" style={{ background: JUEGOS[t.juego].color }} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
