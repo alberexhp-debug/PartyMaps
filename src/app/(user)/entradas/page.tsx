@@ -51,7 +51,7 @@ export default function EntradasPage() {
         </div>
       </div>
 
-      <div className="relative p-4 space-y-3 mt-2">
+      <div className="relative p-4 mt-2">
         {lista.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-center px-6">
             <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center"><Trophy size={28} className="text-[#8B8BA8]" /></div>
@@ -61,7 +61,11 @@ export default function EntradasPage() {
             </p>
             {tab === 'proximos' && <Link href="/explorar" className="mt-1 px-4 h-10 inline-flex items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">Explorar torneos</Link>}
           </div>
-        ) : lista.map(i => <TicketCard key={i.t.id + i.estado} insc={i} onQr={() => setTicket(i.t)} />)}
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {lista.map(i => <TicketCard key={i.t.id + i.estado} insc={i} onQr={() => setTicket(i.t)} />)}
+          </div>
+        )}
       </div>
 
       {ticket && <TicketModal torneo={ticket} onClose={() => setTicket(null)} />}

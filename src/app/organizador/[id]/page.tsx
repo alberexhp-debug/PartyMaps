@@ -18,7 +18,7 @@ export default function OrganizadorPage() {
   const sus = [...creados, ...TORNEOS_SAMPLE].filter(t => t.organizadorId === to.id).slice(0, 6)
 
   return (
-    <div className="relative min-h-screen pb-10 max-w-xl mx-auto">
+    <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-4xl mx-auto">
       <div className="relative h-36 overflow-hidden">
         <div className="absolute inset-0" style={{ background: `radial-gradient(125% 130% at 0% 0%, ${to.color} 0%, ${to.color}55 30%, transparent 70%), #0C0E13` }} />
         <div className="absolute inset-0 opacity-[0.14] mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, #fff .6px, transparent 1.2px), radial-gradient(circle at 75% 65%, #fff .5px, transparent 1px)', backgroundSize: '9px 9px, 13px 13px' }} />

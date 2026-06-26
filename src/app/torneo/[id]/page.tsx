@@ -76,10 +76,24 @@ export default function TorneoDetallePage() {
     setSheet(false)
   }
 
+  // Botón de inscripción, reutilizado en la barra fija (móvil) y en la columna
+  // lateral sticky (escritorio).
+  const ctaBtn = inscrito ? (
+    <Link href="/entradas" className="w-full h-14 rounded-2xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] font-bold flex items-center justify-center gap-2"><Check size={18} /> Inscrito · ver en mi cartera</Link>
+  ) : t.vip ? (
+    <button className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2"><Lock size={16} /> Requiere tier {t.vip}</button>
+  ) : completo ? (
+    <button onClick={() => setSheet(true)} className="w-full h-14 rounded-2xl bg-[#FF8A5C]/15 border border-[#FF8A5C]/40 text-[#FF8A5C] font-bold">Apuntarme a la lista de espera</button>
+  ) : (
+    <button onClick={() => setSheet(true)} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform">
+      Inscribirme · {totalJugador === 0 ? 'Gratis' : `${totalJugador}€`}
+    </button>
+  )
+
   return (
-    <div className="relative min-h-screen pb-28 max-w-xl mx-auto">
+    <div className="relative min-h-screen pb-28 lg:pb-12 max-w-xl lg:max-w-6xl mx-auto">
       {/* Banner: el del torneo si lo tiene; si no, el keyart del juego */}
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-48 lg:h-64 overflow-hidden lg:rounded-b-3xl">
         {t.banner
           ? <img src={t.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
           : <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />}
@@ -102,7 +116,9 @@ export default function TorneoDetallePage() {
         </div>
       </div>
 
-      <div className="px-5">
+      {/* Escritorio: 2 columnas (contenido + tarjeta de inscripción sticky). Móvil: una columna. */}
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8 lg:px-6 lg:items-start lg:mt-6">
+      <div className="px-5 lg:px-0 lg:min-w-0">
         <h1 className="mt-3 text-2xl font-bold text-white text-display tracking-tight leading-tight">{t.nombre}</h1>
         <div className="flex flex-wrap items-center gap-2 mt-2">
           {t.vip && (
@@ -241,22 +257,34 @@ export default function TorneoDetallePage() {
           <span className="inline-flex items-center gap-2 text-white font-semibold"><ListTree size={18} className="text-[#9B82FF]" /> {t.formato === 'Suizo' || t.formato === 'Round robin' ? 'Ver clasificación en vivo' : 'Ver bracket en vivo'}</span>
           <span className="text-[#8B8BA8] text-lg">›</span>
         </Link>
-      </div>
+      </div>{/* fin columna izquierda */}
 
-      {/* CTA fija */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0C0E13] via-[#0C0E13] to-transparent">
+        {/* Escritorio: tarjeta de inscripción sticky a la derecha */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-6 card-premium ring-grad p-5 space-y-4">
+            <div>
+              <p className="eyebrow eyebrow-muted mb-1">Inscripción</p>
+              <p className="text-3xl font-bold text-white font-mono-num">{totalJugador === 0 ? 'Gratis' : `${totalJugador}€`}</p>
+              {com.importe > 0 && <p className="text-[12px] text-[#8B8BA8] mt-0.5">{t.precio}€ + {com.pct}% comisión ({com.importe}€)</p>}
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2 text-[#B8B8CC]"><Calendar size={15} className="text-[#B6FF3A]" /> {t.fechaLabel}</div>
+              <div className="flex items-center gap-2 text-[#B8B8CC]"><MapPin size={15} className="text-[#4F8EF7]" /> {t.online ? 'Online' : t.local}</div>
+              <div className="flex items-center gap-2 text-[#B8B8CC]"><Users size={15} className="text-[#9B82FF]" /> <span className="font-mono-num">{inscritosVis}/{t.plazas}</span> · {completo && !inscrito ? 'completo' : `${Math.max(0, t.plazas - inscritosVis)} libres`}</div>
+            </div>
+            <div className="h-2 w-full rounded-full bg-white/8 overflow-hidden">
+              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)` }} />
+            </div>
+            {ctaBtn}
+            <button onClick={compartir} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors"><Share2 size={15} /> Compartir</button>
+          </div>
+        </aside>
+      </div>{/* fin grid escritorio */}
+
+      {/* CTA fija (móvil/tablet) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0C0E13] via-[#0C0E13] to-transparent">
         <div className="max-w-lg mx-auto">
-          {inscrito ? (
-            <Link href="/entradas" className="w-full h-14 rounded-2xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] font-bold flex items-center justify-center gap-2"><Check size={18} /> Inscrito · ver en mi cartera</Link>
-          ) : t.vip ? (
-            <button className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2"><Lock size={16} /> Requiere tier {t.vip}</button>
-          ) : completo ? (
-            <button onClick={() => setSheet(true)} className="w-full h-14 rounded-2xl bg-[#FF8A5C]/15 border border-[#FF8A5C]/40 text-[#FF8A5C] font-bold">Apuntarme a la lista de espera</button>
-          ) : (
-            <button onClick={() => setSheet(true)} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform">
-              Inscribirme · {totalJugador === 0 ? 'Gratis' : `${totalJugador}€`}
-            </button>
-          )}
+          {ctaBtn}
         </div>
       </div>
 

@@ -28,7 +28,7 @@ export default function SedePage() {
   const [dispoPublicada, setDispoPublicada] = useState(false)
 
   return (
-    <div className="relative min-h-screen pb-10 max-w-xl mx-auto">
+    <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-5xl mx-auto">
       <div className="relative h-32 overflow-hidden">
         <div className="absolute inset-0" style={{ background: `radial-gradient(120% 130% at 0% 0%, ${local.color} 0%, ${local.color}44 32%, transparent 70%), #0C0E13` }} />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, #0C0E13)' }} />
@@ -46,7 +46,7 @@ export default function SedePage() {
         </div>
 
         {/* KPIs */}
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
           <KPI icon={<Monitor size={16} className="text-[#B6FF3A]" />} value={`${ocupados}/${SETUPS.length}`} label="Setups en uso" />
           <KPI icon={<Trophy size={16} className="text-[#9B82FF]" />} value={String(torneos.length)} label="Torneos este mes" />
           <KPI icon={<Wallet size={16} className="text-[#E0BE63]" />} value={`${ingresos}€`} label="Ingresos del mes" />
