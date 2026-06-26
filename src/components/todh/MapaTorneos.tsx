@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -32,6 +32,18 @@ export default function MapaTorneos() {
   )
   const sel = selId ? getTorneo(selId) || creados.find(c => c.id === selId) : null
 
+  // Los pines quedan anclados a su coordenada y ESCALAN con el zoom (pequeños al
+  // alejar, grandes al acercar), en vez de tener tamaño fijo de pantalla. Se escala
+  // un wrapper interno con origen en la punta para no pisar el translate de Mapbox.
+  const wrapsRef = useRef<HTMLSpanElement[]>([])
+  const applyZoom = useCallback(() => {
+    const map = mapRef.current
+    if (!map) return
+    const z = map.getZoom()
+    const s = Math.max(0.5, Math.min(1.2, 0.55 + (z - 10) * 0.16))
+    wrapsRef.current.forEach(w => { w.style.transform = `scale(${s})` })
+  }, [])
+
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
     const map = new mapboxgl.Map({
@@ -43,13 +55,14 @@ export default function MapaTorneos() {
     })
     mapRef.current = map
     // El contenedor puede medir 0px en el primer frame → forzar resize cuando ya tiene tamaño.
-    map.on('load', () => map.resize())
+    map.on('load', () => { map.resize(); applyZoom() })
+    map.on('zoom', applyZoom)
     const t1 = setTimeout(() => map.resize(), 120)
     const t2 = setTimeout(() => map.resize(), 500)
     const ro = new ResizeObserver(() => map.resize())
     ro.observe(containerRef.current)
     return () => { clearTimeout(t1); clearTimeout(t2); ro.disconnect(); map.remove(); mapRef.current = null }
-  }, [])
+  }, [applyZoom])
 
   // Marcadores
   const markersRef = useRef<mapboxgl.Marker[]>([])
@@ -58,6 +71,7 @@ export default function MapaTorneos() {
     if (!map) return
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
+    wrapsRef.current = []
     presenciales.forEach((t, i) => {
       const j = JUEGOS[t.juego]
       const sel = t.id === selId
@@ -67,10 +81,14 @@ export default function MapaTorneos() {
       el.className = 'todh-pin'
       el.style.cssText = `position:relative;width:42px;height:50px;cursor:pointer;background:none;border:none;padding:0;z-index:${sel ? 5 : 1};`
 
+      // Wrapper que escala con el zoom (origen en la punta, que es el ancla real).
+      const wrap = document.createElement('span')
+      wrap.style.cssText = 'position:absolute;inset:0;transform-origin:50% 100%;transition:transform .12s ease-out;'
+
       // Punta inferior (tip): rombo recortado que apunta a la coordenada.
       const tail = document.createElement('span')
       tail.style.cssText = `position:absolute;left:50%;bottom:2px;width:12px;height:12px;background:linear-gradient(135deg,#171A24,#0C0E13);border-right:2px solid ${j.color};border-bottom:2px solid ${j.color};transform:translateX(-50%) rotate(45deg);border-radius:0 0 3px 0;`
-      el.appendChild(tail)
+      wrap.appendChild(tail)
 
       // Cuerpo: círculo glass con aro del color del juego + halo suave.
       const body = document.createElement('span')
@@ -85,14 +103,17 @@ export default function MapaTorneos() {
         ring.style.cssText = 'position:absolute;top:-4px;left:-3px;width:46px;height:46px;border-radius:50%;border:2px solid #FF3D71;animation:pulse-heat 1.5s ease-in-out infinite;pointer-events:none;'
         body.appendChild(ring)
       }
-      el.appendChild(body)
+      wrap.appendChild(body)
+      el.appendChild(wrap)
+      wrapsRef.current.push(wrap)
       el.onmouseenter = () => { body.style.transform = 'scale(1.14)' }
       el.onmouseleave = () => { body.style.transform = `scale(${t.id === selId ? 1.12 : 1})` }
       el.onclick = (e) => { e.stopPropagation(); setSelId(t.id); map.flyTo({ center: jitter(t.localId!, i), zoom: 13.5, offset: [0, -120] }) }
       const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' }).setLngLat(jitter(t.localId!, i)).addTo(map)
       markersRef.current.push(m)
     })
-  }, [presenciales, selId])
+    applyZoom()
+  }, [presenciales, selId, applyZoom])
 
   return (
     <div className="relative w-full overflow-hidden" style={{ height: 'calc(100dvh - 4rem)' }}>

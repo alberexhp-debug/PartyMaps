@@ -1,0 +1,55 @@
+'use client'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Map, Compass, Trophy, Ticket, User, Search, Plus } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+const tabs = [
+  { href: '/explorar', icon: Compass, label: 'Explorar' },
+  { href: '/mapa',     icon: Map,     label: 'Mapa' },
+  { href: '/ranking',  icon: Trophy,  label: 'Ranking' },
+  { href: '/entradas', icon: Ticket,  label: 'Entradas' },
+  { href: '/perfil',   icon: User,    label: 'Perfil' },
+]
+
+// Rail lateral fijo para escritorio (≥ lg). En móvil/tablet se usa UserBottomNav.
+export function UserSideNav() {
+  const pathname = usePathname()
+  return (
+    <aside className="hidden lg:flex fixed inset-y-0 left-0 z-30 w-[244px] flex-col border-r border-white/8 bg-[#0C0E13] px-4 py-6">
+      <Link href="/explorar" className="flex items-center gap-2.5 px-2 mb-7">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-black text-lg text-display">T</span>
+        <span className="text-[19px] font-black text-white text-display tracking-tight">TODH</span>
+      </Link>
+
+      <Link href="/buscar" className="flex items-center gap-2.5 px-3 h-10 mb-2 rounded-xl border border-white/10 text-[#8B8BA8] hover:text-white hover:border-white/20 transition-colors text-sm">
+        <Search size={16} /> Buscar
+      </Link>
+
+      <nav className="flex flex-col gap-1 mt-2">
+        {tabs.map(({ href, icon: Icon, label }) => {
+          const active = pathname === href || pathname.startsWith(href + '/')
+          return (
+            <Link key={href} href={href} aria-current={active ? 'page' : undefined}
+              className={cn(
+                'flex items-center gap-3 px-3 h-11 rounded-xl text-[15px] font-semibold transition-colors',
+                active ? 'bg-[#B6FF3A]/12 text-[#B6FF3A]' : 'text-[#B8B8CC] hover:bg-white/5 hover:text-white',
+              )}>
+              <Icon size={20} strokeWidth={active ? 2.4 : 1.9} /> {label}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <Link href="/crear-torneo"
+        className="mt-5 flex items-center justify-center gap-2 h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold hover:brightness-105 transition">
+        <Plus size={18} /> Crear torneo
+      </Link>
+
+      <div className="mt-auto px-2 text-[11px] text-[#6B6B82]">
+        <p className="font-semibold text-[#8B8BA8]">TODH</p>
+        <p>Tu circuito de torneos</p>
+      </div>
+    </aside>
+  )
+}

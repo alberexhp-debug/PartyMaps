@@ -229,11 +229,15 @@ export default function ExplorarPage() {
                 </div>
                 <span className="text-[11px] font-mono-num text-[#6B6B85]">{sec.items.length}</span>
               </div>
-              {sec.items.map((t, i) => <CardTorneo key={t.id} t={t} i={i} />)}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {sec.items.map((t, i) => <CardTorneo key={t.id} t={t} i={i} />)}
+              </div>
             </section>
           ))
         ) : (
-          resultados.map((t, i) => <CardTorneo key={t.id} t={t} i={i} />)
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {resultados.map((t, i) => <CardTorneo key={t.id} t={t} i={i} />)}
+          </div>
         )}
       </div>
 
