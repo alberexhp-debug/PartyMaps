@@ -25,12 +25,20 @@ export default function GestionarTorneoPage() {
   const [cerrado, setCerrado] = useState(false)
   const [generado, setGenerado] = useState(false)
   const [sel, setSel] = useState<Jugador | null>(null)
+  const [bracketSeeds, setBracketSeeds] = useState<Jugador[]>([])
+  const [winners, setWinners] = useState<Record<string, 'a' | 'b'>>({})
 
   const inscritos = useMemo(() => {
     if (!t) return [] as Jugador[]
     const n = Math.min(t.inscritos || 16, t.plazas, 16)
     return rankingPorJuego(t.juego).slice(0, n)
   }, [t])
+
+  // Bracket de eliminación simple, calculado a partir de los sembrados congelados
+  // y de los ganadores reportados. Los byes avanzan solos.
+  const rondas = useMemo(() => construirRondas(bracketSeeds, winners), [bracketSeeds, winners])
+  const finalMatch = rondas.length ? rondas[rondas.length - 1][0] : null
+  const campeon = finalMatch?.ganador ? (finalMatch.ganador === 'a' ? finalMatch.a : finalMatch.b) : null
 
   if (!t) {
     return (
@@ -49,6 +57,8 @@ export default function GestionarTorneoPage() {
   const toggle = (pid: string) => setCheckin(s => { const n = new Set(s); n.has(pid) ? n.delete(pid) : n.add(pid); return n })
   const checkAll = () => setCheckin(new Set(inscritos.map(p => p.id)))
   const seeded = [...inscritos].filter(p => checkin.has(p.id))
+  const generar = () => { setBracketSeeds(seeded); setWinners({}); setGenerado(true) }
+  const reportar = (matchId: string, lado: 'a' | 'b') => setWinners(w => ({ ...w, [matchId]: lado }))
 
   return (
     <div className="relative min-h-screen pb-28 lg:pb-12 max-w-xl lg:max-w-5xl mx-auto">
@@ -84,7 +94,7 @@ export default function GestionarTorneoPage() {
           <button onClick={() => setCerrado(c => !c)} className="h-11 rounded-xl bg-white/6 border border-white/10 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
             <Lock size={15} /> {cerrado ? 'Reabrir' : 'Cerrar inscripción'}
           </button>
-          <button onClick={() => { setGenerado(true); setTab('bracket') }} disabled={nCheck < 2}
+          <button onClick={() => { generar(); setTab('bracket') }} disabled={nCheck < 2}
             className="h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
             <Zap size={15} /> Generar bracket
           </button>
@@ -152,31 +162,73 @@ export default function GestionarTorneoPage() {
                 <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#B6FF3A]/12 text-[#B6FF3A]"><ListTree size={26} /></span>
                 <p className="text-white font-bold">Aún no has generado el bracket</p>
                 <p className="text-sm text-[#A0A0B8] max-w-xs">Haz check-in a los jugadores y pulsa <span className="text-[#B6FF3A] font-semibold">Generar bracket</span>. Se siembra por ranking ({nCheck} listos).</p>
-                <button onClick={() => setGenerado(true)} disabled={nCheck < 2}
+                <button onClick={generar} disabled={nCheck < 2}
                   className="mt-1 h-11 px-5 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center gap-2 disabled:opacity-40">
                   <Zap size={15} /> Generar bracket
                 </button>
               </div>
             ) : (
               <div>
-                <div className="flex items-center gap-2 rounded-2xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.08] p-3.5 mb-3">
-                  <Check size={18} className="text-[#B6FF3A]" />
-                  <p className="text-sm text-white font-semibold flex-1">Bracket generado con {seeded.length} jugadores sembrados por ranking.</p>
-                </div>
-                <p className="eyebrow eyebrow-muted mb-2">Seeding</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  {seeded.map((p, i) => (
-                    <div key={p.id} className="flex items-center gap-3 card-premium p-2.5">
-                      <span className="w-6 text-center text-xs font-black text-[#B6FF3A] font-mono-num">{i + 1}</span>
-                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full text-[#0A0A0F] font-black text-sm" style={{ background: juego.color }}>{p.nombre[0]}</span>
-                      <p className="text-sm font-bold text-white truncate flex-1">{p.nombre} <span className="text-xs">{p.bandera}</span></p>
-                      <span className="text-[11px] text-[#8B8BA8] font-mono-num">{p.rating}</span>
+                {campeon ? (
+                  <div className="flex items-center gap-3 rounded-2xl border border-[#E0BE63]/50 bg-[#E0BE63]/[0.10] p-4 mb-4">
+                    <span className="grid h-12 w-12 place-items-center rounded-xl text-[#0A0A0F] font-black text-lg" style={{ background: '#E0BE63' }}>{campeon.nombre[0]}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] uppercase tracking-[0.16em] font-bold" style={{ color: '#E0BE63' }}>🏆 Campeón</p>
+                      <p className="text-lg font-bold text-white truncate">{campeon.nombre} <span className="text-sm">{campeon.bandera}</span></p>
+                    </div>
+                    <Trophy size={24} className="text-[#E0BE63]" />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 rounded-2xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.08] p-3.5 mb-4">
+                    <ListTree size={18} className="text-[#B6FF3A]" />
+                    <p className="text-sm text-white font-semibold flex-1">Reporta el ganador de cada combate para avanzar el cuadro.</p>
+                    <button onClick={() => setWinners({})} className="text-[11px] text-[#8B8BA8] font-semibold hover:text-white whitespace-nowrap">Reiniciar</button>
+                  </div>
+                )}
+
+                <div className="space-y-5">
+                  {rondas.map((matches, ri) => (
+                    <div key={ri}>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="eyebrow eyebrow-muted">{nombreRonda(matches.length)}</p>
+                        <span className="text-[11px] font-mono-num text-[#6B6B85]">{matches.filter(m => m.ganador).length}/{matches.length}</span>
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                        {matches.map(m => {
+                          const reportable = !!m.a && !!m.b && !m.ganador
+                          return (
+                            <div key={m.id} className="card-premium p-2 space-y-1">
+                              {(['a', 'b'] as const).map(lado => {
+                                const pl = m[lado]
+                                const win = m.ganador === lado
+                                return (
+                                  <button key={lado} disabled={!pl || !!m.ganador || !m.a || !m.b}
+                                    onClick={() => reportable && reportar(m.id, lado)}
+                                    className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors ${win ? 'bg-[#B6FF3A]/15 border border-[#B6FF3A]/40' : m.ganador ? 'opacity-45' : pl ? 'bg-white/4 enabled:hover:bg-white/8' : ''}`}>
+                                    {pl ? (
+                                      <>
+                                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-[#0A0A0F] font-black text-xs shrink-0" style={{ background: juego.color }}>{pl.nombre[0]}</span>
+                                        <span className="text-sm font-bold text-white truncate flex-1 text-left">{pl.nombre} <span className="text-[10px]">{pl.bandera}</span></span>
+                                        {win && <Check size={15} className="text-[#B6FF3A] shrink-0" />}
+                                        {reportable && <span className="text-[10px] text-[#8B8BA8] font-semibold shrink-0">Marcar</span>}
+                                      </>
+                                    ) : (
+                                      <span className="text-xs text-[#6B6B85] pl-1">Por determinar</span>
+                                    )}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-2.5">
-                  <Link href={`/torneo/${t.id}/bracket`} className="h-12 rounded-xl bg-white/8 border border-white/10 text-white text-sm font-bold flex items-center justify-center gap-2"><ListTree size={16} /> Ver bracket</Link>
-                  <Link href="/modo-directo" className="h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-2"><Radio size={16} /> Iniciar directo</Link>
+
+                <div className="mt-5 grid grid-cols-2 gap-2.5">
+                  <Link href={`/torneo/${t.id}/bracket`} className="h-12 rounded-xl bg-white/8 border border-white/10 text-white text-sm font-bold flex items-center justify-center gap-2"><ListTree size={16} /> Ver bracket público</Link>
+                  <Link href="/modo-directo" className="h-12 rounded-xl bg-[#7C5CFF]/15 border border-[#7C5CFF]/40 text-[#B9A6FF] text-sm font-bold flex items-center justify-center gap-2"><Radio size={16} /> Modo directo</Link>
                 </div>
               </div>
             )}
@@ -186,7 +238,7 @@ export default function GestionarTorneoPage() {
 
       {/* CTA fija móvil */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0C0E13] via-[#0C0E13] to-transparent">
-        <button onClick={() => { setGenerado(true); setTab('bracket') }} disabled={nCheck < 2}
+        <button onClick={() => { generar(); setTab('bracket') }} disabled={nCheck < 2}
           className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold flex items-center justify-center gap-2 disabled:opacity-40">
           <Zap size={17} /> Generar bracket · {nCheck} con check-in
         </button>
@@ -205,4 +257,59 @@ function Kpi({ icon, value, label }: { icon: React.ReactNode; value: string; lab
       <p className="text-[10px] uppercase tracking-[0.1em] text-[#8B8BA8] font-semibold mt-1">{label}</p>
     </div>
   )
+}
+
+// ── Motor de bracket de eliminación simple (demo, en cliente) ──
+type MatchB = { id: string; a: Jugador | null; b: Jugador | null; ganador: 'a' | 'b' | null }
+
+function siguientePotencia2(n: number): number {
+  let p = 1
+  while (p < n) p *= 2
+  return Math.max(2, p)
+}
+
+// Orden de siembra estándar (1 vs N, top seeds en lados opuestos).
+function ordenSiembra(n: number): number[] {
+  let pls = [1, 2]
+  while (pls.length < n) {
+    const suma = pls.length * 2 + 1
+    const next: number[] = []
+    for (const p of pls) { next.push(p); next.push(suma - p) }
+    pls = next
+  }
+  return pls
+}
+
+function construirRondas(seeds: Jugador[], winners: Record<string, 'a' | 'b'>): MatchB[][] {
+  if (seeds.length < 2) return []
+  const n = siguientePotencia2(seeds.length)
+  const slots = ordenSiembra(n).map(s => seeds[s - 1] ?? null)
+  const rondas: MatchB[][] = []
+  let actual: { a: Jugador | null; b: Jugador | null }[] = []
+  for (let i = 0; i < slots.length; i += 2) actual.push({ a: slots[i], b: slots[i + 1] })
+  let ri = 0
+  while (actual.length >= 1) {
+    const matches: MatchB[] = actual.map((m, i) => {
+      const id = `r${ri}m${i}`
+      let g: 'a' | 'b' | null = winners[id] ?? null
+      if (!g) { if (m.a && !m.b) g = 'a'; else if (!m.a && m.b) g = 'b' } // bye auto-avanza
+      return { id, a: m.a, b: m.b, ganador: g }
+    })
+    rondas.push(matches)
+    if (matches.length === 1) break
+    const w = (mm: MatchB) => (mm.ganador ? (mm.ganador === 'a' ? mm.a : mm.b) : null)
+    const next: { a: Jugador | null; b: Jugador | null }[] = []
+    for (let i = 0; i < matches.length; i += 2) next.push({ a: w(matches[i]), b: w(matches[i + 1]) })
+    actual = next
+    ri++
+  }
+  return rondas
+}
+
+function nombreRonda(nMatches: number): string {
+  if (nMatches === 1) return 'Final'
+  if (nMatches === 2) return 'Semifinales'
+  if (nMatches === 4) return 'Cuartos'
+  if (nMatches === 8) return 'Octavos'
+  return `Ronda de ${nMatches * 2}`
 }
