@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
-import { GameKeyart } from '@/components/todh/GameKeyart'
+import { TorneoArt } from '@/components/todh/GameKeyart'
 import {
   Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown, Bell, SlidersHorizontal, X,
 } from 'lucide-react'
@@ -111,7 +111,7 @@ export default function ExplorarPage() {
               const jj = JUEGOS[t.juego]
               return (
                 <Link key={t.id} href={`/torneo/${t.id}`} className="relative shrink-0 w-[170px] h-[104px] rounded-2xl overflow-hidden ring-grad group">
-                  <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0 transition-transform duration-300 group-hover:scale-105" />
+                  <TorneoArt t={t} className="absolute inset-0 transition-transform duration-300 group-hover:scale-105" />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,.86) 8%, rgba(0,0,0,.12) 55%, transparent)' }} />
                   <span className="badge-live absolute top-2 left-2">Live</span>
                   <div className="absolute bottom-2 left-2.5 right-2.5">
@@ -312,7 +312,7 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
   return (
     <Link href={`/torneo/${t.id}`} className="block group stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 10) * 45}ms` }}>
       <div className="ring-grad card-premium card-int relative overflow-hidden rounded-2xl flex items-stretch">
-        <GameKeyart juegoId={t.juego} className="w-[92px] shrink-0" />
+        <TorneoArt t={t} className="w-[92px] shrink-0" />
         <div className="flex-1 p-3.5 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold"

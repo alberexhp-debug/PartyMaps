@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { TORNEOS_SAMPLE, LOCALES, JUEGOS, getTorneo, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
-import { GameKeyart } from '@/components/todh/GameKeyart'
+import { TorneoArt } from '@/components/todh/GameKeyart'
 import { Calendar, Users, X, Radio } from 'lucide-react'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
@@ -135,7 +135,7 @@ function MapSheet({ t, onClose }: { t: TorneoSample; onClose: () => void }) {
     <div className="absolute bottom-4 left-3 right-3 z-20 animate-slide-up-sm">
       <div className="ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch shadow-2xl">
         <button onClick={onClose} aria-label="Cerrar" className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/40 flex items-center justify-center text-white"><X size={14} /></button>
-        <GameKeyart juegoId={t.juego} className="w-[84px] shrink-0" />
+        <TorneoArt t={t} className="w-[84px] shrink-0" />
         <Link href={`/torneo/${t.id}`} className="flex-1 p-3.5 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>

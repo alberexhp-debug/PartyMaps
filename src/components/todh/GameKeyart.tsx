@@ -1,4 +1,4 @@
-import { JUEGOS } from '@/lib/torneos/sample'
+import { JUEGOS, type TorneoSample } from '@/lib/torneos/sample'
 
 // Keyart de juego generado por CSS (sin assets externos): gradiente del color del
 // juego + grano + brillo diagonal. Da identidad visual fuerte a cards/fichas/perfil.
@@ -29,4 +29,17 @@ export function GameKeyart({ juegoId, className = '', label = true }: { juegoId:
       )}
     </div>
   )
+}
+
+// Arte de un torneo: su banner propio si lo tiene; si no, el keyart del juego.
+// Unifica el fallback usado en la ficha, las cards de Explorar y la hoja del mapa.
+export function TorneoArt({ t, className = '', label = false }: { t: Pick<TorneoSample, 'juego' | 'banner'>; className?: string; label?: boolean }) {
+  if (t.banner) {
+    return (
+      <div className={`relative overflow-hidden pointer-events-none ${className}`} aria-hidden="true">
+        <img src={t.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+    )
+  }
+  return <GameKeyart juegoId={t.juego} className={className} label={label} />
 }
