@@ -98,7 +98,7 @@ export default function LocalPanelDashboard() {
     const data = await res.json().catch(() => ({})); setCerrandoNoche(false); setShowCerrarModal(false)
     if (!res.ok) { toast.error(data.error || 'No se pudo actualizar'); return }
     setLocal({ ...local, cerrado_hasta: data.cerrado_hasta })
-    toast.success(cerrar ? 'Tu local saldrá cerrado esta noche' : 'Tu local vuelve a salir según su horario')
+    toast.success(cerrar ? 'Tu local saldrá cerrado hoy' : 'Tu local vuelve a salir según su horario')
   }
 
   if (!local) return null
@@ -111,7 +111,7 @@ export default function LocalPanelDashboard() {
   const colorTemp = getColorTemperatura(getTemperaturaAforo(aforoPct))
 
   const SECCIONES: Seccion[] = [
-    { zona: 'scanner', href: '/local-panel/scanner', icon: Gauge, label: 'Check-in & Aforo', sub: 'Acreditar jugadores y aforo', color: '#4F8EF7' },
+    { zona: 'scanner', href: '/local-panel/scanner', icon: Gauge, label: 'Check-in & Ocupación', sub: 'Acreditar jugadores y ocupación', color: '#4F8EF7' },
     { zona: 'taquilla', href: '/local-panel/taquilla', icon: TicketPlus, label: 'Inscripciones', sub: 'Inscribir en puerta', color: 'var(--p-accent)' },
     { zona: 'sala', href: '/local-panel/sala', icon: LayoutGrid, label: 'Setups', sub: 'Estaciones de juego', color: '#7C5CFF' },
     { zona: 'cortesias', href: '/local-panel/cortesias', icon: Gift, label: 'Bonos', sub: 'Descuentos y entradas', color: '#27AE60' },
@@ -141,7 +141,7 @@ export default function LocalPanelDashboard() {
         <h1 className="text-[26px] font-bold tracking-[-0.025em]" style={{ color: 'var(--p-text)' }}>{saludo}, {trabajador?.nombre?.split(' ')[0] || local.nombre}</h1>
         <p className="mt-1.5 flex items-center gap-2 text-[14.5px]" style={{ color: 'var(--p-text-2)' }}>
           <span className="inline-block h-2 w-2 rounded-full" style={{ background: cerradoActivo ? '#F39C12' : colorTemp }} />
-          {cerradoActivo ? 'Cerrado esta noche' : 'Abierto'} · {aforoPct}% de aforo · {local.ciudad}
+          {cerradoActivo ? 'Cerrado hoy' : 'Abierto'} · {aforoPct}% de ocupación · {local.ciudad}
         </p>
       </div>
 
@@ -149,9 +149,9 @@ export default function LocalPanelDashboard() {
       <div className="mb-3.5 grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           [loading ? '—' : formatearPrecio(kpis!.ingresos_hoy), 'Ingresos hoy'],
-          [loading ? '—' : String(kpis!.entradas_hoy), 'Entradas hoy'],
-          [`${aforoPct}%`, 'Aforo ahora'],
-          [loading ? '—' : String(kpis!.suscriptores), 'Suscriptores'],
+          [loading ? '—' : String(kpis!.entradas_hoy), 'Inscripciones hoy'],
+          [`${aforoPct}%`, 'Ocupación de setups'],
+          [loading ? '—' : String(kpis!.suscriptores), 'Seguidores'],
         ].map(([n, l]) => (
           <div key={l} style={{ ...card, padding: '15px 18px' }}>
             <p className="text-[23px] font-bold tracking-[-0.03em]" style={{ color: 'var(--p-text)', fontFeatureSettings: '"tnum"' }}>{n}</p>
@@ -165,7 +165,7 @@ export default function LocalPanelDashboard() {
         <p className="mb-3 px-1 text-[12px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--p-text-3)' }}>Últimos 7 días</p>
         {sinDatos ? (
           <div className="grid h-[150px] place-items-center text-center text-[13px]" style={{ color: 'var(--p-text-3)' }}>
-            Aún no hay actividad esta semana.<br />Aquí verás cómo evolucionan ingresos, entradas y pedidos.
+            Aún no hay actividad esta semana.<br />Aquí verás cómo evolucionan ingresos, inscripciones y pedidos.
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={190}>
@@ -179,7 +179,7 @@ export default function LocalPanelDashboard() {
                 labelStyle={{ color: 'var(--p-text-2)', fontWeight: 600 }} />
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 6 }} iconType="plainline" />
               <Line yAxisId="left" type="monotone" dataKey="ingresos" name="Ingresos €" stroke="#B6FF3A" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
-              <Line yAxisId="right" type="monotone" dataKey="entradas" name="Entradas" stroke="#4F8EF7" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+              <Line yAxisId="right" type="monotone" dataKey="entradas" name="Inscripciones" stroke="#4F8EF7" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
               <Line yAxisId="right" type="monotone" dataKey="pedidos" name="Pedidos" stroke="#F39C12" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
@@ -215,7 +215,7 @@ export default function LocalPanelDashboard() {
         ))}
       </div>
 
-      {/* Cerrar esta noche (acción puntual, discreta) */}
+      {/* Cerrar hoy (acción puntual, discreta) */}
       {puedeCerrar && (
         <div className="mt-8">
           {cerradoActivo ? (
@@ -226,7 +226,7 @@ export default function LocalPanelDashboard() {
           ) : (
             <button onClick={() => setShowCerrarModal(true)}
               className="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold" style={{ background: 'transparent', border: '1px solid var(--p-border)', color: 'var(--p-text-2)' }}>
-              <DoorClosed size={15} /> Cerrar el local esta noche
+              <DoorClosed size={15} /> Cerrar el local hoy
             </button>
           )}
         </div>
@@ -238,8 +238,8 @@ export default function LocalPanelDashboard() {
           <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.5)' }} />
           <div className="relative w-full p-5 sm:max-w-sm" style={{ ...card, borderRadius: 24 }} onClick={e => e.stopPropagation()}>
             <div className="mb-3 grid h-11 w-11 place-items-center rounded-2xl" style={{ background: 'color-mix(in srgb, var(--p-accent) 12%, transparent)', color: 'var(--p-accent)' }}><MoonStar size={20} /></div>
-            <h3 className="text-lg font-bold" style={{ color: 'var(--p-text)' }}>Cerrar esta noche</h3>
-            <p className="mt-1.5 text-sm" style={{ color: 'var(--p-text-2)' }}>Tu local saldrá cerrado en el mapa esta noche. Se reactiva solo mañana a las 12:00.</p>
+            <h3 className="text-lg font-bold" style={{ color: 'var(--p-text)' }}>Cerrar hoy</h3>
+            <p className="mt-1.5 text-sm" style={{ color: 'var(--p-text-2)' }}>Tu local saldrá cerrado en el mapa hoy. Se reactiva solo mañana a las 12:00.</p>
             <div className="mt-4 flex gap-2">
               <Button variant="danger" fullWidth loading={cerrandoNoche} onClick={() => setCerrarNoche(true)}>Sí, cerrar</Button>
               <Button variant="ghost" onClick={() => setShowCerrarModal(false)}>Cancelar</Button>

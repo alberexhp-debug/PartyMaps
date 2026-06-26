@@ -13,7 +13,7 @@ import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEdi
 import { obligatoriosCompletos, faltantesObligatorios } from '@/lib/onboarding/gate'
 import { ModalTeFaltaPoco } from '@/components/local-panel/ModalTeFaltaPoco'
 
-const INTENT_KEY = 'pm_intent_publicar' // recuerda "iba a publicar este evento" al ir a completar datos
+const INTENT_KEY = 'pm_intent_publicar' // recuerda "iba a publicar este torneo" al ir a completar datos
 
 const ESTADOS: EstadoEvento[] = ['borrador', 'publicado', 'cancelado', 'finalizado']
 const ESTADO_COLOR: Record<EstadoEvento, string> = {
@@ -52,11 +52,11 @@ export default function EventoEditPage() {
     const intent = typeof window !== 'undefined' ? sessionStorage.getItem(INTENT_KEY) : null
     if (intent === eventoId && obligatoriosCompletos(local)) {
       sessionStorage.removeItem(INTENT_KEY)
-      toast.conAccion('Ya tienes todo listo. ¿Publicamos tu evento?', {
+      toast.conAccion('Ya tienes todo listo. ¿Publicamos tu torneo?', {
         label: 'Publicar',
         onClick: async () => {
           const id = await persistir('publicado')
-          if (id) { setForm(f => ({ ...f, estado: 'publicado' })); toast.success('Evento publicado') }
+          if (id) { setForm(f => ({ ...f, estado: 'publicado' })); toast.success('Torneo publicado') }
           else toast.error('No se pudo publicar')
         },
       })
@@ -64,7 +64,7 @@ export default function EventoEditPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [local, eventoId, isNuevo])
 
-  // Guarda el evento con un estado dado; devuelve su id (o null si error).
+  // Guarda el torneo con un estado dado; devuelve su id (o null si error).
   async function persistir(estado: EstadoEvento): Promise<string | null> {
     if (!local) return null
     if (isNuevo) {
@@ -88,7 +88,7 @@ export default function EventoEditPage() {
     const id = await persistir(form.estado ?? 'borrador')
     setSaving(false)
     if (!id) { toast.error(isNuevo ? 'Error al crear' : 'Error al guardar'); return }
-    toast.success(isNuevo ? 'Evento creado' : 'Evento actualizado')
+    toast.success(isNuevo ? 'Torneo creado' : 'Torneo actualizado')
     router.push('/local-panel/eventos')
   }
 
@@ -122,7 +122,7 @@ export default function EventoEditPage() {
           <ArrowLeft size={20} />
         </button>
         <h1 className="text-2xl font-bold tracking-tight text-display text-white flex-1">
-          {isNuevo ? 'Nuevo evento' : 'Editar evento'}
+          {isNuevo ? 'Nuevo torneo' : 'Editar torneo'}
         </h1>
         <Button loading={loading} onClick={guardar} size="sm">
           <Save size={14} /> Guardar
@@ -130,10 +130,10 @@ export default function EventoEditPage() {
       </div>
 
       <Input
-        label="Nombre del evento *"
+        label="Nombre del torneo *"
         value={form.nombre || ''}
         onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-        placeholder="Ej: Fiesta de verano"
+        placeholder="Ej: Torneo de verano"
       />
 
       <div className="space-y-1.5">
@@ -143,7 +143,7 @@ export default function EventoEditPage() {
           onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
           rows={3}
           className="w-full px-4 py-3 glass rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50 resize-none"
-          placeholder="Describe el evento..."
+          placeholder="Describe el torneo..."
         />
       </div>
 
@@ -168,7 +168,7 @@ export default function EventoEditPage() {
 
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-[#A0A0B8]">Precio base (€)</label>
+          <label className="text-sm font-medium text-[#A0A0B8]">Precio de inscripción (€)</label>
           <input type="number" min="0" step="0.5"
             value={form.precio_base || 0}
             onChange={e => setForm(f => ({ ...f, precio_base: parseFloat(e.target.value) }))}
@@ -185,7 +185,7 @@ export default function EventoEditPage() {
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-[#A0A0B8]">Aforo máximo</label>
+          <label className="text-sm font-medium text-[#A0A0B8]">Plazas</label>
           <input type="number" min="1"
             value={form.aforo_maximo || 200}
             onChange={e => setForm(f => ({ ...f, aforo_maximo: parseInt(e.target.value) }))}
@@ -199,17 +199,17 @@ export default function EventoEditPage() {
         onChange={(v: PrecioDinamicoConfig) => setForm(f => ({ ...f, precio_dinamico: v }))}
         precioMin={form.precio_base || 0}
         precioMax={form.precio_maximo}
-        ayuda="Si está activo, el precio sube según las entradas vendidas de este evento. El early bird tiene prioridad mientras esté vigente."
+        ayuda="Si está activo, el precio sube según las inscripciones de este torneo. El descuento anticipado tiene prioridad mientras esté vigente."
       />
 
-      {/* Early bird */}
+      {/* Descuento anticipado */}
       <div className="glass rounded-xl p-4 space-y-3">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <Zap size={14} className="text-green-400" /> Precio Early Bird
+          <Zap size={14} className="text-green-400" /> Precio con descuento anticipado
         </h3>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs text-[#6B6B85]">Precio EB (€)</label>
+            <label className="text-xs text-[#6B6B85]">Precio anticipado (€)</label>
             <input type="number" min="0" step="0.5"
               value={form.precio_early_bird || ''}
               onChange={e => setForm(f => ({ ...f, precio_early_bird: parseFloat(e.target.value) || undefined }))}
@@ -227,7 +227,7 @@ export default function EventoEditPage() {
           </div>
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs text-[#6B6B85]">Cupo Early Bird (vacío = ilimitado)</label>
+          <label className="text-xs text-[#6B6B85]">Cupo anticipado (vacío = ilimitado)</label>
           <input type="number" min="1"
             value={form.early_bird_cupo || ''}
             onChange={e => setForm(f => ({ ...f, early_bird_cupo: parseInt(e.target.value) || undefined }))}
@@ -237,11 +237,11 @@ export default function EventoEditPage() {
         </div>
       </div>
 
-      {/* Consumiciones incluidas con la entrada online (van DENTRO del QR: anti-falsificación) */}
+      {/* Consumibles incluidos con la inscripción online (van DENTRO del QR: anti-falsificación) */}
       <div className="glass rounded-xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Coffee size={14} className="text-[#B6FF3A]" /> Consumiciones incluidas
+            <Coffee size={14} className="text-[#B6FF3A]" /> Consumibles incluidos
           </h3>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setForm(f => ({ ...f, consumiciones_incluidas: Math.max(0, (f.consumiciones_incluidas ?? 0) - 1) }))}
@@ -256,9 +256,9 @@ export default function EventoEditPage() {
         {(form.consumiciones_incluidas ?? 0) > 0 && (
           <>
             <input value={form.consumiciones_descripcion || ''} onChange={e => setForm(f => ({ ...f, consumiciones_descripcion: e.target.value.slice(0, 120) }))}
-              placeholder="Qué incluye (ej. cubata, copa o refresco)"
+              placeholder="Qué incluye (ej. snack, bebida o agua)"
               className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50" />
-            <p className="text-[11px] text-[#8B8BA8]">Quien compre esta entrada online la llevará en su QR; se canjean en barra una a una.</p>
+            <p className="text-[11px] text-[#8B8BA8]">Quien compre esta inscripción online la llevará en su QR; se canjean en la sede una a una.</p>
           </>
         )}
       </div>
@@ -271,7 +271,7 @@ export default function EventoEditPage() {
       />
 
       <Input
-        label="URL imagen del evento"
+        label="URL imagen del torneo"
         type="url"
         value={form.imagen_url || ''}
         onChange={e => setForm(f => ({ ...f, imagen_url: e.target.value }))}
@@ -300,7 +300,7 @@ export default function EventoEditPage() {
       {showGate && local && (
         <ModalTeFaltaPoco
           faltantes={faltantesObligatorios(local)}
-          descripcion="Para publicar tu evento necesitas tener listo el local. Son minutos y sale perfecto."
+          descripcion="Para publicar tu torneo necesitas tener lista la sede. Son minutos y sale perfecto."
           onCompletar={gateCompletar}
           onCerrar={gateBorrador}
         />

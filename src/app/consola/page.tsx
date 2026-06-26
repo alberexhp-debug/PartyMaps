@@ -124,12 +124,12 @@ export default function ConsolaTOPage() {
           <span className="inline-flex items-center gap-1 px-2.5 h-8 rounded-lg bg-[#B6FF3A]/15 text-[#B6FF3A] text-[12px] font-bold"><Megaphone size={13} /> Difundir</span>
         </div>
 
-        {/* Negociación con locales */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Buscar sala</p>
+        {/* Negociación con sedes */}
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Buscar sede</p>
         <Link href="/mapa" className="card-premium card-int p-4 flex items-center gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#4F8EF7]/15 text-[#4F8EF7]"><Store size={18} /></span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-white">3 locales con disponibilidad</p>
+            <p className="text-sm font-semibold text-white">3 sedes con disponibilidad</p>
             <p className="text-xs text-[#8B8BA8]">Reserva directa o envía solicitud para tu próximo torneo</p>
           </div>
           <ChevronRight size={18} className="text-[#6B6B85]" />

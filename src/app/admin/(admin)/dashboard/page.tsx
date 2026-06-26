@@ -106,9 +106,9 @@ export default function AdminDashboard() {
 
   const NEUTRO = '#9DA0B5'
   const kpis = [
-    { icon: Store,      label: 'Locales activos',    value: stats?.total_locales.toString() ?? '—',       color: NEUTRO,     sub: `${stats?.locales_pendientes ?? 0} pendientes` },
-    { icon: Users,      label: 'Usuarios',            value: stats?.total_usuarios.toString() ?? '—',       color: NEUTRO,     sub: `+${stats?.nuevos_usuarios_semana ?? 0} esta semana` },
-    { icon: Ticket,     label: 'Entradas hoy',        value: stats?.total_entradas_hoy.toString() ?? '—',   color: NEUTRO,     sub: undefined },
+    { icon: Store,      label: 'Sedes activas',       value: stats?.total_locales.toString() ?? '—',       color: NEUTRO,     sub: `${stats?.locales_pendientes ?? 0} pendientes` },
+    { icon: Users,      label: 'Jugadores',           value: stats?.total_usuarios.toString() ?? '—',       color: NEUTRO,     sub: `+${stats?.nuevos_usuarios_semana ?? 0} esta semana` },
+    { icon: Ticket,     label: 'Inscripciones hoy',   value: stats?.total_entradas_hoy.toString() ?? '—',   color: NEUTRO,     sub: undefined },
     { icon: TrendingUp, label: 'Comisiones hoy',      value: stats ? formatearPrecio(stats.ingresos_plataforma_hoy) : '—', color: '#27AE60', sub: undefined },
     { icon: Star,       label: 'Valoración media',    value: stats ? stats.media_reviews.toFixed(1) : '—', color: '#D4A84B', sub: 'todas las reseñas' },
     { icon: Activity,   label: 'Tiers (pro+dest.)',   value: stats ? ((stats.tiers.pro || 0) + (stats.tiers.destacado || 0)).toString() : '—', color: NEUTRO, sub: undefined },

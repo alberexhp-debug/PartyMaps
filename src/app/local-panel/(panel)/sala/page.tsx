@@ -51,16 +51,16 @@ export default function SalaPage() {
     <div className="p-4 md:p-8 pb-20 md:pb-8 space-y-5">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <p className="eyebrow mb-2">Sala · mesas y reservados</p>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Sala</h1>
+          <p className="eyebrow mb-2">Setups</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Setups</h1>
           <p className="text-sm text-[#B8B8CC] mt-2">
-            {mesas.length} {mesas.length === 1 ? 'mesa' : 'mesas'} en {plantas.length} {plantas.length === 1 ? 'planta' : 'plantas'}
+            {mesas.length} {mesas.length === 1 ? 'setup' : 'setups'} en {plantas.length} {plantas.length === 1 ? 'planta' : 'plantas'}
           </p>
         </div>
         {puedeEditar && mesas.length > 0 && (
           <button onClick={() => router.push('/local-panel/sala/qr-mesas')}
             className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-xl glass-strong border border-white/10 text-sm text-[#B8B8CC] hover:text-white transition-colors">
-            <QrCode size={15} /> QR de las mesas
+            <QrCode size={15} /> QR de los setups
           </button>
         )}
       </header>

@@ -138,7 +138,7 @@ export default function NotificacionesPage() {
             value={titulo}
             onChange={e => setTitulo(e.target.value)}
             maxLength={80}
-            placeholder="Ej: ¡Esta noche tenemos DJ set!"
+            placeholder="Ej: ¡Este sábado torneo, plazas abiertas!"
             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#B6FF3A]/50"
           />
           <p className="text-xs text-right text-[#6B6B85]">{titulo.length}/80</p>

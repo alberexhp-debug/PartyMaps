@@ -37,7 +37,7 @@ export default function EventosPage() {
   }
 
   async function eliminar(eventoId: string) {
-    if (!confirm('¿Eliminar este evento?')) return
+    if (!confirm('¿Eliminar este torneo?')) return
     await supabase.from('eventos').update({ estado: 'cancelado' }).eq('id', eventoId)
     cargar()
   }
@@ -57,7 +57,7 @@ export default function EventosPage() {
       entradas_vendidas: 0,
     })
     if (error) { toast.error('Error al duplicar'); return }
-    toast.success('Evento duplicado en estado borrador')
+    toast.success('Torneo duplicado en estado borrador')
     cargar()
   }
 
@@ -107,8 +107,8 @@ export default function EventosPage() {
   return (
     <div className="relative p-4 md:p-8 pb-24 md:pb-8 space-y-4 overflow-hidden">
       <PageHeader
-        eyebrow="Crecimiento" titulo="Eventos"
-        subtitulo="Tus noches programadas"
+        eyebrow="Crecimiento" titulo="Torneos"
+        subtitulo="Tus torneos programados"
         acento="gold"
         acciones={
           <>
@@ -116,7 +116,7 @@ export default function EventosPage() {
               <Download size={14} /> CSV
             </Button>
             <Button size="sm" onClick={() => router.push('/local-panel/eventos/nuevo')}>
-              <Plus size={14} /> Crear evento
+              <Plus size={14} /> Crear torneo
             </Button>
           </>
         }
@@ -145,8 +145,8 @@ export default function EventosPage() {
       ) : filtrados.length === 0 ? (
         <EmptyState
           icon={Calendar} acento="gold"
-          titulo={filtro === 'todos' ? 'Aún no hay eventos' : 'Sin eventos en este estado'}
-          descripcion="Crea tu primera noche y empieza a vender entradas."
+          titulo={filtro === 'todos' ? 'Aún no hay torneos' : 'Sin torneos en este estado'}
+          descripcion="Crea tu primer torneo y empieza a vender inscripciones."
           accion={
             <Button size="sm" onClick={() => router.push('/local-panel/eventos/nuevo')}>
               <Plus size={14} /> Crear el primero
@@ -177,12 +177,12 @@ export default function EventosPage() {
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="bg-white/5 rounded-xl p-2">
                   <Ticket size={12} className="text-[#B6FF3A] mx-auto mb-1" />
-                  <p className="text-xs text-[#6B6B85]">Vendidas</p>
+                  <p className="text-xs text-[#6B6B85]">Inscritos</p>
                   <p className="text-sm font-bold text-white">{evento.entradas_vendidas}</p>
                 </div>
                 <div className="bg-white/5 rounded-xl p-2">
                   <Users size={12} className="text-[#4F8EF7] mx-auto mb-1" />
-                  <p className="text-xs text-[#6B6B85]">Aforo</p>
+                  <p className="text-xs text-[#6B6B85]">Plazas</p>
                   <p className="text-sm font-bold text-white">{evento.aforo_maximo}</p>
                 </div>
                 <div className="bg-white/5 rounded-xl p-2">
@@ -206,12 +206,12 @@ export default function EventosPage() {
                 </div>
               </div>
 
-              {/* Early bird */}
+              {/* Descuento anticipado */}
               {evento.precio_early_bird && evento.early_bird_hasta && new Date(evento.early_bird_hasta) > new Date() && (
                 <div className="flex items-center gap-2 text-xs bg-green-500/10 border border-green-500/20 rounded-xl px-3 py-2">
                   <AlertCircle size={12} className="text-green-400 shrink-0" />
                   <span className="text-green-400">
-                    Early Bird activo: {formatearPrecio(evento.precio_early_bird)} hasta {formatearFecha(evento.early_bird_hasta)}
+                    Descuento anticipado activo: {formatearPrecio(evento.precio_early_bird)} hasta {formatearFecha(evento.early_bird_hasta)}
                   </span>
                 </div>
               )}

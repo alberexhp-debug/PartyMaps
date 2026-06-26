@@ -73,7 +73,7 @@ export default function AnalyticsPage() {
     const entradas = entradasRes.data || []
     const reviews = reviewsRes.data || []
 
-    // ── Barra: unidades, ingresos, beneficio y top productos ──
+    // ── Consumibles: unidades, ingresos, beneficio y top productos ──
     type BarItem = { cantidad: number; precio_unitario: number; producto_id: string | null; nombre_snapshot: string }
     const barItems = (barItemsRes.data || []) as unknown as BarItem[]
     const productos = (productosRes.data || []) as { id: string; nombre: string; coste: number | null }[]
@@ -211,13 +211,13 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </SectionCard>
 
-          {/* ── Barra: bebidas/comida ── */}
+          {/* ── Consumibles ── */}
           <div className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <StatCard icon={Beer} label="Ingresos barra" value={formatearPrecio(data.bar.ingresos)} acento="gold" />
+              <StatCard icon={Beer} label="Ingresos" value={formatearPrecio(data.bar.ingresos)} acento="gold" />
               <StatCard icon={Ticket} label="Unidades vendidas" value={data.bar.unidades.toString()} acento="blue" />
               <StatCard
-                icon={Wallet} label="Beneficio barra"
+                icon={Wallet} label="Beneficio"
                 value={data.bar.beneficio != null ? formatearPrecio(data.bar.beneficio) : '—'}
                 sublabel={data.bar.beneficio == null ? 'Añade costes a tus productos' : 'Ingresos − coste'}
                 acento="green"
@@ -225,9 +225,9 @@ export default function AnalyticsPage() {
             </div>
 
             <SectionCard>
-              <SectionTitle icon={Beer} acento="gold">Lo más vendido en barra</SectionTitle>
+              <SectionTitle icon={Beer} acento="gold">Lo más vendido</SectionTitle>
               {data.bar.top_productos.length === 0 ? (
-                <p className="text-sm text-[#8B8BA8] py-6 text-center">Sin ventas de barra en este periodo.</p>
+                <p className="text-sm text-[#8B8BA8] py-6 text-center">Sin ventas en este periodo.</p>
               ) : (
                 <ResponsiveContainer width="100%" height={Math.max(140, data.bar.top_productos.length * 38)}>
                   <BarChart data={data.bar.top_productos} layout="vertical" margin={{ left: 8, right: 8 }}>

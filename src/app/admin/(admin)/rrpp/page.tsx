@@ -96,10 +96,10 @@ export default function AdminRRPP() {
       <header className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-[#4F8EF7]" /> RRPP del sistema
+            <Sparkles className="w-6 h-6 text-[#4F8EF7]" /> Organizadores del sistema
           </h1>
           <p className="text-[#A0A0B8] mt-1 text-sm">
-            Supervisa toda la red, da de alta free agents y emite invitaciones.
+            Supervisa a los organizadores (TOs), da de alta nuevos y emite invitaciones.
           </p>
         </div>
         <button onClick={() => setShowCrear(true)}

@@ -58,11 +58,11 @@ export const ROLES_PERMISOS: Record<RolLocal, ZonaPanel[]> = {
     'clientes', 'crm', 'rrpp', 'cortesias', 'sugerencias', 'notificaciones', 'reviews',
     'analytics', 'equipo', 'mensajes', 'soporte',
   ],
-  // Puerta: escanear entradas, vender en taquilla + emitir/canjear cortesías
+  // Puerta: check-in de jugadores, inscripciones en taquilla + emitir/canjear bonos
   puerta: [
     'scanner', 'taquilla', 'cortesias', 'mensajes',
   ],
-  // Barman: sirve pedidos, ve la sala/mesas y emite cortesías de su nivel
+  // Barman: arbitraje, check-in, ve los setups y emite bonos de su nivel
   barman: [
     'pedidos-bar', 'sala', 'scanner', 'cortesias', 'mensajes',
   ],

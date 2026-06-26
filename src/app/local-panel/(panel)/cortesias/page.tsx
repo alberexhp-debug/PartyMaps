@@ -82,7 +82,7 @@ export default function CortesiasPage() {
   if (tiposPermitidos.length === 0) {
     return (
       <div className="p-4 md:p-8 pb-24 md:pb-8 space-y-4">
-        <PageHeader eyebrow="La noche" titulo="Cortesías" subtitulo="Regala consumiciones, descuentos y entradas" acento="violet" />
+        <PageHeader eyebrow="Bonos" titulo="Cortesías" subtitulo="Da bonos: descuentos y entradas a torneos" acento="violet" />
         <EmptyState icon={Gift} acento="violet" titulo="No tienes cortesías habilitadas"
           descripcion="Pídele al dueño que te active cortesías desde Equipo (o que el plan del local las incluya)." />
       </div>
@@ -91,7 +91,7 @@ export default function CortesiasPage() {
 
   return (
     <div className="p-4 md:p-8 pb-24 md:pb-8 space-y-5 max-w-xl">
-      <PageHeader eyebrow="La noche" titulo="Cortesías" subtitulo="Regala consumiciones, descuentos y entradas" acento="violet" />
+      <PageHeader eyebrow="Bonos" titulo="Cortesías" subtitulo="Da bonos: descuentos y entradas a torneos" acento="violet" />
 
       {emitida ? (
         <div className="card-premium p-6 text-center space-y-4">
@@ -132,7 +132,7 @@ export default function CortesiasPage() {
           )}
 
           <Input label="Descripción (opcional)" value={descripcion} onChange={e => setDescripcion(e.target.value)}
-            placeholder={tipo === 'consumicion' ? 'Copa de bienvenida' : tipo === 'entrada_gratis' ? 'Entrada gratis' : `${pct}% en barra`} />
+            placeholder={tipo === 'consumicion' ? 'Bono de bienvenida' : tipo === 'entrada_gratis' ? 'Entrada gratis' : `${pct}% en consumibles`} />
 
           <Input label="Para quién (opcional)" icon={<User size={16} />} value={beneficiario} onChange={e => setBeneficiario(e.target.value)} placeholder="Nombre del cliente" />
 

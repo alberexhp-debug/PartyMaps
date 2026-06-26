@@ -44,7 +44,7 @@ export default function ScannerPage() {
     setLocal({ ...local, aforo_correccion_manual: aforoSlider, aforo_correccion_manual_expires: expira.toISOString() })
     setGuardandoAforo(false)
     setAforoSlider(null)
-    toast.success('Afluencia actualizada')
+    toast.success('Ocupación actualizada')
   }
 
   const iniciarCamara = async () => {
@@ -141,16 +141,16 @@ export default function ScannerPage() {
                 : 'border-white/10 text-[#6B6B85]'
             )}
           >
-            {modoConsumicion ? '🍹 Modo consumición' : '🎫 Modo entrada'}
+            {modoConsumicion ? '🎟️ Modo bono' : '🎫 Modo entrada'}
           </button>
         </div>
       </div>
 
-      {/* Aforo — control rápido en puerta */}
+      {/* Ocupación — control rápido en puerta */}
       <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-4 space-y-3 max-w-sm mx-auto w-full">
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-white flex items-center gap-2">
-            <Gauge size={15} className="text-[#B6FF3A]" /> Afluencia ahora
+            <Gauge size={15} className="text-[#B6FF3A]" /> Ocupación ahora
           </span>
           <span className="text-2xl font-bold text-display text-numeric" style={{ color: colorAforo }}>
             {aforoActual}%
@@ -160,7 +160,7 @@ export default function ScannerPage() {
           type="range" min={0} max={100} step={5} value={aforoActual}
           onChange={e => setAforoSlider(Number(e.target.value))}
           className="w-full accent-[#B6FF3A]"
-          aria-label="Afluencia ahora mismo"
+          aria-label="Ocupación ahora mismo"
         />
         <div className="flex items-center justify-between">
           <span className="text-xs" style={{ color: colorAforo }}>{getLabelTemperatura(getTemperaturaAforo(aforoActual))}</span>
@@ -168,7 +168,7 @@ export default function ScannerPage() {
         </div>
         {aforoSlider !== null && (
           <Button size="sm" fullWidth loading={guardandoAforo} onClick={guardarAforo}>
-            <Check size={14} /> Aplicar aforo
+            <Check size={14} /> Aplicar ocupación
           </Button>
         )}
       </div>
@@ -277,7 +277,7 @@ export default function ScannerPage() {
 }
 
 async function verificarQR(qrData: string, localId: string, modoConsumicion: boolean): Promise<ResultadoEscaneoQR> {
-  // QR de pedido de bar (PMB:) — se canjea vía endpoint dedicado
+  // QR de pedido de consumibles (PMB:) — se canjea vía endpoint dedicado
   if (qrData.startsWith('PMB:')) {
     try {
       const res = await fetch('/api/pedidos-bar/canjear', {
@@ -300,7 +300,7 @@ async function verificarQR(qrData: string, localId: string, modoConsumicion: boo
     }
   }
 
-  // QR de cortesía (PMK:) — consumición/descuento/entrada gratis regalada
+  // QR de cortesía (PMK:) — bono/descuento/entrada gratis regalada
   if (qrData.startsWith('PMK:')) {
     try {
       const res = await fetch('/api/local-panel/cortesias/canjear', {
@@ -332,7 +332,7 @@ async function verificarQR(qrData: string, localId: string, modoConsumicion: boo
       })
       const j = await res.json()
       if (!res.ok) return { tipo: 'qr_invalido', mensaje: j.error || 'Código no válido' }
-      const LBL: Record<string, string> = { entrada: 'Entrada', consumicion: 'Consumición', reservado: 'Reservado' }
+      const LBL: Record<string, string> = { entrada: 'Entrada', consumicion: 'Bono', reservado: 'Reserva' }
       const desc = Object.entries(j.descuentos || {}).filter(([, v]) => Number(v) > 0).map(([k, v]) => `${LBL[k] || k} −${v}%`).join(' · ')
       const quien = j.etiqueta ? ` · ${j.etiqueta}` : ''
       const usos = j.usos_max != null ? ` (${j.usos_actuales}/${j.usos_max})` : ''
@@ -367,7 +367,7 @@ async function verificarQR(qrData: string, localId: string, modoConsumicion: boo
 
   if (modoConsumicion) {
     // Canje en servidor: contador atómico (anti-falsificación). Sirve para el modelo
-    // contador (N incluidas) y para la consumición de bienvenida legacy.
+    // contador (N incluidas) y para el bono de bienvenida legacy.
     try {
       const res = await fetch('/api/local-panel/consumiciones/canjear', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -383,11 +383,11 @@ async function verificarQR(qrData: string, localId: string, modoConsumicion: boo
       const detalle = j.descripcion ? ` · ${j.descripcion}` : ''
       return {
         tipo: 'consumicion_ok', entrada,
-        mensaje: `✓ Consumición canjeada · quedan ${quedan} de ${incluidas}${detalle}`,
+        mensaje: `✓ Bono canjeado · quedan ${quedan} de ${incluidas}${detalle}`,
         timestamp: new Date().toISOString(),
       }
     } catch {
-      return { tipo: 'qr_invalido', mensaje: 'Error de red al canjear la consumición' }
+      return { tipo: 'qr_invalido', mensaje: 'Error de red al canjear el bono' }
     }
   }
 

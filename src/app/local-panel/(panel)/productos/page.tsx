@@ -13,9 +13,9 @@ import {
 } from 'lucide-react'
 
 const CATEGORIAS: { value: CategoriaProducto; label: string }[] = [
-  { value: 'cerveza', label: 'Cerveza' }, { value: 'cubata', label: 'Cubata' },
-  { value: 'copa', label: 'Copa' }, { value: 'cocktail', label: 'Cóctel' },
-  { value: 'chupito', label: 'Chupito' }, { value: 'refresco', label: 'Refresco' },
+  { value: 'cerveza', label: 'Bebida' }, { value: 'cubata', label: 'Bebida' },
+  { value: 'copa', label: 'Bebida' }, { value: 'cocktail', label: 'Bebida' },
+  { value: 'chupito', label: 'Bebida' }, { value: 'refresco', label: 'Refresco' },
   { value: 'agua', label: 'Agua' }, { value: 'comida', label: 'Comida' },
   { value: 'snack', label: 'Snack' }, { value: 'pack', label: 'Pack' },
   { value: 'otro', label: 'Otro' },
@@ -115,7 +115,7 @@ export default function ProductosLocalPage() {
     <div className="p-4 md:p-8 pb-20 md:pb-8 space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="eyebrow mb-2">Carta del bar</p>
+          <p className="eyebrow mb-2">Consumibles</p>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Productos</h1>
           <p className="text-sm text-[#B8B8CC] mt-2">
             <span className="text-numeric font-bold text-white">{productos.length}</span>
@@ -147,9 +147,9 @@ export default function ProductosLocalPage() {
           <div className="w-16 h-16 rounded-2xl glass flex items-center justify-center">
             <ShoppingBag size={28} className="text-[#B8B8CC]" />
           </div>
-          <p className="text-lg font-bold text-display">Tu carta está vacía</p>
+          <p className="text-lg font-bold text-display">Tu lista de consumibles está vacía</p>
           <p className="text-sm text-[#B8B8CC] max-w-xs">
-            Añade tus bebidas y comida. Los usuarios podrán pedirlos desde la app
+            Añade tus consumibles. Los usuarios podrán pedirlos desde la app
             y los canjeas escaneando el QR.
           </p>
           {puedeGestionar && (
@@ -163,10 +163,10 @@ export default function ProductosLocalPage() {
           {productos.map(p => (
             <div key={p.id} className={cn('card-premium p-3 flex items-center gap-3', !p.disponible && 'opacity-50')}>
               <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center shrink-0 text-xl">
-                {p.categoria === 'cerveza' ? '🍺' :
-                 p.categoria === 'cubata' || p.categoria === 'copa' ? '🥃' :
-                 p.categoria === 'cocktail' ? '🍸' :
-                 p.categoria === 'chupito' ? '🥃' :
+                {p.categoria === 'cerveza' ? '🥤' :
+                 p.categoria === 'cubata' || p.categoria === 'copa' ? '🥤' :
+                 p.categoria === 'cocktail' ? '🥤' :
+                 p.categoria === 'chupito' ? '🥤' :
                  p.categoria === 'refresco' ? '🥤' :
                  p.categoria === 'agua' ? '💧' :
                  p.categoria === 'comida' ? '🍽️' :
@@ -229,7 +229,7 @@ export default function ProductosLocalPage() {
               label="Nombre *"
               value={editando.nombre}
               onChange={e => setEditando({ ...editando, nombre: e.target.value })}
-              placeholder="Cubata Beefeater"
+              placeholder="Agua 50cl"
               maxLength={80}
             />
 
@@ -238,7 +238,7 @@ export default function ProductosLocalPage() {
               <textarea
                 value={editando.descripcion}
                 onChange={e => setEditando({ ...editando, descripcion: e.target.value.slice(0, 240) })}
-                placeholder="Ginebra premium con tónica…"
+                placeholder="Bebida isotónica fría…"
                 rows={2}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#8B8BA8] focus:border-[#B6FF3A]/60 outline-none resize-none"
               />
@@ -268,7 +268,7 @@ export default function ProductosLocalPage() {
             <div className="space-y-2">
               <ToggleRow
                 label="Es un pack"
-                hint="Múltiples unidades en un solo pedido (ej: pack 5 cubatas)"
+                hint="Múltiples unidades en un solo pedido (ej: pack 5 aguas)"
                 value={editando.es_pack}
                 onChange={v => setEditando({ ...editando, es_pack: v })}
               />

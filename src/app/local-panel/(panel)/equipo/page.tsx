@@ -16,8 +16,8 @@ import { fetchLocal } from '@/lib/local-panel/fetchLocal'
 
 const ROLES: { value: RolLocal; label: string; desc: string }[] = [
   { value: 'gestor', label: 'Encargado', desc: 'Gestión completa sin facturación' },
-  { value: 'barman', label: 'Barman', desc: 'Barra, mesas y scanner' },
-  { value: 'puerta', label: 'Puerta', desc: 'Solo scanner y afluencia' },
+  { value: 'barman', label: 'Árbitro', desc: 'Arbitraje y check-in' },
+  { value: 'puerta', label: 'Check-in', desc: 'Check-in de jugadores' },
 ]
 
 export default function EquipoPage() {
@@ -94,7 +94,7 @@ export default function EquipoPage() {
           <Input label="Nombre y apellidos" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre completo" />
 
           <div>
-            <Input label="Nombre de usuario" value={username} onChange={e => setUsername(e.target.value)} placeholder="p.ej. juan.barra" autoComplete="off" />
+            <Input label="Nombre de usuario" value={username} onChange={e => setUsername(e.target.value)} placeholder="p.ej. juan.arbitro" autoComplete="off" />
             {username && (
               <p className={cn('mt-1 text-xs', esUsernameValido(userNorm) ? 'text-[#8B8BA8]' : 'text-[#F39C12]')}>
                 {esUsernameValido(userNorm)
@@ -148,7 +148,7 @@ export default function EquipoPage() {
         Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} className="h-20" />)
       ) : equipo.length === 0 ? (
         <EmptyState icon={Users} acento="blue" titulo="Aún no hay equipo"
-          descripcion="Da de alta a encargados, barra o puerta para repartir el trabajo." />
+          descripcion="Da de alta a encargados, árbitros o check-in para repartir el trabajo." />
       ) : (
         equipo.map(m => {
           const rolInfo = ROLES.find(r => r.value === m.rol)
@@ -205,7 +205,7 @@ export default function EquipoPage() {
 /** Resumen corto de qué puede regalar un trabajador (para el badge). */
 function resumenCortesias(m: UsuarioLocal): string | null {
   const tipos: string[] = []
-  if (m.cortesia_consumiciones) tipos.push('consumiciones')
+  if (m.cortesia_consumiciones) tipos.push('bonos')
   if (m.cortesia_descuentos) tipos.push('descuentos')
   if (m.cortesia_entradas_gratis) tipos.push('entradas')
   if (tipos.length === 0) return null

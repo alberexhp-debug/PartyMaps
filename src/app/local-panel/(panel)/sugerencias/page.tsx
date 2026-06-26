@@ -61,7 +61,7 @@ export default function SugerenciasPage() {
 
   return (
     <div className="relative p-4 md:p-8 space-y-6 pb-20 md:pb-8 overflow-hidden">
-      <PageHeader eyebrow="Audiencia" titulo="Sugerencias" subtitulo="Opiniones de tus clientes" acento="blue" />
+      <PageHeader eyebrow="Audiencia" titulo="Sugerencias" subtitulo="Sugerencias de jugadores" acento="blue" />
 
       {/* Resumen */}
       <div className="grid grid-cols-3 gap-3">
@@ -97,7 +97,7 @@ export default function SugerenciasPage() {
       ) : filtradas.length === 0 ? (
         <EmptyState icon={MessageSquare} acento="blue"
           titulo="Sin sugerencias"
-          descripcion={filtro !== 'todas' ? `No hay sugerencias en estado "${filtro}".` : 'Aún no han llegado sugerencias de tus clientes.'} />
+          descripcion={filtro !== 'todas' ? `No hay sugerencias en estado "${filtro}".` : 'Aún no han llegado sugerencias de los jugadores.'} />
       ) : (
         <div className="space-y-3">
           {filtradas.map(s => (

@@ -107,7 +107,7 @@ export default function RRPPPanelLocal() {
             <Sparkles className="w-7 h-7 text-rose-400" /> RRPP del local
           </h1>
           <p className="text-secondary mt-1 text-sm">
-            Tu equipo de promotores. Busca alguien existente o crea una invitación nueva.
+            Tus organizadores (TOs). Busca alguien existente o crea una invitación nueva.
           </p>
         </div>
         <button onClick={() => setShowInvitar(true)} className="btn-primary inline-flex items-center gap-1.5">
@@ -235,7 +235,7 @@ function SolicitudesInteres({ solicitudes, onResponder }: {
 }
 
 // ════════════════════════════════════════════════════════════════
-// Modal: descuentos por RRPP por categoría (entrada/consumición/reservado)
+// Modal: descuentos por RRPP por categoría (inscripción/bono)
 // ════════════════════════════════════════════════════════════════
 function DescuentosModal({ relacion, onClose, onGuardado }: {
   relacion: Relacion; onClose: () => void; onGuardado: () => void
@@ -337,9 +337,9 @@ function Grupo({
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-                {r.triggers_activos?.entrada_vendida && <TriggerChip>Entrada</TriggerChip>}
-                {r.triggers_activos?.escaneada_en_puerta && <TriggerChip>Puerta</TriggerChip>}
-                {r.triggers_activos?.consumo_bar && <TriggerChip>Bar</TriggerChip>}
+                {r.triggers_activos?.entrada_vendida && <TriggerChip>Inscripción</TriggerChip>}
+                {r.triggers_activos?.escaneada_en_puerta && <TriggerChip>Acceso</TriggerChip>}
+                {r.triggers_activos?.consumo_bar && <TriggerChip>Bono</TriggerChip>}
               </div>
               <div className="mt-2 flex gap-1.5">
                 {onChat && (

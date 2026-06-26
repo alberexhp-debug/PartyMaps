@@ -25,11 +25,11 @@ type Tab = 'info' | 'horario' | 'aforo' | 'entradas' | 'galeria' | 'bienvenida' 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'info',       label: 'Info' },
   { id: 'horario',    label: 'Horario' },
-  { id: 'aforo',      label: 'Aforo' },
+  { id: 'aforo',      label: 'Ocupación' },
   { id: 'entradas',   label: 'Entradas' },
   { id: 'galeria',    label: 'Galería' },
   { id: 'bienvenida', label: 'Bienvenida' },
-  { id: 'bar',        label: 'Bar' },
+  { id: 'bar',        label: 'Consumibles' },
   { id: 'instagram',  label: 'Instagram' },
   { id: 'seguridad',  label: 'Seguridad' },
 ]
@@ -41,10 +41,10 @@ const LABEL_DIA: Record<string, string> = {
   lunes: 'Lun', martes: 'Mar', miercoles: 'Mié', jueves: 'Jue',
   viernes: 'Vie', sabado: 'Sáb', domingo: 'Dom',
 }
-// El horario se piensa "por noches": "Noche del viernes" abre el viernes y puede cerrar de madrugada el sábado.
+// El horario se piensa "por días": un día abre por la tarde/noche y puede cerrar de madrugada al día siguiente.
 const NOCHE_LABEL: Record<string, string> = {
-  lunes: 'Noche del lunes', martes: 'Noche del martes', miercoles: 'Noche del miércoles', jueves: 'Noche del jueves',
-  viernes: 'Noche del viernes', sabado: 'Noche del sábado', domingo: 'Noche del domingo',
+  lunes: 'Lunes', martes: 'Martes', miercoles: 'Miércoles', jueves: 'Jueves',
+  viernes: 'Viernes', sabado: 'Sábado', domingo: 'Domingo',
 }
 const DIA_SIGUIENTE: Record<string, string> = {
   lunes: 'martes', martes: 'miércoles', miercoles: 'jueves', jueves: 'viernes',
@@ -56,7 +56,7 @@ const PUNTO_ESTADO: Record<EstadoApertura, string> = {
 }
 const CATEGORIAS: { value: CategoriaProducto; label: string }[] = [
   { value: 'cerveza', label: 'Cerveza' }, { value: 'cubata', label: 'Cubata' },
-  { value: 'copa', label: 'Copa' }, { value: 'cocktail', label: 'Cóctel' },
+  { value: 'copa', label: 'Combinado' }, { value: 'cocktail', label: 'Cóctel' },
   { value: 'chupito', label: 'Chupito' }, { value: 'refresco', label: 'Refresco' },
   { value: 'agua', label: 'Agua' }, { value: 'comida', label: 'Comida' },
   { value: 'snack', label: 'Snack' }, { value: 'pack', label: 'Pack' },
@@ -116,7 +116,7 @@ function ConfiguracionContent() {
 
   const guardar = async () => {
     if (!local) return
-    // Validación de horarios por noches (doc 03 §4.1): apertura ≠ cierre y máx 14h por tramo.
+    // Validación de horarios por días (doc 03 §4.1): apertura ≠ cierre y máx 14h por tramo.
     const hForm = form.horario as Record<string, { apertura: string; cierre: string } | null> | undefined
     if (hForm) {
       for (const dia of DIAS) {
@@ -205,21 +205,21 @@ function ConfiguracionContent() {
     setForm(f => ({ ...f, consumiciones_bienvenida: [...(f.consumiciones_bienvenida || []), nueva] }))
   }
 
-  // Copia el tramo del viernes a todas las noches ya abiertas (el 90% repite horario el finde).
+  // Copia el tramo del viernes a todos los días ya abiertos (el 90% repite horario el finde).
   const copiarViernes = () => {
     const v = (form.horario as Record<string, { apertura: string; cierre: string } | null>)?.viernes
-    if (!v) { toast.error('Configura primero la noche del viernes'); return }
+    if (!v) { toast.error('Configura primero el viernes'); return }
     setForm(f => {
       const next = { ...(f.horario as Record<string, { apertura: string; cierre: string } | null>) }
       for (const dia of DIAS) if (next[dia]) next[dia] = { ...v }
       return { ...f, horario: next }
     })
-    toast.success('Copiado a las noches abiertas')
+    toast.success('Copiado a los días abiertos')
   }
 
   if (!local) return null
 
-  // Vista previa viva: cómo se ve el local AHORA con el horario que hay en el formulario.
+  // Vista previa viva: cómo se ve la sede AHORA con el horario que hay en el formulario.
   const previa = estadoApertura({ horario: (form.horario ?? null) as Local['horario'] | null, cerrado_hasta: local.cerrado_hasta ?? null }, ahora)
   const previaTexto = textoEstadoFicha(previa, ahora)
   const viernesAbierto = !!(form.horario as Record<string, unknown> | undefined)?.viernes
@@ -264,7 +264,7 @@ function ConfiguracionContent() {
         {/* ── TAB: Info básica ── */}
         {tab === 'info' && (
           <div className="space-y-5 max-w-2xl">
-            <Input label="Nombre del local" value={form.nombre || ''} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} />
+            <Input label="Nombre de la sede" value={form.nombre || ''} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} />
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-[#A0A0B8]">Descripción</label>
@@ -273,13 +273,13 @@ function ConfiguracionContent() {
                 onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
                 rows={4} maxLength={600}
                 className="w-full px-4 py-3 bg-white/4 border border-white/8 rounded-xl text-white text-sm outline-none focus:border-white/20 resize-none placeholder:text-[#6B6B85] transition-colors"
-                placeholder="Describe tu local…"
+                placeholder="Describe tu sede…"
               />
               <p className="text-xs text-[#6B6B85] text-right">{(form.descripcion || '').length}/600</p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[#A0A0B8]">Tipo de local</label>
+              <label className="text-sm font-medium text-[#A0A0B8]">Tipo de sede</label>
               <div className="flex flex-wrap gap-2">
                 {TIPOS_LOCAL.map(t => (
                   <button key={t} onClick={() => setForm(f => ({ ...f, tipo_local: t }))}
@@ -337,7 +337,7 @@ function ConfiguracionContent() {
               onChange={(v: PrecioDinamicoConfig) => setForm(f => ({ ...f, precio_dinamico: v }))}
               precioMin={form.precio_entrada_min || 0}
               precioMax={form.precio_entrada_max}
-              ayuda="Aplica a noches sin evento. Para eventos concretos configúralo en el detalle del evento."
+              ayuda="Aplica a días sin evento. Para eventos concretos configúralo en el detalle del evento."
             />
           </div>
         )}
@@ -351,14 +351,14 @@ function ConfiguracionContent() {
                 <Clock size={18} className="text-[#4F8EF7]" />
               </div>
               <div>
-                <h2 className="font-semibold text-white text-sm">Horarios por noches</h2>
+                <h2 className="font-semibold text-white text-sm">Horarios por días</h2>
                 <p className="text-xs text-[#8B8BA8] mt-0.5 leading-relaxed">
-                  Define cada noche: de cuándo a cuándo abres. Si cierras de madrugada, es normal que el cierre sea «del día siguiente». Nosotros lo entendemos así.
+                  Define cada día: de cuándo a cuándo abres. Si cierras de madrugada, es normal que el cierre sea «del día siguiente». Nosotros lo entendemos así.
                 </p>
               </div>
             </div>
 
-            {/* Una fila por noche */}
+            {/* Una fila por día */}
             {DIAS.map(dia => {
               const h = (form.horario as Record<string, { apertura: string; cierre: string } | null>)?.[dia]
               const cruzaMedianoche = !!h && h.cierre <= h.apertura
@@ -416,12 +416,12 @@ function ConfiguracionContent() {
 
             {/* Copiar viernes a las noches abiertas */}
             <Button variant="ghost" size="sm" disabled={!viernesAbierto} onClick={copiarViernes}>
-              <Zap size={14} /> Copiar viernes a todas las noches abiertas
+              <Zap size={14} /> Copiar viernes a todos los días abiertos
             </Button>
 
-            {/* Tip de la noche suelta */}
+            {/* Tip del día suelto */}
             <p className="text-xs text-[#8B8BA8] leading-relaxed">
-              ¿Abres una noche suelta (festivo, fiesta especial)? No toques el horario: publica un evento y esa noche saldrás abierto.
+              ¿Abres un día suelto (festivo, torneo especial)? No toques el horario: publica un evento y ese día saldrás abierto.
             </p>
 
             <ToggleSimple
@@ -436,14 +436,14 @@ function ConfiguracionContent() {
               <span className={cn('w-2.5 h-2.5 rounded-full shrink-0', PUNTO_ESTADO[previa.estado])} />
               <p className="text-sm text-[#B8B8CC]">
                 {previa.estado === 'sin_datos'
-                  ? 'Ahora mismo tu local no muestra estado. Configura sus noches para salir «abierto» en el mapa.'
-                  : <>Ahora mismo tu local se ve: <span className="text-white font-medium">{previaTexto}</span></>}
+                  ? 'Ahora mismo tu sede no muestra estado. Configura sus días para salir «abierta» en el mapa.'
+                  : <>Ahora mismo tu sede se ve: <span className="text-white font-medium">{previaTexto}</span></>}
               </p>
             </div>
           </div>
         )}
 
-        {/* ── TAB: Aforo ── */}
+        {/* ── TAB: Ocupación ── */}
         {tab === 'aforo' && (
           <div className="max-w-2xl">
             <AforoSemanal local={local} onSaved={setLocal} />
@@ -459,7 +459,7 @@ function ConfiguracionContent() {
                   <Ticket size={18} className="text-[#B6FF3A]" />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-white text-sm">Cupo de entradas por noche</h2>
+                  <h2 className="font-semibold text-white text-sm">Cupo de entradas por torneo</h2>
                   <p className="text-xs text-[#8B8BA8] mt-0.5">Las ventas se pararán automáticamente al alcanzar el límite</p>
                 </div>
               </div>
@@ -483,7 +483,7 @@ function ConfiguracionContent() {
 
               <div className="p-3 bg-[#F39C12]/5 border border-[#F39C12]/20 rounded-xl">
                 <p className="text-xs text-[#F39C12]">
-                  Puedes cambiar el cupo para noches específicas desde el evento. Este valor es el predeterminado.
+                  Puedes cambiar el cupo para torneos específicos desde el evento. Este valor es el predeterminado.
                 </p>
               </div>
             </div>
@@ -504,7 +504,7 @@ function ConfiguracionContent() {
         {/* ── TAB: Galería ── */}
         {tab === 'galeria' && (
           <div className="space-y-4 max-w-2xl">
-            <p className="text-sm text-[#8B8BA8]">La primera imagen es la portada en el mapa y en la lista de locales</p>
+            <p className="text-sm text-[#8B8BA8]">La primera imagen es la portada en el mapa y en la lista de sedes</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {(form.imagenes || []).map((url, i) => (
                 <div key={i} className="relative aspect-video">
@@ -556,7 +556,7 @@ function ConfiguracionContent() {
             {/* Vídeos de YouTube */}
             <div className="space-y-2 pt-3 border-t border-white/6">
               <label className="text-sm font-medium text-[#A0A0B8]">Vídeos de YouTube (máx. 3)</label>
-              <p className="text-xs text-[#6B6B85]">Se muestran en la página de tu local. Pega el enlace del vídeo.</p>
+              <p className="text-xs text-[#6B6B85]">Se muestran en la página de tu sede. Pega el enlace del vídeo.</p>
               {(form.videos_youtube || []).map((url, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <span className="flex-1 truncate text-sm text-white bg-white/4 border border-white/8 rounded-xl px-3 py-2.5">{url}</span>
@@ -600,12 +600,12 @@ function ConfiguracionContent() {
         {/* ── TAB: Bienvenida ── */}
         {tab === 'bienvenida' && (
           <div className="space-y-4 max-w-2xl">
-            <p className="text-sm text-[#8B8BA8]">Consumiciones que el usuario elige al comprar su entrada (incluidas en el precio)</p>
+            <p className="text-sm text-[#8B8BA8]">Extras que el usuario elige al comprar su entrada (incluidos en el precio)</p>
 
             {(form.consumiciones_bienvenida || []).map((c, i) => (
               <div key={c.id} className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white">Consumición {i + 1}</span>
+                  <span className="text-sm font-semibold text-white">Extra {i + 1}</span>
                   <button
                     onClick={() => setForm(f => ({ ...f, consumiciones_bienvenida: f.consumiciones_bienvenida?.filter(x => x.id !== c.id) }))}
                     className="p-1 text-[#B6FF3A]/60 hover:text-[#B6FF3A] transition-colors"
@@ -637,7 +637,7 @@ function ConfiguracionContent() {
               onClick={addConsumicion}
               className="w-full flex items-center justify-center gap-2 h-12 border-2 border-dashed border-white/10 rounded-xl text-[#8B8BA8] hover:border-white/20 hover:text-white transition-colors"
             >
-              <Plus size={16} /> Añadir consumición
+              <Plus size={16} /> Añadir extra
             </button>
           </div>
         )}
@@ -679,7 +679,7 @@ function ConfiguracionContent() {
                 {productos.map(p => (
                   <div key={p.id} className={cn('flex items-center gap-3 p-3 bg-white/3 border border-white/6 rounded-xl', !p.disponible && 'opacity-50')}>
                     <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-lg">
-                      {p.categoria === 'cerveza' ? '🍺' : p.categoria === 'cubata' || p.categoria === 'copa' ? '🥃' : p.categoria === 'cocktail' ? '🍸' : p.categoria === 'refresco' ? '🥤' : p.categoria === 'agua' ? '💧' : p.categoria === 'comida' ? '🍽️' : p.categoria === 'snack' ? '🥨' : p.categoria === 'pack' ? '🎁' : '✨'}
+                      {p.categoria === 'cerveza' ? '🥤' : p.categoria === 'cubata' || p.categoria === 'copa' ? '🧋' : p.categoria === 'cocktail' ? '🍹' : p.categoria === 'refresco' ? '🥤' : p.categoria === 'agua' ? '💧' : p.categoria === 'comida' ? '🍽️' : p.categoria === 'snack' ? '🥨' : p.categoria === 'pack' ? '🎁' : '✨'}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
@@ -760,7 +760,7 @@ function ConfiguracionContent() {
                 </div>
                 <div>
                   <h2 className="font-semibold text-white text-sm">Cuenta de Instagram</h2>
-                  <p className="text-xs text-[#8B8BA8] mt-0.5">Se mostrará en tu ficha del local</p>
+                  <p className="text-xs text-[#8B8BA8] mt-0.5">Se mostrará en tu ficha de la sede</p>
                 </div>
               </div>
 

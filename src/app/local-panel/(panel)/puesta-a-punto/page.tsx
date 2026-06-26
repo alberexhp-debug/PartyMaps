@@ -33,14 +33,14 @@ export default function PuestaAPuntoPage() {
     ? `Te falta${pendientesObl.length > 1 ? 'n' : ''}: ${pendientesObl.map(p => p.titulo.toLowerCase()).join(' · ')}. Es el mínimo para brillar en el mapa.`
     : pendientesRec.length > 0
       ? 'Ya cumples lo mínimo para brillar en el mapa. Suma los recomendados para sacarle todo el partido.'
-      : 'Tu local está listo para la noche.'
+      : 'Tu local está listo para tus torneos.'
 
   return (
     <div className="relative p-4 md:p-8 space-y-5 pb-24 md:pb-8 overflow-hidden max-w-3xl">
       <PageHeader eyebrow="PRIMEROS PASOS" titulo="Pon tu local a punto" acento="rose" />
 
       {completo ? (
-        <HeroBanner acento="green" eyebrow="¡LISTO!" titulo="Tu local está listo para la noche 🎉"
+        <HeroBanner acento="green" eyebrow="¡LISTO!" titulo="Tu local está listo para tus torneos 🎮"
           subtitulo="Ya tienes lo esencial. Estos hábitos te darán más gente y más caja." />
       ) : (
         <SectionCard premium>
@@ -87,7 +87,7 @@ export default function PuestaAPuntoPage() {
           <p className="text-sm font-bold text-white mb-3">¿Y ahora qué? 3 hábitos que dan dinero</p>
           <div className="space-y-2">
             <HabitoRow icon={Calendar} acento="#B6FF3A" titulo="Publica el evento de cada semana" ruta="/local-panel/eventos" />
-            <HabitoRow icon={Contact} acento="#7C5CFF" titulo="Mira quién repite y dale motivos para volver" ruta="/local-panel/clientes" />
+            <HabitoRow icon={Contact} acento="#7C5CFF" titulo="Mira qué jugadores repiten" ruta="/local-panel/clientes" />
             <HabitoRow icon={Sparkles} acento="#F39C12" titulo="Suma un RRPP más" ruta="/local-panel/rrpp" />
           </div>
         </SectionCard>

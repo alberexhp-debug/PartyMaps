@@ -105,7 +105,7 @@ export default function TaquillaPage() {
           <p className="text-[#8B8BA8] text-sm">{resultado.length} {resultado.length === 1 ? 'entrada' : 'entradas'} · {eur(resultado.reduce((s, e) => s + Number(e.precio_total), 0))} en {metodo}</p>
           {consumiciones > 0 && (
             <p className="text-[#B6FF3A] text-xs mt-1.5 flex items-center justify-center gap-1.5">
-              <Coffee size={12} /> Incluye {consumiciones} {consumiciones === 1 ? 'consumición' : 'consumiciones'}{consumicionTexto.trim() ? ` · ${consumicionTexto.trim()}` : ''}
+              <Coffee size={12} /> Incluye {consumiciones} {consumiciones === 1 ? 'extra' : 'extras'}{consumicionTexto.trim() ? ` · ${consumicionTexto.trim()}` : ''}
             </p>
           )}
         </div>
@@ -122,7 +122,7 @@ export default function TaquillaPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-xl mx-auto space-y-5">
-      <PageHeader eyebrow="La noche" titulo="Taquilla" subtitulo="Vende entradas en puerta y genera el QR al momento." />
+      <PageHeader eyebrow="Inscripciones" titulo="Taquilla" subtitulo="Vende entradas en puerta y genera el QR al momento." />
 
       {hoy && hoy.num > 0 && (
         <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] border border-white/[0.07] px-4 py-3">
@@ -133,7 +133,7 @@ export default function TaquillaPage() {
 
       {!eventoId && cupoNoche && (
         <div className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${cupoNoche.quedan <= Math.max(5, cupoNoche.limite * 0.1) ? 'bg-[#F39C12]/10 border-[#F39C12]/30' : 'bg-white/[0.03] border-white/[0.07]'}`}>
-          <span className="text-sm text-[#B8B8CC]">Cupo de esta noche en TODH</span>
+          <span className="text-sm text-[#B8B8CC]">Cupo del torneo</span>
           <span className="text-sm font-bold text-white">Quedan {cupoNoche.quedan} de {cupoNoche.limite}</span>
         </div>
       )}
@@ -217,11 +217,11 @@ export default function TaquillaPage() {
             </button>
           )}
 
-          {/* Consumiciones incluidas con la entrada (van DENTRO del QR: anti-falsificación) */}
+          {/* Extras incluidos con la entrada (van DENTRO del QR: anti-falsificación) */}
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-white flex items-center gap-2">
-                <Coffee size={15} className="text-[#B6FF3A]" /> Consumiciones incluidas
+                <Coffee size={15} className="text-[#B6FF3A]" /> Extras incluidos
               </span>
               <div className="flex items-center gap-2">
                 <button type="button" onClick={() => setConsumiciones(c => Math.max(0, c - 1))} disabled={consumiciones === 0}
@@ -234,9 +234,9 @@ export default function TaquillaPage() {
             {consumiciones > 0 && (
               <>
                 <input value={consumicionTexto} onChange={e => setConsumicionTexto(e.target.value.slice(0, 120))}
-                  placeholder="Qué incluye (ej. cubata, copa o refresco)"
+                  placeholder="Qué incluye (ej. bebida o snack)"
                   className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60 placeholder:text-[#6B6B85]" />
-                <p className="text-[11px] text-[#8B8BA8]">Van dentro del QR de la entrada y se canjean en barra una a una. Sin papelitos: imposible de falsificar.</p>
+                <p className="text-[11px] text-[#8B8BA8]">Van dentro del QR de la entrada y se canjean en el mostrador una a una. Sin papelitos: imposible de falsificar.</p>
               </>
             )}
           </div>

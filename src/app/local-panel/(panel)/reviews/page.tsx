@@ -65,7 +65,7 @@ export default function ReviewsPage() {
 
   return (
     <div className="relative p-4 md:p-8 pb-24 md:pb-8 space-y-6 overflow-hidden">
-      <PageHeader eyebrow="Audiencia" titulo="Reseñas" subtitulo="Lo que opinan tus clientes" acento="gold" />
+      <PageHeader eyebrow="Audiencia" titulo="Reseñas" subtitulo="Lo que opinan jugadores y organizadores" acento="gold" />
 
       {/* Resumen */}
       {reviews.length > 0 && (
@@ -101,7 +101,7 @@ export default function ReviewsPage() {
         Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} className="h-32" />)
       ) : reviews.length === 0 ? (
         <EmptyState icon={Star} acento="gold" titulo="Sin reseñas todavía"
-          descripcion="Cuando tus clientes valoren la noche, aparecerán aquí." />
+          descripcion="Cuando los jugadores valoren el torneo, aparecerán aquí." />
       ) : (
         reviews.map(review => (
           <div key={review.id} className="glass rounded-2xl p-4 space-y-3">

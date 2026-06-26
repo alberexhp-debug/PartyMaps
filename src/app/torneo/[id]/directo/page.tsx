@@ -20,6 +20,7 @@ export default function DirectoPage() {
   const rondas = bracketDe(id)
   const [chat, setChat] = useState(CHAT0)
   const [msg, setMsg] = useState('')
+  const [reproduciendo, setReproduciendo] = useState(false)
 
   function enviar() {
     if (!msg.trim()) return
@@ -38,8 +39,17 @@ export default function DirectoPage() {
         <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0 opacity-40" />
         <div className="absolute inset-0 bg-black/30" />
         <div className="relative h-full flex flex-col items-center justify-center gap-2">
-          <button className="h-16 w-16 rounded-full bg-white/10 border border-white/25 flex items-center justify-center hover:scale-110 transition-transform"><Play size={26} className="text-white ml-1" /></button>
-          <p className="text-sm text-white/80">Emisión en directo · YouTube / Twitch</p>
+          {reproduciendo ? (
+            <>
+              <span className="inline-flex items-center gap-2 text-[#B6FF3A] text-sm font-semibold"><span className="dot-live" /> Reproduciendo emisión</span>
+              <p className="text-xs text-white/55">Señal de demostración · {juego.nombre}</p>
+            </>
+          ) : (
+            <>
+              <button onClick={() => setReproduciendo(true)} aria-label="Reproducir emisión" className="h-16 w-16 rounded-full bg-white/10 border border-white/25 flex items-center justify-center hover:scale-110 transition-transform"><Play size={26} className="text-white ml-1" /></button>
+              <p className="text-sm text-white/80">Pulsa para ver la emisión en directo</p>
+            </>
+          )}
         </div>
         <button onClick={() => router.back()} aria-label="Volver" className="absolute top-4 left-4 h-10 w-10 rounded-xl bg-black/40 backdrop-blur flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
         <span className="absolute top-4 right-4 badge-live">Live</span>

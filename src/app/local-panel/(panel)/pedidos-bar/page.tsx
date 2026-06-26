@@ -15,7 +15,7 @@ interface PedidoActivo {
   pedido_items: { id: string; nombre_snapshot: string; cantidad: number; precio_unitario: number }[]
 }
 
-/** Chip de tiempo en cola: se pone ámbar a los 5 min y rojo a los 10 — urgencia para la barra. */
+/** Chip de tiempo en cola: se pone ámbar a los 5 min y rojo a los 10 — urgencia para el mostrador. */
 function EsperaChip({ pagadoAt }: { pagadoAt: string }) {
   const [, tick] = useState(0)
   useEffect(() => {
@@ -96,7 +96,7 @@ export default function PedidosBarPanelPage() {
     <div className="p-4 md:p-8 pb-20 md:pb-8 space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="eyebrow mb-2">Bar · cola en vivo</p>
+          <p className="eyebrow mb-2">Pedidos · cola en vivo</p>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Pedidos</h1>
           {vista === 'barra' && (
             <p className="text-sm text-[#B8B8CC] mt-2">
@@ -122,7 +122,7 @@ export default function PedidosBarPanelPage() {
 
       {/* Pestañas Barra | Mesas */}
       <div className="flex gap-1 glass-subtle rounded-2xl p-1">
-        {([{ id: 'barra', label: 'Barra' }, { id: 'mesas', label: 'Mesas' }] as { id: 'barra' | 'mesas'; label: string }[]).map(t => (
+        {([{ id: 'barra', label: 'Mostrador' }, { id: 'mesas', label: 'Setups' }] as { id: 'barra' | 'mesas'; label: string }[]).map(t => (
           <button key={t.id} onClick={() => setVista(t.id)}
             className={cn('flex-1 py-2.5 text-sm font-semibold transition-all rounded-xl',
               vista === t.id ? 'bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_6px_20px_-4px_rgba(182, 255, 58,0.6)]' : 'text-[#B8B8CC] hover:text-[#0A0A0F]')}>
@@ -197,7 +197,7 @@ export default function PedidosBarPanelPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-bold text-white truncate text-display">{p.usuarios.nombre}</p>
-                    {p.origen === 'mesa' && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#27AE60]/15 text-[#5FD08A] border border-[#27AE60]/30 shrink-0">Mesa</span>}
+                    {p.origen === 'mesa' && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#27AE60]/15 text-[#5FD08A] border border-[#27AE60]/30 shrink-0">Setup</span>}
                   </div>
                   <p className="text-[11px] text-[#8B8BA8]">
                     {filtro === 'pagado' ? `Pagado ${tiempoRelativo(p.pagado_at)}` : `Entregado ${p.entregado_at ? tiempoRelativo(p.entregado_at) : ''}`}
@@ -273,9 +273,9 @@ function ConfigPrioridad({ onClose }: { onClose: () => void }) {
   }
 
   const ZONAS = [
-    { key: 'reservado', label: 'Reservados / VIP' },
-    { key: 'mesa', label: 'Mesas' },
-    { key: 'barra', label: 'Barra' },
+    { key: 'reservado', label: 'Prioritarios' },
+    { key: 'mesa', label: 'Setups' },
+    { key: 'barra', label: 'Mostrador' },
   ]
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm sm:p-4" onClick={onClose}>

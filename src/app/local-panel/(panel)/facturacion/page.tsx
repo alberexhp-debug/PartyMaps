@@ -35,8 +35,8 @@ const TIERS: Tier[] = [
     features: [
       'Aparece en el mapa y en la lista de explorar',
       'Recibe seguidores y reseñas',
-      'Página de perfil del local editable',
-      'Sin venta de entradas ni bar',
+      'Página de perfil de la sede editable',
+      'Sin cobro de inscripciones',
     ],
   },
   {
@@ -49,9 +49,9 @@ const TIERS: Tier[] = [
     vende: true,
     features: [
       'Todo lo anterior',
-      'Venta de entradas con QR',
-      'Módulo bar (hasta 10 productos)',
-      'Hasta 2 eventos al mes',
+      'Venta de inscripciones con QR',
+      'Consumibles (hasta 10 productos)',
+      'Hasta 2 torneos al mes',
       '1 trabajador en el panel',
     ],
     parametros: 'Sin cuota mensual · 4% por venta · Para empezar',
@@ -67,11 +67,11 @@ const TIERS: Tier[] = [
     destacado: true,
     features: [
       'Todo lo anterior',
-      'Eventos ilimitados',
+      'Torneos ilimitados',
       'Hasta 50 productos en la carta',
       'Hasta 5 trabajadores',
       'Analytics avanzados',
-      '1 boost de evento al mes',
+      '1 boost de torneo al mes',
       '5.000 notificaciones push/mes',
     ],
     parametros: 'Compensa si facturas >3.300€/mes',
@@ -88,9 +88,9 @@ const TIERS: Tier[] = [
       'Todo lo anterior',
       'Insignia ★ en mapa y lista',
       'Posicionamiento Top en explorar',
-      'Productos del bar ilimitados',
+      'Consumibles ilimitados',
       'Trabajadores ilimitados',
-      '4 boosts de evento al mes',
+      '4 boosts de torneo al mes',
       'Notif patrocinadas ilimitadas',
       'Comisión casi a nivel datáfono',
       'Soporte prioritario',
@@ -334,7 +334,7 @@ export default function FacturacionPage() {
           <li className="flex gap-2 text-[#B8B8CC]"><Zap size={13} className="text-[#F39C12] mt-0.5 shrink-0" />
             <span><strong className="text-white">3 meses gratis</strong> al cambiar a Pro por primera vez (cuota + comisión reducida desde el día 1).</span></li>
           <li className="flex gap-2 text-[#B8B8CC]"><Check size={13} className="text-[#27AE60] mt-0.5 shrink-0" />
-            <span>Sin comisión en reembolsos: si cancelas un evento, TODH no cobra esa comisión.</span></li>
+            <span>Sin comisión en reembolsos: si cancelas un torneo, TODH no cobra esa comisión.</span></li>
           <li className="flex gap-2 text-[#B8B8CC]"><CreditCard size={13} className="text-[#4F8EF7] mt-0.5 shrink-0" />
             <span>Pago real con Stripe en breve. De momento las solicitudes se registran y te contactamos.</span></li>
         </ul>
@@ -396,7 +396,7 @@ function FacturaModal({ localId, localNombre, localCif, localDireccion, tier, cu
           <div className="flex items-start justify-between mb-6">
             <div>
               <p className="text-2xl font-black tracking-tight" style={{ color: '#B6FF3A' }}>TODH</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">TODH · plataforma de ocio nocturno</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">TODH · plataforma de torneos</p>
             </div>
             <div className="text-right text-xs text-gray-500">
               <p className="font-bold text-gray-900">Factura {numFactura}</p>

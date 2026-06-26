@@ -73,7 +73,7 @@ function CRMContent() {
 
   return (
     <div className="relative p-4 md:p-8 pb-24 md:pb-8 space-y-5 overflow-hidden">
-      <PageHeader eyebrow="AUDIENCIA" titulo="CRM" subtitulo="Tu clientela, con datos y con ley" acento="rose" />
+      <PageHeader eyebrow="AUDIENCIA" titulo="CRM" subtitulo="Tu comunidad de jugadores, con datos y con ley" acento="rose" />
 
       {/* Tabs */}
       <div className="flex gap-1 overflow-x-auto scrollbar-hide border-b border-white/8 -mt-1">
@@ -97,7 +97,7 @@ function CRMContent() {
 
 function ResumenTab({ loading, r, onVer }: { loading: boolean; r: { total: number; repitenPct: number; gastoMedio: number; riesgo: number; cumple: number }; onVer: (c: Chip) => void }) {
   if (loading) return <div className="grid grid-cols-2 md:grid-cols-4 gap-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-2xl skeleton" />)}</div>
-  if (r.total === 0) return <EmptyState icon={Users} acento="blue" titulo="Tu clientela aparecerá aquí" descripcion="Con cada venta de entrada o pedido de barra se añade un cliente a tu CRM." />
+  if (r.total === 0) return <EmptyState icon={Users} acento="blue" titulo="Tu comunidad de jugadores aparecerá aquí" descripcion="Con cada inscripción se añade un cliente a tu CRM." />
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -292,11 +292,11 @@ function ClienteFicha({ cliente, onClose, onSaved }: { cliente: Cliente; onClose
           <Acordeon icon={Ticket} color="#B6FF3A" titulo="Entradas" n={hist?.entradas.length ?? 0}>
             {hist?.entradas.map(e => <FilaHist key={e.id} fecha={e.fecha} concepto="Entrada" importe={e.importe} />)}
           </Acordeon>
-          <Acordeon icon={Beer} color="#D4A84B" titulo="Barra" n={hist?.barra.length ?? 0}>
-            {hist?.barra.map(p => <FilaHist key={p.id} fecha={p.fecha} concepto="Pedido de barra" importe={p.importe} />)}
+          <Acordeon icon={Beer} color="#D4A84B" titulo="Torneos" n={hist?.barra.length ?? 0}>
+            {hist?.barra.map(p => <FilaHist key={p.id} fecha={p.fecha} concepto="Torneo" importe={p.importe} />)}
           </Acordeon>
-          <Acordeon icon={Wallet} color="#7C5CFF" titulo="Reservas" n={hist?.reservas.length ?? 0}>
-            {hist?.reservas.map(r => <FilaHist key={r.id} fecha={r.fecha} concepto={`Reserva · ${r.estado}`} importe={r.importe} />)}
+          <Acordeon icon={Wallet} color="#7C5CFF" titulo="Inscripciones" n={hist?.reservas.length ?? 0}>
+            {hist?.reservas.map(r => <FilaHist key={r.id} fecha={r.fecha} concepto={`Inscripción · ${r.estado}`} importe={r.importe} />)}
           </Acordeon>
           <Acordeon icon={Star} color="#27AE60" titulo="Valoraciones" n={hist?.reviews.length ?? 0}>
             {hist?.reviews.map(r => <FilaHist key={r.id} fecha={r.fecha} concepto={`${'★'.repeat(r.puntuacion)} ${r.comentario ?? ''}`} />)}
@@ -326,7 +326,7 @@ function ClienteFicha({ cliente, onClose, onSaved }: { cliente: Cliente; onClose
           <span className="text-sm font-semibold text-white flex items-center gap-2"><Star size={15} className={vip ? 'text-[#F39C12] fill-[#F39C12]' : 'text-[#8B8BA8]'} /> Cliente VIP</span>
           <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', vip ? 'bg-[#F39C12]/20 text-[#F39C12]' : 'bg-white/8 text-[#8B8BA8]')}>{vip ? 'Sí' : 'No'}</span>
         </button>
-        <textarea value={notas} onChange={e => setNotas(e.target.value.slice(0, 500))} rows={3} placeholder="Notas internas (bebida favorita, alergias, incidencias…)"
+        <textarea value={notas} onChange={e => setNotas(e.target.value.slice(0, 500))} rows={3} placeholder="Notas internas (juego favorito, notas, incidencias…)"
           className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white outline-none focus:border-[#B6FF3A]/60 resize-none placeholder:text-[#6B6B85]" />
 
         <button onClick={guardar} disabled={guardando} className="mt-4 w-full btn-primary inline-flex items-center justify-center gap-2">
@@ -425,7 +425,7 @@ function SegmentosTab({ clientes, esPro, contratoOk, loading, onIrAjustes }: { c
   )
 
   // Tier Venta: el contenido real se ve borroso detrás del candado (vende lo que te pierdes).
-  if (!esPro) return <GateBlur frase="Con Pro segmentas a tu clientela (recuperar, top gasto, cumpleaños…) y la contactas.">{grid}</GateBlur>
+  if (!esPro) return <GateBlur frase="Con Pro segmentas a tu comunidad de jugadores (recuperar, top gasto, cumpleaños…) y la contactas.">{grid}</GateBlur>
   // Pro sin contrato: hay que aceptar el encargo antes de contactar.
   if (!contratoOk) return <ContratoPendiente onIrAjustes={onIrAjustes} />
   if (sel) return <SegmentoDetalle seg={sel} clientes={clientes} onVolver={() => setSel(null)} />
@@ -455,7 +455,7 @@ function ContratoPendiente({ onIrAjustes }: { onIrAjustes: () => void }) {
     <SectionCard className="text-center py-10 border-[#F39C12]/30">
       <div className="w-12 h-12 rounded-2xl bg-[#F39C12]/15 border border-[#F39C12]/25 flex items-center justify-center mx-auto mb-3"><Lock size={20} className="text-[#F39C12]" /></div>
       <p className="font-bold text-white">Acepta el contrato de encargo</p>
-      <p className="text-sm text-[#8B8BA8] mt-1 max-w-sm mx-auto">Para segmentar y contactar a tu clientela conforme al RGPD, primero firma el contrato de encargo en Ajustes.</p>
+      <p className="text-sm text-[#8B8BA8] mt-1 max-w-sm mx-auto">Para segmentar y contactar a tu comunidad de jugadores conforme al RGPD, primero firma el contrato de encargo en Ajustes.</p>
       <button onClick={onIrAjustes} className="mt-4 btn-primary inline-flex">Ir a Ajustes</button>
     </SectionCard>
   )
@@ -758,7 +758,7 @@ function AjustesTab() {
         <div className="flex items-center gap-3">
           <span className="w-9 h-9 rounded-xl bg-[#4F8EF7]/15 border border-[#4F8EF7]/25 flex items-center justify-center"><Upload size={16} className="text-[#4F8EF7]" /></span>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white flex items-center gap-2">Importar clientela {!esPro && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#7C5CFF]/15 text-[#7C5CFF] border border-[#7C5CFF]/25">Pro</span>}</p>
+            <p className="text-sm font-semibold text-white flex items-center gap-2">Importar jugadores {!esPro && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#7C5CFF]/15 text-[#7C5CFF] border border-[#7C5CFF]/25">Pro</span>}</p>
             <p className="text-xs text-[#8B8BA8]">Sube tu Excel/CSV con declaración responsable.</p>
           </div>
           {esPro && aceptado
@@ -863,7 +863,7 @@ function BrevoModal({ onClose, onConectado }: { onClose: () => void; onConectado
   )
 }
 
-// ─────────────────────────── Importar clientela (doc 02 §5.3) ───────────────────────────
+// ─────────────────────────── Importar jugadores (doc 02 §5.3) ───────────────────────────
 function ImportarModal({ onClose }: { onClose: () => void }) {
   const toast = useToast()
   const [headers, setHeaders] = useState<string[]>([])
@@ -919,7 +919,7 @@ function ImportarModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
       <div className="card-premium w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-3"><p className="font-bold text-white text-display">Importar clientela</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
+        <div className="flex items-center justify-between mb-3"><p className="font-bold text-white text-display">Importar jugadores</p><button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button></div>
         {headers.length === 0 ? (
           <>
             <p className="text-xs text-[#8B8BA8] mb-3">Sube un CSV con columnas de nombre, teléfono y (opcional) email. El teléfono es la llave: las fichas se fusionan solas si la persona se registra.</p>

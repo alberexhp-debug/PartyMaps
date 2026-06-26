@@ -81,7 +81,7 @@ export default function AdminLocalesPage() {
 
   return (
     <div className="p-4 md:p-6 pb-20 md:pb-6 space-y-4">
-      <h1 className="text-2xl font-black text-white">Gestión de locales</h1>
+      <h1 className="text-2xl font-black text-white">Gestión de sedes</h1>
 
       {/* Filtros */}
       <div className="flex gap-2 flex-wrap">

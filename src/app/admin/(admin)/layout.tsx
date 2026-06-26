@@ -11,9 +11,9 @@ import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/admin/locales', icon: Store, label: 'Locales' },
-  { href: '/admin/usuarios', icon: Users, label: 'Usuarios' },
-  { href: '/admin/rrpp', icon: Megaphone, label: 'RRPPs' },
+  { href: '/admin/locales', icon: Store, label: 'Sedes' },
+  { href: '/admin/usuarios', icon: Users, label: 'Jugadores' },
+  { href: '/admin/rrpp', icon: Megaphone, label: 'Organizadores' },
   { href: '/admin/soporte', icon: LifeBuoy, label: 'Soporte' },
   { href: '/admin/moderacion', icon: Shield, label: 'Moderación' },
   { href: '/admin/tiers', icon: Star, label: 'Tiers' },

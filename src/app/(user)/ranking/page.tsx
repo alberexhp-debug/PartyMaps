@@ -137,7 +137,7 @@ export default function RankingPage() {
 
       {/* Tu posición (fija abajo) */}
       {yo && (
-        <div className="fixed bottom-16 left-0 right-0 z-20 px-3 pb-2">
+        <div className="fixed bottom-16 lg:bottom-4 left-0 right-0 lg:left-[244px] z-20 px-3 pb-2">
           <div className="max-w-lg mx-auto flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-[#B6FF3A]/12 border border-[#B6FF3A]/40 backdrop-blur-md shadow-lg">
             <span className="w-6 text-center text-sm font-bold text-[#B6FF3A] font-mono-num">{miPuesto}</span>
             <Avatar name="Tú" size={36} ring="#B6FF3A" />

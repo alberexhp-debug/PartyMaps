@@ -130,7 +130,7 @@ export default function MensajesPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-4">
-      <PageHeader eyebrow="La noche" titulo="Mensajes" subtitulo="Tus conversaciones con RRPP, equipo y soporte, en un solo sitio."
+      <PageHeader eyebrow="Mensajes" titulo="Mensajes" subtitulo="Tus conversaciones con RRPP, equipo y soporte, en un solo sitio."
         acciones={
           <button onClick={toggleSonido} aria-label={sonidoOn ? 'Silenciar sonido de mensajes' : 'Activar sonido de mensajes'}
             className="w-10 h-10 rounded-xl glass-strong border border-white/10 flex items-center justify-center text-[#A0A0B8] hover:text-white transition-colors">

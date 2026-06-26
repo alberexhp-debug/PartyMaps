@@ -27,6 +27,15 @@ export default function AdminDemoPage() {
     { id: 'p1', nombre: 'Guilty Gear Strive', to: 'Arcade Planet', color: '#FF5C8A' },
     { id: 'p2', nombre: 'Mortal Kombat 1', to: 'Respawn Bar', color: '#E0BE63' },
   ])
+  const [verif, setVerif] = useState([
+    { id: 'v1', tipo: 'Sede', nombre: 'Gamba Esports', extra: 'Malasaña · 24 setups' },
+    { id: 'v2', tipo: 'Sede', nombre: 'Card Kingdom', extra: 'Salamanca · 16 mesas' },
+    { id: 'v3', tipo: 'Organizador', nombre: 'Arcade Planet TO', extra: '12 torneos organizados' },
+  ])
+  const [verOpen, setVerOpen] = useState(false)
+  const nSedes = verif.filter(v => v.tipo === 'Sede').length
+  const nOrg = verif.filter(v => v.tipo === 'Organizador').length
+  const resolverVerif = (id: string) => setVerif(vs => vs.filter(v => v.id !== id))
 
   const toggle = (id: string) => setJuegos(js => js.map(j => j.id === id ? { ...j, activo: !j.activo } : j))
   const aprobar = (p: typeof propuestas[number]) => {
@@ -59,11 +68,30 @@ export default function AdminDemoPage() {
         <div className="card-premium p-4 flex items-center gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5A623]/15 text-[#F5A623]"><BadgeCheck size={18} /></span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-white">2 sedes y 1 organizador por verificar</p>
+            <p className="text-sm font-semibold text-white">
+              {verif.length === 0 ? 'Todo verificado' : `${nSedes ? `${nSedes} ${nSedes === 1 ? 'sede' : 'sedes'}` : ''}${nSedes && nOrg ? ' y ' : ''}${nOrg ? `${nOrg} ${nOrg === 1 ? 'organizador' : 'organizadores'}` : ''} por verificar`}
+            </p>
             <p className="text-xs text-[#8B8BA8]">Revisa documentación antes de aprobar</p>
           </div>
-          <button className="h-9 px-4 rounded-lg bg-white/8 text-white text-xs font-bold">Revisar</button>
+          {verif.length > 0 && (
+            <button onClick={() => setVerOpen(o => !o)} className="h-9 px-4 rounded-lg bg-white/8 hover:bg-white/12 text-white text-xs font-bold transition-colors">{verOpen ? 'Cerrar' : 'Revisar'}</button>
+          )}
         </div>
+        {verOpen && verif.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {verif.map(v => (
+              <div key={v.id} className="card-premium p-3 flex items-center gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#0A0A0F] font-black text-sm" style={{ background: v.tipo === 'Sede' ? '#4F8EF7' : '#B6FF3A' }}>{v.nombre[0]}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{v.nombre} <span className="text-[10px] uppercase tracking-wide text-[#8B8BA8]">· {v.tipo}</span></p>
+                  <p className="text-[11px] text-[#8B8BA8] truncate">{v.extra}</p>
+                </div>
+                <button onClick={() => resolverVerif(v.id)} aria-label="Rechazar" className="h-8 w-8 rounded-lg bg-white/8 hover:bg-[#FF6B6B]/20 text-[#FF8A8A] flex items-center justify-center transition-colors"><X size={15} /></button>
+                <button onClick={() => resolverVerif(v.id)} aria-label="Aprobar" className="h-8 px-3 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-xs font-bold flex items-center gap-1"><Check size={14} /> Aprobar</button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Catálogo de juegos */}
         <div className="flex items-center justify-between mt-6 mb-2.5">

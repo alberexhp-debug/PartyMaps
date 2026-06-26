@@ -28,10 +28,10 @@ function QrCard({ localId, nombre, mesa }: { localId: string; nombre: string; me
       <div className="my-2">
         {url
           // eslint-disable-next-line @next/next/no-img-element
-          ? <img src={url} alt={`QR mesa ${mesa.codigo}`} width={150} height={150} />
+          ? <img src={url} alt={`QR setup ${mesa.codigo}`} width={150} height={150} />
           : <div className="w-[150px] h-[150px] bg-black/5 rounded" />}
       </div>
-      <p className="text-sm font-semibold text-black">Escanea y pide desde tu mesa</p>
+      <p className="text-sm font-semibold text-black">Escanea para el check-in de tu setup</p>
     </div>
   )
 }
@@ -52,18 +52,18 @@ export default function QrMesasPage() {
     <div className="p-4 md:p-8">
       <div className="no-print flex items-center gap-3 mb-4">
         <button onClick={() => router.back()} aria-label="Volver" className="w-9 h-9 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
-        <h1 className="text-2xl font-bold text-display text-white flex-1">QR de las mesas</h1>
+        <h1 className="text-2xl font-bold text-display text-white flex-1">QR de los setups</h1>
         <button onClick={() => window.print()} className="btn-primary text-sm"><Printer size={16} /> Imprimir</button>
       </div>
       <p className="no-print text-sm text-[#B8B8CC] mb-5 max-w-lg">
-        Imprime esta hoja, recorta y plastifica una tarjeta por mesa. El cliente escanea el QR de SU mesa
-        y pide desde el móvil; el pedido te llega a «Pedidos → Mesas».
+        Imprime esta hoja, recorta y plastifica una tarjeta por setup. Cada setup tiene su QR para el check-in
+        desde el móvil; el check-in te llega a «Pedidos → Setups».
       </p>
 
       {loading ? (
         <p className="text-[#B8B8CC]">Cargando…</p>
       ) : !data?.mesas.length ? (
-        <p className="text-[#B8B8CC]">No hay mesas. Créalas en el Plano de «Sala &amp; Mesas».</p>
+        <p className="text-[#B8B8CC]">No hay setups. Créalos en el Plano de «Setups».</p>
       ) : (
         <div className="qr-grid grid grid-cols-2 sm:grid-cols-3 gap-3">
           {data.mesas.map(m => <QrCard key={m.id} localId={data.local_id} nombre={data.local_nombre} mesa={m} />)}

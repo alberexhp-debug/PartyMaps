@@ -21,8 +21,8 @@ import { fetchLocal } from '@/lib/local-panel/fetchLocal'
 
 const ROLES: { value: RolLocal; label: string; desc: string }[] = [
   { value: 'gestor', label: 'Encargado', desc: 'Gestión completa sin facturación' },
-  { value: 'barman', label: 'Barman', desc: 'Barra, mesas y scanner' },
-  { value: 'puerta', label: 'Puerta', desc: 'Solo scanner y afluencia' },
+  { value: 'barman', label: 'Árbitro', desc: 'Arbitraje y check-in' },
+  { value: 'puerta', label: 'Check-in', desc: 'Check-in de jugadores' },
 ]
 
 export default function FichaTrabajadorPage() {
@@ -141,7 +141,7 @@ export default function FichaTrabajadorPage() {
   }
 
   const cortesiasResumen = [
-    worker.cortesia_consumiciones && 'Consumiciones',
+    worker.cortesia_consumiciones && 'Bonos',
     worker.cortesia_descuentos && 'Descuentos',
     worker.cortesia_entradas_gratis && 'Entradas gratis',
   ].filter(Boolean).join(' · ') || 'Sin cortesías'
