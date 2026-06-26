@@ -34,7 +34,7 @@ export function BuscadorLocales({ open, onClose, locales, onSelect }: Props) {
             onChange={e => setQuery(e.target.value)}
           />
         </div>
-        <button onClick={() => { setQuery(''); onClose() }} className="p-2 text-[#A0A0B8] hover:text-white">
+        <button onClick={() => { setQuery(''); onClose() }} aria-label="Cerrar" className="p-2 text-[#A0A0B8] hover:text-white">
           <X size={22} />
         </button>
       </div>

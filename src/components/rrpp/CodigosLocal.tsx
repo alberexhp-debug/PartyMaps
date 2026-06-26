@@ -116,7 +116,7 @@ export function CodigosLocal({ localId, descuentos }: { localId: string; descuen
             const est = estadoCodigo(c)
             return (
               <div key={c.id} className="flex items-center gap-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] p-2.5">
-                <button onClick={() => setQr(c)} title="Ver QR"
+                <button onClick={() => setQr(c)} title="Ver QR" aria-label="Ver QR"
                   className="w-9 h-9 rounded-lg bg-white text-black flex items-center justify-center shrink-0 hover:opacity-90"><QrCode size={16} /></button>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ export function CodigosLocal({ localId, descuentos }: { localId: string; descuen
                     {est.vivo && c.expira_at ? ` · ${restante(c.expira_at)}` : ''}
                   </p>
                 </div>
-                <button onClick={() => toggle(c)} title={c.activo ? 'Desactivar' : 'Activar'}
+                <button onClick={() => toggle(c)} title={c.activo ? 'Desactivar' : 'Activar'} aria-label={c.activo ? 'Desactivar' : 'Activar'}
                   className={`w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 ${c.activo ? 'bg-emerald-400/15 border-emerald-400/30 text-emerald-300' : 'bg-white/5 border-white/10 text-[#6B6B85]'}`}>
                   <Power size={12} />
                 </button>
@@ -176,7 +176,7 @@ export function QrModal({ codigo, onClose }: { codigo: Codigo; onClose: () => vo
       <div className="card-premium w-full max-w-xs rounded-3xl p-6 animate-slide-up text-center" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-[11px] font-semibold rounded-full px-2 py-0.5" style={{ color: est.color, background: `${est.color}1F` }}>{est.label}</span>
-          <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar" className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
         </div>
         {codigo.etiqueta && <p className="text-sm text-white font-semibold mb-3 flex items-center justify-center gap-1.5"><User size={13} /> {codigo.etiqueta}</p>}
 
@@ -190,6 +190,7 @@ export function QrModal({ codigo, onClose }: { codigo: Codigo; onClose: () => vo
         <div className="mt-4 flex items-center justify-center gap-2">
           <code className="text-display text-2xl tracking-[0.18em] text-white">{codigo.codigo}</code>
           <button onClick={() => { navigator.clipboard?.writeText(codigo.codigo); setCopiado(true); setTimeout(() => setCopiado(false), 1500) }}
+            aria-label="Copiar código"
             className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#B8B8CC] hover:text-white">
             {copiado ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
           </button>

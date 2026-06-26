@@ -47,7 +47,7 @@ export default function AdminAuditoriaPage() {
         <h1 className="text-2xl font-black text-white flex items-center gap-2">
           <FileText size={22} className="text-[#4F8EF7]" /> Log de auditoría
         </h1>
-        <button onClick={cargar} className="p-2 text-[#A0A0B8] hover:text-white" title="Refrescar">
+        <button onClick={cargar} className="p-2 text-[#A0A0B8] hover:text-white" title="Refrescar" aria-label="Refrescar">
           <RefreshCw size={16} />
         </button>
       </div>

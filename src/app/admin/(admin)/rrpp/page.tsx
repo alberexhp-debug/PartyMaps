@@ -181,20 +181,22 @@ export default function AdminRRPP() {
                     )}
                     <button onClick={() => toggleVisibilidad(r)}
                       className="p-2 rounded-lg hover:bg-white/5 text-[#A0A0B8]"
+                      aria-label={r.visible_en_busqueda ? 'Ocultar del buscador' : 'Mostrar en buscador'}
                       title={r.visible_en_busqueda ? 'Ocultar del buscador' : 'Mostrar en buscador'}>
                       {r.visible_en_busqueda ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                     </button>
                     <button onClick={() => toggleActivo(r)}
                       className={`p-2 rounded-lg hover:bg-white/5 ${r.activo ? 'text-emerald-400' : 'text-rose-400'}`}
+                      aria-label={r.activo ? 'Suspender' : 'Reactivar'}
                       title={r.activo ? 'Suspender' : 'Reactivar'}>
                       {r.activo ? <Shield className="w-4 h-4" /> : <ShieldOff className="w-4 h-4" />}
                     </button>
                     {r.username && (
                       <>
-                        <button onClick={() => resetPassword(r)} className="p-2 rounded-lg hover:bg-white/5 text-[#A0A0B8]" title="Resetear contraseña">
+                        <button onClick={() => resetPassword(r)} className="p-2 rounded-lg hover:bg-white/5 text-[#A0A0B8]" aria-label="Resetear contraseña" title="Resetear contraseña">
                           <KeyRound className="w-4 h-4" />
                         </button>
-                        <button onClick={() => resetTotp(r)} className="p-2 rounded-lg hover:bg-white/5 text-[#A0A0B8]" title="Reiniciar authenticator">
+                        <button onClick={() => resetTotp(r)} className="p-2 rounded-lg hover:bg-white/5 text-[#A0A0B8]" aria-label="Reiniciar authenticator" title="Reiniciar authenticator">
                           <RotateCcw className="w-4 h-4" />
                         </button>
                       </>

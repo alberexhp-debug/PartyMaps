@@ -90,7 +90,7 @@ export function PWAInstallPrompt() {
                 </button>
               </div>
             </div>
-            <button onClick={dismiss} className="text-[#6B6B85] -mt-1">
+            <button onClick={dismiss} aria-label="Cerrar" className="text-[#6B6B85] -mt-1">
               <X size={18} />
             </button>
           </div>
@@ -120,7 +120,7 @@ export function PWAInstallPrompt() {
                 Entendido
               </button>
             </div>
-            <button onClick={dismiss} className="text-[#6B6B85] -mt-1">
+            <button onClick={dismiss} aria-label="Cerrar" className="text-[#6B6B85] -mt-1">
               <X size={18} />
             </button>
           </div>

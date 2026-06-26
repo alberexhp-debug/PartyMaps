@@ -30,7 +30,7 @@ export async function moderarImagen(imageUrl: string): Promise<ResultadoModeraci
   const user = process.env.SIGHTENGINE_USER
   const secret = process.env.SIGHTENGINE_SECRET
   if (!user || !secret) {
-    console.log('[moderacion-imagen] skipped (no Sightengine creds):', imageUrl)
+    if (process.env.NODE_ENV !== 'production') console.log('[moderacion-imagen] skipped (no Sightengine creds):', imageUrl)
     return { aprobada: true, skipped: true }
   }
 
@@ -49,7 +49,7 @@ export async function moderarImagen(imageUrl: string): Promise<ResultadoModeraci
     })
 
     if (!res.ok) {
-      console.error('[moderacion-imagen] http', res.status)
+      if (process.env.NODE_ENV !== 'production') console.error('[moderacion-imagen] http', res.status)
       return { aprobada: true, skipped: true, motivo: 'API no disponible (se aprueba; pasa a manual)' }
     }
 
@@ -87,7 +87,7 @@ export async function moderarImagen(imageUrl: string): Promise<ResultadoModeraci
     }
     return { aprobada: true, detalles }
   } catch (e) {
-    console.error('[moderacion-imagen] exception', e)
+    if (process.env.NODE_ENV !== 'production') console.error('[moderacion-imagen] exception', e)
     // Falla abierta: en caso de error, se aprueba y queda para moderación manual
     return { aprobada: true, skipped: true, motivo: 'Error API; pasa a manual' }
   }

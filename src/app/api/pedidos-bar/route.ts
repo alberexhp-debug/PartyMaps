@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
     .select()
     .single()
   if (errPedido || !pedido) {
-    console.error('[pedidos-bar] insert', errPedido)
+    if (process.env.NODE_ENV !== 'production') console.error('[pedidos-bar] insert', errPedido)
     return NextResponse.json({ error: 'No se pudo crear el pedido' }, { status: 500 })
   }
 
@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
         codigo_id: rrppCodigo.codigo_id, usuario_id: usuario.id, entrada_id: null, descuento_aplicado: rrppCodigo.descuento,
       })
     } catch (err) {
-      console.error('[rrpp_codigo] registrar uso bar falló', err)
+      if (process.env.NODE_ENV !== 'production') console.error('[rrpp_codigo] registrar uso bar falló', err)
     }
   }
 
@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
       forzar: !!rrppCodigo,
     })
   } catch (err) {
-    console.error('[atribucion] devengo bar falló', err)
+    if (process.env.NODE_ENV !== 'production') console.error('[atribucion] devengo bar falló', err)
   }
 
   return NextResponse.json({ pedido })

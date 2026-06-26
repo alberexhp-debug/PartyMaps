@@ -106,7 +106,7 @@ export async function enviarPushARRPP(rrppId: string, payload: PushPayload) {
     if (!rrpp?.usuario_id) return
     await enviarPushAUsuario(rrpp.usuario_id, payload)
   } catch (e) {
-    console.error('[push] enviarPushARRPP', e)
+    if (process.env.NODE_ENV !== 'production') console.error('[push] enviarPushARRPP', e)
   }
 }
 

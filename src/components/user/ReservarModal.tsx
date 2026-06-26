@@ -77,7 +77,7 @@ export function ReservarModal({ local, usuario, onClose, onReservado }: Props) {
             <h2 className="text-lg font-bold text-white flex items-center gap-2"><Sofa size={18} className="text-[#B6FF3A]" /> Reservar</h2>
             <p className="text-xs text-[#8B8BA8] mt-0.5">{local.nombre} · esta noche</p>
           </div>
-          <button onClick={onClose} className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar" className="p-2 text-[#6B6B85] hover:text-white"><X size={20} /></button>
         </div>
 
         <div className="px-6 pb-6 space-y-4">

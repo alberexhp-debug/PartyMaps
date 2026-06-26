@@ -11,6 +11,7 @@ import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe, Check, Eye } from 'luc
 let creadoSeq = 0
 
 const FORMATOS = ['Doble eliminación', 'Eliminación simple', 'Suizo', 'Pools → Top cut', 'Round robin']
+const CIERRES = ['Al empezar', '1 hora antes', '1 día antes', 'Manual']
 const REPARTOS = ['100%', '70/30', '70/20/10', '50/30/20']
 const ACCESOS = [
   { id: 'abierto', label: 'Abierto', color: '#B6FF3A' },
@@ -30,6 +31,7 @@ export default function CrearTorneoPage() {
   const [precio, setPrecio] = useState(8)
   const [acceso, setAcceso] = useState<typeof ACCESOS[number]['id']>('abierto')
   const [sala, setSala] = useState<'local' | 'online'>('local')
+  const [cierre, setCierre] = useState(CIERRES[1])
   const [reparto, setReparto] = useState(REPARTOS[1])
   const [publicado, setPublicado] = useState<TorneoSample | null>(null)
   const crearTorneo = useDemoStore(s => s.crearTorneo)
@@ -48,7 +50,7 @@ export default function CrearTorneoPage() {
       ciudad: sala === 'online' ? 'Online' : 'Madrid', distanciaKm: sala === 'online' ? 0 : 1.2,
       inscritos: 0, plazas, precio, bote: precio > 0 ? Math.round(plazas * precio * 0.8) : 0,
       enDirecto: false, vip: vipMap[acceso], organizadorId: 'lima', popularidad: 50,
-      bestOf: 'Bo3', descripcion: `Torneo de ${j.nombre} organizado por ti. ¡Inscripciones abiertas!`,
+      bestOf: 'Bo3', descripcion: `Torneo de ${j.nombre}. Formato ${(formato as string).toLowerCase()}. Cierre de inscripciones: ${cierre.toLowerCase()}.`,
     }
     crearTorneo(t)
     setPublicado(t)
@@ -157,6 +159,11 @@ export default function CrearTorneoPage() {
                 sala === 'online' ? 'bg-[#B6FF3A]/12 text-white border-[#B6FF3A]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10')}>
                 <Globe size={15} /> Online
               </button>
+            </div>
+          </Field>
+          <Field label="Cierre de inscripciones">
+            <div className="flex flex-wrap gap-2">
+              {CIERRES.map(c => <Chip key={c} on={cierre === c} onClick={() => setCierre(c)}>{c}</Chip>)}
             </div>
           </Field>
         </Section>

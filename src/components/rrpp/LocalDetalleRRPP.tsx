@@ -38,7 +38,7 @@ export function LocalDetalleRRPP({ localId, onClose }: { localId: string; onClos
                 ? <img src={d.local.foto_url} alt="" className="w-full h-full object-cover" />
                 : <div className="w-full h-full holo-bg opacity-60" />}
               <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E1A] to-transparent" />
-              <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"><X size={16} /></button>
+              <button onClick={onClose} aria-label="Cerrar" className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"><X size={16} /></button>
               <div className="absolute bottom-2.5 left-4 right-4">
                 <h2 className="text-display text-xl font-bold text-white truncate">{d.local.nombre}</h2>
                 <p className="text-[#B8B8CC] text-xs flex items-center gap-1"><MapPin size={11} /> {d.local.ciudad}</p>

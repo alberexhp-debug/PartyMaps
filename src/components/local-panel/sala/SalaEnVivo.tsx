@@ -258,9 +258,9 @@ export function SalaEnVivo({ localId, plantas, mesas }: Props) {
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-[#B8B8CC]">Personas</span>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => setPersonasSentar(p => Math.max(1, p - 1))} className="h-8 w-8 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Minus size={13} /></button>
+                          <button onClick={() => setPersonasSentar(p => Math.max(1, p - 1))} aria-label="Quitar persona" className="h-8 w-8 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Minus size={13} /></button>
                           <span className="w-6 text-center font-bold text-white">{personasSentar}</span>
-                          <button onClick={() => setPersonasSentar(p => Math.min(50, p + 1))} className="h-8 w-8 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Plus size={13} /></button>
+                          <button onClick={() => setPersonasSentar(p => Math.min(50, p + 1))} aria-label="Añadir persona" className="h-8 w-8 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Plus size={13} /></button>
                         </div>
                       </div>
                       <div className="flex gap-2">

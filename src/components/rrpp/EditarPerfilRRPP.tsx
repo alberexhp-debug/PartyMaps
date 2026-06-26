@@ -37,7 +37,7 @@ export function EditarPerfilRRPP({ rrpp, onClose, onSaved }: {
       <div className="card-premium w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-white text-display">Editar perfil</h2>
-          <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar" className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
         </div>
 
         <div className="flex justify-center mb-5">

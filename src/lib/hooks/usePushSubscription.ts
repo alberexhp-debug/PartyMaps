@@ -66,7 +66,7 @@ export function usePushSubscription() {
       const reg = await navigator.serviceWorker.ready
       const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
       if (!pub) {
-        console.error('Falta NEXT_PUBLIC_VAPID_PUBLIC_KEY')
+        if (process.env.NODE_ENV !== 'production') console.error('Falta NEXT_PUBLIC_VAPID_PUBLIC_KEY')
         return false
       }
       const sub = await reg.pushManager.subscribe({

@@ -40,7 +40,7 @@ export default function EntradasPage() {
           <span className="text-white font-bold font-mono-num">{proximos.length}</span> {proximos.length === 1 ? 'inscripción activa' : 'inscripciones activas'}
         </p>
 
-        <div className="flex gap-1 glass-subtle rounded-2xl p-1 mt-5">
+        <div className="flex gap-1 glass-subtle rounded-2xl p-1 mt-5 sm:max-w-sm">
           {(['proximos', 'historial'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={cn('flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all',

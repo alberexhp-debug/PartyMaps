@@ -114,7 +114,7 @@ export default function MapaExplorar() {
       error = fallback.error
     }
     if (error || !data) {
-      console.error('[mapa] no se pudieron cargar los locales', error)
+      if (process.env.NODE_ENV !== 'production') console.error('[mapa] no se pudieron cargar los locales', error)
       return
     }
     const conAforo: LocalConAforo[] = data.map(l => ({
@@ -391,6 +391,7 @@ export default function MapaExplorar() {
         </button>
         <button
           onClick={() => setShowFiltros(true)}
+          aria-label="Filtros"
           className={cn(
             'w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0',
             filtrosActivos ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'glass-strong text-[#A0A0B8] hover:text-[#0A0A0F]'
@@ -415,11 +416,12 @@ export default function MapaExplorar() {
 
       {/* Controles derecha */}
       <div className="absolute right-4 bottom-28 z-10 flex flex-col gap-2">
-        <button onClick={centrarEnUsuario} className="w-11 h-11 glass-strong rounded-xl flex items-center justify-center text-[#A0A0B8] hover:text-white transition-colors">
+        <button onClick={centrarEnUsuario} aria-label="Centrar en mi ubicación" className="w-11 h-11 glass-strong rounded-xl flex items-center justify-center text-[#A0A0B8] hover:text-white transition-colors">
           <Crosshair size={18} />
         </button>
         <button
           onClick={() => setShowPlanes(!showPlanes)}
+          aria-label="Capas del mapa"
           className={cn('w-11 h-11 rounded-xl flex items-center justify-center transition-all', showPlanes ? 'bg-[#4F8EF7] text-white' : 'glass-strong text-[#A0A0B8] hover:text-white')}
         >
           <Layers size={18} />

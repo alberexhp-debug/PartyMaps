@@ -151,9 +151,9 @@ function SentarSheet({ mesa, onClose, onDone }: { mesa: Mesa; onClose: () => voi
         <div className="flex items-center justify-between">
           <span className="text-sm text-[#B8B8CC]">Personas</span>
           <div className="flex items-center gap-3">
-            <button onClick={() => setPersonas(p => Math.max(1, p - 1))} className="h-9 w-9 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Minus size={15} /></button>
+            <button onClick={() => setPersonas(p => Math.max(1, p - 1))} aria-label="Quitar persona" className="h-9 w-9 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Minus size={15} /></button>
             <span className="w-7 text-center text-lg font-bold text-white">{personas}</span>
-            <button onClick={() => setPersonas(p => Math.min(50, p + 1))} className="h-9 w-9 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Plus size={15} /></button>
+            <button onClick={() => setPersonas(p => Math.min(50, p + 1))} aria-label="Añadir persona" className="h-9 w-9 rounded-lg border border-white/10 text-white flex items-center justify-center hover:bg-white/5"><Plus size={15} /></button>
           </div>
         </div>
 

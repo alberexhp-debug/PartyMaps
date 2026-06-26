@@ -76,7 +76,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   </button>
                 )}
               </div>
-              <button onClick={() => cerrar(t.id)}>
+              <button onClick={() => cerrar(t.id)} aria-label="Cerrar">
                 <X size={14} className="text-[#A0A0B8]" />
               </button>
             </div>

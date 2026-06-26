@@ -140,7 +140,7 @@ function TicketAdminModal({ id, onClose }: { id: string; onClose: () => void }) 
               </p>
             )}
           </div>
-          <button onClick={onClose} className="text-[#8B8BA8] hover:text-white shrink-0"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar" className="text-[#8B8BA8] hover:text-white shrink-0"><X size={20} /></button>
         </div>
 
         {/* Acciones: estado + acceso a la config del local */}
@@ -178,7 +178,7 @@ function TicketAdminModal({ id, onClose }: { id: string; onClose: () => void }) 
           <input value={texto} onChange={e => setTexto(e.target.value)} placeholder="Responde al local"
             onKeyDown={e => { if (e.key === 'Enter') responder() }}
             className="flex-1 h-11 rounded-xl border border-white/10 bg-white/5 px-4 text-white text-sm outline-none focus:border-[#4F8EF7]/60" />
-          <button onClick={responder} disabled={enviando || !texto.trim()}
+          <button onClick={responder} disabled={enviando || !texto.trim()} aria-label="Enviar"
             className="shrink-0 h-11 w-11 rounded-xl bg-[#4F8EF7] flex items-center justify-center text-white disabled:opacity-40">
             <Send size={17} />
           </button>

@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
           descuento_aplicado: codigoAplicado.descuentoPorEntrada,
         })
       } catch (err) {
-        console.error('[codigo] registrar uso falló', err)
+        if (process.env.NODE_ENV !== 'production') console.error('[codigo] registrar uso falló', err)
       }
     }
 
@@ -200,7 +200,7 @@ export async function POST(req: NextRequest) {
           descuento_aplicado: rrppCodigoAplicado.descuentoPorEntrada,
         })
       } catch (err) {
-        console.error('[rrpp_codigo] registrar uso falló', err)
+        if (process.env.NODE_ENV !== 'production') console.error('[rrpp_codigo] registrar uso falló', err)
       }
     }
 
@@ -224,7 +224,7 @@ export async function POST(req: NextRequest) {
           cookieRef,
         })
       } catch (err) {
-        console.error('[atribucion] devengo entrada falló', err)
+        if (process.env.NODE_ENV !== 'production') console.error('[atribucion] devengo entrada falló', err)
       }
     }
 

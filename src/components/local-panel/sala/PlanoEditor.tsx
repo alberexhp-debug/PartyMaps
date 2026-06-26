@@ -174,7 +174,7 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
     }
     const { data, error } = await supabase.from('mesas').insert(nueva).select('*').single()
     if (error || !data) {
-      console.error('[addMesa] error:', error)
+      if (process.env.NODE_ENV !== 'production') console.error('[addMesa] error:', error)
       toast.error(error?.message ? `No se pudo añadir la mesa: ${error.message}` : 'No se pudo añadir la mesa')
       return
     }

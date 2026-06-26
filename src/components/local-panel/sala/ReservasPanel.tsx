@@ -197,7 +197,7 @@ function ConfirmarReservaModal({ reserva, onClose, onConfirmar }: {
       <div className="card-premium w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-bold text-white text-display">Confirmar reserva</h2>
-          <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar" className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>
         </div>
         <p className="text-xs text-[#8B8BA8] mb-4">{reserva.nombre_contacto} · {reserva.personas} personas</p>
         <div className="space-y-4">

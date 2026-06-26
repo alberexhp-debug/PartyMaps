@@ -25,7 +25,7 @@ const REPLY_TO = process.env.RESEND_REPLY_TO || 'soporte@partymaps.es'
 export async function enviarEmail({ to, subject, html, tag }: EnviarOptions): Promise<EnviarResult> {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
-    console.log(`[email] skipped (no RESEND_API_KEY): "${subject}" → ${to}`)
+    if (process.env.NODE_ENV !== 'production') console.log(`[email] skipped (no RESEND_API_KEY): "${subject}" → ${to}`)
     return { ok: true, skipped: true }
   }
 
@@ -41,12 +41,12 @@ export async function enviarEmail({ to, subject, html, tag }: EnviarOptions): Pr
       tags: tag ? [{ name: 'tipo', value: tag }] : undefined,
     })
     if (error) {
-      console.error('[email] resend error', error)
+      if (process.env.NODE_ENV !== 'production') console.error('[email] resend error', error)
       return { ok: false, error: error.message }
     }
     return { ok: true, id: data?.id }
   } catch (e) {
-    console.error('[email] exception', e)
+    if (process.env.NODE_ENV !== 'production') console.error('[email] exception', e)
     return { ok: false, error: e instanceof Error ? e.message : 'unknown' }
   }
 }

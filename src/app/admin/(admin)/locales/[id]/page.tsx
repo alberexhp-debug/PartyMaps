@@ -202,7 +202,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
       {/* Header sticky */}
       <div className="sticky top-0 z-20 bg-[#0E0E1A]/95 backdrop-blur border-b border-white/8 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <button onClick={() => router.push('/admin/locales')}
+          <button onClick={() => router.push('/admin/locales')} aria-label="Volver"
             className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center hover:bg-white/10 transition-colors">
             <ArrowLeft size={16} className="text-white" />
           </button>
@@ -319,7 +319,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                 return (
                   <div key={dia} className={cn('p-3 rounded-xl border transition-colors', abierto ? 'border-white/15 bg-white/4' : 'border-white/6 bg-white/2')}>
                     <div className="flex items-center gap-3">
-                      <button onClick={() => toggleDia(dia)}
+                      <button onClick={() => toggleDia(dia)} aria-label="Alternar día"
                         className={cn('w-5 h-5 rounded-md border flex items-center justify-center transition-colors shrink-0',
                           abierto ? 'bg-[#B6FF3A] border-[#B6FF3A]' : 'border-white/20')}>
                         {abierto && <Check size={11} className="text-white" />}
@@ -354,7 +354,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                   <img src={url} alt="" className="w-full h-full object-cover"
                     onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3' }} />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button onClick={() => removeImagen(i)}
+                    <button onClick={() => removeImagen(i)} aria-label="Eliminar imagen"
                       className="w-8 h-8 rounded-full bg-red-500/80 flex items-center justify-center">
                       <Trash2 size={13} className="text-white" />
                     </button>
@@ -372,7 +372,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
                 onKeyDown={e => e.key === 'Enter' && addImagen()}
                 placeholder="URL de imagen..."
                 className="flex-1 px-4 py-2.5 bg-white/5 border border-white/8 rounded-xl text-white text-sm outline-none focus:border-white/20 placeholder:text-[#6B6B85]" />
-              <button onClick={addImagen}
+              <button onClick={addImagen} aria-label="Añadir imagen"
                 className="px-4 py-2.5 bg-white/8 border border-white/10 rounded-xl text-white text-sm hover:bg-white/12 transition-colors">
                 <Plus size={16} />
               </button>

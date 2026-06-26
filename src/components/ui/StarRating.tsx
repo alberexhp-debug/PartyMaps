@@ -17,6 +17,7 @@ export function StarRating({ value, max = 5, onChange, size = 18, className }: S
         <button
           key={star}
           type="button"
+          aria-label={`${star} ${star === 1 ? 'estrella' : 'estrellas'}`}
           disabled={!onChange}
           onClick={() => onChange?.(star)}
           className={cn('transition-transform', onChange && 'hover:scale-110 cursor-pointer')}

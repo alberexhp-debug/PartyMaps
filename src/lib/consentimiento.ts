@@ -29,7 +29,7 @@ export async function registrarConsentimiento(
     estado: p.estado,
     origen: p.origen,
   })
-  if (error) console.error('[consentimiento] no se pudo registrar:', error.message)
+  if (error && process.env.NODE_ENV !== 'production') console.error('[consentimiento] no se pudo registrar:', error.message)
 }
 
 /** ¿El usuario YA respondió (sí o no) sobre este local? Para no repetir en barra. */

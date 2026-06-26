@@ -142,12 +142,14 @@ export default function AdminUsuariosPage() {
                   <div className="flex gap-1 shrink-0">
                     {u.estado_cuenta === 'activa' ? (
                       <button onClick={() => cambiarEstado(u.id, 'suspendida_temporal')}
+                        aria-label="Suspender temporalmente"
                         title="Suspender temporalmente"
                         className="p-1.5 text-[#F39C12] hover:bg-[#F39C12]/10 rounded-lg">
                         <UserX size={14} />
                       </button>
                     ) : (
                       <button onClick={() => cambiarEstado(u.id, 'activa')}
+                        aria-label="Reactivar"
                         title="Reactivar"
                         className="p-1.5 text-green-400 hover:bg-green-400/10 rounded-lg">
                         <UserCheck size={14} />
