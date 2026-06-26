@@ -22,6 +22,8 @@ interface DemoState {
   inscritos: string[]                 // ids de torneos inscritos
   seguidos: string[]                  // ids de organizadores seguidos
   creados: TorneoSample[]             // torneos creados por el TO en demo
+  editados: Record<string, Partial<TorneoSample>>  // overrides de edición (muestra o creado)
+  cancelados: string[]                // ids de torneos cancelados por el TO
   notificaciones: Notificacion[]
   juegoPerfil: string                 // juego activo en el perfil
   avatarEmoji: string | null          // avatar elegido en el perfil (demo)
@@ -32,6 +34,8 @@ interface DemoState {
   alternarSeguir: (orgId: string, nombreOrg: string) => void
   sigue: (orgId: string) => boolean
   crearTorneo: (t: TorneoSample) => void
+  editarTorneo: (id: string, patch: Partial<TorneoSample>) => void
+  cancelarTorneo: (id: string, nombre: string) => void
   pushNoti: (n: Omit<Notificacion, 'id' | 'leida' | 'cuando'> & { cuando?: string }) => void
   marcarLeidas: () => void
   noLeidas: () => number
@@ -55,6 +59,8 @@ export const useDemoStore = create<DemoState>()(
       inscritos: [],
       seguidos: [],
       creados: [],
+      editados: {},
+      cancelados: [],
       notificaciones: NOTIS_INICIALES,
       juegoPerfil: 'smash',
       avatarEmoji: null,
@@ -88,6 +94,20 @@ export const useDemoStore = create<DemoState>()(
           cuerpo: `"${t.nombre}" ya es visible en Explorar.`, cuando: 'ahora', leida: false, href: `/torneo/${t.id}`,
         }
         return { creados: [t, ...s.creados], notificaciones: [noti, ...s.notificaciones] }
+      }),
+
+      editarTorneo: (id, patch) => set((s) => ({
+        editados: { ...s.editados, [id]: { ...s.editados[id], ...patch } },
+        creados: s.creados.map(c => c.id === id ? { ...c, ...patch } : c),
+      })),
+
+      cancelarTorneo: (id, nombre) => set((s) => {
+        if (s.cancelados.includes(id)) return s
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: 'Torneo cancelado',
+          cuerpo: `Has cancelado "${nombre}". Se reembolsa el 100% a los inscritos.`, cuando: 'ahora', leida: false,
+        }
+        return { cancelados: [...s.cancelados, id], notificaciones: [noti, ...s.notificaciones] }
       }),
 
       pushNoti: (n) => set((s) => ({

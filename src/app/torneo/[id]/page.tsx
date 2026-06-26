@@ -39,7 +39,10 @@ export default function TorneoDetallePage() {
   const [selJugador, setSelJugador] = useState<Jugador | null>(null)
 
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
-  const t = getTorneo(id) || creado
+  const override = useDemoStore(s => s.editados[id])
+  const cancelado = useDemoStore(s => s.cancelados.includes(id))
+  const base = getTorneo(id) || creado
+  const t = base ? { ...base, ...(override || {}) } : undefined
   const inscrito = useDemoStore(s => s.inscritos.includes(id))
   const inscribir = useDemoStore(s => s.inscribir)
 
@@ -78,7 +81,9 @@ export default function TorneoDetallePage() {
 
   // Botón de inscripción, reutilizado en la barra fija (móvil) y en la columna
   // lateral sticky (escritorio).
-  const ctaBtn = inscrito ? (
+  const ctaBtn = cancelado ? (
+    <div className="w-full h-14 rounded-2xl bg-[#FF6B6B]/12 border border-[#FF6B6B]/40 text-[#FF8A8A] font-bold flex items-center justify-center gap-2">Torneo cancelado · reembolso 100%</div>
+  ) : inscrito ? (
     <Link href="/entradas" className="w-full h-14 rounded-2xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] font-bold flex items-center justify-center gap-2"><Check size={18} /> Inscrito · ver en mi cartera</Link>
   ) : t.vip ? (
     <button className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2"><Lock size={16} /> Requiere tier {t.vip}</button>
