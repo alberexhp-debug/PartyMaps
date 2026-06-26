@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import { PageLoader } from '@/components/ui/Spinner'
 
 // Mapa de TORNEOS (un marcador por evento) — componente propio de TODH, con datos
-// de muestra y Mapbox. Reemplaza al mapa nocturno de locales de Rumbo.
+// de muestra y Mapbox.
 const MapaTorneos = dynamic(() => import('@/components/todh/MapaTorneos'), {
   ssr: false,
   loading: () => <PageLoader />,

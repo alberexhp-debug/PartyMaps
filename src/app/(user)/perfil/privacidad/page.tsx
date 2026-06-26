@@ -52,7 +52,7 @@ export default function PrivacidadPage() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `mis-datos-rumbo-${new Date().toISOString().slice(0, 10)}.json`
+      a.download = `mis-datos-todh-${new Date().toISOString().slice(0, 10)}.json`
       document.body.appendChild(a); a.click(); a.remove()
       URL.revokeObjectURL(url)
       toast.success('Descarga iniciada')
@@ -90,7 +90,7 @@ export default function PrivacidadPage() {
           <h2 className="font-semibold text-white">Descargar mis datos</h2>
         </div>
         <p className="text-sm text-[#A0A0B8]">
-          Descarga un archivo con toda la información que tenemos de ti: perfil, entradas, planes, reseñas, pedidos, suscripciones y más (derecho de acceso y portabilidad, RGPD).
+          Descarga un archivo con toda la información que tenemos de ti: perfil, inscripciones, torneos, ranking, reseñas y más (derecho de acceso y portabilidad, RGPD).
         </p>
         <Button variant="outline" loading={descargando} onClick={descargar}>
           <Download size={16} /> Descargar (JSON)
