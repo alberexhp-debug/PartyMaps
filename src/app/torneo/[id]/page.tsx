@@ -78,9 +78,11 @@ export default function TorneoDetallePage() {
 
   return (
     <div className="relative min-h-screen pb-28 max-w-xl mx-auto">
-      {/* Banner */}
+      {/* Banner: el del torneo si lo tiene; si no, el keyart del juego */}
       <div className="relative h-48 overflow-hidden">
-        <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />
+        {t.banner
+          ? <img src={t.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          : <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.12) 28%, #0C0E13)' }} />
         <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>

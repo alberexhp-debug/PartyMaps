@@ -11,6 +11,9 @@ export const JUEGOS: Record<string, Juego> = {
   tft:     { id: 'tft',     nombre: 'Teamfight Tactics',          corto: 'TFT',     color: '#4F8EF7', emoji: '♟️' },
   tekken:  { id: 'tekken',  nombre: 'Tekken 8',                   corto: 'Tekken',  color: '#9B5DE5', emoji: '👊' },
   sf6:     { id: 'sf6',     nombre: 'Street Fighter 6',           corto: 'SF6',     color: '#2EC4B6', emoji: '🥊' },
+  valorant:{ id: 'valorant',nombre: 'VALORANT',                   corto: 'Valorant',color: '#FF4655', emoji: '🎯' },
+  lol:     { id: 'lol',     nombre: 'League of Legends',          corto: 'LoL',     color: '#0AC8B9', emoji: '🛡️' },
+  cod:     { id: 'cod',     nombre: 'Call of Duty',               corto: 'CoD',     color: '#E8913A', emoji: '💥' },
 }
 
 export const JUEGOS_LIST = Object.values(JUEGOS)
@@ -44,6 +47,7 @@ export type TorneoSample = {
   bestOf?: string          // 'Bo3 → Bo5 en top 8'
   checkInAbierto?: boolean
   descripcion?: string
+  banner?: string          // URL del banner del torneo; si falta, se usa el keyart del juego
 }
 
 export const TORNEOS_SAMPLE: TorneoSample[] = [
@@ -53,6 +57,7 @@ export const TORNEOS_SAMPLE: TorneoSample[] = [
     distanciaKm: 1.2, inscritos: 58, plazas: 64, precio: 8, bote: 320, enDirecto: true, viendo: 137,
     vip: null, organizadorId: 'lima', popularidad: 98, bestOf: 'Bo3 · Bo5 en top 8', checkInAbierto: true,
     descripcion: 'El semanal de Smash más veterano de Madrid. Bracket de doble eliminación, premios al top 3 y ambientazo asegurado.',
+    banner: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&q=80',
   },
   {
     id: 't2', nombre: 'Liga Magic Standard — Jornada 5', juego: 'magic', formato: 'Suizo',
@@ -88,6 +93,7 @@ export const TORNEOS_SAMPLE: TorneoSample[] = [
     distanciaKm: 1.2, inscritos: 14, plazas: 16, precio: 0, bote: 1000, enDirecto: false,
     vip: 'Platino', organizadorId: 'lima', popularidad: 95, bestOf: 'Bo5',
     descripcion: 'Invitational exclusivo para jugadores Platino. Los 16 mejores de la región por un bote de 1.000€.',
+    banner: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&q=80',
   },
   {
     id: 't7', nombre: 'Smash Singles — Casual Bracket', juego: 'smash', formato: 'Eliminación simple',
@@ -123,6 +129,7 @@ export const TORNEOS_SAMPLE: TorneoSample[] = [
     distanciaKm: 1.2, inscritos: 176, plazas: 256, precio: 15, bote: 2500, enDirecto: false,
     vip: null, organizadorId: 'lima', popularidad: 99, bestOf: 'Bo3 · Bo5 en top 8',
     descripcion: 'El major del verano. 256 plazas, pools por la mañana y top 24 retransmitido por la tarde.',
+    banner: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=1200&q=80',
   },
   {
     id: 't12', nombre: 'SF6 Newcomers Night', juego: 'sf6', formato: 'Doble eliminación',

@@ -60,23 +60,39 @@ export default function MapaTorneos() {
     markersRef.current = []
     presenciales.forEach((t, i) => {
       const j = JUEGOS[t.juego]
+      const sel = t.id === selId
+      // Medallón circular tipo "moneda": fondo glass oscuro, aro del color del juego,
+      // emoji del juego centrado, punta inferior limpia. Más elegante que la gota plana.
       const el = document.createElement('button')
       el.className = 'todh-pin'
-      el.style.cssText = `width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${j.color};border:2px solid #0C0E13;box-shadow:0 4px 12px rgba(0,0,0,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;`
+      el.style.cssText = `position:relative;width:42px;height:50px;cursor:pointer;background:none;border:none;padding:0;z-index:${sel ? 5 : 1};`
+
+      // Punta inferior (tip): rombo recortado que apunta a la coordenada.
+      const tail = document.createElement('span')
+      tail.style.cssText = `position:absolute;left:50%;bottom:2px;width:12px;height:12px;background:linear-gradient(135deg,#171A24,#0C0E13);border-right:2px solid ${j.color};border-bottom:2px solid ${j.color};transform:translateX(-50%) rotate(45deg);border-radius:0 0 3px 0;`
+      el.appendChild(tail)
+
+      // Cuerpo: círculo glass con aro del color del juego + halo suave.
+      const body = document.createElement('span')
+      body.style.cssText = `position:absolute;top:0;left:1px;width:40px;height:40px;border-radius:50%;background:radial-gradient(120% 120% at 32% 24%, #232634 0%, #0C0E13 72%);border:2px solid ${j.color};box-shadow:0 8px 18px rgba(0,0,0,.5), 0 0 0 ${sel ? 5 : 3}px ${j.color}${sel ? '33' : '1F'}, inset 0 1px 0 rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;transition:transform .16s cubic-bezier(.34,1.56,.64,1);transform:scale(${sel ? 1.12 : 1});`
       const inner = document.createElement('span')
-      inner.textContent = j.corto[0]
-      inner.style.cssText = 'transform:rotate(45deg);color:#0A0A0F;font-weight:900;font-size:13px;'
-      el.appendChild(inner)
+      inner.textContent = j.emoji || j.corto[0]
+      inner.style.cssText = 'font-size:19px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));'
+      body.appendChild(inner)
+
       if (t.enDirecto) {
         const ring = document.createElement('span')
-        ring.style.cssText = 'position:absolute;inset:-5px;border-radius:50%;border:2px solid #FF3D71;animation:pulse-heat 1.5s ease-in-out infinite;'
-        el.appendChild(ring)
+        ring.style.cssText = 'position:absolute;top:-4px;left:-3px;width:46px;height:46px;border-radius:50%;border:2px solid #FF3D71;animation:pulse-heat 1.5s ease-in-out infinite;pointer-events:none;'
+        body.appendChild(ring)
       }
+      el.appendChild(body)
+      el.onmouseenter = () => { body.style.transform = 'scale(1.14)' }
+      el.onmouseleave = () => { body.style.transform = `scale(${t.id === selId ? 1.12 : 1})` }
       el.onclick = (e) => { e.stopPropagation(); setSelId(t.id); map.flyTo({ center: jitter(t.localId!, i), zoom: 13.5, offset: [0, -120] }) }
       const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' }).setLngLat(jitter(t.localId!, i)).addTo(map)
       markersRef.current.push(m)
     })
-  }, [presenciales])
+  }, [presenciales, selId])
 
   return (
     <div className="relative w-full overflow-hidden" style={{ height: 'calc(100dvh - 4rem)' }}>

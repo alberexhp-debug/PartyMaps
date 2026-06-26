@@ -81,8 +81,8 @@ export function homeDeRol(rol: RolLocal | undefined): ZonaPanel {
 export const ROL_LABEL: Record<RolLocal, string> = {
   dueno: 'Dueño',
   gestor: 'Encargado',
-  puerta: 'Puerta',
-  barman: 'Barman',
+  puerta: 'Check-in',
+  barman: 'Árbitro',
 }
 
 /**
@@ -99,10 +99,10 @@ export const ZONAS_ASIGNABLES: ZonaPanel[] = [
 /** Etiqueta legible de cada zona, para el editor de permisos del equipo. */
 export const ZONA_LABEL: Record<ZonaPanel, string> = {
   dashboard: 'Resumen', 'puesta-a-punto': 'Puesta a punto', configuracion: 'Configuración',
-  'mi-local': 'Mi local', eventos: 'Eventos', scanner: 'Afluencia & Puerta', taquilla: 'Taquilla',
-  'pedidos-bar': 'Pedidos', sala: 'Sala & Mesas', productos: 'Productos', clientes: 'Clientes',
-  crm: 'CRM', rrpp: 'RRPP', cortesias: 'Cortesías', sugerencias: 'Sugerencias',
-  notificaciones: 'Notificaciones', reviews: 'Reseñas', analytics: 'Analítica', equipo: 'Equipo',
+  'mi-local': 'Mi sede', eventos: 'Torneos', scanner: 'Check-in & Aforo', taquilla: 'Inscripciones',
+  'pedidos-bar': 'Pedidos', sala: 'Setups', productos: 'Productos', clientes: 'Jugadores',
+  crm: 'Jugadores', rrpp: 'Organizadores', cortesias: 'Bonos', sugerencias: 'Sugerencias',
+  notificaciones: 'Notificaciones', reviews: 'Valoraciones', analytics: 'Analítica', equipo: 'Equipo',
   mensajes: 'Mensajes', facturacion: 'Facturación', soporte: 'Soporte',
 }
 

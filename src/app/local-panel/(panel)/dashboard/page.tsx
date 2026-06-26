@@ -8,7 +8,7 @@ import { useToast } from '@/components/ui/Toast'
 import { formatearPrecio, getColorTemperatura, getTemperaturaAforo, aforoVisible } from '@/lib/utils'
 import { zonasDeTrabajador, type ZonaPanel } from '@/lib/permisosLocal'
 import {
-  Gauge, TicketPlus, Beer, LayoutGrid, Gift, MessagesSquare, Calendar, Sparkles,
+  Gauge, TicketPlus, LayoutGrid, Gift, MessagesSquare, Calendar, Sparkles,
   Bell, Contact, BarChart3, Star, MessageSquare, ChevronRight, Check, DoorClosed, MoonStar,
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
@@ -111,26 +111,24 @@ export default function LocalPanelDashboard() {
   const colorTemp = getColorTemperatura(getTemperaturaAforo(aforoPct))
 
   const SECCIONES: Seccion[] = [
-    { zona: 'scanner', href: '/local-panel/scanner', icon: Gauge, label: 'Afluencia & Puerta', sub: 'Escanear y controlar aforo', color: '#4F8EF7' },
-    { zona: 'taquilla', href: '/local-panel/taquilla', icon: TicketPlus, label: 'Taquilla', sub: 'Vender en puerta', color: 'var(--p-accent)' },
-    { zona: 'pedidos-bar', href: '/local-panel/pedidos-bar', icon: Beer, label: 'Pedidos', sub: kpis?.pedidos_bar_pendientes ? `${kpis.pedidos_bar_pendientes} por servir` : 'Barra', color: '#F39C12' },
-    { zona: 'sala', href: '/local-panel/sala', icon: LayoutGrid, label: 'Sala & Mesas', sub: 'Reservas y mesas', color: '#7C5CFF' },
-    { zona: 'cortesias', href: '/local-panel/cortesias', icon: Gift, label: 'Cortesías', sub: 'Emitir y canjear', color: '#27AE60' },
+    { zona: 'scanner', href: '/local-panel/scanner', icon: Gauge, label: 'Check-in & Aforo', sub: 'Acreditar jugadores y aforo', color: '#4F8EF7' },
+    { zona: 'taquilla', href: '/local-panel/taquilla', icon: TicketPlus, label: 'Inscripciones', sub: 'Inscribir en puerta', color: 'var(--p-accent)' },
+    { zona: 'sala', href: '/local-panel/sala', icon: LayoutGrid, label: 'Setups', sub: 'Estaciones de juego', color: '#7C5CFF' },
+    { zona: 'cortesias', href: '/local-panel/cortesias', icon: Gift, label: 'Bonos', sub: 'Descuentos y entradas', color: '#27AE60' },
     { zona: 'mensajes', href: '/local-panel/mensajes', icon: MessagesSquare, label: 'Mensajes', sub: noLeidos ? `${noLeidos} sin leer` : 'Chat con tu equipo', color: '#7C5CFF' },
-    { zona: 'eventos', href: '/local-panel/eventos', icon: Calendar, label: 'Eventos', sub: kpis?.evento_activo ? kpis.evento_activo.nombre : 'Crear y gestionar', color: 'var(--p-accent)' },
-    { zona: 'rrpp', href: '/local-panel/rrpp', icon: Sparkles, label: 'RRPP', sub: 'Tus relaciones públicas', color: '#7C5CFF' },
+    { zona: 'eventos', href: '/local-panel/eventos', icon: Calendar, label: 'Torneos', sub: kpis?.evento_activo ? kpis.evento_activo.nombre : 'Alojar y gestionar', color: 'var(--p-accent)' },
+    { zona: 'rrpp', href: '/local-panel/rrpp', icon: Sparkles, label: 'Organizadores', sub: 'TOs de confianza', color: '#7C5CFF' },
     { zona: 'notificaciones', href: '/local-panel/notificaciones', icon: Bell, label: 'Notificaciones', sub: 'Avisar a seguidores', color: '#4F8EF7' },
-    { zona: 'crm', href: '/local-panel/crm', icon: Contact, label: 'CRM', sub: 'Tus clientes', color: '#4F8EF7' },
-    { zona: 'analytics', href: '/local-panel/analytics', icon: BarChart3, label: 'Analítica', sub: 'Cómo va el negocio', color: '#7C5CFF' },
-    { zona: 'reviews', href: '/local-panel/reviews', icon: Star, label: 'Reseñas', sub: kpis?.num_reviews ? `${kpis.media_reviews.toFixed(1)} de media` : 'Valoraciones', color: '#D4A84B' },
-    { zona: 'sugerencias', href: '/local-panel/sugerencias', icon: MessageSquare, label: 'Sugerencias', sub: 'De los clientes', color: '#27AE60' },
+    { zona: 'crm', href: '/local-panel/crm', icon: Contact, label: 'Jugadores', sub: 'Tu comunidad', color: '#4F8EF7' },
+    { zona: 'analytics', href: '/local-panel/analytics', icon: BarChart3, label: 'Analítica', sub: 'Cómo va la sede', color: '#7C5CFF' },
+    { zona: 'reviews', href: '/local-panel/reviews', icon: Star, label: 'Valoraciones', sub: kpis?.num_reviews ? `${kpis.media_reviews.toFixed(1)} de media` : 'Reseñas de jugadores', color: '#D4A84B' },
+    { zona: 'sugerencias', href: '/local-panel/sugerencias', icon: MessageSquare, label: 'Sugerencias', sub: 'De los jugadores', color: '#27AE60' },
   ]
   const secciones = SECCIONES.filter(s => zonas.includes(s.zona))
 
   const avisos: { icon: React.ElementType; color: string; txt: string; sub: string; href: string }[] = []
-  if (noLeidos > 0) avisos.push({ icon: MessagesSquare, color: '#7C5CFF', txt: `${noLeidos} ${noLeidos === 1 ? 'mensaje sin leer' : 'mensajes sin leer'}`, sub: 'De tu equipo o RRPP', href: '/local-panel/mensajes' })
-  if (kpis?.pedidos_bar_pendientes) avisos.push({ icon: Beer, color: '#F39C12', txt: `${kpis.pedidos_bar_pendientes} ${kpis.pedidos_bar_pendientes === 1 ? 'pedido' : 'pedidos'} por servir`, sub: 'En la barra ahora mismo', href: '/local-panel/pedidos-bar' })
-  if (pendientePaso) avisos.push({ icon: Check, color: 'var(--p-accent)', txt: `Te falta ${pendientePaso.toLowerCase()}`, sub: 'Tu local sale mejor en el mapa', href: '/local-panel/puesta-a-punto' })
+  if (noLeidos > 0) avisos.push({ icon: MessagesSquare, color: '#7C5CFF', txt: `${noLeidos} ${noLeidos === 1 ? 'mensaje sin leer' : 'mensajes sin leer'}`, sub: 'De tu equipo o un organizador', href: '/local-panel/mensajes' })
+  if (pendientePaso) avisos.push({ icon: Check, color: 'var(--p-accent)', txt: `Te falta ${pendientePaso.toLowerCase()}`, sub: 'Tu sede sale mejor en el mapa', href: '/local-panel/puesta-a-punto' })
 
   const card: React.CSSProperties = { background: 'var(--p-surface)', border: '1px solid var(--p-border)', borderRadius: 16, boxShadow: 'var(--p-shadow)' }
   const tint = (c: string) => c.startsWith('var') ? 'color-mix(in srgb, var(--p-accent) 12%, transparent)' : `${c}1f`
