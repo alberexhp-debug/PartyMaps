@@ -39,7 +39,13 @@ export default function SedePage() {
   // Aceptar/rechazar responde al TO con una notificación.
   const solicitudesStore = useDemoStore(s => s.solicitudesSede)
   const resolverSolicitud = useDemoStore(s => s.resolverSolicitudSede)
+  const contraofertar = useDemoStore(s => s.contraofertarSede)
   const solicitudesTO = solicitudesStore.filter(x => x.localId === local.id && x.estado === 'pendiente')
+  // Contraoferta: la sede propone otra fecha/franja/precio y el TO decide.
+  const [coId, setCoId] = useState<string | null>(null)
+  const [coFecha, setCoFecha] = useState('')
+  const [coFranja, setCoFranja] = useState('Noche (19-24h)')
+  const [coPrecio, setCoPrecio] = useState(local.precioNoche)
   const ocupados = SETUPS.filter(s => s.estado === 'ocupado').length
   const [dispoPublicada, setDispoPublicada] = useState(false)
 
@@ -113,9 +119,31 @@ export default function SedePage() {
                 </div>
                 <div className="mt-2.5 flex gap-2">
                   <button onClick={() => resolverSolicitud(s.id, 'aceptada', local.nombre)} className="flex-1 h-9 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[12px] font-bold inline-flex items-center justify-center gap-1"><Check size={14} /> Aceptar</button>
-                  <button className="flex-1 h-9 rounded-lg bg-white/8 text-white text-[12px] font-bold">Contraofertar</button>
+                  <button onClick={() => { setCoId(coId === s.id ? null : s.id); setCoFecha(s.fecha); setCoFranja(s.franja) }}
+                    className={`flex-1 h-9 rounded-lg text-[12px] font-bold ${coId === s.id ? 'bg-[#FF8A5C]/20 text-[#FF8A5C] border border-[#FF8A5C]/40' : 'bg-white/8 text-white'}`}>Contraofertar</button>
                   <button onClick={() => resolverSolicitud(s.id, 'rechazada', local.nombre)} aria-label="Rechazar" className="h-9 w-9 rounded-lg bg-white/6 text-[#FF6076] inline-flex items-center justify-center"><X size={15} /></button>
                 </div>
+                {coId === s.id && (
+                  <div className="mt-2.5 rounded-xl border border-[#FF8A5C]/30 bg-[#FF8A5C]/[0.06] p-3 space-y-2 animate-slide-up-sm">
+                    <p className="text-[11px] font-bold text-[#FF8A5C] uppercase tracking-wider">Tu propuesta alternativa</p>
+                    <input value={coFecha} onChange={e => setCoFecha(e.target.value)} placeholder="Ej. Dom 13 jul"
+                      className="w-full h-10 px-3 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#FF8A5C]/60 outline-none" />
+                    <div className="flex flex-wrap gap-1.5">
+                      {['Tarde (16-21h)', 'Noche (19-24h)', 'Día completo'].map(fr => (
+                        <button key={fr} onClick={() => setCoFranja(fr)}
+                          className={`px-2.5 h-8 rounded-lg text-[11px] font-bold border ${coFranja === fr ? 'bg-[#FF8A5C]/15 text-[#FF8A5C] border-[#FF8A5C]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>{fr}</button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-[#8B8BA8] font-semibold">Precio/noche</span>
+                      <button onClick={() => setCoPrecio(v => Math.max(10, v - 5))} className="h-8 w-8 rounded-lg bg-white/8 text-white">−</button>
+                      <span className="w-12 text-center text-sm font-bold text-white font-mono-num">{coPrecio}€</span>
+                      <button onClick={() => setCoPrecio(v => v + 5)} className="h-8 w-8 rounded-lg bg-white/8 text-white">+</button>
+                      <button onClick={() => { contraofertar(s.id, { fecha: coFecha.trim() || s.fecha, franja: coFranja, precio: coPrecio }, local.nombre); setCoId(null) }}
+                        className="ml-auto h-9 px-4 rounded-lg bg-[#FF8A5C] text-[#0A0A0F] text-xs font-bold">Enviar contraoferta</button>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}

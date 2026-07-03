@@ -168,7 +168,11 @@ function SedeSheet({ local, nTorneos, onClose }: { local: Local; nTorneos: numbe
           {mia ? (
             <div className={`mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5 border ${mia.estado === 'aceptada' ? 'border-[#B6FF3A]/40 bg-[#B6FF3A]/10 text-[#B6FF3A]' : 'border-[#FF8A5C]/40 bg-[#FF8A5C]/10 text-[#FF8A5C]'}`}>
               {mia.estado === 'aceptada' ? <Check size={15} /> : <Clock size={15} />}
-              <p className="text-xs font-bold flex-1">{mia.estado === 'aceptada' ? `Sede confirmada · ${mia.fecha} · ${mia.franja}` : `Solicitud pendiente · ${mia.fecha} · ${mia.franja}`}</p>
+              <p className="text-xs font-bold flex-1">
+                {mia.estado === 'aceptada' ? `Sede confirmada · ${mia.fecha} · ${mia.franja}`
+                  : mia.estado === 'contraoferta' ? `Contraoferta recibida · revísala en Mis solicitudes`
+                  : `Solicitud pendiente · ${mia.fecha} · ${mia.franja}`}
+              </p>
             </div>
           ) : pidiendo ? (
             <div className="mt-3 space-y-2.5">

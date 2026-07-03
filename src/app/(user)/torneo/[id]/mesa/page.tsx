@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { getTorneo, getLocal, JUEGOS } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { MapaMesas } from '@/components/todh/MapaMesas'
-import { ArrowLeft, Vibrate, Check, ListTree, MapPin, Users } from 'lucide-react'
+import { ArrowLeft, Vibrate, Check, ListTree, MapPin, Users, Swords, Hourglass } from 'lucide-react'
 
 // Vista "te toca" del jugador: el plano del local con SU mesa resaltada y el móvil
 // vibrando hasta que confirme que va de camino. Pensada para enterarse aunque tenga
@@ -24,8 +24,14 @@ function MesaContent() {
   const params = useSearchParams()
   const n = parseInt(params.get('n') || '3', 10)
   const vs = params.get('vs') || 'Tu combate'
+  // mid = id del combate real en el bracket del TO → habilita el reporte por consenso
+  const mid = params.get('mid')
+  const nombres = vs.includes(' vs ') ? vs.split(' vs ') : null
 
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
+  const gestion = useDemoStore(s => s.gestion[id])
+  const setGestion = useDemoStore(s => s.setGestion)
+  const pushNoti = useDemoStore(s => s.pushNoti)
   const t = getTorneo(id) || creado
   const local = getLocal(t?.localId || 'gamba')
   const mesasOverride = useDemoStore(s => s.mesasSede[local?.id ?? ''])
@@ -35,6 +41,34 @@ function MesaContent() {
 
   const [confirmado, setConfirmado] = useState(false)
   const vibrando = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Reporte por consenso: ambos jugadores reportan desde el móvil; si coinciden,
+  // el cuadro avanza sin pasar por el TO (aquí el rival "confirma" a los 2 s).
+  const [ganador, setGanador] = useState<string | null>(null)
+  const [marcador, setMarcador] = useState('2-0')
+  const [reporte, setReporte] = useState<'no' | 'esperando' | 'consenso'>('no')
+  const puedeReportar = !!mid && !!nombres && !!gestion?.generado
+
+  const enviarReporte = () => {
+    if (!ganador || !mid || !nombres) return
+    const lado: 'a' | 'b' = ganador === nombres[0] ? 'a' : 'b'
+    const [gW, gL] = marcador.split('-').map(Number)
+    const puntos = lado === 'a' ? { a: gW, b: gL } : { a: gL, b: gW }
+    setReporte('esperando')
+    pushNoti({ tipo: 'combate', titulo: 'Resultado enviado', cuerpo: `${ganador} ${marcador} en «${t?.nombre}». Esperando la confirmación de tu rival.` })
+    setTimeout(() => {
+      setGestion(id, {
+        winners: { ...(gestion?.winners ?? {}), [mid]: lado },
+        puntos: { ...(gestion?.puntos ?? {}), [mid]: puntos },
+      })
+      setReporte('consenso')
+      pushNoti({
+        tipo: 'combate', titulo: '✅ Resultado confirmado por consenso',
+        cuerpo: `${ganador} gana ${marcador}. El bracket ya ha avanzado.`,
+        href: `/torneo/${id}/bracket`,
+      })
+    }, 2200)
+  }
 
   // Vibración persistente hasta confirmar (en móviles compatibles; en escritorio
   // queda el pulso visual). Patrón insistente tipo alarma suave.
@@ -115,6 +149,50 @@ function MesaContent() {
             <p className="text-sm font-bold text-white truncate">{local.nombre} · {local.zona}</p>
           </div>
         </div>
+
+        {/* Reporte por consenso (cuando la mesa viene de un combate real del bracket) */}
+        {confirmado && puedeReportar && (
+          <div className="mt-3 card-premium p-4">
+            {reporte === 'consenso' ? (
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] shrink-0"><Check size={18} /></span>
+                <div>
+                  <p className="text-sm font-bold text-white">Resultado confirmado por consenso</p>
+                  <p className="text-[11px] text-[#8B8BA8]">{ganador} gana {marcador} · el bracket ya ha avanzado.</p>
+                </div>
+              </div>
+            ) : reporte === 'esperando' ? (
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FF8A5C]/15 text-[#FF8A5C] shrink-0"><Hourglass size={17} className="animate-pulse" /></span>
+                <div>
+                  <p className="text-sm font-bold text-white">Esperando a tu rival…</p>
+                  <p className="text-[11px] text-[#8B8BA8]">Si su reporte coincide, el resultado se confirma solo.</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[#8B8BA8] font-bold mb-2.5"><Swords size={13} className="text-[#B6FF3A]" /> ¿Quién ha ganado?</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {nombres!.map(nm => (
+                    <button key={nm} onClick={() => setGanador(nm)}
+                      className={`h-11 rounded-xl text-sm font-bold border transition-all truncate px-2 ${ganador === nm ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border-[#B6FF3A]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>
+                      {nm}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  {['2-0', '2-1'].map(m => (
+                    <button key={m} onClick={() => setMarcador(m)}
+                      className={`px-3 h-9 rounded-lg text-xs font-bold border font-mono-num transition-all ${marcador === m ? 'bg-[#9B82FF]/15 text-[#B9A6FF] border-[#9B82FF]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>{m}</button>
+                  ))}
+                  <button onClick={enviarReporte} disabled={!ganador}
+                    className="ml-auto h-10 px-4 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold disabled:opacity-40">Enviar</button>
+                </div>
+                <p className="mt-2 text-[10px] text-[#6B6B85]">Tu rival reporta desde su móvil; si coincidís, avanza sin pasar por el organizador.</p>
+              </>
+            )}
+          </div>
+        )}
 
         <Link href={`/torneo/${t.id}/bracket`} className="mt-3 flex items-center justify-between card-premium card-int p-4">
           <span className="inline-flex items-center gap-2 text-white font-semibold text-sm"><ListTree size={17} className="text-[#9B82FF]" /> Ver el bracket</span>

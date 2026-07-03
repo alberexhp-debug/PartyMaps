@@ -117,7 +117,7 @@ export default function ModoDirectoPage() {
     pushNoti({
       tipo: 'combate', titulo: `Te toca · Mesa ${n}`,
       cuerpo: `${next.a} vs ${next.b} (${next.ronda}). Preséntate en la mesa ${n}.`,
-      href: `/torneo/${torneoId}/mesa?n=${n}&vs=${encodeURIComponent(`${next.a} vs ${next.b}`)}`,
+      href: `/torneo/${torneoId}/mesa?n=${n}&vs=${encodeURIComponent(`${next.a} vs ${next.b}`)}${bracketReal ? `&mid=${next.id}` : ''}`,
     })
   }
   function liberar(n: number) {

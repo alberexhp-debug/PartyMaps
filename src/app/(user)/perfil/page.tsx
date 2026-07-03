@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
@@ -23,10 +24,10 @@ const LOGROS = [
   { icon: '🤝', label: 'Buen rival' },
 ]
 const HISTORIAL = [
-  { torneo: 'Lima Smash Weekly #41', puesto: 'Top 4', juego: 'Smash', color: '#E63E54', fecha: 'hace 1 sem' },
-  { torneo: 'SF6 Newcomers Night', puesto: '🥈 2º', juego: 'SF6', color: '#2EC4B6', fecha: 'hace 2 sem' },
-  { torneo: 'TFT Friday Showdown', puesto: '🥇 1º', juego: 'TFT', color: '#4F8EF7', fecha: 'hace 3 sem' },
-  { torneo: 'Magic Commander League', puesto: 'Top 8', juego: 'Magic', color: '#F4912B', fecha: 'hace 1 mes' },
+  { id: 't1', torneo: 'Lima Smash Weekly #41', puesto: 'Top 4', juego: 'Smash', color: '#E63E54', fecha: 'hace 1 sem' },
+  { id: 't12', torneo: 'SF6 Newcomers Night', puesto: '🥈 2º', juego: 'SF6', color: '#2EC4B6', fecha: 'hace 2 sem' },
+  { id: 't10', torneo: 'TFT Friday Showdown', puesto: '🥇 1º', juego: 'TFT', color: '#4F8EF7', fecha: 'hace 3 sem' },
+  { id: 't8', torneo: 'Magic Commander League', puesto: 'Top 8', juego: 'Magic', color: '#F4912B', fecha: 'hace 1 mes' },
 ]
 
 export default function PerfilPage() {
@@ -193,14 +194,15 @@ export default function PerfilPage() {
           <div className="flex items-center gap-2 mb-2"><Medal size={15} className="text-[#9B82FF]" /><p className="eyebrow eyebrow-muted">Historial reciente</p></div>
           <div className="card-premium overflow-hidden divide-y divide-white/5">
             {HISTORIAL.map(h => (
-              <div key={h.torneo} className="flex items-center gap-3 px-4 py-3">
+              <Link key={h.torneo} href={`/torneo/${h.id}/resultados`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors">
                 <span className="w-1 h-9 rounded-full shrink-0" style={{ background: h.color }} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-white truncate">{h.torneo}</p>
                   <p className="text-[11px] text-[#8B8BA8]">{h.juego} · {h.fecha}</p>
                 </div>
                 <span className="text-sm font-bold text-[#E0BE63] shrink-0">{h.puesto}</span>
-              </div>
+                <ChevronRight size={14} className="text-[#6B6B85] shrink-0" />
+              </Link>
             ))}
           </div>
         </div>

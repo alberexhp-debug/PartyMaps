@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { PageLoader } from '@/components/ui/Spinner'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { LOCALES, JUEGOS } from '@/lib/torneos/sample'
-import { ArrowLeft, Clock, Check, X } from 'lucide-react'
+import { ArrowLeft, Clock, Check, X, ArrowLeftRight } from 'lucide-react'
 
 const MapaSedes = dynamic(() => import('@/components/todh/MapaSedes'), {
   ssr: false,
@@ -17,6 +17,7 @@ const MapaSedes = dynamic(() => import('@/components/todh/MapaSedes'), {
 export default function SedesPage() {
   const router = useRouter()
   const solicitudes = useDemoStore(s => s.solicitudesSede)
+  const responderContraoferta = useDemoStore(s => s.responderContraoferta)
 
   return (
     <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-none mx-auto lg:mx-0">
@@ -55,6 +56,25 @@ export default function SedesPage() {
                     {s.estado === 'pendiente' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8A5C]"><Clock size={12} /> Pendiente</span>}
                     {s.estado === 'aceptada' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#B6FF3A]"><Check size={12} /> Confirmada</span>}
                     {s.estado === 'rechazada' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF6076]"><X size={12} /> Rechazada</span>}
+                    {s.estado === 'contraoferta' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8A5C]"><ArrowLeftRight size={12} /> Contraoferta</span>}
+                  </div>
+                )
+              })}
+              {/* Contraofertas: la sede propone otros términos y el TO decide */}
+              {solicitudes.filter(s => s.estado === 'contraoferta' && s.contraoferta).map(s => {
+                const l = LOCALES[s.localId]
+                if (!l) return null
+                return (
+                  <div key={`co-${s.id}`} className="card-premium p-3.5 border border-[#FF8A5C]/35 lg:col-span-2">
+                    <p className="text-[11px] font-bold text-[#FF8A5C] uppercase tracking-wider mb-1.5 inline-flex items-center gap-1.5"><ArrowLeftRight size={12} /> {l.nombre} propone otros términos</p>
+                    <div className="flex items-center gap-3 flex-wrap text-sm">
+                      <span className="text-[#8B8BA8] line-through">{s.fecha} · {s.franja}</span>
+                      <span className="text-white font-bold">→ {s.contraoferta!.fecha} · {s.contraoferta!.franja} · <span className="font-mono-num text-[#B6FF3A]">{s.contraoferta!.precio}€/noche</span></span>
+                    </div>
+                    <div className="mt-2.5 flex gap-2">
+                      <button onClick={() => responderContraoferta(s.id, true, l.nombre)} className="flex-1 h-9 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[12px] font-bold inline-flex items-center justify-center gap-1"><Check size={14} /> Aceptar contraoferta</button>
+                      <button onClick={() => responderContraoferta(s.id, false, l.nombre)} className="h-9 px-3.5 rounded-lg bg-white/6 text-[#FF6076] text-[12px] font-bold">Rechazar</button>
+                    </div>
                   </div>
                 )
               })}

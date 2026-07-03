@@ -39,7 +39,9 @@ export type SolicitudSede = {
   franja: string       // 'Tarde (16-21h)'
   personas: number
   juego: string        // clave de JUEGOS
-  estado: 'pendiente' | 'aceptada' | 'rechazada'
+  estado: 'pendiente' | 'aceptada' | 'rechazada' | 'contraoferta'
+  // La sede puede responder con otra fecha/franja/precio; el TO acepta o rechaza.
+  contraoferta?: { fecha: string; franja: string; precio: number }
 }
 
 export type Notificacion = {
@@ -80,6 +82,8 @@ interface DemoState {
   setMesasSede: (localId: string, mesas: Mesa[]) => void
   crearSolicitudSede: (s: Omit<SolicitudSede, 'id' | 'estado'>, nombreLocal: string) => void
   resolverSolicitudSede: (id: string, estado: 'aceptada' | 'rechazada', nombreLocal: string) => void
+  contraofertarSede: (id: string, datos: { fecha: string; franja: string; precio: number }, nombreLocal: string) => void
+  responderContraoferta: (id: string, acepta: boolean, nombreLocal: string) => void
   pushNoti: (n: Omit<Notificacion, 'id' | 'leida' | 'cuando'> & { cuando?: string }) => void
   marcarLeidas: () => void
   noLeidas: () => number
@@ -183,6 +187,37 @@ export const useDemoStore = create<DemoState>()(
         }
         return {
           solicitudesSede: [{ ...sol, id: nextId(), estado: 'pendiente' }, ...s.solicitudesSede],
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
+
+      contraofertarSede: (id, datos, nombreLocal) => set((s) => {
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: '↩️ Contraoferta de la sede',
+          cuerpo: `${nombreLocal} propone: ${datos.fecha} · ${datos.franja} · ${datos.precio}€/noche. Acéptala o recházala en Sedes.`,
+          cuando: 'ahora', leida: false, href: '/sedes',
+        }
+        return {
+          solicitudesSede: s.solicitudesSede.map(x => x.id === id ? { ...x, estado: 'contraoferta' as const, contraoferta: datos } : x),
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
+
+      responderContraoferta: (id, acepta, nombreLocal) => set((s) => {
+        const sol = s.solicitudesSede.find(x => x.id === id)
+        const c = sol?.contraoferta
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema',
+          titulo: acepta ? '✅ Sede confirmada (contraoferta)' : 'Contraoferta rechazada',
+          cuerpo: acepta && c
+            ? `Trato hecho con ${nombreLocal}: ${c.fecha} · ${c.franja} · ${c.precio}€/noche. ¡A publicar el torneo!`
+            : `Has rechazado la contraoferta de ${nombreLocal}.`,
+          cuando: 'ahora', leida: false, href: acepta ? '/crear-torneo' : undefined,
+        }
+        return {
+          solicitudesSede: s.solicitudesSede.map(x => x.id === id
+            ? { ...x, estado: acepta ? 'aceptada' as const : 'rechazada' as const, ...(acepta && c ? { fecha: c.fecha, franja: c.franja } : {}) }
+            : x),
           notificaciones: [noti, ...s.notificaciones],
         }
       }),

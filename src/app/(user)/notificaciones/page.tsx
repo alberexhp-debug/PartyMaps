@@ -49,6 +49,11 @@ export default function NotificacionesPage() {
           </div>
         ) : notis.map((n, i) => {
           const { icon: Icon, color } = ICONO[n.tipo]
+          // Separadores Hoy / Anteriores según la marca temporal relativa
+          const esHoy = (c: string) => c === 'ahora' || c.includes('min') || (c.includes('h') && !c.includes('ayer'))
+          const cabecera = (i === 0 && esHoy(n.cuando)) ? 'Hoy'
+            : (!esHoy(n.cuando) && (i === 0 || esHoy(notis[i - 1].cuando))) ? 'Anteriores'
+            : null
           const inner = (
             <div className={`flex items-start gap-3 rounded-2xl border px-4 py-3 transition-colors stagger-item ${n.href ? 'card-int' : ''} ${n.leida ? 'bg-white/[0.03] border-white/8' : 'bg-white/[0.06] border-white/12'}`} style={{ ['--delay' as string]: `${Math.min(i, 10) * 55}ms` }}>
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl shrink-0 mt-0.5" style={{ background: `${color}1F`, color, border: `1px solid ${color}40` }}><Icon size={18} /></span>
@@ -62,7 +67,12 @@ export default function NotificacionesPage() {
               </div>
             </div>
           )
-          return n.href ? <Link key={n.id} href={n.href} className="block">{inner}</Link> : <div key={n.id}>{inner}</div>
+          return (
+            <div key={n.id}>
+              {cabecera && <p className={`eyebrow eyebrow-muted ${i === 0 ? 'mb-2' : 'pt-3 mb-2'}`}>{cabecera}</p>}
+              {n.href ? <Link href={n.href} className="block">{inner}</Link> : inner}
+            </div>
+          )
         })}
       </div>
     </div>
