@@ -30,6 +30,18 @@ const GESTION_VACIA: GestionTorneo = {
   checkin: [], cerrado: false, generado: false, seeds: [], winners: {},
   puntos: {}, bo: { base: 3, top: 5, desde: 'semis' },
 }
+// Solicitud de un TO a una sede para organizar un evento allí (demo: TO = Lima).
+// La sede la ve en su panel y al aceptar/rechazar el TO recibe la respuesta.
+export type SolicitudSede = {
+  id: string
+  localId: string
+  fecha: string        // 'Sáb 12 jul'
+  franja: string       // 'Tarde (16-21h)'
+  personas: number
+  juego: string        // clave de JUEGOS
+  estado: 'pendiente' | 'aceptada' | 'rechazada'
+}
+
 export type Notificacion = {
   id: string
   tipo: NotiTipo
@@ -49,6 +61,7 @@ interface DemoState {
   cancelados: string[]                // ids de torneos cancelados por el TO
   gestion: Record<string, GestionTorneo>   // estado de gestión del TO por torneo
   mesasSede: Record<string, Mesa[]>        // plano de mesas editado por cada sede (override del de muestra)
+  solicitudesSede: SolicitudSede[]         // peticiones del TO a sedes (organizar evento allí)
   notificaciones: Notificacion[]
   juegoPerfil: string                 // juego activo en el perfil
   avatarEmoji: string | null          // avatar elegido en el perfil (demo)
@@ -65,6 +78,8 @@ interface DemoState {
   cancelarTorneo: (id: string, nombre: string) => void
   setGestion: (id: string, patch: Partial<GestionTorneo>) => void
   setMesasSede: (localId: string, mesas: Mesa[]) => void
+  crearSolicitudSede: (s: Omit<SolicitudSede, 'id' | 'estado'>, nombreLocal: string) => void
+  resolverSolicitudSede: (id: string, estado: 'aceptada' | 'rechazada', nombreLocal: string) => void
   pushNoti: (n: Omit<Notificacion, 'id' | 'leida' | 'cuando'> & { cuando?: string }) => void
   marcarLeidas: () => void
   noLeidas: () => number
@@ -94,6 +109,7 @@ export const useDemoStore = create<DemoState>()(
       cancelados: [],
       gestion: {},
       mesasSede: {},
+      solicitudesSede: [],
       notificaciones: NOTIS_INICIALES,
       juegoPerfil: 'smash',
       avatarEmoji: null,
@@ -158,6 +174,34 @@ export const useDemoStore = create<DemoState>()(
       setMesasSede: (localId, mesas) => set((s) => ({
         mesasSede: { ...s.mesasSede, [localId]: mesas },
       })),
+
+      crearSolicitudSede: (sol, nombreLocal) => set((s) => {
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: 'Solicitud enviada',
+          cuerpo: `Petición a ${nombreLocal}: ${sol.fecha} · ${sol.franja} · ${sol.personas} jugadores. Te avisaremos de su respuesta.`,
+          cuando: 'ahora', leida: false,
+        }
+        return {
+          solicitudesSede: [{ ...sol, id: nextId(), estado: 'pendiente' }, ...s.solicitudesSede],
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
+
+      resolverSolicitudSede: (id, estado, nombreLocal) => set((s) => {
+        const sol = s.solicitudesSede.find(x => x.id === id)
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema',
+          titulo: estado === 'aceptada' ? '✅ Sede confirmada' : 'Solicitud rechazada',
+          cuerpo: sol
+            ? `${nombreLocal} ha ${estado === 'aceptada' ? 'aceptado' : 'rechazado'} tu petición (${sol.fecha} · ${sol.franja}).${estado === 'aceptada' ? ' ¡A publicar el torneo!' : ''}`
+            : `${nombreLocal} ha respondido a tu solicitud.`,
+          cuando: 'ahora', leida: false, href: estado === 'aceptada' ? '/crear-torneo' : undefined,
+        }
+        return {
+          solicitudesSede: s.solicitudesSede.map(x => x.id === id ? { ...x, estado } : x),
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
 
       pushNoti: (n) => set((s) => ({
         notificaciones: [{ id: nextId(), leida: false, cuando: n.cuando || 'ahora', ...n }, ...s.notificaciones],

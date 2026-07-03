@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Plus, Radio, Megaphone, ArrowLeft, Trophy } from 'lucide-react'
+import { LayoutDashboard, Plus, Radio, Megaphone, ArrowLeft, Trophy, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getOrganizador } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
@@ -12,6 +12,7 @@ const tabs = [
   { href: '/consola', icon: LayoutDashboard, label: 'Resumen', match: ['/consola', '/gestionar'] },
   { href: '/crear-torneo', icon: Plus, label: 'Crear torneo', match: ['/crear-torneo'] },
   { href: '/modo-directo', icon: Radio, label: 'Modo directo', match: ['/modo-directo'] },
+  { href: '/sedes', icon: MapPin, label: 'Sedes', match: ['/sedes'] },
   { href: '/organizador/lima', icon: Megaphone, label: 'Mi página pública', match: [] },
 ]
 

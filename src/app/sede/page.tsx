@@ -35,6 +35,11 @@ export default function SedePage() {
     { id: 's1', org: 'arcade-to', fecha: 'Vie 27 jun · 20-23h', personas: 32, juego: 'tekken' },
     { id: 's2', org: 'respawn-to', fecha: 'Dom 29 jun · 17-21h', personas: 24, juego: 'sf6' },
   ])
+  // Peticiones REALES que llegan del mapa de sedes del TO (demo: Lima Esports).
+  // Aceptar/rechazar responde al TO con una notificación.
+  const solicitudesStore = useDemoStore(s => s.solicitudesSede)
+  const resolverSolicitud = useDemoStore(s => s.resolverSolicitudSede)
+  const solicitudesTO = solicitudesStore.filter(x => x.localId === local.id && x.estado === 'pendiente')
   const ocupados = SETUPS.filter(s => s.estado === 'ocupado').length
   const [dispoPublicada, setDispoPublicada] = useState(false)
 
@@ -93,7 +98,27 @@ export default function SedePage() {
         {/* Solicitudes de TOs */}
         <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Solicitudes de organizadores</p>
         <div className="space-y-2">
-          {solicitudes.length === 0 && <p className="text-sm text-[#8B8BA8] card-premium p-4 text-center">No hay solicitudes pendientes.</p>}
+          {solicitudes.length === 0 && solicitudesTO.length === 0 && <p className="text-sm text-[#8B8BA8] card-premium p-4 text-center">No hay solicitudes pendientes.</p>}
+          {solicitudesTO.map(s => {
+            const org = ORGANIZADORES.lima
+            const j = JUEGOS[s.juego]
+            return (
+              <div key={s.id} className="card-premium p-3.5 border border-[#B6FF3A]/25">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-[#0A0A0F] font-black" style={{ background: org.color }}>{org.nombre[0]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate flex items-center gap-1">{org.nombre} <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#4F8EF7] text-white text-[8px] items-center justify-center">✓</span> <span className="ml-1 px-1.5 h-5 inline-flex items-center rounded-md bg-[#B6FF3A]/15 text-[#B6FF3A] text-[9px] font-bold uppercase tracking-wide">Nueva</span></p>
+                    <p className="text-[11px] text-[#8B8BA8] inline-flex items-center gap-1"><CalendarClock size={11} /> {s.fecha} · {s.franja} · {s.personas} pers · {j?.corto}</p>
+                  </div>
+                </div>
+                <div className="mt-2.5 flex gap-2">
+                  <button onClick={() => resolverSolicitud(s.id, 'aceptada', local.nombre)} className="flex-1 h-9 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[12px] font-bold inline-flex items-center justify-center gap-1"><Check size={14} /> Aceptar</button>
+                  <button className="flex-1 h-9 rounded-lg bg-white/8 text-white text-[12px] font-bold">Contraofertar</button>
+                  <button onClick={() => resolverSolicitud(s.id, 'rechazada', local.nombre)} aria-label="Rechazar" className="h-9 w-9 rounded-lg bg-white/6 text-[#FF6076] inline-flex items-center justify-center"><X size={15} /></button>
+                </div>
+              </div>
+            )
+          })}
           {solicitudes.map(s => {
             const org = ORGANIZADORES[s.org]
             const j = JUEGOS[s.juego]

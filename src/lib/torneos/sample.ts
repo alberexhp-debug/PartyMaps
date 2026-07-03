@@ -298,6 +298,32 @@ export const LOCALES: Record<string, Local> = {
       M(6, 5, 3, 'redonda', 6, 'mesa'),
     ],
   },
+  // ── Locales dados de alta SIN torneos publicados aún: solo los ven los TOs en
+  // su mapa de sedes (el mapa del jugador únicamente enseña locales con torneos).
+  meltdown: {
+    id: 'meltdown', nombre: 'Meltdown Bar', ciudad: 'Madrid', zona: 'Chueca', setups: 10, tiposSetup: ['Consola', 'PC'], rating: 4.4, valoraciones: 23, color: '#FF7A5C', lat: 40.4230, lng: -3.6975,
+    m2: 190, aforo: 70, precioNoche: 45,
+    mesas: [
+      M(1, 0, 0, 'cuadrada', 2, 'consola'), M(2, 2, 0, 'cuadrada', 2, 'consola'), M(3, 4, 0, 'cuadrada', 2, 'pc'),
+      M(4, 6, 0, 'cuadrada', 2, 'pc'), M(5, 1, 2, 'alargada', 4, 'mesa'), M(6, 4, 3, 'redonda', 6, 'mesa'),
+    ],
+  },
+  nexus: {
+    id: 'nexus', nombre: 'Nexus Gaming Café', ciudad: 'Madrid', zona: 'Argüelles', setups: 14, tiposSetup: ['PC', 'Setup stream'], rating: 4.7, valoraciones: 12, color: '#5CC8FF', lat: 40.4302, lng: -3.7158,
+    m2: 260, aforo: 90, precioNoche: 55,
+    mesas: [
+      M(1, 0, 0, 'cuadrada', 2, 'pc'), M(2, 1, 0, 'cuadrada', 2, 'pc'), M(3, 2, 0, 'cuadrada', 2, 'pc'), M(4, 3, 0, 'cuadrada', 2, 'pc'),
+      M(5, 5, 0, 'alargada', 4, 'stream'), M(6, 0, 2, 'cuadrada', 2, 'pc'), M(7, 2, 2, 'cuadrada', 2, 'pc'), M(8, 4, 3, 'alargada', 6, 'mesa'),
+    ],
+  },
+  comarca: {
+    id: 'comarca', nombre: 'La Comarca Juegos', ciudad: 'Madrid', zona: 'Carabanchel', setups: 12, tiposSetup: ['Mesa'], rating: 4.8, valoraciones: 31, color: '#3FA65C', lat: 40.3902, lng: -3.7282,
+    m2: 170, aforo: 60, precioNoche: 30,
+    mesas: [
+      M(1, 0, 0, 'alargada', 4, 'mesa'), M(2, 3, 0, 'alargada', 4, 'mesa'), M(3, 6, 0, 'cuadrada', 2, 'mesa'),
+      M(4, 0, 2, 'alargada', 4, 'mesa'), M(5, 3, 2, 'alargada', 4, 'mesa'), M(6, 1, 4, 'redonda', 4, 'mesa'), M(7, 4, 4, 'redonda', 4, 'mesa'),
+    ],
+  },
 }
 
 export function getLocal(id: string): Local | undefined {
