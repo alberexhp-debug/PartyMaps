@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { TORNEOS_SAMPLE, JUEGOS, getOrganizador, ORGANIZADORES } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Star, Users, Trophy, Check, Calendar, Award } from 'lucide-react'
+import { ArrowLeft, Star, Users, Trophy, Check, Calendar, Award, ChevronRight } from 'lucide-react'
+import { TorneoArt } from '@/components/todh/GameKeyart'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
@@ -79,13 +80,20 @@ export default function OrganizadorPage() {
           {sus.map(t => {
             const j = JUEGOS[t.juego]
             return (
-              <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-center gap-3 card-premium card-int p-3">
-                <span className="w-1 self-stretch rounded-full" style={{ background: j.color }} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
-                  <p className="text-[12px] text-[#8B8BA8] inline-flex items-center gap-1"><Calendar size={11} className="text-[#B6FF3A]" /> {t.fechaLabel} · <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></p>
+              <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-stretch gap-0 card-premium card-int overflow-hidden">
+                <TorneoArt t={t} className="w-[64px] shrink-0" />
+                <div className="flex-1 min-w-0 px-3 py-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[9px] font-bold" style={{ background: `${j?.color}1F`, color: j?.color, border: `1px solid ${j?.color}44` }}>{j?.corto}</span>
+                    {t.enDirecto && <span className="badge-live">Live</span>}
+                  </div>
+                  <p className="mt-0.5 text-sm font-bold text-white truncate">{t.nombre}</p>
+                  <p className="text-[11px] text-[#8B8BA8] inline-flex items-center gap-1"><Calendar size={11} className="text-[#B6FF3A]" /> {t.fechaLabel} · <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></p>
                 </div>
-                <span className="text-sm font-bold text-white shrink-0 font-mono-num">{t.precio === 0 ? 'Gratis' : `${t.precio}€`}</span>
+                <div className="flex items-center gap-1 pr-2.5 shrink-0">
+                  <span className="text-sm font-bold text-white font-mono-num">{t.precio === 0 ? 'Gratis' : `${t.precio}€`}</span>
+                  <ChevronRight size={15} className="text-[#6B6B85]" />
+                </div>
               </Link>
             )
           })}

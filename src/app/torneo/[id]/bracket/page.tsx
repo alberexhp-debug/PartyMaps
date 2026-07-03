@@ -48,7 +48,11 @@ export default function BracketPage() {
   const esTabla = !real && (t?.formato === 'Suizo' || t?.formato === 'Round robin')
 
   const doble = esDoble ? bracketDobleDe(id) : null
-  const rondas: RondaSample[] = rondasReales ?? (doble ? (vista === 'winners' ? doble.winners : doble.losers) : bracketDe(id))
+  // En doble eliminación, la Gran Final se pinta como ÚLTIMA COLUMNA del cuadro
+  // de winners (no como bloque suelto debajo).
+  const rondas: RondaSample[] = rondasReales ?? (doble
+    ? (vista === 'winners' ? [...doble.winners, doble.granFinal] : doble.losers)
+    : bracketDe(id))
 
   function abrirJugador(nombre: string) {
     if (nombre === '—') return
@@ -77,7 +81,7 @@ export default function BracketPage() {
         )}
         {/* Conmutador Winners/Losers */}
         {esDoble && !esTabla && (
-          <div className="grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
+          <div className="grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1 sm:max-w-sm">
             {([['winners', 'Winners'], ['losers', 'Losers']] as const).map(([k, label]) => (
               <button key={k} onClick={() => setVista(k)}
                 className={cn('h-9 rounded-xl text-sm font-bold transition-all', vista === k ? 'bg-white/12 text-white shadow-sm' : 'text-[#8B8BA8] hover:text-white')}>
@@ -97,15 +101,9 @@ export default function BracketPage() {
         ? <StandingsSuizo torneoId={id} juego={t!.juego} formato={t!.formato} color={color} onPick={abrirJugador} />
         : <BracketGrid rondas={rondas} color={color} onPick={abrirJugador} />}
 
-      {/* Gran final (doble elim) */}
-      {doble && !esTabla && (
-        <div className="px-4 pb-6">
-          <p className="eyebrow eyebrow-muted mb-2">Gran final</p>
-          <div className="max-w-[200px]">
-            <MatchCard m={doble.granFinal.matches[0]} color={color} onPick={abrirJugador} />
-          </div>
-          <p className="mt-2 text-[11px] text-[#8B8BA8]">El que llega de Losers debe ganar dos sets (bracket reset).</p>
-        </div>
+      {/* Nota del bracket reset (doble elim) */}
+      {doble && !esTabla && vista === 'winners' && (
+        <p className="px-4 pb-6 -mt-2 text-[11px] text-[#8B8BA8]">Gran final: el que llega de Losers debe ganar dos sets (bracket reset).</p>
       )}
 
       {sel && <MiniPerfil jugador={sel} onClose={() => setSel(null)} />}

@@ -225,7 +225,7 @@ export default function GestionarTorneoPage() {
                     <button onClick={() => setSel(p)} className="inline-flex items-center justify-center w-9 h-9 rounded-full text-[#0A0A0F] font-black shrink-0" style={{ background: juego.color }}>{p.nombre[0]}</button>
                     <button onClick={() => setSel(p)} className="flex-1 min-w-0 text-left">
                       <p className="text-sm font-bold text-white truncate">{p.nombre} <span className="text-xs">{p.bandera}</span></p>
-                      <p className="text-[11px] text-[#8B8BA8] font-mono-num flex items-center gap-1">{p.rating} · {p.tier}{p.main ? <> · <PersonajeChip juegoId={p.juego} nombre={p.main} /></> : null}</p>
+                      <p className="text-[11px] text-[#8B8BA8] font-mono-num flex items-center gap-1 whitespace-nowrap overflow-hidden">{p.rating} · {p.tier}{p.main ? <> · <PersonajeChip juegoId={p.juego} nombre={p.main} /></> : null}</p>
                     </button>
                     <button onClick={() => toggle(p.id)} aria-label={ok ? 'Quitar check-in' : 'Hacer check-in'}
                       className={`h-9 px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${ok ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'bg-white/8 text-[#B8B8CC] hover:bg-white/12'}`}>

@@ -200,7 +200,14 @@ export default function TorneoDetallePage() {
         {/* Info */}
         <div className="mt-4 grid grid-cols-2 gap-2.5">
           <InfoCard icon={<Calendar size={15} className="text-[#B6FF3A]" />} label="Cuándo" value={t.fechaLabel} />
-          <InfoCard icon={<MapPin size={15} className="text-[#4F8EF7]" />} label="Dónde" value={t.online ? 'Online' : `${t.local}${t.distanciaKm > 0 ? ` · ${t.distanciaKm} km` : ''}`} />
+          {local ? (
+            <button onClick={() => setVerSede(true)} className="card-premium card-int p-3.5 text-left">
+              <div className="flex items-center gap-1.5 text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold mb-1"><MapPin size={15} className="text-[#4F8EF7]" />Dónde</div>
+              <p className="text-sm font-bold text-white">{t.local}{t.distanciaKm > 0 ? ` · ${t.distanciaKm} km` : ''} <span className="text-[#8B8BA8] font-semibold">›</span></p>
+            </button>
+          ) : (
+            <InfoCard icon={<MapPin size={15} className="text-[#4F8EF7]" />} label="Dónde" value={t.online ? 'Online' : t.local} />
+          )}
           <InfoCard icon={<Trophy size={15} className="text-[#9B82FF]" />} label="Formato" value={t.formato} />
           <InfoCard icon={<Coins size={15} className="text-[#E0BE63]" />} label={t.bote ? 'Bote en juego' : 'Inscripción'} value={t.bote ? `${t.bote}€` : t.precio === 0 ? 'Gratis' : `${t.precio}€`} />
         </div>

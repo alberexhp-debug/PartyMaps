@@ -6,6 +6,7 @@ import { construirRondas, standingsDe } from '@/lib/torneos/bracket'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { ArrowLeft, Crown, Trophy, Star, Check, ShieldCheck } from 'lucide-react'
 import { CountUp } from '@/components/ui/CountUp'
+import { PersonajeIcon } from '@/components/todh/PersonajeChip'
 
 function avatarColor(name: string) {
   const c = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
@@ -32,6 +33,9 @@ export default function ResultadosPage() {
   }, [t, gestion])
   const real = !!standingsReales
   const STANDINGS = standingsReales ?? STANDINGS_SAMPLE
+  // Main de cada jugador (para el icono de personaje en la clasificación)
+  const poolJuego = useMemo(() => (t ? rankingPorJuego(t.juego) : []), [t])
+  const mainDe = (nombre: string) => poolJuego.find(p => p.nombre === nombre)?.main
   const premios = [Math.round(bote * 0.7), Math.round(bote * 0.2), Math.round(bote * 0.1)]
   const medallas = ['#E0BE63', '#C0C7D1', '#CD7F45']
 
@@ -89,7 +93,7 @@ export default function ResultadosPage() {
             <div key={n} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 10) * 50}ms` }}>
               <span className="w-6 text-center text-sm font-bold text-numeric" style={{ color: i < 3 ? medallas[i] : '#8B8BA8' }}>{i + 1}</span>
               <span className="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black text-[#0A0A0F] shrink-0" style={{ background: avatarColor(n) }}>{n[0]}</span>
-              <span className="flex-1 text-sm font-bold text-white">{n}</span>
+              <span className="flex-1 text-sm font-bold text-white inline-flex items-center gap-1.5">{n} {t && <PersonajeIcon juegoId={t.juego} nombre={mainDe(n)} px={16} />}</span>
               {i < 3 && bote > 0 && <span className="text-sm font-bold text-[#E0BE63] text-numeric">{premios[i]}€</span>}
               {i === 0 && <Trophy size={15} className="text-[#E0BE63]" />}
             </div>
