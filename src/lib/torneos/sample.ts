@@ -52,6 +52,7 @@ export type TorneoSample = {
   banner?: string          // URL del banner del torneo; si falta, se usa el keyart del juego
   comentarios?: string     // otros comentarios del TO (reglas extra, premios en producto…)
   premiosImgs?: string[]   // fotos de premios en producto
+  videoUrl?: string        // vídeo o directo del torneo (YouTube/Twitch) que pega el TO
 }
 
 export const TORNEOS_SAMPLE: TorneoSample[] = [
@@ -62,6 +63,7 @@ export const TORNEOS_SAMPLE: TorneoSample[] = [
     vip: null, organizadorId: 'lima', popularidad: 98, bestOf: 'Bo3 · Bo5 en top 8', checkInAbierto: true,
     descripcion: 'El semanal de Smash más veterano de Madrid. Bracket de doble eliminación, premios al top 3 y ambientazo asegurado.',
     banner: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&q=80',
+    videoUrl: 'https://www.youtube.com/watch?v=JzS96auqau0',
   },
   {
     id: 't2', nombre: 'Liga Magic Standard — Jornada 5', juego: 'magic', formato: 'Suizo',

@@ -12,6 +12,7 @@ import { InscripcionSheet } from '@/components/todh/InscripcionSheet'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { MiniLocal } from '@/components/todh/MiniLocal'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
+import { VideoEmbed } from '@/components/todh/VideoEmbed'
 import type { Jugador } from '@/lib/torneos/sample'
 import {
   ArrowLeft, Calendar, MapPin, Trophy, Users, Lock, Radio, Share2, ListTree, ShieldCheck,
@@ -165,8 +166,21 @@ export default function TorneoDetallePage() {
           </Link>
         )}
 
-        {/* Directo */}
-        {t.enDirecto && (
+        {/* Vídeo/directo del torneo: si el TO pegó una URL, va incrustado aquí */}
+        {t.videoUrl ? (
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="eyebrow eyebrow-muted">{t.enDirecto ? 'Emisión en directo' : 'Vídeo del torneo'}</p>
+              {t.enDirecto && (
+                <Link href={`/torneo/${t.id}/directo`} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#B6FF3A]">
+                  <Radio size={12} /> Abrir directo con chat ›
+                </Link>
+              )}
+            </div>
+            <VideoEmbed url={t.videoUrl} titulo={t.nombre} className="rounded-2xl border border-white/10" />
+            {t.enDirecto && t.viendo ? <p className="mt-1.5 text-[11px] text-[#8B8BA8] font-mono-num">{t.viendo} personas viendo ahora</p> : null}
+          </div>
+        ) : t.enDirecto && (
           <Link href={`/torneo/${t.id}/directo`} className="mt-4 block aspect-video w-full rounded-2xl border border-white/10 bg-black/40 relative overflow-hidden group">
             <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0 opacity-40" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[#8B8BA8]">

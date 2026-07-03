@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, JUEGOS, bracketDe } from '@/lib/torneos/sample'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
+import { VideoEmbed } from '@/components/todh/VideoEmbed'
 import { ArrowLeft, Radio, Send, ListTree, Eye, Play } from 'lucide-react'
 
 const CHAT0 = [
@@ -26,8 +28,11 @@ const CHAT_POOL = [
 export default function DirectoPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const t = getTorneo(id)
-  const juego = t ? JUEGOS[t.juego] : JUEGOS.smash
+  const creado = useDemoStore(s => s.creados.find(c => c.id === id))
+  const override = useDemoStore(s => s.editados[id])
+  const base = getTorneo(id) || creado
+  const t = base ? { ...base, ...(override || {}) } : undefined
+  const juego = t ? (JUEGOS[t.juego] ?? JUEGOS.smash) : JUEGOS.smash
   const rondas = bracketDe(id)
   const [chat, setChat] = useState(CHAT0)
   const [msg, setMsg] = useState('')
@@ -56,7 +61,18 @@ export default function DirectoPage() {
 
   return (
     <div className="relative min-h-screen pb-4 max-w-xl lg:max-w-5xl mx-auto">
-      {/* Reproductor */}
+      {/* Reproductor: la emisión real (YouTube/Twitch) si el TO pegó la URL;
+          si no, la señal de demostración de siempre. */}
+      {t.videoUrl ? (
+        <div className="relative">
+          <VideoEmbed url={t.videoUrl} titulo={`Directo de ${t.nombre}`} />
+          <button onClick={() => router.back()} aria-label="Volver" className="absolute top-4 left-4 z-10 h-10 w-10 rounded-xl bg-black/50 backdrop-blur flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
+          <div className="flex items-center justify-between px-4 py-2 bg-black/40 border-b border-white/6">
+            <span className="badge-live">Live</span>
+            {viendo > 0 && <span className="inline-flex items-center gap-1 text-[11px] font-mono-num text-white"><Eye size={11} /> {viendo} viendo</span>}
+          </div>
+        </div>
+      ) : (
       <div className="relative aspect-video w-full bg-black overflow-hidden">
         <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0 opacity-40" />
         <div className="absolute inset-0 bg-black/30" />
@@ -77,6 +93,7 @@ export default function DirectoPage() {
         <span className="absolute top-4 right-4 badge-live">Live</span>
         {viendo > 0 && <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 text-[11px] font-mono-num text-white bg-black/55 px-2 py-1 rounded-md"><Eye size={11} /> {viendo}</span>}
       </div>
+      )}
 
       {/* Info */}
       <div className="px-4 pt-3 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start">

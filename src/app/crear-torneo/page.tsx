@@ -50,6 +50,7 @@ export default function CrearTorneoPage() {
   const [reparto, setReparto] = useState(REPARTOS[1])
   const [comentarios, setComentarios] = useState('')
   const [premiosImgs, setPremiosImgs] = useState<string[]>([])
+  const [videoUrl, setVideoUrl] = useState('')
   const [nuevoJuego, setNuevoJuego] = useState(false)
   const [publicado, setPublicado] = useState<TorneoSample | null>(null)
   const crearTorneo = useDemoStore(s => s.crearTorneo)
@@ -77,6 +78,7 @@ export default function CrearTorneoPage() {
       bestOf: 'Bo3', descripcion: `Torneo de ${j.nombre}. Formato: ${formato.trim() || 'por anunciar'}. Cierre de inscripciones: ${cierre.toLowerCase()}.`,
       comentarios: comentarios.trim() || undefined,
       premiosImgs: premiosImgs.length ? premiosImgs : undefined,
+      videoUrl: videoUrl.trim() || undefined,
     }
     crearTorneo(t)
     setPublicado(t)
@@ -252,6 +254,16 @@ export default function CrearTorneoPage() {
           {precio > 0 && (
             <p className="text-[12px] text-[#B8B8CC]">Bote estimado a llenar: <span className="text-[#B6FF3A] font-bold">{Math.round(plazas * precio * 0.8)}€</span></p>
           )}
+        </Section>
+
+        {/* Vídeo o directo del torneo */}
+        <Section title="Vídeo o directo (opcional)">
+          <Field label="URL de YouTube o Twitch — se verá incrustado en la ficha del torneo">
+            <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} type="url"
+              placeholder="Ej. https://youtube.com/watch?v=… o https://twitch.tv/tucanal"
+              className="w-full h-12 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-[#6B6B85] focus:border-[#B6FF3A]/60 outline-none transition-colors" />
+            <p className="text-[11px] text-[#8B8BA8]">Vale un tráiler, el VOD de la edición anterior o el canal donde emitirás el directo.</p>
+          </Field>
         </Section>
 
         {/* Otros comentarios + premios en producto */}
