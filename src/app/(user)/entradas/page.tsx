@@ -30,8 +30,10 @@ export default function EntradasPage() {
   const lista = tab === 'proximos' ? proximos : HISTORIAL
 
   return (
-    <div className="relative min-h-screen overflow-hidden lg:max-w-5xl lg:mx-auto">
+    // Halo a todo el ancho; solo el contenido se centra (sin corte negro).
+    <div className="relative min-h-screen overflow-hidden">
       <div className="hero-halo-rose" />
+      <div className="lg:max-w-5xl lg:mx-auto">
 
       <div className="relative px-5 pt-6 safe-top">
         <p className="eyebrow mb-2">Tu cartera</p>
@@ -73,6 +75,7 @@ export default function EntradasPage() {
       </div>
 
       {ticket && <TicketModal torneo={ticket} onClose={() => setTicket(null)} />}
+      </div>
     </div>
   )
 }

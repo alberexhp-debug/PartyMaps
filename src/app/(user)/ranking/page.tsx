@@ -52,8 +52,11 @@ export default function RankingPage() {
   const yo = lista[miPuesto - 1]
 
   return (
-    <div className="relative min-h-screen overflow-hidden pb-24 lg:max-w-4xl lg:mx-auto">
+    // El halo de fondo va a TODO el ancho (fuera del contenedor centrado) para
+    // que no se vea el corte contra el negro; solo el contenido se centra.
+    <div className="relative min-h-screen overflow-hidden pb-24">
       <div className="hero-halo-violet" />
+      <div className="lg:max-w-4xl lg:mx-auto">
 
       <div className="relative px-5 pt-6 pb-2 safe-top">
         <p className="eyebrow mb-2">Clasificación</p>
@@ -153,6 +156,7 @@ export default function RankingPage() {
       )}
 
       {sel && <MiniPerfil jugador={sel.j} puesto={sel.puesto} onClose={() => setSel(null)} />}
+      </div>
     </div>
   )
 }

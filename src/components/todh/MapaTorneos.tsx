@@ -3,41 +3,38 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { TORNEOS_SAMPLE, LOCALES, JUEGOS, getTorneo, getLocal, type TorneoSample } from '@/lib/torneos/sample'
+import { TORNEOS_SAMPLE, LOCALES, JUEGOS, getLocal, type TorneoSample, type Local } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { TorneoArt } from '@/components/todh/GameKeyart'
 import { MiniLocal } from '@/components/todh/MiniLocal'
-import { Calendar, Users, X, Radio, MapPin } from 'lucide-react'
+import { Calendar, Users, X, Star, ChevronRight } from 'lucide-react'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
-// Varios torneos en el mismo local se separan con un offset EN PÍXELES del marcador,
-// no moviendo la coordenada: así el pin queda clavado a su local a cualquier zoom.
-// (El jitter geográfico anterior desplazaba los pines ~200 m y "flotaban" al hacer zoom.)
-const OFFSETS_PX: [number, number][] = [
-  [0, 0], [30, -14], [-30, -14], [0, -34], [46, 6], [-46, 6], [24, -44], [-24, -44],
-]
-function coordsDe(localId: string): [number, number] {
-  const l = LOCALES[localId]
-  return l ? [l.lng, l.lat] : [-3.7038, 40.4262]
-}
+// UN PIN POR LOCAL, clavado a su coordenada exacta (como el mapa de Rumbo): nada
+// de separar torneos con offsets, que hacían que los pines "flotaran" sobre calles
+// distintas según el zoom. Los torneos del local se listan en la hoja inferior.
 
 export default function MapaTorneos() {
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const creados = useDemoStore(s => s.creados)
   const [juego, setJuego] = useState<string | null>(null)
-  const [selId, setSelId] = useState<string | null>(null)
+  const [selLocal, setSelLocal] = useState<string | null>(null)
 
-  const presenciales = useMemo(
-    () => [...creados, ...TORNEOS_SAMPLE].filter(t => t.localId && !t.online && (!juego || t.juego === juego)),
-    [creados, juego],
-  )
-  const sel = selId ? getTorneo(selId) || creados.find(c => c.id === selId) : null
+  // Torneos presenciales agrupados por local
+  const porLocal = useMemo(() => {
+    const filtrados = [...creados, ...TORNEOS_SAMPLE].filter(t => t.localId && !t.online && (!juego || t.juego === juego))
+    const grupos = new Map<string, TorneoSample[]>()
+    for (const t of filtrados) {
+      if (!LOCALES[t.localId!]) continue
+      grupos.set(t.localId!, [...(grupos.get(t.localId!) ?? []), t])
+    }
+    return grupos
+  }, [creados, juego])
+  const nTorneos = useMemo(() => [...porLocal.values()].reduce((a, ts) => a + ts.length, 0), [porLocal])
 
-  // Los pines quedan anclados a su coordenada y ESCALAN con el zoom (pequeños al
-  // alejar, grandes al acercar), en vez de tener tamaño fijo de pantalla. Se escala
-  // un wrapper interno con origen en la punta para no pisar el translate de Mapbox.
+  // Los pines escalan con el zoom (pequeños al alejar), anclados por la punta.
   const wrapsRef = useRef<HTMLSpanElement[]>([])
   const applyZoom = useCallback(() => {
     const map = mapRef.current
@@ -67,7 +64,7 @@ export default function MapaTorneos() {
     return () => { clearTimeout(t1); clearTimeout(t2); ro.disconnect(); map.remove(); mapRef.current = null }
   }, [applyZoom])
 
-  // Marcadores
+  // Marcadores: uno por local, en su coordenada exacta
   const markersRef = useRef<mapboxgl.Marker[]>([])
   useEffect(() => {
     const map = mapRef.current
@@ -75,65 +72,66 @@ export default function MapaTorneos() {
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
     wrapsRef.current = []
-    const porLocal: Record<string, number> = {}
-    presenciales.forEach((t) => {
-      const idxLocal = porLocal[t.localId!] ?? 0
-      porLocal[t.localId!] = idxLocal + 1
-      const j = JUEGOS[t.juego]
-      const sel = t.id === selId
-      // Medallón circular tipo "moneda": fondo glass oscuro, aro del color del juego,
-      // emoji del juego centrado, punta inferior limpia. Más elegante que la gota plana.
+    for (const [localId, torneos] of porLocal) {
+      const l = LOCALES[localId]
+      const sel = localId === selLocal
+      const live = torneos.some(t => t.enDirecto)
+      // Medallón del LOCAL: aro de su color, inicial dentro, contador de torneos.
       const el = document.createElement('button')
       el.className = 'todh-pin'
-      el.style.cssText = `position:relative;width:42px;height:50px;cursor:pointer;background:none;border:none;padding:0;z-index:${sel ? 5 : 1};`
+      el.setAttribute('aria-label', `${l.nombre} · ${torneos.length} torneos`)
+      el.style.cssText = `position:relative;width:46px;height:54px;cursor:pointer;background:none;border:none;padding:0;z-index:${sel ? 5 : 1};`
 
-      // Wrapper que escala con el zoom (origen en la punta, que es el ancla real).
-      // Sin transition: durante el zoom la escala debe seguir al mapa sin retardo
-      // (con transition los pines "nadaban" respecto al plano).
       const wrap = document.createElement('span')
       wrap.style.cssText = 'position:absolute;inset:0;transform-origin:50% 100%;'
 
-      // Punta inferior (tip): rombo recortado que apunta a la coordenada.
       const tail = document.createElement('span')
-      tail.style.cssText = `position:absolute;left:50%;bottom:2px;width:12px;height:12px;background:linear-gradient(135deg,#171A24,#0D0F15);border-right:2px solid ${j.color};border-bottom:2px solid ${j.color};transform:translateX(-50%) rotate(45deg);border-radius:0 0 3px 0;`
+      tail.style.cssText = `position:absolute;left:50%;bottom:2px;width:12px;height:12px;background:linear-gradient(135deg,#171A24,#0D0F15);border-right:2px solid ${l.color};border-bottom:2px solid ${l.color};transform:translateX(-50%) rotate(45deg);border-radius:0 0 3px 0;`
       wrap.appendChild(tail)
 
-      // Cuerpo: círculo glass con aro del color del juego + halo suave.
       const body = document.createElement('span')
-      body.style.cssText = `position:absolute;top:0;left:1px;width:40px;height:40px;border-radius:50%;background:radial-gradient(120% 120% at 32% 24%, #232634 0%, #0D0F15 72%);border:2px solid ${j.color};box-shadow:0 8px 18px rgba(0,0,0,.5), 0 0 0 ${sel ? 5 : 3}px ${j.color}${sel ? '33' : '1F'}, inset 0 1px 0 rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;transition:transform .16s cubic-bezier(.34,1.56,.64,1);transform:scale(${sel ? 1.12 : 1});`
+      body.style.cssText = `position:absolute;top:0;left:3px;width:40px;height:40px;border-radius:50%;background:radial-gradient(120% 120% at 32% 24%, #232634 0%, #0D0F15 72%);border:2px solid ${l.color};box-shadow:0 8px 18px rgba(0,0,0,.5), 0 0 0 ${sel ? 5 : 3}px ${l.color}${sel ? '33' : '1F'}, inset 0 1px 0 rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;transition:transform .16s cubic-bezier(.34,1.56,.64,1);transform:scale(${sel ? 1.12 : 1});`
       const inner = document.createElement('span')
-      inner.textContent = j.emoji || j.corto[0]
-      inner.style.cssText = 'font-size:19px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));'
+      inner.textContent = l.nombre[0]
+      inner.style.cssText = `font-size:17px;line-height:1;font-weight:900;color:${l.color};text-shadow:0 1px 2px rgba(0,0,0,.55);`
       body.appendChild(inner)
 
-      if (t.enDirecto) {
+      if (torneos.length > 1) {
+        const badge = document.createElement('span')
+        badge.textContent = String(torneos.length)
+        badge.style.cssText = `position:absolute;top:-5px;right:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#B6FF3A;color:#0A0A0F;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #0D0F15;`
+        body.appendChild(badge)
+      }
+      if (live) {
         const ring = document.createElement('span')
-        ring.style.cssText = 'position:absolute;top:-4px;left:-3px;width:46px;height:46px;border-radius:50%;border:2px solid #FF3D71;animation:pulse-heat 1.5s ease-in-out infinite;pointer-events:none;'
+        ring.style.cssText = 'position:absolute;top:-4px;left:-4px;width:48px;height:48px;border-radius:50%;border:2px solid #FF3D71;animation:pulse-heat 1.5s ease-in-out infinite;pointer-events:none;'
         body.appendChild(ring)
       }
       wrap.appendChild(body)
       el.appendChild(wrap)
       wrapsRef.current.push(wrap)
       el.onmouseenter = () => { body.style.transform = 'scale(1.14)' }
-      el.onmouseleave = () => { body.style.transform = `scale(${t.id === selId ? 1.12 : 1})` }
-      el.onclick = (e) => { e.stopPropagation(); setSelId(t.id); map.flyTo({ center: coordsDe(t.localId!), zoom: 14.5, offset: [0, -120] }) }
-      const m = new mapboxgl.Marker({ element: el, anchor: 'bottom', offset: OFFSETS_PX[idxLocal % OFFSETS_PX.length] })
-        .setLngLat(coordsDe(t.localId!)).addTo(map)
+      el.onmouseleave = () => { body.style.transform = `scale(${localId === selLocal ? 1.12 : 1})` }
+      el.onclick = (e) => { e.stopPropagation(); setSelLocal(localId); map.flyTo({ center: [l.lng, l.lat], zoom: Math.max(map.getZoom(), 14.5), offset: [0, -140] }) }
+      const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' }).setLngLat([l.lng, l.lat]).addTo(map)
       markersRef.current.push(m)
-    })
+    }
     applyZoom()
-  }, [presenciales, selId, applyZoom])
+  }, [porLocal, selLocal, applyZoom])
+
+  const localSel = selLocal ? getLocal(selLocal) : null
+  const torneosSel = selLocal ? porLocal.get(selLocal) ?? [] : []
 
   return (
     <div className="relative w-full overflow-hidden h-[calc(100dvh-4rem)] lg:h-full">
-      <div ref={containerRef} className="absolute inset-0 h-full w-full" onClick={() => setSelId(null)} />
+      <div ref={containerRef} className="absolute inset-0 h-full w-full" onClick={() => setSelLocal(null)} />
 
       {/* Cabecera */}
       <div className="absolute top-0 left-0 right-0 z-10 px-4 pt-5 safe-top pointer-events-none">
         <div className="flex items-center justify-between pointer-events-auto">
           <div className="glass-strong rounded-2xl px-3.5 py-2">
             <p className="text-[10px] uppercase tracking-[0.18em] text-[#B6FF3A] font-bold">Mapa de torneos</p>
-            <p className="text-sm font-bold text-white"><span className="font-mono-num">{presenciales.length}</span> cerca de ti</p>
+            <p className="text-sm font-bold text-white"><span className="font-mono-num">{nTorneos}</span> en <span className="font-mono-num">{porLocal.size}</span> locales</p>
           </div>
         </div>
         {/* Chips de juego */}
@@ -153,45 +151,55 @@ export default function MapaTorneos() {
         </div>
       </div>
 
-      {/* Hoja inferior con el torneo seleccionado */}
-      {sel && <MapSheet t={sel} onClose={() => setSelId(null)} />}
+      {/* Hoja inferior: el local seleccionado y sus torneos */}
+      {localSel && <LocalSheet local={localSel} torneos={torneosSel} onClose={() => setSelLocal(null)} />}
     </div>
   )
 }
 
-function MapSheet({ t, onClose }: { t: TorneoSample; onClose: () => void }) {
-  const juego = JUEGOS[t.juego]
-  const local = t.localId ? getLocal(t.localId) : undefined
+function LocalSheet({ local, torneos, onClose }: { local: Local; torneos: TorneoSample[]; onClose: () => void }) {
   const [verSede, setVerSede] = useState(false)
   return (
-    <div className="absolute bottom-4 left-3 right-3 z-20 animate-slide-up-sm">
-      <div className="ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch shadow-2xl">
-        <button onClick={onClose} aria-label="Cerrar" className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/40 flex items-center justify-center text-white"><X size={14} /></button>
-        <TorneoArt t={t} className="w-[84px] shrink-0" />
-        <div className="flex-1 p-3.5 min-w-0">
-          <Link href={`/torneo/${t.id}`} className="block">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
-              </span>
-              {t.enDirecto && <span className="badge-live">Live</span>}
-            </div>
-            <p className="font-bold text-white text-display tracking-tight text-[15px] leading-snug truncate pr-6">{t.nombre}</p>
-          </Link>
-          <div className="mt-1 flex items-center gap-2 text-[11px] text-[#A0A0B8]">
-            <span className="inline-flex items-center gap-1 text-white"><Calendar size={11} className="text-[#B6FF3A]" /> {t.fechaLabel}</span>
-            <span className="text-[#3A3A4A]">·</span>
-            {local
-              ? <button onClick={() => setVerSede(true)} className="inline-flex items-center gap-1 truncate text-[#B6FF3A] font-semibold"><MapPin size={10} /> {t.local}</button>
-              : <span className="truncate">{t.local}</span>}
+    <div className="absolute bottom-4 left-3 right-3 z-20 animate-slide-up-sm lg:max-w-md">
+      <div className="ring-grad card-premium relative overflow-hidden rounded-2xl shadow-2xl">
+        <button onClick={onClose} aria-label="Cerrar" className="absolute top-2.5 right-2.5 z-10 h-7 w-7 rounded-full bg-black/40 flex items-center justify-center text-white"><X size={14} /></button>
+
+        {/* Local */}
+        <button onClick={() => setVerSede(true)} className="w-full flex items-center gap-3 p-3.5 text-left hover:bg-white/[0.03] transition-colors">
+          <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-[#0A0A0F] font-black text-lg shrink-0" style={{ background: local.color }}>{local.nombre[0]}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[15px] font-bold text-white truncate">{local.nombre}</p>
+            <p className="text-[11px] text-[#8B8BA8]">{local.zona} · {local.setups} setups · <span className="inline-flex items-center gap-0.5 text-[#E0BE63]"><Star size={9} className="fill-[#E0BE63]" /> {local.rating}</span></p>
           </div>
-          <Link href={`/torneo/${t.id}`} className="mt-1.5 flex items-center justify-between">
-            <span className="inline-flex items-center gap-1 text-[11px] text-[#8B8BA8]"><Users size={10} /> <span className="font-mono-num text-[#B8B8CC]">{t.inscritos}/{t.plazas}</span></span>
-            <span className="text-[13px] font-bold text-white font-mono-num">{t.bote ? `${t.bote}€` : t.precio === 0 ? 'Free' : `${t.precio}€`}</span>
-          </Link>
+          <span className="text-[11px] font-bold text-[#B6FF3A] shrink-0 mr-6">Ver sede ›</span>
+        </button>
+
+        {/* Torneos del local */}
+        <div className="border-t border-white/6 max-h-56 overflow-y-auto">
+          {torneos.map(t => {
+            const j = JUEGOS[t.juego]
+            return (
+              <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-stretch gap-0 border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors">
+                <TorneoArt t={t} className="w-[64px] shrink-0" />
+                <div className="flex-1 min-w-0 px-3 py-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[9px] font-bold" style={{ background: `${j?.color}1F`, color: j?.color, border: `1px solid ${j?.color}44` }}>{j?.corto}</span>
+                    {t.enDirecto && <span className="badge-live">Live</span>}
+                  </div>
+                  <p className="mt-0.5 text-[13px] font-bold text-white truncate">{t.nombre}</p>
+                  <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[#A0A0B8]">
+                    <span className="inline-flex items-center gap-1"><Calendar size={10} className="text-[#B6FF3A]" /> {t.fechaLabel}</span>
+                    <span className="inline-flex items-center gap-1"><Users size={10} /> <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></span>
+                    <span className="ml-auto font-bold text-white font-mono-num text-[11px]">{t.bote ? `${t.bote}€` : t.precio === 0 ? 'Free' : `${t.precio}€`}</span>
+                  </div>
+                </div>
+                <span className="self-center pr-2 text-[#6B6B85]"><ChevronRight size={15} /></span>
+              </Link>
+            )
+          })}
         </div>
       </div>
-      {verSede && local && <MiniLocal local={local} onClose={() => setVerSede(false)} />}
+      {verSede && <MiniLocal local={local} onClose={() => setVerSede(false)} />}
     </div>
   )
 }

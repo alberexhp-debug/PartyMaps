@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, Compass, Trophy, Ticket, User, Search, Plus, Bell } from 'lucide-react'
+import { Map, Compass, Trophy, Ticket, User, Search, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 
@@ -54,12 +54,14 @@ export function UserSideNav() {
         })}
       </nav>
 
-      <Link href="/crear-torneo"
-        className="mt-5 flex items-center justify-center gap-2 h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold hover:brightness-105 transition">
-        <Plus size={18} /> Crear torneo
+      {/* Los jugadores NO crean torneos: organizar vive en la consola del TO */}
+      <Link href="/consola"
+        className="mt-auto flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-dashed border-white/12 text-[12px] text-[#8B8BA8] hover:text-white hover:border-white/25 transition-colors">
+        <Trophy size={15} className="shrink-0 text-[#B6FF3A]" />
+        <span>¿Organizas torneos?<br /><span className="font-bold text-[#B8B8CC]">Abre tu consola de TO</span></span>
       </Link>
 
-      <div className="mt-auto px-2 text-[11px] text-[#6B6B82]">
+      <div className="mt-4 px-2 text-[11px] text-[#6B6B82]">
         <p className="font-semibold text-[#8B8BA8]">TODH</p>
         <p>Tu circuito de torneos</p>
       </div>

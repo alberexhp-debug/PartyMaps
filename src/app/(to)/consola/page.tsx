@@ -20,7 +20,7 @@ export default function ConsolaTOPage() {
   const ingresos = misTorneos.reduce((a, t) => a + t.inscritos * t.precio, 0)
 
   return (
-    <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-5xl mx-auto">
+    <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-5xl mx-auto lg:mx-0">
       {/* Header */}
       <div className="relative h-32 overflow-hidden">
         <div className="absolute inset-0" style={{ background: `radial-gradient(120% 130% at 0% 0%, ${org.color} 0%, ${org.color}44 32%, transparent 70%), #0D0F15` }} />

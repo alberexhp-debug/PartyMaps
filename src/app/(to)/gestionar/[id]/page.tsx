@@ -138,7 +138,7 @@ export default function GestionarTorneoPage() {
   }
 
   return (
-    <div className="relative min-h-screen pb-28 lg:pb-12 max-w-xl lg:max-w-5xl mx-auto">
+    <div className="relative min-h-screen pb-28 lg:pb-12 max-w-xl lg:max-w-5xl mx-auto lg:mx-0">
       {/* Cabecera */}
       <div className="relative h-32 lg:h-40 overflow-hidden lg:rounded-b-3xl">
         <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />
