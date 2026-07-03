@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { PageLoader } from '@/components/ui/Spinner'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { LOCALES, JUEGOS } from '@/lib/torneos/sample'
-import { ArrowLeft, Clock, Check, X, ArrowLeftRight } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, Clock, Check, X, ArrowLeftRight, Star } from 'lucide-react'
 
 const MapaSedes = dynamic(() => import('@/components/todh/MapaSedes'), {
   ssr: false,
@@ -18,6 +19,13 @@ export default function SedesPage() {
   const router = useRouter()
   const solicitudes = useDemoStore(s => s.solicitudesSede)
   const responderContraoferta = useDemoStore(s => s.responderContraoferta)
+  const pushNoti = useDemoStore(s => s.pushNoti)
+  // Valoración del TO a la sede tras una reserva confirmada (reputación bidireccional)
+  const [valoradas, setValoradas] = useState<Record<string, number>>({})
+  const valorar = (sid: string, nombre: string, stars: number) => {
+    setValoradas(v => ({ ...v, [sid]: stars }))
+    pushNoti({ tipo: 'sistema', titulo: 'Sede valorada', cuerpo: `Has puntuado a ${nombre} con ${stars}★. Su reputación ayuda a otros TOs.` })
+  }
 
   return (
     <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-none mx-auto lg:mx-0">
@@ -54,7 +62,16 @@ export default function SedesPage() {
                       <p className="text-[11px] text-[#8B8BA8]">{s.fecha} · {s.franja} · {s.personas} jug. · {j?.corto}</p>
                     </div>
                     {s.estado === 'pendiente' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8A5C]"><Clock size={12} /> Pendiente</span>}
-                    {s.estado === 'aceptada' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#B6FF3A]"><Check size={12} /> Confirmada</span>}
+                    {s.estado === 'aceptada' && (valoradas[s.id]
+                      ? <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#E0BE63]">{valoradas[s.id]}★ enviada</span>
+                      : <span className="inline-flex items-center gap-0.5">
+                          <span className="text-[11px] font-bold text-[#B6FF3A] inline-flex items-center gap-1 mr-1"><Check size={12} /> Confirmada</span>
+                          {[1, 2, 3, 4, 5].map(st => (
+                            <button key={st} onClick={() => valorar(s.id, l.nombre, st)} aria-label={`${st} estrellas`} className="p-0.5">
+                              <Star size={13} className="text-[#4A4A5E] hover:text-[#E0BE63] transition-colors" />
+                            </button>
+                          ))}
+                        </span>)}
                     {s.estado === 'rechazada' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF6076]"><X size={12} /> Rechazada</span>}
                     {s.estado === 'contraoferta' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8A5C]"><ArrowLeftRight size={12} /> Contraoferta</span>}
                   </div>
