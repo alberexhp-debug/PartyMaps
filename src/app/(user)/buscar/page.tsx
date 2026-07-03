@@ -8,6 +8,7 @@ import {
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { GameKeyart } from '@/components/todh/GameKeyart'
+import { useT } from '@/lib/i18n'
 import { ArrowLeft, Search, Trophy, Store, MapPin, Star, Verified } from 'lucide-react'
 
 const TODOS_JUGADORES: Jugador[] = JUEGOS_LIST.flatMap(j => rankingPorJuego(j.id))
@@ -15,6 +16,7 @@ const TODOS_JUGADORES: Jugador[] = JUEGOS_LIST.flatMap(j => rankingPorJuego(j.id
 const SUGERENCIAS = ['Smash', 'Lima Esports', 'Gamba', 'Major', 'Magic', 'Kaze']
 
 export default function BuscarPage() {
+  const { t: tr } = useT()
   const router = useRouter()
   const creados = useDemoStore(s => s.creados)
   const [q, setQ] = useState('')
@@ -46,7 +48,7 @@ export default function BuscarPage() {
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="flex-1 relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B8BA8]" />
-          <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Torneos, TOs, locales, jugadores…"
+          <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={tr('buscar.placeholder')}
             className="w-full h-11 pl-10 pr-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-[#8B8BA8] focus:border-[#B6FF3A]/60 focus:ring-2 focus:ring-[#B6FF3A]/20 outline-none transition-all" />
         </div>
       </div>
@@ -55,7 +57,7 @@ export default function BuscarPage() {
       <div className="px-4 pt-4 max-w-2xl lg:max-w-3xl mx-auto">
         {!query ? (
           <div>
-            <p className="eyebrow eyebrow-muted mb-2.5">Búsquedas sugeridas</p>
+            <p className="eyebrow eyebrow-muted mb-2.5">{tr('buscar.sugeridas')}</p>
             <div className="flex flex-wrap gap-2">
               {SUGERENCIAS.map(s => (
                 <button key={s} onClick={() => setQ(s)} className="px-3 h-9 rounded-full bg-white/4 border border-white/10 text-sm text-[#B8B8CC] hover:text-white transition-colors">{s}</button>
@@ -63,7 +65,7 @@ export default function BuscarPage() {
             </div>
 
             {/* Descubrimiento antes de escribir: tendencias y TOs top */}
-            <p className="eyebrow eyebrow-muted mt-7 mb-2.5">En tendencia</p>
+            <p className="eyebrow eyebrow-muted mt-7 mb-2.5">{tr('buscar.tendencia')}</p>
             <div className="space-y-1.5">
               {[...TORNEOS_SAMPLE].sort((a, b) => b.popularidad - a.popularidad).slice(0, 4).map((t, i) => (
                 <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-center gap-3 card-premium card-int p-2.5 stagger-item" style={{ ['--delay' as string]: `${i * 45}ms` }}>
@@ -78,7 +80,7 @@ export default function BuscarPage() {
               ))}
             </div>
 
-            <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Organizadores destacados</p>
+            <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('buscar.tos')}</p>
             <div className="space-y-1.5">
               {Object.values(ORGANIZADORES).filter(o => o.verificado).slice(0, 3).map((o, i) => (
                 <Link key={o.id} href={`/organizador/${o.id}`} className="flex items-center gap-3 card-premium card-int p-2.5 stagger-item" style={{ ['--delay' as string]: `${i * 45}ms` }}>

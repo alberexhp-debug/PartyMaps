@@ -95,6 +95,31 @@ const D = {
   'inicio.juegos': ['Juegos en Tourneum', 'Games on Tourneum'],
   'inicio.comoFunciona': ['Cómo funciona', 'How it works'],
   'inicio.endirecto': ['en directo ahora', 'live now'],
+  // Tarjetas de torneo
+  'card.abierta': ['Abierta', 'Open'],
+  'card.listaEspera': ['Lista de espera', 'Waitlist'],
+  'card.bote': ['Bote', 'Pot'],
+  'card.entrada': ['Entrada', 'Entry'],
+  'card.free': ['Free', 'Free'],
+
+  // Entradas
+  'entradas.eyebrow': ['Tu cartera', 'Your wallet'],
+  'entradas.titulo': ['Mis torneos', 'My tournaments'],
+  'entradas.proximos': ['Próximos', 'Upcoming'],
+  'entradas.historial': ['Historial', 'History'],
+
+  // Buscar
+  'buscar.placeholder': ['Torneos, TOs, locales, jugadores…', 'Tournaments, TOs, venues, players…'],
+  'buscar.sugeridas': ['Búsquedas sugeridas', 'Suggested searches'],
+  'buscar.tendencia': ['En tendencia', 'Trending'],
+  'buscar.tos': ['Organizadores destacados', 'Featured organizers'],
+
+  // Notificaciones
+  'notis.eyebrow': ['Bandeja', 'Inbox'],
+  'notis.titulo': ['Notificaciones', 'Notifications'],
+  'notis.hoy': ['Hoy', 'Today'],
+  'notis.anteriores': ['Anteriores', 'Earlier'],
+  'notis.leidas': ['Leídas', 'Read all'],
 } as const
 
 export type ClaveI18n = keyof typeof D

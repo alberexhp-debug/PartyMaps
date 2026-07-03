@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useDemoStore, type NotiTipo } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { ArrowLeft, Swords, AlertTriangle, Users, Trophy, Bell, Ticket, CheckCheck } from 'lucide-react'
 
 const ICONO: Record<NotiTipo, { icon: React.ElementType; color: string }> = {
@@ -15,6 +16,7 @@ const ICONO: Record<NotiTipo, { icon: React.ElementType; color: string }> = {
 }
 
 export default function NotificacionesPage() {
+  const { t: tr } = useT()
   const router = useRouter()
   const notis = useDemoStore(s => s.notificaciones)
   const marcarLeidas = useDemoStore(s => s.marcarLeidas)
@@ -31,11 +33,11 @@ export default function NotificacionesPage() {
       <div className="flex items-center gap-3 max-w-2xl lg:max-w-3xl mx-auto">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Bandeja</p>
-          <p className="text-base font-bold text-white">Notificaciones {noLeidas > 0 && <span className="text-[#B6FF3A]">· {noLeidas}</span>}</p>
+          <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{tr('notis.eyebrow')}</p>
+          <p className="text-base font-bold text-white">{tr('notis.titulo')} {noLeidas > 0 && <span className="text-[#B6FF3A]">· {noLeidas}</span>}</p>
         </div>
         {noLeidas > 0 && (
-          <button onClick={marcarLeidas} className="inline-flex items-center gap-1 text-xs text-[#B6FF3A] font-semibold"><CheckCheck size={14} /> Leídas</button>
+          <button onClick={marcarLeidas} className="inline-flex items-center gap-1 text-xs text-[#B6FF3A] font-semibold"><CheckCheck size={14} /> {tr('notis.leidas')}</button>
         )}
       </div>
       </div>
@@ -51,8 +53,8 @@ export default function NotificacionesPage() {
           const { icon: Icon, color } = ICONO[n.tipo]
           // Separadores Hoy / Anteriores según la marca temporal relativa
           const esHoy = (c: string) => c === 'ahora' || c.includes('min') || (c.includes('h') && !c.includes('ayer'))
-          const cabecera = (i === 0 && esHoy(n.cuando)) ? 'Hoy'
-            : (!esHoy(n.cuando) && (i === 0 || esHoy(notis[i - 1].cuando))) ? 'Anteriores'
+          const cabecera = (i === 0 && esHoy(n.cuando)) ? tr('notis.hoy')
+            : (!esHoy(n.cuando) && (i === 0 || esHoy(notis[i - 1].cuando))) ? tr('notis.anteriores')
             : null
           const inner = (
             <div className={`flex items-start gap-3 rounded-2xl border px-4 py-3 transition-colors stagger-item ${n.href ? 'card-int' : ''} ${n.leida ? 'bg-white/[0.03] border-white/8' : 'bg-white/[0.06] border-white/12'}`} style={{ ['--delay' as string]: `${Math.min(i, 10) * 55}ms` }}>

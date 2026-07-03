@@ -334,6 +334,7 @@ function ToggleRow({ label, on, onClick }: { label: string; on: boolean; onClick
 }
 
 function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
+  const { t: tCard } = useT()
   const juego = JUEGOS[t.juego]
   const completo = t.inscritos >= t.plazas
   const pct = Math.min(100, Math.round((t.inscritos / t.plazas) * 100))
@@ -367,12 +368,12 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between text-[10px] mb-1">
                 <span className="inline-flex items-center gap-1 text-[#8B8BA8]"><Users size={10} /> <span className="font-mono-num text-[#B8B8CC]">{t.inscritos}/{t.plazas}</span></span>
-                <span className={cn('font-semibold', completo ? 'text-[#FF8A5C]' : 'text-[#B6FF3A]')}>{completo ? 'Lista de espera' : 'Abierta'}</span>
+                <span className={cn('font-semibold', completo ? 'text-[#FF8A5C]' : 'text-[#B6FF3A]')}>{completo ? tCard('card.listaEspera') : tCard('card.abierta')}</span>
               </div>
               <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} />
             </div>
             <div className="text-right shrink-0">
-              <p className="text-[8px] text-[#8B8BA8] uppercase tracking-[0.12em] font-bold">{t.bote ? 'Bote' : 'Entrada'}</p>
+              <p className="text-[8px] text-[#8B8BA8] uppercase tracking-[0.12em] font-bold">{t.bote ? tCard('card.bote') : tCard('card.entrada')}</p>
               <p className="text-[15px] font-bold text-white font-mono-num leading-none mt-0.5">{t.bote ? `${t.bote}€` : t.precio === 0 ? 'Free' : `${t.precio}€`}</p>
             </div>
           </div>

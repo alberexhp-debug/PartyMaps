@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, getTorneo, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { TicketModal } from '@/components/todh/TicketModal'
 import { QrCode, Calendar, MapPin, Trophy } from 'lucide-react'
@@ -18,6 +19,7 @@ const HISTORIAL: Insc[] = [
 ]
 
 export default function EntradasPage() {
+  const { t: tr } = useT()
   const [tab, setTab] = useState<'proximos' | 'historial'>('proximos')
   const [ticket, setTicket] = useState<TorneoSample | null>(null)
   const inscritos = useDemoStore(s => s.inscritos)
@@ -36,8 +38,8 @@ export default function EntradasPage() {
       <div className="lg:max-w-5xl lg:mx-auto">
 
       <div className="relative px-5 pt-6 safe-top">
-        <p className="eyebrow mb-2">Tu cartera</p>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Mis torneos</h1>
+        <p className="eyebrow mb-2">{tr('entradas.eyebrow')}</p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{tr('entradas.titulo')}</h1>
         <p className="text-[#A0A0B8] mt-2 text-sm">
           <span className="text-white font-bold font-mono-num">{proximos.length}</span> {proximos.length === 1 ? 'inscripción activa' : 'inscripciones activas'}
         </p>
@@ -47,7 +49,7 @@ export default function EntradasPage() {
             <button key={t} onClick={() => setTab(t)}
               className={cn('flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all',
                 tab === t ? 'bg-[#B6FF3A] text-[#0A0A0F] shadow-[0_6px_20px_-4px_rgba(182,255,58,0.6)]' : 'text-[#A0A0B8] hover:text-white')}>
-              {t === 'proximos' ? `Próximos · ${proximos.length}` : `Historial · ${HISTORIAL.length}`}
+              {t === 'proximos' ? `${tr('entradas.proximos')} · ${proximos.length}` : `${tr('entradas.historial')} · ${HISTORIAL.length}`}
             </button>
           ))}
         </div>
