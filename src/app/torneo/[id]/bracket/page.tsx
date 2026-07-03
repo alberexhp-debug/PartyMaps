@@ -1,24 +1,54 @@
 'use client'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, standingsSuizoDe, rankingPorJuego, type MatchSample, type RondaSample, type Jugador } from '@/lib/torneos/sample'
+import { construirRondas, nombreRonda, boDeRonda } from '@/lib/torneos/bracket'
+import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Crown } from 'lucide-react'
+import { ArrowLeft, Crown, ShieldCheck } from 'lucide-react'
 
 export default function BracketPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const t = getTorneo(id)
-  const color = t ? JUEGOS[t.juego].color : '#B6FF3A'
+  const creado = useDemoStore(s => s.creados.find(c => c.id === id))
+  const gestion = useDemoStore(s => s.gestion[id])
+  const t = getTorneo(id) || creado
+  const color = t ? (JUEGOS[t.juego]?.color ?? '#B6FF3A') : '#B6FF3A'
   const ranking = t ? rankingPorJuego(t.juego) : []
   const [sel, setSel] = useState<Jugador | null>(null)
-  const esDoble = t?.formato === 'Doble eliminación'
-  const esTabla = t?.formato === 'Suizo' || t?.formato === 'Round robin'
   const [vista, setVista] = useState<'winners' | 'losers'>('winners')
 
+  // Bracket OFICIAL: si el TO lo generó en /gestionar, el público ve el cuadro
+  // real (seeds congelados + ganadores + marcadores de sets), no el de muestra.
+  const real = !!gestion?.generado
+  const rondasReales = useMemo<RondaSample[] | null>(() => {
+    if (!real || !t) return null
+    const pool = rankingPorJuego(t.juego)
+    const seeds = (gestion!.seeds ?? []).map(sid => pool.find(p => p.id === sid)).filter(Boolean) as Jugador[]
+    const rb = construirRondas(seeds, gestion!.winners ?? {})
+    const puntos = gestion!.puntos ?? {}
+    const bo = gestion!.bo ?? { base: 3, top: 5, desde: 'semis' as BoDesde }
+    return rb.map((matches, ri) => ({
+      nombre: `${nombreRonda(matches.length)} · Bo${boDeRonda(ri, rb.length, bo)}`,
+      matches: matches.map(m => {
+        const pts = puntos[m.id]
+        return {
+          id: m.id,
+          a: m.a?.nombre ?? '—', b: m.b?.nombre ?? '—',
+          scoreA: pts?.a ?? null, scoreB: pts?.b ?? null,
+          estado: m.ganador ? 'jugado' : pts && (pts.a > 0 || pts.b > 0) ? 'en-juego' : 'pendiente',
+          ganador: m.ganador ?? undefined,
+        } as MatchSample
+      }),
+    }))
+  }, [real, t, gestion])
+
+  const esDoble = !real && t?.formato === 'Doble eliminación'
+  const esTabla = !real && (t?.formato === 'Suizo' || t?.formato === 'Round robin')
+
   const doble = esDoble ? bracketDobleDe(id) : null
-  const rondas: RondaSample[] = doble ? (vista === 'winners' ? doble.winners : doble.losers) : bracketDe(id)
+  const rondas: RondaSample[] = rondasReales ?? (doble ? (vista === 'winners' ? doble.winners : doble.losers) : bracketDe(id))
 
   function abrirJugador(nombre: string) {
     if (nombre === '—') return
@@ -39,6 +69,12 @@ export default function BracketPage() {
       </div>
 
       <div className="px-4 pt-4 space-y-3">
+        {real && (
+          <div className="flex items-center gap-2 rounded-2xl border border-[#B6FF3A]/35 bg-[#B6FF3A]/[0.07] px-4 py-2.5">
+            <ShieldCheck size={15} className="text-[#B6FF3A] shrink-0" />
+            <p className="text-[12px] text-white font-semibold">Bracket oficial del organizador · resultados por sets en vivo</p>
+          </div>
+        )}
         {/* Conmutador Winners/Losers */}
         {esDoble && !esTabla && (
           <div className="grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
@@ -165,7 +201,7 @@ function MatchCard({ m, color, onPick }: { m: MatchSample; color: string; onPick
       <Row name={m.a} score={m.scoreA} win={winA} champ={winA} onPick={onPick} show={done || live} />
       <div className="h-px bg-white/8" />
       <Row name={m.b} score={m.scoreB} win={winB} champ={winB} onPick={onPick} show={done || live} />
-      {live && <div className="text-[9px] text-center font-bold uppercase tracking-wider py-1 flex items-center justify-center gap-1" style={{ color, background: `${color}14` }}><span className="dot-live" style={{ width: 5, height: 5 }} /> En juego · {m.setup}</div>}
+      {live && <div className="text-[9px] text-center font-bold uppercase tracking-wider py-1 flex items-center justify-center gap-1" style={{ color, background: `${color}14` }}><span className="dot-live" style={{ width: 5, height: 5 }} /> En juego{m.setup ? ` · ${m.setup}` : ''}</div>}
       {m.estado === 'pendiente' && <div className="text-[9px] text-center font-semibold uppercase tracking-wider py-1 text-[#6B6B85] bg-white/[0.02]">Por jugar</div>}
     </div>
   )

@@ -1,10 +1,11 @@
 'use client'
+import { useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getTorneo, STANDINGS_SAMPLE } from '@/lib/torneos/sample'
-import { ArrowLeft, Crown, Trophy } from 'lucide-react'
+import { getTorneo, getOrganizador, rankingPorJuego, STANDINGS_SAMPLE, type Jugador } from '@/lib/torneos/sample'
+import { construirRondas, standingsDe } from '@/lib/torneos/bracket'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { ArrowLeft, Crown, Trophy, Star, Check, ShieldCheck } from 'lucide-react'
 import { CountUp } from '@/components/ui/CountUp'
-
-const STANDINGS = STANDINGS_SAMPLE
 
 function avatarColor(name: string) {
   const c = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
@@ -16,8 +17,21 @@ function avatarColor(name: string) {
 export default function ResultadosPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const t = getTorneo(id)
+  const creado = useDemoStore(s => s.creados.find(c => c.id === id))
+  const gestion = useDemoStore(s => s.gestion[id])
+  const t = getTorneo(id) || creado
   const bote = t?.bote || 0
+
+  // Clasificación REAL si el TO cerró la final en /gestionar; si no, la de muestra.
+  const standingsReales = useMemo<string[] | null>(() => {
+    if (!t || !gestion?.generado) return null
+    const pool = rankingPorJuego(t.juego)
+    const seeds = (gestion.seeds ?? []).map(sid => pool.find(p => p.id === sid)).filter(Boolean) as Jugador[]
+    const st = standingsDe(construirRondas(seeds, gestion.winners ?? {}))
+    return st.length ? st.map(p => p.nombre) : null
+  }, [t, gestion])
+  const real = !!standingsReales
+  const STANDINGS = standingsReales ?? STANDINGS_SAMPLE
   const premios = [Math.round(bote * 0.7), Math.round(bote * 0.2), Math.round(bote * 0.1)]
   const medallas = ['#E0BE63', '#C0C7D1', '#CD7F45']
 
@@ -32,6 +46,9 @@ export default function ResultadosPage() {
       <div className="px-5 -mt-6">
         <p className="eyebrow eyebrow-muted">Clasificación final</p>
         <h1 className="text-2xl font-bold text-white text-display tracking-tight">{t?.nombre || 'Torneo'}</h1>
+        {real && (
+          <p className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-[#B6FF3A]"><ShieldCheck size={13} /> Resultados oficiales del organizador</p>
+        )}
 
         {/* Campeón */}
         <div className="mt-5 card-premium p-5 text-center relative overflow-hidden animate-slide-up-sm">
@@ -78,7 +95,57 @@ export default function ResultadosPage() {
             </div>
           ))}
         </div>
+
+        {/* Valoración post-torneo del organizador */}
+        {t?.organizadorId && <ValorarTO orgId={t.organizadorId} torneoNombre={t.nombre} />}
       </div>
+    </div>
+  )
+}
+
+// Al acabar el torneo, el jugador valora al TO (alimenta su rating e insignias).
+function ValorarTO({ orgId, torneoNombre }: { orgId: string; torneoNombre: string }) {
+  const org = getOrganizador(orgId)
+  const pushNoti = useDemoStore(s => s.pushNoti)
+  const [stars, setStars] = useState(0)
+  const [enviada, setEnviada] = useState(false)
+  if (!org) return null
+
+  const enviar = () => {
+    if (!stars || enviada) return
+    setEnviada(true)
+    pushNoti({
+      tipo: 'sistema', titulo: 'Gracias por tu valoración',
+      cuerpo: `Has puntuado a ${org.nombre} con ${stars}★ en «${torneoNombre}».`,
+    })
+  }
+
+  return (
+    <div className="mt-6 card-premium p-4">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-[#0A0A0F] font-black" style={{ background: org.color }}>{org.nombre[0]}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-white truncate">¿Qué tal con {org.nombre}?</p>
+          <p className="text-[11px] text-[#8B8BA8]">Tu valoración alimenta su reputación pública (★ {org.rating}).</p>
+        </div>
+      </div>
+      {enviada ? (
+        <div className="mt-3 h-11 rounded-xl bg-[#B6FF3A]/12 border border-[#B6FF3A]/35 text-[#B6FF3A] text-sm font-bold flex items-center justify-center gap-2">
+          <Check size={15} /> Valoración enviada · {stars}★
+        </div>
+      ) : (
+        <div className="mt-3 flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map(n => (
+              <button key={n} onClick={() => setStars(n)} aria-label={`${n} estrellas`} className="p-1">
+                <Star size={24} className={n <= stars ? 'text-[#E0BE63] fill-[#E0BE63]' : 'text-[#4A4A5E]'} />
+              </button>
+            ))}
+          </div>
+          <button onClick={enviar} disabled={!stars}
+            className="ml-auto h-10 px-4 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold disabled:opacity-40">Enviar</button>
+        </div>
+      )}
     </div>
   )
 }

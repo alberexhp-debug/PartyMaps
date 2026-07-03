@@ -66,3 +66,23 @@ export function boDeRonda(ri: number, totalRondas: number, bo: { base: number; t
 
 // Juegos necesarios para cerrar un set (Bo3 → 2, Bo5 → 3).
 export const paraGanar = (bo: number) => Math.ceil(bo / 2)
+
+// Clasificación final a partir del cuadro: campeón, subcampeón y después los
+// eliminados de cada ronda (de la final hacia atrás). Solo tiene sentido
+// cuando la final está jugada.
+export function standingsDe(rondas: MatchB[][]): Jugador[] {
+  const final = rondas[rondas.length - 1]?.[0]
+  if (!final?.ganador) return []
+  const w = (m: MatchB) => (m.ganador === 'a' ? m.a : m.b)
+  const l = (m: MatchB) => (m.ganador === 'a' ? m.b : m.a)
+  const out: Jugador[] = []
+  const campeon = w(final)
+  if (campeon) out.push(campeon)
+  for (let ri = rondas.length - 1; ri >= 0; ri--) {
+    for (const m of rondas[ri]) {
+      const perdedor = m.ganador ? l(m) : null
+      if (perdedor && !out.some(p => p.id === perdedor.id)) out.push(perdedor)
+    }
+  }
+  return out
+}

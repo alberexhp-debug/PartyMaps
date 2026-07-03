@@ -1,9 +1,12 @@
 'use client'
+import { useState } from 'react'
 import { JUEGOS } from '@/lib/torneos/sample'
+import { PERSONAJES } from '@/lib/torneos/personajes'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from './GameKeyart'
 import { CountUp } from '@/components/ui/CountUp'
 import { PersonajeIcon } from '@/components/todh/PersonajeChip'
+import { Pencil, X, Check } from 'lucide-react'
 
 type Stat = { rating: number; tier: string; v: number; d: number; mejor: string; mains: string[]; pos: number; racha: string[] }
 const STATS: Record<string, Stat> = {
@@ -18,9 +21,13 @@ const STATS: Record<string, Stat> = {
 export function CompetitiveCard() {
   const juego = useDemoStore(s => s.juegoPerfil)
   const setJuego = useDemoStore(s => s.setJuegoPerfil)
+  const mainsGuardados = useDemoStore(st => st.mainsPerfil[juego])
+  const [picker, setPicker] = useState(false)
   const s = STATS[juego] || STATS.smash
   const j = JUEGOS[juego]
   const wr = Math.round((s.v / (s.v + s.d)) * 100)
+  const mains = mainsGuardados ?? s.mains
+  const pool = PERSONAJES[juego]
 
   return (
     <div className="ring-grad relative overflow-hidden rounded-2xl border border-white/8" style={{ background: '#171B25' }}>
@@ -69,12 +76,19 @@ export function CompetitiveCard() {
 
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Mains</span>
-          {s.mains.map(m => (
+          {mains.map(m => (
             <span key={m} className="pl-1 pr-2.5 h-6 inline-flex items-center gap-1 rounded-full text-[11px] font-semibold bg-white/6 border border-white/10 text-[#D4D4E4]">
               <PersonajeIcon juegoId={juego} nombre={m} px={17} /> {m}
             </span>
           ))}
+          {pool && (
+            <button onClick={() => setPicker(true)} aria-label="Editar mains"
+              className="h-6 w-6 rounded-full bg-white/6 border border-white/10 text-[#8B8BA8] hover:text-white flex items-center justify-center transition-colors">
+              <Pencil size={11} />
+            </button>
+          )}
         </div>
+        {picker && pool && <MainsPicker juego={juego} actuales={mains} onClose={() => setPicker(false)} />}
 
         {/* Racha reciente */}
         <div className="mt-3 flex items-center gap-2">
@@ -84,6 +98,54 @@ export function CompetitiveCard() {
               <span key={i} className={`w-6 h-6 rounded-md inline-flex items-center justify-center text-[11px] font-black font-mono-num ${r === 'V' ? 'bg-[#2ED47A]/18 text-[#2ED47A]' : 'bg-[#FF6B6B]/18 text-[#FF6B6B]'}`}>{r}</span>
             ))}
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Selector de mains con los iconos del pool del juego (máx. 3, persiste por juego).
+function MainsPicker({ juego, actuales, onClose }: { juego: string; actuales: string[]; onClose: () => void }) {
+  const setMainsPerfil = useDemoStore(s => s.setMainsPerfil)
+  const [sel, setSel] = useState<string[]>(actuales.filter(m => PERSONAJES[juego]?.some(p => p.nombre === m)))
+  const j = JUEGOS[juego]
+  const pool = PERSONAJES[juego] ?? []
+
+  const toggle = (nombre: string) => setSel(prev =>
+    prev.includes(nombre) ? prev.filter(x => x !== nombre) : prev.length >= 3 ? prev : [...prev, nombre])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="absolute inset-0 bg-black/65 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop max-h-[80vh] overflow-y-auto">
+        <div className="sticky top-0 bg-[#141822] px-5 pt-4 pb-3 z-10 border-b border-white/5 flex items-center justify-between">
+          <div>
+            <p className="text-[15px] font-bold text-white">Tus mains de {j?.corto ?? juego}</p>
+            <p className="text-[11px] text-[#8B8BA8]">Elige hasta 3 · se muestran en tu perfil y ranking</p>
+          </div>
+          <button onClick={onClose} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC]"><X size={16} /></button>
+        </div>
+        <div className="px-4 py-4 grid grid-cols-3 gap-2">
+          {pool.map(p => {
+            const on = sel.includes(p.nombre)
+            return (
+              <button key={p.nombre} onClick={() => toggle(p.nombre)}
+                className="flex flex-col items-center gap-1.5 rounded-2xl border p-3 transition-all"
+                style={on
+                  ? { background: `${p.color}1A`, borderColor: `${p.color}77` }
+                  : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                <PersonajeIcon juegoId={juego} nombre={p.nombre} px={34} />
+                <span className={`text-[11px] font-bold leading-tight text-center ${on ? 'text-white' : 'text-[#B8B8CC]'}`}>{p.nombre}</span>
+                {on && <Check size={12} className="text-[#B6FF3A]" />}
+              </button>
+            )
+          })}
+        </div>
+        <div className="sticky bottom-0 bg-[#141822] px-4 pb-5 pt-2 border-t border-white/5">
+          <button onClick={() => { setMainsPerfil(juego, sel); onClose() }} disabled={sel.length === 0}
+            className="w-full h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold disabled:opacity-40">
+            Guardar {sel.length ? `(${sel.length})` : ''}
+          </button>
         </div>
       </div>
     </div>
