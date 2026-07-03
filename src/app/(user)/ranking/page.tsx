@@ -1,8 +1,9 @@
 'use client'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { JUEGOS, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { CountUp } from '@/components/ui/CountUp'
 import { cn } from '@/lib/utils'
@@ -42,8 +43,15 @@ const TIPOS: { id: TipoRanking; label: string; icon: typeof Store }[] = [
 ]
 
 export default function RankingPage() {
+  const favoritos = useDemoStore(s => s.juegosFavoritos)
   const [tipo, setTipo] = useState<TipoRanking>('presencial')
   const [juego, setJuego] = useState('smash')
+  const [juegoTocado, setJuegoTocado] = useState(false)
+  // Abre por tu juego principal (tras hidratar el store persistido), salvo que
+  // el usuario ya haya elegido otro chip a mano.
+  useEffect(() => {
+    if (!juegoTocado && favoritos[0] && JUEGOS[favoritos[0]]) setJuego(favoritos[0])
+  }, [favoritos, juegoTocado])
   const [ambito, setAmbito] = useState<'pais' | 'mundial'>('pais')
   const [sel, setSel] = useState<{ j: Jugador; puesto: number } | null>(null)
   const esTourneum = tipo === 'tourneum'
@@ -128,7 +136,7 @@ export default function RankingPage() {
           {Object.values(JUEGOS).map(j => {
             const activo = juego === j.id
             return (
-              <button key={j.id} onClick={() => setJuego(j.id)}
+              <button key={j.id} onClick={() => { setJuegoTocado(true); setJuego(j.id) }}
                 className="shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-all border"
                 style={activo
                   ? { background: `${j.color}26`, color: j.color, borderColor: `${j.color}88` }

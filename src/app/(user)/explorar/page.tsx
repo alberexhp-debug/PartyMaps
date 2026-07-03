@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { OnboardingJuegos } from '@/components/todh/OnboardingJuegos'
 import { TorneoArt, GameKeyart } from '@/components/todh/GameKeyart'
 import { FillBar } from '@/components/ui/CountUp'
 import {
@@ -33,6 +34,7 @@ export default function ExplorarPage() {
   const [soloAbiertos, setSoloAbiertos] = useState(false)
   const creados = useDemoStore(s => s.creados)
   const seguidos = useDemoStore(s => s.seguidos)
+  const favoritos = useDemoStore(s => s.juegosFavoritos)
   const noLeidas = useDemoStore(s => s.notificaciones.filter(n => !n.leida).length)
 
   const resultados = useMemo(() => {
@@ -62,20 +64,22 @@ export default function ExplorarPage() {
   const sectioned = !busca.trim() && numFiltros === 0
   const secciones = useMemo(() => {
     if (!sectioned) return null
-    const deSeguidos: TorneoSample[] = [], hoy: TorneoSample[] = [], cerca: TorneoSample[] = [], resto: TorneoSample[] = []
+    const deSeguidos: TorneoSample[] = [], tusJuegos: TorneoSample[] = [], hoy: TorneoSample[] = [], cerca: TorneoSample[] = [], resto: TorneoSample[] = []
     for (const t of resultados) {
       if (t.organizadorId && seguidos.includes(t.organizadorId)) deSeguidos.push(t)
+      else if (favoritos.includes(t.juego)) tusJuegos.push(t)
       else if (t.esHoy) hoy.push(t)
       else if (!t.online && t.distanciaKm > 0 && t.distanciaKm <= 3) cerca.push(t)
       else resto.push(t)
     }
     return [
       { titulo: 'De tus organizadores', sub: 'TOs a los que sigues', items: deSeguidos },
+      { titulo: 'Tus juegos', sub: 'Lo que elegiste al entrar', items: tusJuegos },
       { titulo: 'Empieza hoy', sub: 'No te lo pierdas', items: hoy },
       { titulo: 'Cerca de ti', sub: 'A menos de 3 km', items: cerca },
       { titulo: 'Más torneos', sub: 'Esta semana y siguientes', items: resto },
     ].filter(s => s.items.length > 0)
-  }, [sectioned, resultados, seguidos])
+  }, [sectioned, resultados, seguidos, favoritos])
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -311,6 +315,7 @@ export default function ExplorarPage() {
           </div>
         </div>
       )}
+      <OnboardingJuegos />
     </div>
   )
 }

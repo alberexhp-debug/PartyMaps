@@ -81,6 +81,8 @@ interface DemoState {
   juegoPerfil: string                 // juego activo en el perfil
   avatarEmoji: string | null          // avatar elegido en el perfil (demo)
   mainsPerfil: Record<string, string[]>  // mains elegidos por juego (iconos de personaje)
+  juegosFavoritos: string[]              // juegos elegidos en el onboarding (personalizan feed y ranking)
+  onboardingVisto: boolean
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string) => void
   desinscribir: (torneoId: string) => void
@@ -106,6 +108,7 @@ interface DemoState {
   setJuegoPerfil: (j: string) => void
   setAvatarEmoji: (e: string | null) => void
   setMainsPerfil: (juego: string, mains: string[]) => void
+  setJuegosFavoritos: (ids: string[]) => void
 }
 
 let nid = 0
@@ -137,6 +140,8 @@ export const useDemoStore = create<DemoState>()(
       juegoPerfil: 'smash',
       avatarEmoji: null,
       mainsPerfil: {},
+      juegosFavoritos: [],
+      onboardingVisto: false,
 
       inscribir: (torneoId, nombreTorneo) => set((s) => {
         if (s.inscritos.includes(torneoId)) return s
@@ -308,6 +313,7 @@ export const useDemoStore = create<DemoState>()(
       setJuegoPerfil: (juegoPerfil) => set({ juegoPerfil }),
       setAvatarEmoji: (avatarEmoji) => set({ avatarEmoji }),
       setMainsPerfil: (juego, mains) => set((s) => ({ mainsPerfil: { ...s.mainsPerfil, [juego]: mains } })),
+      setJuegosFavoritos: (juegosFavoritos) => set({ juegosFavoritos, onboardingVisto: true }),
     }),
     {
       name: 'todh-demo',
