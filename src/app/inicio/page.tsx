@@ -66,7 +66,7 @@ export default function InicioPage() {
 
       {/* Circuito oficial Tourneum */}
       <div className="px-5 mt-8 max-w-2xl mx-auto">
-        <Link href="/ranking" className="flex items-center gap-3 rounded-2xl border border-[#E0BE63]/35 bg-[#E0BE63]/[0.07] px-4 py-3.5 hover:bg-[#E0BE63]/[0.12] transition-colors">
+        <Link href="/circuito" className="flex items-center gap-3 rounded-2xl border border-[#E0BE63]/35 bg-[#E0BE63]/[0.07] px-4 py-3.5 hover:bg-[#E0BE63]/[0.12] transition-colors">
           <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#E0BE63]/15 text-[#E0BE63] shrink-0 text-xl">🏆</span>
           <span className="flex-1 min-w-0">
             <span className="block text-sm font-bold text-white">Circuito oficial Tourneum · Split 2 · 2026</span>

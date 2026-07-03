@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { JUEGOS, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
@@ -95,14 +96,14 @@ export default function RankingPage() {
       {/* Circuito oficial (Tourneum): sin país/global — puntúas jugando los oficiales */}
       {esTourneum && (
         <div className="relative px-4 mt-3">
-          <div className="rounded-2xl border border-[#E0BE63]/35 bg-[#E0BE63]/[0.07] px-4 py-3 flex items-center gap-3">
+          <Link href="/circuito" className="rounded-2xl border border-[#E0BE63]/35 bg-[#E0BE63]/[0.07] px-4 py-3 flex items-center gap-3 hover:bg-[#E0BE63]/[0.12] transition-colors">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#E0BE63]/15 text-[#E0BE63] shrink-0"><Trophy size={18} /></span>
             <div className="min-w-0">
               <p className="text-sm font-bold text-white">Circuito oficial Tourneum · Split 2 · 2026</p>
               <p className="text-[11px] text-[#D8C48A]">Se disputa 2 veces al año en los torneos oficiales de la app. Puntúan solo sus participantes — sin ámbito por país ni global.</p>
-              <p className="mt-1 text-[11px] font-bold text-[#E0BE63] inline-flex items-center gap-1"><CalendarClock size={11} /> Próximo oficial: 13 dic 2026</p>
+              <p className="mt-1 text-[11px] font-bold text-[#E0BE63] inline-flex items-center gap-1"><CalendarClock size={11} /> Próximo oficial: 13 dic 2026 · ver el circuito ›</p>
             </div>
-          </div>
+          </Link>
         </div>
       )}
 
