@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, getOrganizador, rankingPorJuego, STANDINGS_SAMPLE, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, standingsDe } from '@/lib/torneos/bracket'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { ArrowLeft, Crown, Trophy, Star, Check, ShieldCheck } from 'lucide-react'
 import { CountUp } from '@/components/ui/CountUp'
 import { PersonajeIcon } from '@/components/todh/PersonajeChip'
@@ -16,6 +17,7 @@ function avatarColor(name: string) {
 }
 
 export default function ResultadosPage() {
+  const { t: tr } = useT()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
@@ -48,17 +50,17 @@ export default function ResultadosPage() {
       </div>
 
       <div className="relative px-5 -mt-6">
-        <p className="eyebrow eyebrow-muted">Clasificación final</p>
+        <p className="eyebrow eyebrow-muted">{tr('res.clasifFinal')}</p>
         <h1 className="text-2xl font-bold text-white text-display tracking-tight">{t?.nombre || 'Torneo'}</h1>
         {real && (
-          <p className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-[#B6FF3A]"><ShieldCheck size={13} /> Resultados oficiales del organizador</p>
+          <p className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-[#B6FF3A]"><ShieldCheck size={13} /> {tr('res.oficiales')}</p>
         )}
 
         {/* Campeón */}
         <div className="mt-5 card-premium p-5 text-center relative overflow-hidden animate-slide-up-sm">
           <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full bg-[#E0BE63]/20 blur-3xl" />
           <Crown size={26} className="mx-auto text-[#E0BE63] mb-1" fill="#E0BE63" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-[#E0BE63] font-bold">Campeón</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[#E0BE63] font-bold">{tr('res.campeon')}</p>
           <div className="relative mt-3 flex flex-col items-center">
             <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] ring-4 ring-[#E0BE63]/40 animate-pop" style={{ background: avatarColor(STANDINGS[0]), boxShadow: '0 0 40px -6px rgba(224,190,99,.55)' }}>{STANDINGS[0][0]}</span>
             <p className="mt-3 text-2xl font-bold text-white text-display">{STANDINGS[0]}</p>
@@ -87,7 +89,7 @@ export default function ResultadosPage() {
         )}
 
         {/* Standings */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Clasificación completa</p>
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('res.clasifCompleta')}</p>
         <div className="space-y-1.5">
           {STANDINGS.map((n, i) => (
             <div key={n} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 10) * 50}ms` }}>

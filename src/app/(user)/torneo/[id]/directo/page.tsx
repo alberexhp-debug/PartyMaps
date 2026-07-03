@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, JUEGOS, bracketDe } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { VideoEmbed } from '@/components/todh/VideoEmbed'
 import { ArrowLeft, Radio, Send, ListTree, Eye, Play } from 'lucide-react'
@@ -26,6 +27,7 @@ const CHAT_POOL = [
 ]
 
 export default function DirectoPage() {
+  const { t: tr } = useT()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
@@ -69,7 +71,7 @@ export default function DirectoPage() {
           <button onClick={() => router.back()} aria-label="Volver" className="absolute top-4 left-4 z-10 h-10 w-10 rounded-xl bg-black/50 backdrop-blur flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
           <div className="flex items-center justify-between px-4 py-2 bg-black/40 border-b border-white/6">
             <span className="badge-live">Live</span>
-            {viendo > 0 && <span className="inline-flex items-center gap-1 text-[11px] font-mono-num text-white"><Eye size={11} /> {viendo} viendo</span>}
+            {viendo > 0 && <span className="inline-flex items-center gap-1 text-[11px] font-mono-num text-white"><Eye size={11} /> {viendo} {tr('directo.viendo')}</span>}
           </div>
         </div>
       ) : (
@@ -108,7 +110,7 @@ export default function DirectoPage() {
 
         {/* Combate actual */}
         <div className="mt-3 card-premium p-3.5">
-          <p className="eyebrow eyebrow-muted mb-2">Combate en el escenario</p>
+          <p className="eyebrow eyebrow-muted mb-2">{tr('directo.combate')}</p>
           <div className="flex items-center justify-between">
             <div className="text-center flex-1">
               <span className="inline-flex items-center justify-center w-12 h-12 rounded-full text-[#0A0A0F] font-black text-lg" style={{ background: '#E63E54' }}>S</span>
@@ -127,14 +129,14 @@ export default function DirectoPage() {
 
         {/* Bracket lateral (acceso) */}
         <Link href={`/torneo/${id}/bracket`} className="mt-3 flex items-center justify-between card-premium card-int p-3.5">
-          <span className="inline-flex items-center gap-2 text-white font-semibold text-sm"><ListTree size={17} className="text-[#9B82FF]" /> Ver bracket completo</span>
+          <span className="inline-flex items-center gap-2 text-white font-semibold text-sm"><ListTree size={17} className="text-[#9B82FF]" /> {tr('directo.verBracket')}</span>
           <span className="text-[#8B8BA8]">{rondas.reduce((a, r) => a + r.matches.length, 0)} combates ›</span>
         </Link>
 
       </div>
         {/* Chat */}
         <div className="mt-4 lg:mt-0 lg:sticky lg:top-4">
-          <p className="eyebrow eyebrow-muted mb-2">Chat del directo</p>
+          <p className="eyebrow eyebrow-muted mb-2">{tr('directo.chat')}</p>
           <div ref={chatRef} className="card-premium p-3 space-y-2.5 max-h-72 lg:max-h-[420px] overflow-y-auto">
             {chat.map((c, i) => (
               <div key={i} className="flex items-start gap-2 animate-slide-up-sm">
@@ -148,7 +150,7 @@ export default function DirectoPage() {
           </div>
           <div className="mt-2 flex items-center gap-2">
             <input value={msg} onChange={e => setMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') enviar() }}
-              placeholder="Escribe en el chat…"
+              placeholder={tr('directo.escribe')}
               className="flex-1 h-11 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-[#8B8BA8] focus:border-[#B6FF3A]/60 outline-none" />
             <button onClick={enviar} aria-label="Enviar" className="h-11 w-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] flex items-center justify-center shrink-0"><Send size={17} /></button>
           </div>

@@ -4,11 +4,13 @@ import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, standingsSuizoDe, rankingPorJuego, type MatchSample, type RondaSample, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, nombreRonda, boDeRonda } from '@/lib/torneos/bracket'
 import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Crown, ShieldCheck } from 'lucide-react'
 
 export default function BracketPage() {
+  const { t: tr } = useT()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
@@ -60,7 +62,7 @@ export default function BracketPage() {
     if (j) setSel(j)
   }
 
-  const labelFormato = esTabla ? 'Clasificación en vivo' : 'Bracket en vivo'
+  const labelFormato = esTabla ? tr('bracket.clasifVivo') : tr('bracket.enVivo')
 
   return (
     <div className="min-h-screen max-w-xl lg:max-w-6xl mx-auto">
@@ -76,7 +78,7 @@ export default function BracketPage() {
         {real && (
           <div className="flex items-center gap-2 rounded-2xl border border-[#B6FF3A]/35 bg-[#B6FF3A]/[0.07] px-4 py-2.5">
             <ShieldCheck size={15} className="text-[#B6FF3A] shrink-0" />
-            <p className="text-[12px] text-white font-semibold">Bracket oficial del organizador · resultados por sets en vivo</p>
+            <p className="text-[12px] text-white font-semibold">{tr('bracket.oficial')}</p>
           </div>
         )}
         {/* Conmutador Winners/Losers */}
@@ -92,7 +94,7 @@ export default function BracketPage() {
         )}
 
         <button onClick={() => router.push(`/torneo/${id}/resultados`)} className="w-full flex items-center justify-between rounded-2xl bg-[#E0BE63]/10 border border-[#E0BE63]/30 px-4 py-3 hover:bg-[#E0BE63]/15 transition-colors">
-          <span className="inline-flex items-center gap-2 text-[#E0BE63] font-semibold text-sm">🏆 Ver clasificación final y premios</span>
+          <span className="inline-flex items-center gap-2 text-[#E0BE63] font-semibold text-sm">🏆 {tr('bracket.verFinal')}</span>
           <span className="text-[#E0BE63] text-lg">›</span>
         </button>
       </div>

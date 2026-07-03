@@ -4,6 +4,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getTorneo, getLocal, JUEGOS } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { MapaMesas } from '@/components/todh/MapaMesas'
 import { ArrowLeft, Vibrate, Check, ListTree, MapPin, Users, Swords, Hourglass } from 'lucide-react'
 
@@ -19,6 +20,7 @@ export default function MesaPage() {
 }
 
 function MesaContent() {
+  const { t: tr } = useT()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const params = useSearchParams()
@@ -125,16 +127,16 @@ function MesaContent() {
           <div className="rounded-2xl border border-[#B6FF3A]/50 bg-[#B6FF3A]/[0.10] p-4 flex items-center gap-3" style={{ animation: 'pulse-heat 1.4s ease-in-out infinite' }}>
             <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#B6FF3A]/20 text-[#B6FF3A] shrink-0"><Vibrate size={20} /></span>
             <div>
-              <p className="text-[15px] font-bold text-white leading-tight">¡Te toca! Ve a la <span className="text-[#B6FF3A]">mesa {n}</span></p>
-              <p className="text-xs text-[#B8B8CC] mt-0.5">El móvil vibrará hasta que confirmes que vas de camino.</p>
+              <p className="text-[15px] font-bold text-white leading-tight">{tr('mesa.teToca')} <span className="text-[#B6FF3A]">{tr('mesa.mesa')} {n}</span></p>
+              <p className="text-xs text-[#B8B8CC] mt-0.5">{tr('mesa.vibrara')}</p>
             </div>
           </div>
         ) : (
           <div className="rounded-2xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.08] p-4 flex items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] shrink-0"><Check size={20} /></span>
             <div>
-              <p className="text-[15px] font-bold text-white leading-tight">Confirmado, te esperan en la mesa {n}</p>
-              <p className="text-xs text-[#B8B8CC] mt-0.5">El organizador ya sabe que vas de camino.</p>
+              <p className="text-[15px] font-bold text-white leading-tight">{tr('mesa.confirmado')} {n}</p>
+              <p className="text-xs text-[#B8B8CC] mt-0.5">{tr('mesa.toSabe')}</p>
             </div>
           </div>
         )}
@@ -143,7 +145,7 @@ function MesaContent() {
         {/* Plano con la mesa resaltada */}
         <div className="mt-4 lg:mt-0 lg:col-start-1 lg:row-start-1 lg:row-span-2">
           <MapaMesas mesas={mesas} destacada={n} />
-          <p className="mt-2 text-[11px] text-[#8B8BA8] text-center">Plano de {local.nombre} · tu mesa parpadea en verde</p>
+          <p className="mt-2 text-[11px] text-[#8B8BA8] text-center">{tr('mesa.planoDe')} {local.nombre} · {tr('mesa.plano')}</p>
         </div>
 
         <div className="lg:col-start-2 lg:row-start-2">
@@ -154,7 +156,7 @@ function MesaContent() {
             <p className="text-sm font-bold text-white capitalize">{mesa ? `${mesa.tipo} · ${mesa.plazas} plazas` : 'Por asignar'}</p>
           </div>
           <div className="card-premium p-3.5">
-            <div className="flex items-center gap-1.5 text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold mb-1"><MapPin size={13} className="text-[#4F8EF7]" /> Sede</div>
+            <div className="flex items-center gap-1.5 text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold mb-1"><MapPin size={13} className="text-[#4F8EF7]" /> {tr('mesa.sede')}</div>
             <p className="text-sm font-bold text-white truncate">{local.nombre} · {local.zona}</p>
           </div>
         </div>
@@ -166,7 +168,7 @@ function MesaContent() {
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] shrink-0"><Check size={18} /></span>
                 <div>
-                  <p className="text-sm font-bold text-white">Resultado confirmado por consenso</p>
+                  <p className="text-sm font-bold text-white">{tr('mesa.consenso')}</p>
                   <p className="text-[11px] text-[#8B8BA8]">{ganador} gana {marcador} · el bracket ya ha avanzado.</p>
                 </div>
               </div>
@@ -174,7 +176,7 @@ function MesaContent() {
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FF6076]/15 text-[#FF6076] shrink-0"><Hourglass size={17} /></span>
                 <div>
-                  <p className="text-sm font-bold text-white">Disputa abierta</p>
+                  <p className="text-sm font-bold text-white">{tr('mesa.disputaAbierta')}</p>
                   <p className="text-[11px] text-[#8B8BA8]">Los reportes no coinciden. El organizador la resolverá en breve; te avisaremos.</p>
                 </div>
               </div>
@@ -183,17 +185,17 @@ function MesaContent() {
                 <div className="flex items-center gap-3">
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FF8A5C]/15 text-[#FF8A5C] shrink-0"><Hourglass size={17} className="animate-pulse" /></span>
                   <div>
-                    <p className="text-sm font-bold text-white">Esperando a tu rival…</p>
+                    <p className="text-sm font-bold text-white">{tr('mesa.esperandoRival')}</p>
                     <p className="text-[11px] text-[#8B8BA8]">Si su reporte coincide, el resultado se confirma solo.</p>
                   </div>
                 </div>
                 <button onClick={abrirDisputa} className="mt-2.5 w-full h-9 rounded-lg bg-[#FF6076]/10 border border-[#FF6076]/30 text-[#FF8A8A] text-xs font-bold">
-                  ¿No estáis de acuerdo? Abrir disputa al organizador
+                  {tr('mesa.abrirDisputa')}
                 </button>
               </div>
             ) : (
               <>
-                <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[#8B8BA8] font-bold mb-2.5"><Swords size={13} className="text-[#B6FF3A]" /> ¿Quién ha ganado?</p>
+                <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[#8B8BA8] font-bold mb-2.5"><Swords size={13} className="text-[#B6FF3A]" /> {tr('mesa.quienGana')}</p>
                 <div className="grid grid-cols-2 gap-2">
                   {nombres!.map(nm => (
                     <button key={nm} onClick={() => setGanador(nm)}
@@ -208,7 +210,7 @@ function MesaContent() {
                       className={`px-3 h-9 rounded-lg text-xs font-bold border font-mono-num transition-all ${marcador === m ? 'bg-[#9B82FF]/15 text-[#B9A6FF] border-[#9B82FF]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>{m}</button>
                   ))}
                   <button onClick={enviarReporte} disabled={!ganador}
-                    className="ml-auto h-10 px-4 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold disabled:opacity-40">Enviar</button>
+                    className="ml-auto h-10 px-4 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold disabled:opacity-40">{tr('mesa.enviar')}</button>
                 </div>
                 <p className="mt-2 text-[10px] text-[#6B6B85]">Tu rival reporta desde su móvil; si coincidís, avanza sin pasar por el organizador.</p>
               </>
@@ -217,7 +219,7 @@ function MesaContent() {
         )}
 
         <Link href={`/torneo/${t.id}/bracket`} className="mt-3 flex items-center justify-between card-premium card-int p-4">
-          <span className="inline-flex items-center gap-2 text-white font-semibold text-sm"><ListTree size={17} className="text-[#9B82FF]" /> Ver el bracket</span>
+          <span className="inline-flex items-center gap-2 text-white font-semibold text-sm"><ListTree size={17} className="text-[#9B82FF]" /> {tr('mesa.verBracket')}</span>
           <span className="text-[#8B8BA8] text-lg">›</span>
         </Link>
 
@@ -226,12 +228,12 @@ function MesaContent() {
           {!confirmado ? (
             <button onClick={() => setConfirmado(true)}
               className="w-full h-13 py-3.5 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] flex items-center justify-center gap-2">
-              <Check size={18} /> Confirmo, voy de camino
+              <Check size={18} /> {tr('mesa.voy')}
             </button>
           ) : (
             <Link href={`/torneo/${t.id}/directo`}
               className="w-full h-13 py-3.5 rounded-2xl bg-white/8 border border-white/12 text-white font-bold text-[15px] flex items-center justify-center gap-2">
-              Abrir chat del combate
+              {tr('mesa.abrirChat')}
             </Link>
           )}
         </div>
@@ -244,12 +246,12 @@ function MesaContent() {
           {!confirmado ? (
             <button onClick={() => setConfirmado(true)}
               className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform flex items-center justify-center gap-2">
-              <Check size={18} /> Confirmo, voy de camino
+              <Check size={18} /> {tr('mesa.voy')}
             </button>
           ) : (
             <Link href={`/torneo/${t.id}/directo`}
               className="w-full h-14 rounded-2xl bg-white/8 border border-white/12 text-white font-bold text-[15px] flex items-center justify-center gap-2">
-              Abrir chat del combate
+              {tr('mesa.abrirChat')}
             </Link>
           )}
         </div>

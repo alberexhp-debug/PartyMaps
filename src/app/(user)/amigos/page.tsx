@@ -10,6 +10,7 @@ import {
 import { JUEGOS, JUEGOS_LIST, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { PersonajeIcon } from '@/components/todh/PersonajeChip'
+import { useT } from '@/lib/i18n'
 
 // Perfil competitivo de muestra de cada amigo (por nombre) para enriquecer la lista
 const POOL_JUGADORES: Jugador[] = JUEGOS_LIST.flatMap(j => rankingPorJuego(j.id))
@@ -57,6 +58,7 @@ function Avatar({ nombre, foto, size = 40 }: { nombre: string; foto: string | nu
 }
 
 export default function AmigosPage() {
+  const { t: tr } = useT()
   const router = useRouter()
   const toast = useToast()
   const { usuario, isLoading } = useAuthStore()
@@ -125,10 +127,10 @@ export default function AmigosPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <button onClick={() => router.back()} className="text-[#8B8BA8] hover:text-white"><ArrowLeft size={20} /></button>
-          <h1 className="text-2xl font-black text-white">Amigos</h1>
+          <h1 className="text-2xl font-black text-white">{tr('amigos.titulo')}</h1>
         </div>
         <button onClick={compartir} className="inline-flex items-center gap-1.5 rounded-xl bg-[#B6FF3A] px-3 py-2 text-sm font-semibold text-[#0A0A0F]">
-          <Share2 size={15} /> Invitar
+          <Share2 size={15} /> {tr('amigos.invitar')}
         </button>
       </div>
 
@@ -139,7 +141,7 @@ export default function AmigosPage() {
             className={cn('flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium border transition-colors',
               tab === t ? 'bg-[#B6FF3A] border-[#B6FF3A] text-[#0A0A0F]' : 'border-white/10 text-[#8B8BA8] hover:text-[#0A0A0F]')}>
             {t === 'amigos' ? <Users size={15} /> : <UserCog size={15} />}
-            {t === 'amigos' ? 'Amigos' : 'Grupos'}
+            {t === 'amigos' ? tr('amigos.titulo') : tr('amigos.grupos')}
             {t === 'amigos' && recibidas.length > 0 && <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-white/90 px-1 text-[11px] font-bold text-[#B6FF3A]">{recibidas.length}</span>}
           </button>
         ))}
@@ -150,7 +152,7 @@ export default function AmigosPage() {
           {/* Solicitudes recibidas */}
           {recibidas.length > 0 && (
             <section className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">Solicitudes</p>
+              <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">{tr('amigos.solicitudes')}</p>
               {recibidas.map((p, i) => (
                 <div key={p.amistad_id} className="flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.05] px-3.5 py-3 stagger-item" style={{ ['--delay' as string]: `${i * 50}ms` }}>
                   <Avatar nombre={p.nombre} foto={p.foto_perfil_url} />
@@ -164,7 +166,7 @@ export default function AmigosPage() {
 
           {/* Amigos */}
           <section className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">Tus amigos ({amigos.length})</p>
+            <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">{tr('amigos.tus')} ({amigos.length})</p>
             {amigos.length === 0 ? (
               <EmptyInvite onInvite={compartir} />
             ) : amigos.map((p, i) => {

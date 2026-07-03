@@ -4,6 +4,7 @@ import { JUEGOS } from '@/lib/torneos/sample'
 import Link from 'next/link'
 import { X, Star, Swords, TrendingUp, Trophy, ArrowUpRight } from 'lucide-react'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
+import { useT } from '@/lib/i18n'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
@@ -17,6 +18,7 @@ function avatarColor(name: string) {
 // Mini-perfil público (modal) abierto desde ranking, bracket o participantes.
 // Sin datos personales: alias, juego, tier, rating, récord, main, logros.
 export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; puesto?: number; onClose: () => void }) {
+  const { t: tr } = useT()
   const juego = JUEGOS[jugador.juego]
   const tierColor = TIER_COLOR[jugador.tier] || '#E0BE63'
   const winrate = Math.round((jugador.victorias / (jugador.victorias + jugador.derrotas)) * 100)
@@ -50,25 +52,25 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
 
           {/* Stats */}
           <div className="mt-4 grid grid-cols-3 gap-2">
-            <Stat icon={<Star size={14} className="text-[#E0BE63]" />} label="Rating" value={jugador.rating.toString()} />
-            <Stat icon={<Swords size={14} className="text-[#B6FF3A]" />} label="Récord" value={`${jugador.victorias}-${jugador.derrotas}`} />
-            <Stat icon={<TrendingUp size={14} className="text-[#4F8EF7]" />} label="Winrate" value={`${winrate}%`} />
+            <Stat icon={<Star size={14} className="text-[#E0BE63]" />} label={tr('mp.rating')} value={jugador.rating.toString()} />
+            <Stat icon={<Swords size={14} className="text-[#B6FF3A]" />} label={tr('mp.record')} value={`${jugador.victorias}-${jugador.derrotas}`} />
+            <Stat icon={<TrendingUp size={14} className="text-[#4F8EF7]" />} label={tr('mp.winrate')} value={`${winrate}%`} />
           </div>
 
           {/* Main + mejor puesto */}
           <div className="mt-3 space-y-2">
             {jugador.main && (
               <div className="flex items-center justify-between card-premium px-3.5 py-2.5">
-                <span className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">Main</span>
+                <span className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">{tr('mp.main')}</span>
                 <PersonajeChip juegoId={jugador.juego} nombre={jugador.main} size="md" />
               </div>
             )}
             <div className="flex items-center justify-between card-premium px-3.5 py-2.5">
-              <span className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">Mejor puesto</span>
+              <span className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">{tr('mp.mejorPuesto')}</span>
               <span className="text-sm font-bold text-white">{jugador.mejorPuesto}</span>
             </div>
             <div className="flex items-center justify-between card-premium px-3.5 py-2.5">
-              <span className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">Torneos jugados</span>
+              <span className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">{tr('mp.torneosJugados')}</span>
               <span className="text-sm font-bold text-white font-mono-num">{jugador.torneosJugados}</span>
             </div>
           </div>
@@ -76,7 +78,7 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
           {/* Perfil completo (página) */}
           <Link href={`/jugador/${encodeURIComponent(jugador.nombre)}?juego=${jugador.juego}`}
             className="mt-3 w-full h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-1.5">
-            Ver perfil completo <ArrowUpRight size={15} />
+            {tr('mp.verPerfil')} <ArrowUpRight size={15} />
           </Link>
         </div>
       </div>

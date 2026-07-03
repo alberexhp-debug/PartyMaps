@@ -6,6 +6,7 @@ import { JUEGOS, JUEGOS_LIST, TORNEOS_SAMPLE, rankingPorJuego, type Jugador } fr
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { CountUp } from '@/components/ui/CountUp'
+import { useT } from '@/lib/i18n'
 import { ArrowLeft, Star, Swords, TrendingUp, Trophy, UserPlus, Check, Calendar, ChevronRight } from 'lucide-react'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
@@ -28,6 +29,7 @@ export default function JugadorPage() {
 }
 
 function JugadorContent() {
+  const { t: tr } = useT()
   const { nombre: nombreParam } = useParams<{ nombre: string }>()
   const router = useRouter()
   const params = useSearchParams()
@@ -87,14 +89,14 @@ function JugadorContent() {
           <span className="inline-flex items-center justify-center rounded-3xl font-black text-[#0A0A0F] border-4 border-[#0D0F15] shrink-0" style={{ width: 92, height: 92, background: color, fontSize: 38 }}>{jugador.nombre[0]}</span>
           <button onClick={() => setAmigo(v => !v)}
             className={`ml-auto mb-1.5 h-10 px-4 rounded-xl text-sm font-bold inline-flex items-center gap-1.5 transition-all ${amigo ? 'bg-white/8 text-white border border-white/15' : 'bg-[#B6FF3A] text-[#0A0A0F]'}`}>
-            {amigo ? <><Check size={15} /> Solicitud enviada</> : <><UserPlus size={15} /> Añadir amigo</>}
+            {amigo ? <><Check size={15} /> {tr('mp.solicitudEnviada')}</> : <><UserPlus size={15} /> {tr('mp.anadirAmigo')}</>}
           </button>
         </div>
 
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-bold text-white text-display tracking-tight">{jugador.nombre} <span className="text-lg">{jugador.bandera}</span></h1>
           <span className="inline-flex items-center px-2 h-6 rounded-full text-[11px] font-bold border" style={{ color: tierColor, borderColor: `${tierColor}55`, background: `${tierColor}1A` }}>{jugador.tier}</span>
-          {jugador.online && <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-bold bg-[#2ED47A]/12 text-[#2ED47A] border border-[#2ED47A]/35"><span className="w-1.5 h-1.5 rounded-full bg-[#2ED47A]" /> En línea</span>}
+          {jugador.online && <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-bold bg-[#2ED47A]/12 text-[#2ED47A] border border-[#2ED47A]/35"><span className="w-1.5 h-1.5 rounded-full bg-[#2ED47A]" /> {tr('mp.enLinea')}</span>}
         </div>
         <p className="text-sm text-[#8B8BA8]">{jugador.handle} · #{puesto} de {juego.corto} en España</p>
 
@@ -110,7 +112,7 @@ function JugadorContent() {
               <p className="text-[46px] font-bold text-score leading-none mt-1" style={{ color: juego.color }}><CountUp value={jugador.rating} duration={1000} /></p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] uppercase tracking-[0.12em] text-[#8B8BA8] font-bold">Main</p>
+              <p className="text-[10px] uppercase tracking-[0.12em] text-[#8B8BA8] font-bold">{tr('mp.main')}</p>
               <div className="mt-1"><PersonajeChip juegoId={jugador.juego} nombre={jugador.main} size="md" /></div>
             </div>
           </div>
@@ -118,14 +120,14 @@ function JugadorContent() {
 
         {/* Stats */}
         <div className="mt-3 grid grid-cols-3 gap-2">
-          <Stat icon={<Swords size={14} className="text-[#B6FF3A]" />} label="Récord" value={`${jugador.victorias}-${jugador.derrotas}`} />
-          <Stat icon={<TrendingUp size={14} className="text-[#4F8EF7]" />} label="Winrate" value={`${winrate}%`} />
-          <Stat icon={<Star size={14} className="text-[#E0BE63]" />} label="Mejor puesto" value={jugador.mejorPuesto.replace('🥇 ', '').replace('🥈 ', '')} />
+          <Stat icon={<Swords size={14} className="text-[#B6FF3A]" />} label={tr('mp.record')} value={`${jugador.victorias}-${jugador.derrotas}`} />
+          <Stat icon={<TrendingUp size={14} className="text-[#4F8EF7]" />} label={tr('mp.winrate')} value={`${winrate}%`} />
+          <Stat icon={<Star size={14} className="text-[#E0BE63]" />} label={tr('mp.mejorPuesto')} value={jugador.mejorPuesto.replace('🥇 ', '').replace('🥈 ', '')} />
         </div>
 
         {/* Racha */}
         <div className="mt-3 card-premium px-3.5 py-3 flex items-center gap-2">
-          <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Racha</span>
+          <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{tr('mp.racha')}</span>
           <div className="flex items-center gap-1">
             {racha.map((r, i) => (
               <span key={i} className={`w-6 h-6 rounded-md inline-flex items-center justify-center text-[11px] font-black font-mono-num ${r === 'V' ? 'bg-[#2ED47A]/18 text-[#2ED47A]' : 'bg-[#FF6B6B]/18 text-[#FF6B6B]'}`}>{r}</span>
@@ -137,7 +139,7 @@ function JugadorContent() {
 
         <div>
         {/* Historial reciente */}
-        <p className="eyebrow eyebrow-muted mt-5 lg:mt-4 mb-2">Historial reciente</p>
+        <p className="eyebrow eyebrow-muted mt-5 lg:mt-4 mb-2">{tr('mp.historial')}</p>
         <div className="card-premium overflow-hidden divide-y divide-white/5">
           {historial.map(({ t, puesto: pu }) => (
             <Link key={t.id} href={`/torneo/${t.id}/resultados`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors">
