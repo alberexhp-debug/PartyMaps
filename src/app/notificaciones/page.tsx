@@ -27,7 +27,8 @@ export default function NotificacionesPage() {
 
   return (
     <div className="relative min-h-screen pb-10">
-      <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
+      <div className="px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
+      <div className="flex items-center gap-3 max-w-2xl mx-auto">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Bandeja</p>
@@ -37,18 +38,19 @@ export default function NotificacionesPage() {
           <button onClick={marcarLeidas} className="inline-flex items-center gap-1 text-xs text-[#B6FF3A] font-semibold"><CheckCheck size={14} /> Leídas</button>
         )}
       </div>
+      </div>
 
-      <div className="px-4 pt-4 space-y-2">
+      <div className="px-4 pt-4 space-y-2 max-w-2xl mx-auto">
         {notis.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
             <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center"><Bell size={28} className="text-[#8B8BA8]" /></div>
             <p className="text-white text-xl font-bold text-display">Sin notificaciones</p>
             <p className="text-[#A0A0B8] text-sm max-w-xs">Te avisaremos de tus combates, disputas y torneos nuevos.</p>
           </div>
-        ) : notis.map(n => {
+        ) : notis.map((n, i) => {
           const { icon: Icon, color } = ICONO[n.tipo]
           const inner = (
-            <div className={`flex items-start gap-3 rounded-2xl border px-4 py-3 transition-colors ${n.leida ? 'bg-white/[0.03] border-white/8' : 'bg-white/[0.06] border-white/12'}`}>
+            <div className={`flex items-start gap-3 rounded-2xl border px-4 py-3 transition-colors stagger-item ${n.href ? 'card-int' : ''} ${n.leida ? 'bg-white/[0.03] border-white/8' : 'bg-white/[0.06] border-white/12'}`} style={{ ['--delay' as string]: `${Math.min(i, 10) * 55}ms` }}>
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl shrink-0 mt-0.5" style={{ background: `${color}1F`, color, border: `1px solid ${color}40` }}><Icon size={18} /></span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

@@ -41,7 +41,8 @@ export default function BuscarPage() {
 
   return (
     <div className="relative min-h-screen pb-10">
-      <div className="flex items-center gap-2 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
+      <div className="px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
+      <div className="flex items-center gap-2 max-w-2xl mx-auto">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="flex-1 relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B8BA8]" />
@@ -49,8 +50,9 @@ export default function BuscarPage() {
             className="w-full h-11 pl-10 pr-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-[#8B8BA8] focus:border-[#B6FF3A]/60 focus:ring-2 focus:ring-[#B6FF3A]/20 outline-none transition-all" />
         </div>
       </div>
+      </div>
 
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-4 max-w-2xl mx-auto">
         {!query ? (
           <div>
             <p className="eyebrow eyebrow-muted mb-2.5">Búsquedas sugeridas</p>
@@ -137,7 +139,11 @@ function Grupo({ titulo, icon, count, children }: { titulo: string; icon: React.
         <p className="eyebrow eyebrow-muted">{titulo}</p>
         <span className="text-[11px] font-mono-num text-[#6B6B85]">{count}</span>
       </div>
-      <div className="space-y-2">{children}</div>
+      <div className="space-y-2">
+        {Array.isArray(children)
+          ? children.map((c, i) => <div key={i} className="stagger-item" style={{ ['--delay' as string]: `${i * 45}ms` }}>{c}</div>)
+          : children}
+      </div>
     </div>
   )
 }

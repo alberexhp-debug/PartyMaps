@@ -129,13 +129,13 @@ export default function AmigosPage() {
       </div>
 
       {tab === 'amigos' ? (
-        <div className="space-y-5">
+        <div key="t-amigos" className="space-y-5">
           {/* Solicitudes recibidas */}
           {recibidas.length > 0 && (
             <section className="space-y-2">
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">Solicitudes</p>
-              {recibidas.map(p => (
-                <div key={p.amistad_id} className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3">
+              {recibidas.map((p, i) => (
+                <div key={p.amistad_id} className="flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.05] px-3.5 py-3 stagger-item" style={{ ['--delay' as string]: `${i * 50}ms` }}>
                   <Avatar nombre={p.nombre} foto={p.foto_perfil_url} />
                   <p className="flex-1 min-w-0 truncate text-sm font-semibold text-white">{p.nombre}</p>
                   <button onClick={() => responder(p.amistad_id!, 'aceptar')} className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#27AE60] text-white"><Check size={17} /></button>
@@ -150,8 +150,8 @@ export default function AmigosPage() {
             <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">Tus amigos ({amigos.length})</p>
             {amigos.length === 0 ? (
               <EmptyInvite onInvite={compartir} />
-            ) : amigos.map(p => (
-              <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3">
+            ) : amigos.map((p, i) => (
+              <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 stagger-item" style={{ ['--delay' as string]: `${(recibidas.length + i) * 50}ms` }}>
                 <Avatar nombre={p.nombre} foto={p.foto_perfil_url} />
                 <p className="flex-1 min-w-0 truncate text-sm font-semibold text-white">{p.nombre}</p>
                 <button onClick={() => quitar(p.id)} aria-label="Quitar amigo" className="flex h-9 w-9 items-center justify-center rounded-xl text-[#6B6B85] hover:text-[#B6FF3A]"><Trash2 size={16} /></button>
@@ -175,7 +175,7 @@ export default function AmigosPage() {
           )}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div key="t-grupos" className="space-y-3">
           <button onClick={() => setCrear(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.06] px-4 py-3 text-sm font-semibold text-[#B6FF3A]">
             <Plus size={17} /> Crear un grupo
           </button>
@@ -183,8 +183,8 @@ export default function AmigosPage() {
             <p className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-8 text-center text-sm text-[#8B8BA8]">
               Crea grupos con tu crew para coordinar a qué torneos vais.
             </p>
-          ) : grupos.map(g => (
-            <div key={g.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
+          ) : grupos.map((g, i) => (
+            <div key={g.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 stagger-item" style={{ ['--delay' as string]: `${i * 60}ms` }}>
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#7C5CFF]/15 text-xl">{g.emoji || '🎉'}</span>
                 <div className="min-w-0 flex-1">
