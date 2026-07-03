@@ -4,16 +4,19 @@ import { usePathname } from 'next/navigation'
 import { Map, Compass, Trophy, Ticket, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const tabs = [
-  { href: '/explorar', icon: Compass, label: 'Explorar' },
-  { href: '/mapa',     icon: Map,     label: 'Mapa' },
-  { href: '/ranking',  icon: Trophy,  label: 'Ranking' },
-  { href: '/entradas', icon: Ticket,  label: 'Entradas' },
-  { href: '/perfil',   icon: User,    label: 'Perfil' },
+import { useT, type ClaveI18n } from '@/lib/i18n'
+
+const tabs: { href: string; icon: typeof Compass; label: ClaveI18n }[] = [
+  { href: '/explorar', icon: Compass, label: 'nav.explorar' },
+  { href: '/mapa',     icon: Map,     label: 'nav.mapa' },
+  { href: '/ranking',  icon: Trophy,  label: 'nav.ranking' },
+  { href: '/entradas', icon: Ticket,  label: 'nav.entradas' },
+  { href: '/perfil',   icon: User,    label: 'nav.perfil' },
 ]
 
 export function UserBottomNav() {
   const pathname = usePathname()
+  const { t } = useT()
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 safe-bottom">
@@ -26,7 +29,7 @@ export function UserBottomNav() {
               <Link
                 key={href}
                 href={href}
-                aria-label={label}
+                aria-label={t(label)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'relative flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all min-w-[56px]',
@@ -38,7 +41,7 @@ export function UserBottomNav() {
                 )}
                 <Icon size={22} strokeWidth={active ? 2.4 : 1.75} />
                 <span className={cn('text-[10px] font-medium tracking-wide', active ? 'text-[#B6FF3A]' : 'text-current')}>
-                  {label}
+                  {t(label)}
                 </span>
               </Link>
             )

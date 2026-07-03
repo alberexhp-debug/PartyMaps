@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { OnboardingJuegos } from '@/components/todh/OnboardingJuegos'
+import { useT } from '@/lib/i18n'
 import { TorneoArt, GameKeyart } from '@/components/todh/GameKeyart'
 import { FillBar } from '@/components/ui/CountUp'
 import {
@@ -35,6 +36,7 @@ export default function ExplorarPage() {
   const creados = useDemoStore(s => s.creados)
   const seguidos = useDemoStore(s => s.seguidos)
   const favoritos = useDemoStore(s => s.juegosFavoritos)
+  const { t, idioma } = useT()
   const noLeidas = useDemoStore(s => s.notificaciones.filter(n => !n.leida).length)
 
   const resultados = useMemo(() => {
@@ -73,13 +75,13 @@ export default function ExplorarPage() {
       else resto.push(t)
     }
     return [
-      { titulo: 'De tus organizadores', sub: 'TOs a los que sigues', items: deSeguidos },
-      { titulo: 'Tus juegos', sub: 'Lo que elegiste al entrar', items: tusJuegos },
-      { titulo: 'Empieza hoy', sub: 'No te lo pierdas', items: hoy },
-      { titulo: 'Cerca de ti', sub: 'A menos de 3 km', items: cerca },
-      { titulo: 'Más torneos', sub: 'Esta semana y siguientes', items: resto },
+      { titulo: t('explorar.secSeguidos'), sub: t('explorar.secSeguidosSub'), items: deSeguidos },
+      { titulo: t('explorar.secTusJuegos'), sub: t('explorar.secTusJuegosSub'), items: tusJuegos },
+      { titulo: t('explorar.secHoy'), sub: t('explorar.secHoySub'), items: hoy },
+      { titulo: t('explorar.secCerca'), sub: t('explorar.secCercaSub'), items: cerca },
+      { titulo: t('explorar.secMas'), sub: t('explorar.secMasSub'), items: resto },
     ].filter(s => s.items.length > 0)
-  }, [sectioned, resultados, seguidos, favoritos])
+  }, [sectioned, resultados, seguidos, favoritos, t])
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -99,11 +101,11 @@ export default function ExplorarPage() {
 
       {/* Header */}
       <div className="relative px-5 pt-3 lg:pt-7 pb-3">
-        <p className="eyebrow mb-2">Próximos torneos</p>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Explorar</h1>
+        <p className="eyebrow mb-2">{t('explorar.eyebrow')}</p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{t('explorar.titulo')}</h1>
         <p className="text-sm text-[#B8B8CC] mt-2">
           <span className="text-white font-bold text-numeric">{resultados.length}</span>{' '}
-          {resultados.length === 1 ? 'torneo' : 'torneos'} cerca de ti
+          {idioma === 'en' ? `tournament${resultados.length === 1 ? '' : 's'} near you` : `${resultados.length === 1 ? 'torneo' : 'torneos'} cerca de ti`}
         </p>
       </div>
 
@@ -112,7 +114,7 @@ export default function ExplorarPage() {
         <div className="relative mt-1">
           <div className="flex items-center gap-2 px-5 mb-2">
             <span className="dot-live" />
-            <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-white">En directo ahora</p>
+            <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-white">{t('explorar.endirecto')}</p>
           </div>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1.5">
             {TORNEOS_SAMPLE.filter(t => t.enDirecto).map((t, i) => {
@@ -154,7 +156,7 @@ export default function ExplorarPage() {
             <input
               value={busca}
               onChange={e => setBusca(e.target.value)}
-              placeholder="Buscar torneo o juego…"
+              placeholder={t('explorar.buscar')}
               aria-label="Buscar"
               className="w-full h-11 pl-10 pr-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-[#8B8BA8] focus:border-[#B6FF3A]/60 focus:bg-white/8 focus:ring-2 focus:ring-[#B6FF3A]/20 outline-none transition-all"
             />
@@ -191,7 +193,7 @@ export default function ExplorarPage() {
           <button onClick={() => setSoloHoy(v => !v)}
             className={cn('shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-colors',
               soloHoy ? 'bg-[#4F8EF7] text-white' : 'bg-white/4 border border-white/8 text-[#B8B8CC] hover:text-white')}>
-            <Calendar size={11} /> Hoy
+            <Calendar size={11} /> {t('explorar.hoy')}
           </button>
           <button onClick={() => setSoloGratis(v => !v)}
             className={cn('shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-colors',
@@ -221,8 +223,8 @@ export default function ExplorarPage() {
       <Link href="/consola" className="relative mx-4 mt-3 flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.08] px-4 py-3 hover:bg-[#B6FF3A]/[0.12] transition-colors">
         <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#B6FF3A]/20 text-[#B6FF3A]"><Trophy size={17} /></span>
         <span className="flex-1 min-w-0">
-          <span className="block text-sm font-semibold text-white">¿Organizas torneos?</span>
-          <span className="block text-xs text-[#A0A0B8]">Abre tu consola de TO y publícalo en un minuto</span>
+          <span className="block text-sm font-semibold text-white">{t('explorar.organizas')}</span>
+          <span className="block text-xs text-[#A0A0B8]">{t('explorar.abreConsola')}</span>
         </span>
         <span className="text-[#B6FF3A] text-lg">›</span>
       </Link>

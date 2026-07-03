@@ -83,6 +83,7 @@ interface DemoState {
   mainsPerfil: Record<string, string[]>  // mains elegidos por juego (iconos de personaje)
   juegosFavoritos: string[]              // juegos elegidos en el onboarding (personalizan feed y ranking)
   onboardingVisto: boolean
+  idioma: 'es' | 'en'                    // idioma de la interfaz (i18n fase 1)
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string) => void
   desinscribir: (torneoId: string) => void
@@ -109,6 +110,7 @@ interface DemoState {
   setAvatarEmoji: (e: string | null) => void
   setMainsPerfil: (juego: string, mains: string[]) => void
   setJuegosFavoritos: (ids: string[]) => void
+  setIdioma: (i: 'es' | 'en') => void
 }
 
 let nid = 0
@@ -142,6 +144,7 @@ export const useDemoStore = create<DemoState>()(
       mainsPerfil: {},
       juegosFavoritos: [],
       onboardingVisto: false,
+      idioma: 'es',
 
       inscribir: (torneoId, nombreTorneo) => set((s) => {
         if (s.inscritos.includes(torneoId)) return s
@@ -314,6 +317,7 @@ export const useDemoStore = create<DemoState>()(
       setAvatarEmoji: (avatarEmoji) => set({ avatarEmoji }),
       setMainsPerfil: (juego, mains) => set((s) => ({ mainsPerfil: { ...s.mainsPerfil, [juego]: mains } })),
       setJuegosFavoritos: (juegosFavoritos) => set({ juegosFavoritos, onboardingVisto: true }),
+      setIdioma: (idioma) => set({ idioma }),
     }),
     {
       name: 'todh-demo',

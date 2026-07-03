@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { TORNEOS_SAMPLE, JUEGOS } from '@/lib/torneos/sample'
+import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { ArrowRight, Trophy, MapPin, Calendar } from 'lucide-react'
 
@@ -12,6 +13,7 @@ const PASOS = [
 
 export default function InicioPage() {
   const live = TORNEOS_SAMPLE.filter(t => t.enDirecto).length
+  const { t, idioma } = useT()
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -29,15 +31,15 @@ export default function InicioPage() {
           </div>
 
           {live > 0 && (
-            <Link href="/explorar" className="badge-live mb-6">{live} en directo ahora</Link>
+            <Link href="/explorar" className="badge-live mb-6">{live} {t('inicio.endirecto')}</Link>
           )}
 
           <h1 className="text-[40px] sm:text-[52px] leading-[1.04] font-black text-white text-display tracking-tight">
-            Tu circuito de torneos,<br />
-            <span className="text-[#B6FF3A]">en una sola app</span>
+            {t('inicio.h1a')}<br />
+            <span className="text-[#B6FF3A]">{t('inicio.h1b')}</span>
           </h1>
           <p className="mt-5 text-lg text-[#B8B8CC] max-w-md mx-auto leading-relaxed">
-            Descubre, inscríbete y compite en torneos presenciales de Smash, Magic, Pokémon y más. Bracket en vivo, ranking y comunidad.
+            {t('inicio.sub')}
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
@@ -48,13 +50,13 @@ export default function InicioPage() {
               Soy organizador
             </Link>
           </div>
-          <Link href="/sede" className="mt-3 inline-block text-sm text-[#8B8BA8] hover:text-white transition-colors">¿Tienes un local? <span className="text-[#B6FF3A] font-semibold">Abre el panel de tu sede →</span></Link>
+          <Link href="/sede" className="mt-3 inline-block text-sm text-[#8B8BA8] hover:text-white transition-colors">{t('inicio.tienesLocal')} <span className="text-[#B6FF3A] font-semibold">{t('inicio.abrePanelSede')}</span></Link>
         </div>
       </div>
 
       {/* Juegos */}
       <div className="relative px-6 max-w-3xl mx-auto">
-        <p className="eyebrow eyebrow-muted text-center mb-4">Juegos en Tourneum</p>
+        <p className="eyebrow eyebrow-muted text-center mb-4">{t('inicio.juegos')}</p>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
           {Object.values(JUEGOS).map(j => (
             <Link key={j.id} href="/explorar" className="relative h-20 rounded-2xl overflow-hidden ring-grad hover:-translate-y-0.5 transition-transform">
@@ -79,7 +81,7 @@ export default function InicioPage() {
 
       {/* Cómo funciona */}
       <div className="relative px-6 max-w-2xl mx-auto mt-14">
-        <h2 className="text-2xl font-bold text-white text-display text-center mb-6">Cómo funciona</h2>
+        <h2 className="text-2xl font-bold text-white text-display text-center mb-6">{t('inicio.comoFunciona')}</h2>
         <div className="space-y-3">
           {PASOS.map(({ Ic, t, d }, i) => (
             <div key={i} className="flex items-center gap-4 card-premium p-4">

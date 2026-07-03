@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { JUEGOS, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { CountUp } from '@/components/ui/CountUp'
 import { cn } from '@/lib/utils'
@@ -44,6 +45,7 @@ const TIPOS: { id: TipoRanking; label: string; icon: typeof Store }[] = [
 
 export default function RankingPage() {
   const favoritos = useDemoStore(s => s.juegosFavoritos)
+  const { t: tr } = useT()
   const [tipo, setTipo] = useState<TipoRanking>('presencial')
   const [juego, setJuego] = useState('smash')
   const [juegoTocado, setJuegoTocado] = useState(false)
@@ -84,8 +86,8 @@ export default function RankingPage() {
       <div className="lg:max-w-4xl lg:mx-auto">
 
       <div className="relative px-5 pt-6 pb-2 safe-top">
-        <p className="eyebrow mb-2">Clasificación</p>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Ranking</h1>
+        <p className="eyebrow mb-2">{tr('ranking.eyebrow')}</p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{tr('ranking.titulo')}</h1>
       </div>
 
       {/* Tipo de ranking */}
@@ -95,7 +97,7 @@ export default function RankingPage() {
             <button key={id} onClick={() => setTipo(id)}
               className={cn('flex h-9 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold transition-all',
                 tipo === id ? (id === 'tourneum' ? 'bg-[#E0BE63]/20 text-[#E0BE63] shadow-sm' : 'bg-white/12 text-white shadow-sm') : 'text-[#8B8BA8] hover:text-white')}>
-              <Icon size={14} /> {label}
+              <Icon size={14} /> {id === 'presencial' ? tr('ranking.presencial') : id === 'online' ? tr('ranking.online') : 'Tourneum'}
             </button>
           ))}
         </div>
@@ -119,7 +121,7 @@ export default function RankingPage() {
       {!esTourneum && (
       <div className="relative px-4 mt-3">
         <div className="grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1 max-w-xs">
-          {([['pais', 'España', MapPin], ['mundial', 'Mundial', Globe]] as const).map(([k, label, Icon]) => (
+          {([['pais', tr('ranking.espana'), MapPin], ['mundial', tr('ranking.mundial'), Globe]] as const).map(([k, label, Icon]) => (
             <button key={k} onClick={() => setAmbito(k)}
               className={cn('flex h-9 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold transition-all',
                 ambito === k ? 'bg-white/12 text-white shadow-sm' : 'text-[#8B8BA8] hover:text-white')}>
@@ -201,7 +203,7 @@ export default function RankingPage() {
             <span className="w-6 text-center text-sm font-bold text-[#B6FF3A] font-mono-num">{miPuesto}</span>
             <Avatar name="Tú" size={36} ring="#B6FF3A" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">Tú <span className="text-[10px] text-[#B6FF3A] font-semibold uppercase tracking-wide">· tu posición</span></p>
+              <p className="text-sm font-bold text-white truncate">Tú <span className="text-[10px] text-[#B6FF3A] font-semibold uppercase tracking-wide">{tr('ranking.tuPosicion')}</span></p>
               <p className="text-[11px] text-[#8B8BA8] font-mono-num">{yo.victorias}V · {yo.derrotas}D</p>
             </div>
             <span className="text-sm font-bold text-[#B6FF3A] font-mono-num">{yo.rating}</span>

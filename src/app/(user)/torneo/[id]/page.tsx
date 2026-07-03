@@ -13,6 +13,7 @@ import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { MiniLocal } from '@/components/todh/MiniLocal'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { VideoEmbed } from '@/components/todh/VideoEmbed'
+import { useT } from '@/lib/i18n'
 import type { Jugador } from '@/lib/torneos/sample'
 import {
   ArrowLeft, Calendar, MapPin, Trophy, Users, Lock, Radio, Share2, ListTree, ShieldCheck,
@@ -48,6 +49,7 @@ export default function TorneoDetallePage() {
   const [selJugador, setSelJugador] = useState<Jugador | null>(null)
   const [verSede, setVerSede] = useState(false)
 
+  const { t: tr, idioma } = useT()
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
   const override = useDemoStore(s => s.editados[id])
   const cancelado = useDemoStore(s => s.cancelados.includes(id))
@@ -101,7 +103,7 @@ export default function TorneoDetallePage() {
     <button onClick={() => setSheet(true)} className="w-full h-14 rounded-2xl bg-[#FF8A5C]/15 border border-[#FF8A5C]/40 text-[#FF8A5C] font-bold">Apuntarme a la lista de espera</button>
   ) : (
     <button onClick={() => setSheet(true)} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform">
-      Inscribirme · {totalJugador === 0 ? 'Gratis' : `${totalJugador}€`}
+      {tr('torneo.inscribirme')} · {totalJugador === 0 ? tr('torneo.gratis') : `${totalJugador}€`}
     </button>
   )
 
@@ -175,7 +177,7 @@ export default function TorneoDetallePage() {
         {t.videoUrl ? (
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="eyebrow eyebrow-muted">{t.enDirecto ? 'Emisión en directo' : 'Vídeo del torneo'}</p>
+              <p className="eyebrow eyebrow-muted">{t.enDirecto ? tr('torneo.emisionDirecto') : tr('torneo.videoTorneo')}</p>
               {t.enDirecto && (
                 <Link href={`/torneo/${t.id}/directo`} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#B6FF3A]">
                   <Radio size={12} /> Abrir directo con chat ›
@@ -199,23 +201,23 @@ export default function TorneoDetallePage() {
 
         {/* Info */}
         <div className="mt-4 grid grid-cols-2 gap-2.5">
-          <InfoCard icon={<Calendar size={15} className="text-[#B6FF3A]" />} label="Cuándo" value={t.fechaLabel} />
+          <InfoCard icon={<Calendar size={15} className="text-[#B6FF3A]" />} label={tr('torneo.cuando')} value={t.fechaLabel} />
           {local ? (
             <button onClick={() => setVerSede(true)} className="card-premium card-int p-3.5 text-left">
-              <div className="flex items-center gap-1.5 text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold mb-1"><MapPin size={15} className="text-[#4F8EF7]" />Dónde</div>
+              <div className="flex items-center gap-1.5 text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold mb-1"><MapPin size={15} className="text-[#4F8EF7]" />{tr('torneo.donde')}</div>
               <p className="text-sm font-bold text-white">{t.local}{t.distanciaKm > 0 ? ` · ${t.distanciaKm} km` : ''} <span className="text-[#8B8BA8] font-semibold">›</span></p>
             </button>
           ) : (
-            <InfoCard icon={<MapPin size={15} className="text-[#4F8EF7]" />} label="Dónde" value={t.online ? 'Online' : t.local} />
+            <InfoCard icon={<MapPin size={15} className="text-[#4F8EF7]" />} label={tr('torneo.donde')} value={t.online ? 'Online' : t.local} />
           )}
-          <InfoCard icon={<Trophy size={15} className="text-[#9B82FF]" />} label="Formato" value={t.formato} />
-          <InfoCard icon={<Coins size={15} className="text-[#E0BE63]" />} label={t.bote ? 'Bote en juego' : 'Inscripción'} value={t.bote ? `${t.bote}€` : t.precio === 0 ? 'Gratis' : `${t.precio}€`} />
+          <InfoCard icon={<Trophy size={15} className="text-[#9B82FF]" />} label={tr('torneo.formato')} value={t.formato} />
+          <InfoCard icon={<Coins size={15} className="text-[#E0BE63]" />} label={t.bote ? tr('torneo.bote') : tr('torneo.inscripcion')} value={t.bote ? `${t.bote}€` : t.precio === 0 ? 'Gratis' : `${t.precio}€`} />
         </div>
 
         {/* Inscritos */}
         <div className="mt-4 card-premium p-4">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="inline-flex items-center gap-1.5 text-white font-semibold"><Users size={15} /> <span className="font-mono-num">{inscritosVis} / {t.plazas}</span> inscritos</span>
+            <span className="inline-flex items-center gap-1.5 text-white font-semibold"><Users size={15} /> <span className="font-mono-num">{inscritosVis} / {t.plazas}</span> {tr('torneo.inscritos')}</span>
             <span className={completo && !inscrito ? 'text-[#FF8A5C] font-semibold text-sm' : 'text-[#B6FF3A] font-semibold text-sm'}>{completo && !inscrito ? 'Completo' : plazasLibresLabel(t.plazas - inscritosVis)}</span>
           </div>
           <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
@@ -224,7 +226,7 @@ export default function TorneoDetallePage() {
         {/* Premios */}
         {(t.bote ?? 0) > 0 && (
           <div className="mt-4">
-            <p className="eyebrow eyebrow-muted mb-2">Reparto del bote</p>
+            <p className="eyebrow eyebrow-muted mb-2">{tr('torneo.repartoBote')}</p>
             <div className="card-premium p-4 space-y-2.5">
               {repartoBote(t.bote!).map(r => (
                 <div key={r.puesto} className="flex items-center gap-3">
@@ -241,7 +243,7 @@ export default function TorneoDetallePage() {
         {/* Premios en producto + comentarios del TO */}
         {(t.premiosImgs?.length || t.comentarios) && (
           <div className="mt-4">
-            <p className="eyebrow eyebrow-muted mb-2">Del organizador</p>
+            <p className="eyebrow eyebrow-muted mb-2">{tr('torneo.delOrganizador')}</p>
             <div className="card-premium p-4 space-y-3">
               {t.comentarios && <p className="text-sm text-[#B8B8CC] leading-relaxed">{t.comentarios}</p>}
               {(t.premiosImgs?.length ?? 0) > 0 && (
@@ -262,8 +264,8 @@ export default function TorneoDetallePage() {
         {/* Participantes */}
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="eyebrow eyebrow-muted">Participantes destacados</p>
-            <button onClick={() => setVerParts(true)} className="text-xs text-[#B6FF3A] font-semibold">Ver todos ›</button>
+            <p className="eyebrow eyebrow-muted">{tr('torneo.participantes')}</p>
+            <button onClick={() => setVerParts(true)} className="text-xs text-[#B6FF3A] font-semibold">{tr('torneo.verTodos')}</button>
           </div>
           <button onClick={() => setVerParts(true)} className="flex items-center">
             {participantes.map((p, i) => {
@@ -281,7 +283,7 @@ export default function TorneoDetallePage() {
 
         {/* Reglas */}
         <div className="mt-5">
-          <p className="eyebrow eyebrow-muted mb-2">Reglas</p>
+          <p className="eyebrow eyebrow-muted mb-2">{tr('torneo.reglas')}</p>
           <ul className="space-y-2 text-sm text-[#B8B8CC]">
             <li className="flex gap-2"><ShieldCheck size={16} className="text-[#B6FF3A] shrink-0 mt-0.5" /> {t.bestOf || 'Best of 3'} · {t.formato}.</li>
             <li className="flex gap-2"><ShieldCheck size={16} className="text-[#B6FF3A] shrink-0 mt-0.5" /> Check-in con QR y reporte de resultados por consenso.</li>
@@ -293,7 +295,7 @@ export default function TorneoDetallePage() {
         {/* Sede */}
         {local && (
           <div className="mt-5">
-            <p className="eyebrow eyebrow-muted mb-2">Sede</p>
+            <p className="eyebrow eyebrow-muted mb-2">{tr('torneo.sede')}</p>
             <button onClick={() => setVerSede(true)} className="w-full card-premium card-int p-4 flex items-center gap-3 text-left">
               <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-[#0A0A0F] font-black" style={{ background: local.color }}>{local.nombre[0]}</span>
               <div className="flex-1 min-w-0">
@@ -307,7 +309,7 @@ export default function TorneoDetallePage() {
 
         {/* Bracket / clasificación */}
         <Link href={`/torneo/${t.id}/bracket`} className="mt-5 flex items-center justify-between card-premium card-int p-4">
-          <span className="inline-flex items-center gap-2 text-white font-semibold"><ListTree size={18} className="text-[#9B82FF]" /> {t.formato === 'Suizo' || t.formato === 'Round robin' ? 'Ver clasificación en vivo' : 'Ver bracket en vivo'}</span>
+          <span className="inline-flex items-center gap-2 text-white font-semibold"><ListTree size={18} className="text-[#9B82FF]" /> {t.formato === 'Suizo' || t.formato === 'Round robin' ? tr('torneo.verClasificacion') : tr('torneo.verBracket')}</span>
           <span className="text-[#8B8BA8] text-lg">›</span>
         </Link>
       </div>{/* fin columna izquierda */}
@@ -316,7 +318,7 @@ export default function TorneoDetallePage() {
         <aside className="hidden lg:block">
           <div className="sticky top-6 card-premium ring-grad p-5 space-y-4">
             <div>
-              <p className="eyebrow eyebrow-muted mb-1">Inscripción</p>
+              <p className="eyebrow eyebrow-muted mb-1">{tr('torneo.inscripcion')}</p>
               <p className="text-3xl font-bold text-white font-mono-num">{totalJugador === 0 ? 'Gratis' : `${totalJugador}€`}</p>
               {com.importe > 0 && <p className="text-[12px] text-[#8B8BA8] mt-0.5">{t.precio}€ + {com.pct}% comisión ({com.importe}€)</p>}
             </div>
@@ -327,7 +329,7 @@ export default function TorneoDetallePage() {
             </div>
             <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
             {ctaBtn}
-            <button onClick={compartir} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors"><Share2 size={15} /> Compartir</button>
+            <button onClick={compartir} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors"><Share2 size={15} /> {tr('torneo.compartir')}</button>
           </div>
         </aside>
       </div>{/* fin grid escritorio */}

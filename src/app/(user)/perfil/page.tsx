@@ -10,10 +10,11 @@ import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 import {
   Star, Bell, BellOff, Shield, LogOut, ChevronRight,
-  Users, Trophy, Edit3, Camera, AlertCircle, Lightbulb, ClipboardCheck, Award, Medal,
+  Users, Trophy, Edit3, Camera, AlertCircle, Lightbulb, ClipboardCheck, Award, Medal, Globe2,
 } from 'lucide-react'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 import { CompetitiveCard } from '@/components/todh/CompetitiveCard'
+import { useT } from '@/lib/i18n'
 import { CountUp } from '@/components/ui/CountUp'
 
 const LOGROS = [
@@ -43,6 +44,9 @@ export default function PerfilPage() {
   const [amigosPendientes, setAmigosPendientes] = useState(0)
   const push = usePushSubscription()
 
+  const { t: tr } = useT()
+  const idioma = useDemoStore(s => s.idioma)
+  const setIdioma = useDemoStore(s => s.setIdioma)
   const inscritos = useDemoStore(s => s.inscritos)
   const seguidos = useDemoStore(s => s.seguidos)
   const avatarEmoji = useDemoStore(s => s.avatarEmoji)
@@ -93,8 +97,8 @@ export default function PerfilPage() {
       <div className="hero-halo-violet" />
 
       <div className="relative px-5 pt-6 pb-2 safe-top lg:max-w-6xl lg:mx-auto">
-        <p className="eyebrow eyebrow-muted mb-2">Tu cuenta</p>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Perfil</h1>
+        <p className="eyebrow eyebrow-muted mb-2">{tr('perfil.eyebrow')}</p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{tr('perfil.titulo')}</h1>
       </div>
 
       {/* Escritorio: identidad a la izquierda, actividad/ajustes a la derecha */}
@@ -178,7 +182,7 @@ export default function PerfilPage() {
         <div className="space-y-5">
         {/* Logros */}
         <div className="stagger-item" style={{ ['--delay' as string]: '160ms' }}>
-          <div className="flex items-center gap-2 mb-2"><Award size={15} className="text-[#E0BE63]" /><p className="eyebrow eyebrow-muted">Logros</p></div>
+          <div className="flex items-center gap-2 mb-2"><Award size={15} className="text-[#E0BE63]" /><p className="eyebrow eyebrow-muted">{tr('perfil.logros')}</p></div>
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
             {LOGROS.map(l => (
               <div key={l.label} className="shrink-0 flex flex-col items-center gap-1.5 w-20 card-premium card-int py-3 px-1" title={l.label}>
@@ -191,7 +195,7 @@ export default function PerfilPage() {
 
         {/* Historial */}
         <div className="stagger-item" style={{ ['--delay' as string]: '200ms' }}>
-          <div className="flex items-center gap-2 mb-2"><Medal size={15} className="text-[#9B82FF]" /><p className="eyebrow eyebrow-muted">Historial reciente</p></div>
+          <div className="flex items-center gap-2 mb-2"><Medal size={15} className="text-[#9B82FF]" /><p className="eyebrow eyebrow-muted">{tr('perfil.historial')}</p></div>
           <div className="card-premium overflow-hidden divide-y divide-white/5">
             {HISTORIAL.map(h => (
               <Link key={h.torneo} href={`/torneo/${h.id}/resultados`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors">
@@ -236,11 +240,21 @@ export default function PerfilPage() {
 
         {/* Opciones */}
         <div className="card-premium overflow-hidden divide-y divide-white/5 stagger-item" style={{ ['--delay' as string]: '360ms' }}>
-          <OpcionPerfil icon={Users} label="Amigos y grupos" badge={amigosPendientes > 0 ? amigosPendientes : undefined} onClick={() => router.push('/amigos')} />
-          <OpcionPerfil icon={Bell} label="Notificaciones" onClick={() => router.push('/notificaciones')} />
+          <OpcionPerfil icon={Users} label={tr('perfil.amigos')} badge={amigosPendientes > 0 ? amigosPendientes : undefined} onClick={() => router.push('/amigos')} />
+          <OpcionPerfil icon={Bell} label={tr('perfil.notis')} onClick={() => router.push('/notificaciones')} />
           {!demo && <OpcionPerfil icon={ClipboardCheck} label="Valoraciones pendientes" badge={pendientesValorar > 0 ? pendientesValorar : undefined} onClick={() => router.push('/perfil/valoraciones-pendientes')} />}
           {!demo && <OpcionPerfil icon={Lightbulb} label="Mis sugerencias enviadas" onClick={() => router.push('/perfil/sugerencias')} />}
-          <OpcionPerfil icon={Shield} label="Privacidad y datos" onClick={() => router.push(demo ? '/explorar' : '/perfil/privacidad')} />
+          <div className="w-full flex items-center gap-3 px-4 py-4">
+            <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center"><Globe2 size={16} className="text-[#A0A0B8]" /></div>
+            <span className="flex-1 text-sm text-white font-medium text-left">{tr('perfil.idioma')}</span>
+            <div className="flex rounded-lg border border-white/10 bg-white/4 p-0.5">
+              {(['es', 'en'] as const).map(l => (
+                <button key={l} onClick={() => setIdioma(l)}
+                  className={`h-7 px-2.5 rounded-md text-[11px] font-black uppercase transition-colors ${idioma === l ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'text-[#8B8BA8]'}`}>{l}</button>
+              ))}
+            </div>
+          </div>
+          <OpcionPerfil icon={Shield} label={tr('perfil.privacidad')} onClick={() => router.push(demo ? '/explorar' : '/perfil/privacidad')} />
         </div>
 
         {/* Sesión */}
@@ -252,7 +266,7 @@ export default function PerfilPage() {
         ) : (
           <button onClick={logout} disabled={loggingOut}
             className={cn('w-full flex items-center justify-center gap-2 h-12 rounded-2xl border border-[#B6FF3A]/30 text-[#B6FF3A] text-sm font-semibold transition-colors disabled:opacity-50 hover:bg-[#B6FF3A]/10')}>
-            <LogOut size={16} />{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
+            <LogOut size={16} />{loggingOut ? '…' : tr('perfil.cerrarSesion')}
           </button>
         )}
         </div>{/* fin columna derecha */}
