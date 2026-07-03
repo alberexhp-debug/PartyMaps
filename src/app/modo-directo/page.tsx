@@ -1,12 +1,18 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Radio, Pause, Play, AlertTriangle, Tv, Clock, Check, RotateCcw, Flag } from 'lucide-react'
+import { getTorneo, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
+import { construirRondas, nombreRonda } from '@/lib/torneos/bracket'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { ArrowLeft, Radio, Pause, Play, AlertTriangle, Tv, Clock, Check, RotateCcw, Flag, ListTree } from 'lucide-react'
 
 type Estado = 'ocupado' | 'libre' | 'caido'
-type Setup = { n: number; tipo: string; stream?: boolean; estado: Estado; a?: string; b?: string; seg?: number }
+type Setup = { n: number; tipo: string; stream?: boolean; estado: Estado; a?: string; b?: string; seg?: number; mid?: string }
 type ColaItem = { id: string; a: string; b: string; ronda: string }
+
+// Torneo en directo del demo (el LIVE de la consola)
+const TORNEO_LIVE = 't1'
 
 const SETUPS0: Setup[] = [
   { n: 1, tipo: 'Consola', estado: 'ocupado', a: 'Kaze', b: 'Volt', seg: 7 * 60 },
@@ -33,7 +39,25 @@ export default function ModoDirectoPage() {
   const router = useRouter()
   const [setups, setSetups] = useState<Setup[]>(SETUPS0)
   const [cola, setCola] = useState<ColaItem[]>(COLA0)
+  const [usados, setUsados] = useState<string[]>([])
   const [pausada, setPausada] = useState(false)
+
+  // Si el TO generó bracket en /gestionar, la cola sale de los combates
+  // pendientes reales; si no, datos de muestra.
+  const gestion = useDemoStore(s => s.gestion[TORNEO_LIVE])
+  const override = useDemoStore(s => s.editados[TORNEO_LIVE])
+  const torneo = getTorneo(TORNEO_LIVE)
+  const nombreTorneo = override?.nombre ?? torneo?.nombre ?? 'Torneo en directo'
+  const colaBracket = useMemo<ColaItem[]>(() => {
+    if (!torneo || !gestion?.generado) return []
+    const pool = rankingPorJuego(torneo.juego)
+    const seeds = gestion.seeds.map(sid => pool.find(p => p.id === sid)).filter(Boolean) as Jugador[]
+    return construirRondas(seeds, gestion.winners).flatMap(matches =>
+      matches.filter(m => m.a && m.b && !m.ganador)
+        .map(m => ({ id: m.id, a: m.a!.nombre, b: m.b!.nombre, ronda: nombreRonda(matches.length) })))
+  }, [torneo, gestion])
+  const bracketReal = !!gestion?.generado
+  const colaViva = bracketReal ? colaBracket.filter(m => !usados.includes(m.id)) : cola
   const [disputa, setDisputa] = useState<{ setup: number; a: string; b: string } | null>({ setup: 5, a: 'Lux', b: 'Nyx' })
   const [toast, setToast] = useState<string | null>(null)
   const toastT = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -54,14 +78,15 @@ export default function ModoDirectoPage() {
 
   function asignar(n: number) {
     if (pausada) { flash('La cola está pausada'); return }
-    const next = cola[0]
+    const next = colaViva[0]
     if (!next) { flash('No hay combates en cola'); return }
-    setCola(c => c.slice(1))
-    setSetups(prev => prev.map(s => s.n === n ? { ...s, estado: 'ocupado', a: next.a, b: next.b, seg: 0 } : s))
+    if (bracketReal) setUsados(u => [...u, next.id])
+    else setCola(c => c.slice(1))
+    setSetups(prev => prev.map(s => s.n === n ? { ...s, estado: 'ocupado', a: next.a, b: next.b, seg: 0, mid: next.id } : s))
     flash(`${next.a} vs ${next.b} → Setup ${n}`)
   }
   function liberar(n: number) {
-    setSetups(prev => prev.map(s => s.n === n ? { ...s, estado: 'libre', a: undefined, b: undefined, seg: undefined } : s))
+    setSetups(prev => prev.map(s => s.n === n ? { ...s, estado: 'libre', a: undefined, b: undefined, seg: undefined, mid: undefined } : s))
     flash(`Setup ${n} liberado`)
   }
   function toggleCaido(n: number) {
@@ -69,8 +94,11 @@ export default function ModoDirectoPage() {
       if (s.n !== n) return s
       if (s.estado === 'caido') return { ...s, estado: 'libre' }
       // si estaba ocupado, su combate vuelve a la cola
-      if (s.estado === 'ocupado' && s.a && s.b) setCola(c => [{ id: `r${n}${Date.now()}`, a: s.a!, b: s.b!, ronda: 'Reasignar' }, ...c])
-      return { ...s, estado: 'caido', a: undefined, b: undefined, seg: undefined }
+      if (s.estado === 'ocupado' && s.a && s.b) {
+        if (s.mid) setUsados(u => u.filter(x => x !== s.mid))
+        else setCola(c => [{ id: `r${n}${Date.now()}`, a: s.a!, b: s.b!, ronda: 'Reasignar' }, ...c])
+      }
+      return { ...s, estado: 'caido', a: undefined, b: undefined, seg: undefined, mid: undefined }
     }))
   }
   function resolver(ganador: string) {
@@ -89,7 +117,7 @@ export default function ModoDirectoPage() {
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Modo directo</p>
-          <p className="text-base font-bold text-white truncate">Lima Smash Weekly #42</p>
+          <p className="text-base font-bold text-white truncate">{nombreTorneo}</p>
         </div>
         <span className="inline-flex items-center gap-1 px-2.5 h-9 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#E63E54] text-white shrink-0"><Radio size={12} className="animate-pulse-heat" /> Directo</span>
         <button onClick={() => { setPausada(p => !p); flash(pausada ? 'Cola reanudada' : 'Cola pausada') }} aria-label="Pausar cola"
@@ -159,13 +187,19 @@ export default function ModoDirectoPage() {
         {/* Cola */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <p className="eyebrow eyebrow-muted">Cola de combates</p>
-            <p className="text-xs text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{cola.length}</span> listos {pausada && <span className="text-[#FF8A5C]">· pausada</span>}</p>
+            <p className="eyebrow eyebrow-muted inline-flex items-center gap-1.5">Cola de combates
+              {bracketReal && <span className="inline-flex items-center gap-1 normal-case tracking-normal px-1.5 h-5 rounded-md bg-[#B6FF3A]/12 text-[#B6FF3A] text-[10px] font-bold"><ListTree size={10} /> Bracket real</span>}
+            </p>
+            <p className="text-xs text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{colaViva.length}</span> listos {pausada && <span className="text-[#FF8A5C]">· pausada</span>}</p>
           </div>
           <div className="space-y-2">
-            {cola.length === 0 && <p className="text-sm text-[#8B8BA8] text-center py-4">Cola vacía. Los combates aparecerán al avanzar el bracket.</p>}
-            {cola.map((m, i) => (
-              <div key={m.id} className="flex items-center gap-3 rounded-2xl bg-white/4 border border-white/8 px-3.5 py-2.5">
+            {colaViva.length === 0 && (
+              <p className="text-sm text-[#8B8BA8] text-center py-4">
+                {bracketReal ? 'Cola vacía. Reporta resultados en Gestión para que entren los siguientes combates.' : 'Cola vacía. Los combates aparecerán al avanzar el bracket.'}
+              </p>
+            )}
+            {colaViva.map((m, i) => (
+              <div key={m.id} className="flex items-center gap-3 rounded-2xl bg-white/4 border border-white/8 px-3.5 py-2.5 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 8) * 40}ms` }}>
                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-white/6 text-[#8B8BA8] text-xs font-bold shrink-0 font-mono-num">{i + 1}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-white font-semibold truncate">{m.a} <span className="text-[#6B6B85]">vs</span> {m.b}</p>

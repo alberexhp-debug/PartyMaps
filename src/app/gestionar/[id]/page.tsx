@@ -3,6 +3,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { getTorneo, JUEGOS, rankingPorJuego, type Jugador, type FormatoTorneo } from '@/lib/torneos/sample'
+import { construirRondas, nombreRonda } from '@/lib/torneos/bracket'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
@@ -24,25 +25,35 @@ export default function GestionarTorneoPage() {
   const editarTorneo = useDemoStore(s => s.editarTorneo)
   const cancelarTorneo = useDemoStore(s => s.cancelarTorneo)
   const pushNoti = useDemoStore(s => s.pushNoti)
+  const gestion = useDemoStore(s => s.gestion[id])
+  const setGestion = useDemoStore(s => s.setGestion)
   const base = getTorneo(id) || creado
   const t = base ? { ...base, ...(override || {}) } : undefined
 
   const [tab, setTab] = useState<'inscritos' | 'bracket' | 'ajustes'>('inscritos')
   const [q, setQ] = useState('')
-  const [checkin, setCheckin] = useState<Set<string>>(new Set())
-  const [cerrado, setCerrado] = useState(false)
-  const [generado, setGenerado] = useState(false)
   const [sel, setSel] = useState<Jugador | null>(null)
-  const [bracketSeeds, setBracketSeeds] = useState<Jugador[]>([])
-  const [winners, setWinners] = useState<Record<string, 'a' | 'b'>>({})
   const [form, setForm] = useState<{ nombre: string; plazas: number; precio: number; formato: string; fechaLabel: string } | null>(null)
   const [guardado, setGuardado] = useState(false)
+
+  // Estado de gestión persistido en el store demo: sobrevive a la navegación y
+  // lo lee también /modo-directo (cola de combates real).
+  const cerrado = gestion?.cerrado ?? false
+  const generado = gestion?.generado ?? false
+  const winners = useMemo(() => gestion?.winners ?? {}, [gestion?.winners])
+  const checkin = useMemo(() => new Set(gestion?.checkin ?? []), [gestion?.checkin])
 
   const inscritos = useMemo(() => {
     if (!base) return [] as Jugador[]
     const n = Math.min((override?.inscritos ?? base.inscritos) || 16, (override?.plazas ?? base.plazas), 16)
     return rankingPorJuego(base.juego).slice(0, n)
   }, [base, override?.inscritos, override?.plazas])
+
+  const bracketSeeds = useMemo(() => {
+    if (!base) return [] as Jugador[]
+    const pool = rankingPorJuego(base.juego)
+    return (gestion?.seeds ?? []).map(sid => pool.find(p => p.id === sid)).filter(Boolean) as Jugador[]
+  }, [base, gestion?.seeds])
 
   // Bracket de eliminación simple, calculado a partir de los sembrados congelados
   // y de los ganadores reportados. Los byes avanzan solos.
@@ -64,13 +75,13 @@ export default function GestionarTorneoPage() {
   const filtrados = inscritos.filter(p => p.nombre.toLowerCase().includes(q.trim().toLowerCase()))
   const nCheck = checkin.size
   const seedOf = (pid: string) => inscritos.findIndex(p => p.id === pid) + 1
-  const toggle = (pid: string) => setCheckin(s => { const n = new Set(s); n.has(pid) ? n.delete(pid) : n.add(pid); return n })
-  const checkAll = () => setCheckin(new Set(inscritos.map(p => p.id)))
+  const toggle = (pid: string) => setGestion(id, { checkin: checkin.has(pid) ? [...checkin].filter(x => x !== pid) : [...checkin, pid] })
+  const checkAll = () => setGestion(id, { checkin: inscritos.map(p => p.id) })
   const seeded = [...inscritos].filter(p => checkin.has(p.id))
   // Avisos TO→jugador: en demo van a la bandeja local (/notificaciones); con
   // backend serán push/email a cada inscrito.
   const generar = () => {
-    setBracketSeeds(seeded); setWinners({}); setGenerado(true)
+    setGestion(id, { seeds: seeded.map(p => p.id), winners: {}, generado: true })
     pushNoti({
       tipo: 'combate', titulo: 'Tu combate está listo',
       cuerpo: `Bracket de «${t!.nombre}» publicado (${seeded.length} jugadores). Consulta tu primer combate.`,
@@ -78,7 +89,7 @@ export default function GestionarTorneoPage() {
     })
   }
   const reportar = (matchId: string, lado: 'a' | 'b') => {
-    setWinners(w => ({ ...w, [matchId]: lado }))
+    setGestion(id, { winners: { ...winners, [matchId]: lado } })
     const final = rondas[rondas.length - 1]?.[0]
     if (final && final.id === matchId && final.a && final.b) {
       const ganador = lado === 'a' ? final.a : final.b
@@ -144,7 +155,7 @@ export default function GestionarTorneoPage() {
 
         {/* Acciones rápidas */}
         <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-          <button onClick={() => setCerrado(c => !c)} disabled={cancelado} className="h-11 rounded-xl bg-white/6 border border-white/10 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors disabled:opacity-40">
+          <button onClick={() => setGestion(id, { cerrado: !cerrado })} disabled={cancelado} className="h-11 rounded-xl bg-white/6 border border-white/10 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors disabled:opacity-40">
             <Lock size={15} /> {cerrado ? 'Reabrir' : 'Cerrar inscripción'}
           </button>
           <button onClick={() => { generar(); setTab('bracket') }} disabled={nCheck < 2 || cancelado}
@@ -235,7 +246,7 @@ export default function GestionarTorneoPage() {
                   <div className="flex items-center gap-2 rounded-2xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.08] p-3.5 mb-4">
                     <ListTree size={18} className="text-[#B6FF3A]" />
                     <p className="text-sm text-white font-semibold flex-1">Reporta el ganador de cada combate para avanzar el cuadro.</p>
-                    <button onClick={() => setWinners({})} className="text-[11px] text-[#8B8BA8] font-semibold hover:text-white whitespace-nowrap">Reiniciar</button>
+                    <button onClick={() => setGestion(id, { winners: {} })} className="text-[11px] text-[#8B8BA8] font-semibold hover:text-white whitespace-nowrap">Reiniciar</button>
                   </div>
                 )}
 
@@ -372,57 +383,3 @@ function Kpi({ icon, value, label }: { icon: React.ReactNode; value: string; lab
   )
 }
 
-// ── Motor de bracket de eliminación simple (demo, en cliente) ──
-type MatchB = { id: string; a: Jugador | null; b: Jugador | null; ganador: 'a' | 'b' | null }
-
-function siguientePotencia2(n: number): number {
-  let p = 1
-  while (p < n) p *= 2
-  return Math.max(2, p)
-}
-
-// Orden de siembra estándar (1 vs N, top seeds en lados opuestos).
-function ordenSiembra(n: number): number[] {
-  let pls = [1, 2]
-  while (pls.length < n) {
-    const suma = pls.length * 2 + 1
-    const next: number[] = []
-    for (const p of pls) { next.push(p); next.push(suma - p) }
-    pls = next
-  }
-  return pls
-}
-
-function construirRondas(seeds: Jugador[], winners: Record<string, 'a' | 'b'>): MatchB[][] {
-  if (seeds.length < 2) return []
-  const n = siguientePotencia2(seeds.length)
-  const slots = ordenSiembra(n).map(s => seeds[s - 1] ?? null)
-  const rondas: MatchB[][] = []
-  let actual: { a: Jugador | null; b: Jugador | null }[] = []
-  for (let i = 0; i < slots.length; i += 2) actual.push({ a: slots[i], b: slots[i + 1] })
-  let ri = 0
-  while (actual.length >= 1) {
-    const matches: MatchB[] = actual.map((m, i) => {
-      const id = `r${ri}m${i}`
-      let g: 'a' | 'b' | null = winners[id] ?? null
-      if (!g) { if (m.a && !m.b) g = 'a'; else if (!m.a && m.b) g = 'b' } // bye auto-avanza
-      return { id, a: m.a, b: m.b, ganador: g }
-    })
-    rondas.push(matches)
-    if (matches.length === 1) break
-    const w = (mm: MatchB) => (mm.ganador ? (mm.ganador === 'a' ? mm.a : mm.b) : null)
-    const next: { a: Jugador | null; b: Jugador | null }[] = []
-    for (let i = 0; i < matches.length; i += 2) next.push({ a: w(matches[i]), b: w(matches[i + 1]) })
-    actual = next
-    ri++
-  }
-  return rondas
-}
-
-function nombreRonda(nMatches: number): string {
-  if (nMatches === 1) return 'Final'
-  if (nMatches === 2) return 'Semifinales'
-  if (nMatches === 4) return 'Cuartos'
-  if (nMatches === 8) return 'Octavos'
-  return `Ronda de ${nMatches * 2}`
-}

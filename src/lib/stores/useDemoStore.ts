@@ -8,6 +8,18 @@ import type { TorneoSample } from '@/lib/torneos/sample'
 // se reemplaza por queries a Supabase. NO es la fuente de verdad de producción.
 
 export type NotiTipo = 'combate' | 'disputa' | 'lleno' | 'nuevo-torneo' | 'sistema' | 'inscripcion'
+
+// Estado de gestión del TO por torneo (check-in, bracket congelado, resultados).
+// Los seeds son ids de jugador del ranking de muestra; el bracket se reconstruye
+// determinísticamente con construirRondas(seeds, winners).
+export type GestionTorneo = {
+  checkin: string[]
+  cerrado: boolean
+  generado: boolean
+  seeds: string[]
+  winners: Record<string, 'a' | 'b'>
+}
+const GESTION_VACIA: GestionTorneo = { checkin: [], cerrado: false, generado: false, seeds: [], winners: {} }
 export type Notificacion = {
   id: string
   tipo: NotiTipo
@@ -24,6 +36,7 @@ interface DemoState {
   creados: TorneoSample[]             // torneos creados por el TO en demo
   editados: Record<string, Partial<TorneoSample>>  // overrides de edición (muestra o creado)
   cancelados: string[]                // ids de torneos cancelados por el TO
+  gestion: Record<string, GestionTorneo>   // estado de gestión del TO por torneo
   notificaciones: Notificacion[]
   juegoPerfil: string                 // juego activo en el perfil
   avatarEmoji: string | null          // avatar elegido en el perfil (demo)
@@ -36,6 +49,7 @@ interface DemoState {
   crearTorneo: (t: TorneoSample) => void
   editarTorneo: (id: string, patch: Partial<TorneoSample>) => void
   cancelarTorneo: (id: string, nombre: string) => void
+  setGestion: (id: string, patch: Partial<GestionTorneo>) => void
   pushNoti: (n: Omit<Notificacion, 'id' | 'leida' | 'cuando'> & { cuando?: string }) => void
   marcarLeidas: () => void
   noLeidas: () => number
@@ -61,6 +75,7 @@ export const useDemoStore = create<DemoState>()(
       creados: [],
       editados: {},
       cancelados: [],
+      gestion: {},
       notificaciones: NOTIS_INICIALES,
       juegoPerfil: 'smash',
       avatarEmoji: null,
@@ -109,6 +124,10 @@ export const useDemoStore = create<DemoState>()(
         }
         return { cancelados: [...s.cancelados, id], notificaciones: [noti, ...s.notificaciones] }
       }),
+
+      setGestion: (id, patch) => set((s) => ({
+        gestion: { ...s.gestion, [id]: { ...GESTION_VACIA, ...s.gestion[id], ...patch } },
+      })),
 
       pushNoti: (n) => set((s) => ({
         notificaciones: [{ id: nextId(), leida: false, cuando: n.cuando || 'ahora', ...n }, ...s.notificaciones],
