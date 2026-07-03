@@ -7,13 +7,14 @@ import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import {
   ArrowLeft, Plus, Radio, Trophy, Users, Wallet, AlertTriangle, Calendar,
-  Star, TrendingUp, ChevronRight, Megaphone, Store,
+  Star, TrendingUp, ChevronRight, Megaphone, Store, CalendarClock,
 } from 'lucide-react'
 
 export default function ConsolaTOPage() {
   const router = useRouter()
   const org = ORGANIZADORES.lima
   const creados = useDemoStore(s => s.creados)
+  const solicitudesSede = useDemoStore(s => s.solicitudesSede)
   const misTorneos = [...creados, ...TORNEOS_SAMPLE.filter(t => t.organizadorId === org.id)]
   const proximo = misTorneos[0]
   const totalInscritos = misTorneos.reduce((a, t) => a + t.inscritos, 0)
@@ -48,6 +49,22 @@ export default function ConsolaTOPage() {
           </div>
           <ChevronRight size={18} className="text-[#FF6076]" />
         </Link>
+
+        {/* Estado de mis solicitudes a sedes */}
+        {solicitudesSede.some(s => s.estado === 'pendiente' || s.estado === 'contraoferta') && (
+          <Link href="/sedes" className="mt-2.5 flex items-center gap-3 rounded-2xl border border-[#FF8A5C]/35 bg-[#FF8A5C]/[0.07] px-4 py-3">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF8A5C]/15 text-[#FF8A5C] shrink-0"><CalendarClock size={17} /></span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white">
+                {solicitudesSede.filter(s => s.estado === 'contraoferta').length > 0
+                  ? `${solicitudesSede.filter(s => s.estado === 'contraoferta').length} contraoferta de sede por responder`
+                  : `${solicitudesSede.filter(s => s.estado === 'pendiente').length} solicitud de sede pendiente`}
+              </p>
+              <p className="text-xs text-[#FFC29E]">Revisa el estado en el mapa de sedes.</p>
+            </div>
+            <ChevronRight size={16} className="text-[#FF8A5C]" />
+          </Link>
+        )}
 
         {/* KPIs */}
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">

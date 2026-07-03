@@ -1,7 +1,8 @@
 'use client'
 import type { Jugador } from '@/lib/torneos/sample'
 import { JUEGOS } from '@/lib/torneos/sample'
-import { X, Star, Swords, TrendingUp, Trophy } from 'lucide-react'
+import Link from 'next/link'
+import { X, Star, Swords, TrendingUp, Trophy, ArrowUpRight } from 'lucide-react'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
@@ -71,6 +72,12 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
               <span className="text-sm font-bold text-white font-mono-num">{jugador.torneosJugados}</span>
             </div>
           </div>
+
+          {/* Perfil completo (página) */}
+          <Link href={`/jugador/${encodeURIComponent(jugador.nombre)}?juego=${jugador.juego}`}
+            className="mt-3 w-full h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-1.5">
+            Ver perfil completo <ArrowUpRight size={15} />
+          </Link>
         </div>
       </div>
     </div>

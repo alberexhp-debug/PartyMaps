@@ -60,7 +60,6 @@ export default function ModoDirectoPage() {
     setUsados([])
     setPausada(false)
     setMesaSel(null)
-    setDisputa(torneoId === 't1' ? { setup: 5, a: 'Lux', b: 'Nyx' } : null)
   }, [torneoId])
 
   // Si el TO generó bracket en /gestionar, la cola sale de los combates
@@ -87,7 +86,11 @@ export default function ModoDirectoPage() {
   }, [torneo, gestion])
   const bracketReal = !!gestion?.generado
   const colaViva = bracketReal ? colaBracket.filter(m => !usados.includes(m.id)) : cola
-  const [disputa, setDisputa] = useState<{ setup: number; a: string; b: string } | null>({ setup: 5, a: 'Lux', b: 'Nyx' })
+  // Disputas del STORE: las abre el jugador desde su mesa cuando no hay consenso
+  const disputasStore = useDemoStore(s => s.disputas)
+  const resolverDisputaStore = useDemoStore(s => s.resolverDisputa)
+  const disputasTorneo = disputasStore.filter(d => d.torneoId === torneoId)
+  const disputa = disputasTorneo[0] ?? null
   const [toast, setToast] = useState<string | null>(null)
   const toastT = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -136,11 +139,10 @@ export default function ModoDirectoPage() {
       return { ...s, estado: 'caido', a: undefined, b: undefined, seg: undefined, mid: undefined }
     }))
   }
-  function resolver(ganador: string) {
-    if (!disputa) return
-    setSetups(prev => prev.map(s => s.n === disputa.setup ? { ...s, estado: 'libre', a: undefined, b: undefined, seg: undefined } : s))
-    flash(`Disputa resuelta: gana ${ganador}`)
-    setDisputa(null)
+  function resolver(d: typeof disputasTorneo[number], lado: 'a' | 'b') {
+    setSetups(prev => prev.map(s => s.n === d.mesa ? { ...s, estado: 'libre', a: undefined, b: undefined, seg: undefined, mid: undefined } : s))
+    resolverDisputaStore(d.id, lado)
+    flash(`Disputa resuelta: gana ${lado === 'a' ? d.a : d.b}`)
   }
 
   const enJuego = setups.filter(s => s.estado === 'ocupado').length
@@ -200,22 +202,22 @@ export default function ModoDirectoPage() {
       )}
 
       <div className="px-4 pt-4 space-y-5">
-        {/* Disputa */}
-        {disputa && (
-          <div className="flex items-center gap-3 rounded-2xl border border-[#FF6076]/40 bg-[#FF6076]/10 px-4 py-3 animate-slide-up-sm">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF6076]/20 text-[#FF6076] shrink-0"><AlertTriangle size={18} /></span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white">Disputa en Mesa {disputa.setup}</p>
-              <p className="text-xs text-[#FFB3BD]">{disputa.a} y {disputa.b} reclaman la victoria</p>
+        {/* Disputas pendientes (las abren los jugadores cuando no hay consenso) */}
+        {disputasTorneo.map(d => (
+          <div key={d.id} className="space-y-2 animate-slide-up-sm">
+            <div className="flex items-center gap-3 rounded-2xl border border-[#FF6076]/40 bg-[#FF6076]/10 px-4 py-3">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF6076]/20 text-[#FF6076] shrink-0"><AlertTriangle size={18} /></span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white">Disputa en Mesa {d.mesa}</p>
+                <p className="text-xs text-[#FFB3BD]">{d.a} y {d.b} reclaman la victoria{d.mid ? ' · combate del bracket' : ''}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => resolver(d, 'a')} className="h-11 rounded-xl bg-white/8 border border-white/12 text-white text-sm font-bold hover:bg-white/12">Gana {d.a}</button>
+              <button onClick={() => resolver(d, 'b')} className="h-11 rounded-xl bg-white/8 border border-white/12 text-white text-sm font-bold hover:bg-white/12">Gana {d.b}</button>
             </div>
           </div>
-        )}
-        {disputa && (
-          <div className="grid grid-cols-2 gap-2 -mt-2">
-            <button onClick={() => resolver(disputa.a)} className="h-11 rounded-xl bg-white/8 border border-white/12 text-white text-sm font-bold hover:bg-white/12">Gana {disputa.a}</button>
-            <button onClick={() => resolver(disputa.b)} className="h-11 rounded-xl bg-white/8 border border-white/12 text-white text-sm font-bold hover:bg-white/12">Gana {disputa.b}</button>
-          </div>
-        )}
+        ))}
 
         {/* Escritorio: plano de mesas a la izquierda + cola de combates a la derecha */}
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-8 lg:items-start space-y-5 lg:space-y-0">
@@ -244,7 +246,7 @@ export default function ModoDirectoPage() {
               <MapaMesas
                 mesas={mesas}
                 estados={enDirecto
-                  ? Object.fromEntries(setups.map(s => [s.n, disputa?.setup === s.n ? 'disputa' : s.estado === 'ocupado' ? 'ocupada' : s.estado === 'caido' ? 'caida' : 'libre'])) as Record<number, EstadoMesa>
+                  ? Object.fromEntries(setups.map(s => [s.n, disputa?.mesa === s.n ? 'disputa' : s.estado === 'ocupado' ? 'ocupada' : s.estado === 'caido' ? 'caida' : 'libre'])) as Record<number, EstadoMesa>
                   : Object.fromEntries(setups.map(s => [s.n, 'libre'])) as Record<number, EstadoMesa>}
                 ocupantes={enDirecto ? Object.fromEntries(setups.filter(s => s.a && s.b).map(s => [s.n, `${s.a} vs ${s.b}`])) : undefined}
                 seleccionada={mesaSel ?? undefined}
@@ -257,7 +259,7 @@ export default function ModoDirectoPage() {
                 const s = setups.find(x => x.n === mesaSel)
                 const m = mesas.find(x => x.n === mesaSel)
                 if (!m) return null
-                const estado: EstadoMesa | null = s ? (disputa?.setup === s.n ? 'disputa' : s.estado === 'ocupado' ? 'ocupada' : s.estado === 'caido' ? 'caida' : 'libre') : null
+                const estado: EstadoMesa | null = s ? (disputa?.mesa === s.n ? 'disputa' : s.estado === 'ocupado' ? 'ocupada' : s.estado === 'caido' ? 'caida' : 'libre') : null
                 return (
                   <div className="mt-2.5 card-premium p-3.5 animate-slide-up-sm">
                     <div className="flex items-center justify-between mb-2">

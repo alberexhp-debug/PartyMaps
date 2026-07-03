@@ -32,6 +32,7 @@ function MesaContent() {
   const gestion = useDemoStore(s => s.gestion[id])
   const setGestion = useDemoStore(s => s.setGestion)
   const pushNoti = useDemoStore(s => s.pushNoti)
+  const crearDisputa = useDemoStore(s => s.crearDisputa)
   const t = getTorneo(id) || creado
   const local = getLocal(t?.localId || 'gamba')
   const mesasOverride = useDemoStore(s => s.mesasSede[local?.id ?? ''])
@@ -46,8 +47,16 @@ function MesaContent() {
   // el cuadro avanza sin pasar por el TO (aquí el rival "confirma" a los 2 s).
   const [ganador, setGanador] = useState<string | null>(null)
   const [marcador, setMarcador] = useState('2-0')
-  const [reporte, setReporte] = useState<'no' | 'esperando' | 'consenso'>('no')
+  const [reporte, setReporte] = useState<'no' | 'esperando' | 'consenso' | 'disputa'>('no')
+  const consensoT = useRef<ReturnType<typeof setTimeout> | null>(null)
   const puedeReportar = !!mid && !!nombres && !!gestion?.generado
+
+  // Sin acuerdo: se cancela el consenso pendiente y la disputa salta al TO.
+  const abrirDisputa = () => {
+    if (consensoT.current) clearTimeout(consensoT.current)
+    setReporte('disputa')
+    crearDisputa({ torneoId: id, mesa: n, a: nombres![0], b: nombres![1], mid: mid ?? undefined }, t?.nombre ?? 'Torneo')
+  }
 
   const enviarReporte = () => {
     if (!ganador || !mid || !nombres) return
@@ -56,7 +65,7 @@ function MesaContent() {
     const puntos = lado === 'a' ? { a: gW, b: gL } : { a: gL, b: gW }
     setReporte('esperando')
     pushNoti({ tipo: 'combate', titulo: 'Resultado enviado', cuerpo: `${ganador} ${marcador} en «${t?.nombre}». Esperando la confirmación de tu rival.` })
-    setTimeout(() => {
+    consensoT.current = setTimeout(() => {
       setGestion(id, {
         winners: { ...(gestion?.winners ?? {}), [mid]: lado },
         puntos: { ...(gestion?.puntos ?? {}), [mid]: puntos },
@@ -161,13 +170,26 @@ function MesaContent() {
                   <p className="text-[11px] text-[#8B8BA8]">{ganador} gana {marcador} · el bracket ya ha avanzado.</p>
                 </div>
               </div>
-            ) : reporte === 'esperando' ? (
+            ) : reporte === 'disputa' ? (
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FF8A5C]/15 text-[#FF8A5C] shrink-0"><Hourglass size={17} className="animate-pulse" /></span>
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FF6076]/15 text-[#FF6076] shrink-0"><Hourglass size={17} /></span>
                 <div>
-                  <p className="text-sm font-bold text-white">Esperando a tu rival…</p>
-                  <p className="text-[11px] text-[#8B8BA8]">Si su reporte coincide, el resultado se confirma solo.</p>
+                  <p className="text-sm font-bold text-white">Disputa abierta</p>
+                  <p className="text-[11px] text-[#8B8BA8]">Los reportes no coinciden. El organizador la resolverá en breve; te avisaremos.</p>
                 </div>
+              </div>
+            ) : reporte === 'esperando' ? (
+              <div>
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FF8A5C]/15 text-[#FF8A5C] shrink-0"><Hourglass size={17} className="animate-pulse" /></span>
+                  <div>
+                    <p className="text-sm font-bold text-white">Esperando a tu rival…</p>
+                    <p className="text-[11px] text-[#8B8BA8]">Si su reporte coincide, el resultado se confirma solo.</p>
+                  </div>
+                </div>
+                <button onClick={abrirDisputa} className="mt-2.5 w-full h-9 rounded-lg bg-[#FF6076]/10 border border-[#FF6076]/30 text-[#FF8A8A] text-xs font-bold">
+                  ¿No estáis de acuerdo? Abrir disputa al organizador
+                </button>
               </div>
             ) : (
               <>

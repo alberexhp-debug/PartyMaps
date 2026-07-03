@@ -44,6 +44,17 @@ export type SolicitudSede = {
   contraoferta?: { fecha: string; franja: string; precio: number }
 }
 
+// Disputa de resultado: los reportes de los jugadores no coinciden → la resuelve
+// el TO desde el modo directo. Si trae `mid`, resolverla avanza el bracket.
+export type Disputa = {
+  id: string
+  torneoId: string
+  mesa: number
+  a: string
+  b: string
+  mid?: string
+}
+
 export type Notificacion = {
   id: string
   tipo: NotiTipo
@@ -64,6 +75,7 @@ interface DemoState {
   gestion: Record<string, GestionTorneo>   // estado de gestión del TO por torneo
   mesasSede: Record<string, Mesa[]>        // plano de mesas editado por cada sede (override del de muestra)
   solicitudesSede: SolicitudSede[]         // peticiones del TO a sedes (organizar evento allí)
+  disputas: Disputa[]                      // disputas de resultado pendientes de resolver por el TO
   notificaciones: Notificacion[]
   juegoPerfil: string                 // juego activo en el perfil
   avatarEmoji: string | null          // avatar elegido en el perfil (demo)
@@ -83,6 +95,8 @@ interface DemoState {
   crearSolicitudSede: (s: Omit<SolicitudSede, 'id' | 'estado'>, nombreLocal: string) => void
   resolverSolicitudSede: (id: string, estado: 'aceptada' | 'rechazada', nombreLocal: string) => void
   contraofertarSede: (id: string, datos: { fecha: string; franja: string; precio: number }, nombreLocal: string) => void
+  crearDisputa: (d: Omit<Disputa, 'id'>, nombreTorneo: string) => void
+  resolverDisputa: (id: string, lado: 'a' | 'b') => void
   responderContraoferta: (id: string, acepta: boolean, nombreLocal: string) => void
   pushNoti: (n: Omit<Notificacion, 'id' | 'leida' | 'cuando'> & { cuando?: string }) => void
   marcarLeidas: () => void
@@ -114,6 +128,8 @@ export const useDemoStore = create<DemoState>()(
       gestion: {},
       mesasSede: {},
       solicitudesSede: [],
+      // Disputa de muestra en el torneo live para que el modo directo luzca vivo
+      disputas: [{ id: 'dsp-seed', torneoId: 't1', mesa: 5, a: 'Lux', b: 'Nyx' }],
       notificaciones: NOTIS_INICIALES,
       juegoPerfil: 'smash',
       avatarEmoji: null,
@@ -189,6 +205,39 @@ export const useDemoStore = create<DemoState>()(
           solicitudesSede: [{ ...sol, id: nextId(), estado: 'pendiente' }, ...s.solicitudesSede],
           notificaciones: [noti, ...s.notificaciones],
         }
+      }),
+
+      crearDisputa: (d, nombreTorneo) => set((s) => {
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'disputa', titulo: '⚠️ Disputa en Mesa ' + d.mesa,
+          cuerpo: `${d.a} y ${d.b} no coinciden en el resultado («${nombreTorneo}»). Resuélvela en el modo directo.`,
+          cuando: 'ahora', leida: false, href: '/modo-directo',
+        }
+        return { disputas: [...s.disputas, { ...d, id: nextId() }], notificaciones: [noti, ...s.notificaciones] }
+      }),
+
+      // Resolver: quita la disputa y, si venía de un combate real, escribe el
+      // ganador (2-1) para que el bracket avance. Avisa a los jugadores.
+      resolverDisputa: (id, lado) => set((s) => {
+        const d = s.disputas.find(x => x.id === id)
+        if (!d) return s
+        const ganador = lado === 'a' ? d.a : d.b
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'disputa', titulo: 'Disputa resuelta por el organizador',
+          cuerpo: `${ganador} gana el combate de la mesa ${d.mesa}. El resultado ya cuenta en el bracket.`,
+          cuando: 'ahora', leida: false, href: d.mid ? `/torneo/${d.torneoId}/bracket` : undefined,
+        }
+        const g = d.mid ? {
+          gestion: {
+            ...s.gestion,
+            [d.torneoId]: {
+              ...GESTION_VACIA, ...s.gestion[d.torneoId],
+              winners: { ...(s.gestion[d.torneoId]?.winners ?? {}), [d.mid]: lado },
+              puntos: { ...(s.gestion[d.torneoId]?.puntos ?? {}), [d.mid]: lado === 'a' ? { a: 2, b: 1 } : { a: 1, b: 2 } },
+            },
+          },
+        } : {}
+        return { disputas: s.disputas.filter(x => x.id !== id), notificaciones: [noti, ...s.notificaciones], ...g }
       }),
 
       contraofertarSede: (id, datos, nombreLocal) => set((s) => {
