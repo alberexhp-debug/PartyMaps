@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, JUEGOS, bracketDe } from '@/lib/torneos/sample'
@@ -12,6 +12,17 @@ const CHAT0 = [
   { u: 'Cast', m: '¡Empieza la semi en el escenario principal!', mio: false, color: '#9B5DE5' },
 ]
 
+// Mensajes de ambiente que van entrando solos mientras ves el directo
+const CHAT_POOL = [
+  { u: 'Vega', m: 'Ese edge guard 😱', color: '#F4912B' },
+  { u: 'Mist', m: 'Sora lo tiene, confíen', color: '#2EC4B6' },
+  { u: 'Drako', m: 'Rei remontando otra vez jaja', color: '#9B5DE5' },
+  { u: 'Nyx', m: 'El setup 2 quedó libre, siguiente combate ya', color: '#4F8EF7' },
+  { u: 'Lex', m: 'Clip eso YA 🎬', color: '#E63E54' },
+  { u: 'Volt', m: 'Bo5 de infarto', color: '#B6FF3A' },
+  { u: 'Cast', m: 'Punto de campeonato…', color: '#9B5DE5' },
+]
+
 export default function DirectoPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -21,6 +32,17 @@ export default function DirectoPage() {
   const [chat, setChat] = useState(CHAT0)
   const [msg, setMsg] = useState('')
   const [reproduciendo, setReproduciendo] = useState(false)
+  const [viendo, setViendo] = useState(t?.viendo || 0)
+  const chatRef = useRef<HTMLDivElement>(null)
+
+  // Ambiente: mensajes que entran solos + espectadores que fluctúan
+  useEffect(() => {
+    let i = 0
+    const im = setInterval(() => { setChat(c => [...c, { ...CHAT_POOL[i % CHAT_POOL.length], mio: false }]); i++ }, 5200)
+    const iv = setInterval(() => setViendo(v => Math.max(0, v + (Math.random() > 0.42 ? 1 : -1) * Math.ceil(Math.random() * 3))), 2600)
+    return () => { clearInterval(im); clearInterval(iv) }
+  }, [])
+  useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' }) }, [chat])
 
   function enviar() {
     if (!msg.trim()) return
@@ -53,11 +75,12 @@ export default function DirectoPage() {
         </div>
         <button onClick={() => router.back()} aria-label="Volver" className="absolute top-4 left-4 h-10 w-10 rounded-xl bg-black/40 backdrop-blur flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
         <span className="absolute top-4 right-4 badge-live">Live</span>
-        {t.viendo && <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 text-[11px] font-mono-num text-white bg-black/55 px-2 py-1 rounded-md"><Eye size={11} /> {t.viendo}</span>}
+        {viendo > 0 && <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 text-[11px] font-mono-num text-white bg-black/55 px-2 py-1 rounded-md"><Eye size={11} /> {viendo}</span>}
       </div>
 
       {/* Info */}
-      <div className="px-4 pt-3">
+      <div className="px-4 pt-3 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start">
+      <div className="lg:min-w-0">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
@@ -91,12 +114,13 @@ export default function DirectoPage() {
           <span className="text-[#8B8BA8]">{rondas.reduce((a, r) => a + r.matches.length, 0)} combates ›</span>
         </Link>
 
+      </div>
         {/* Chat */}
-        <div className="mt-4">
+        <div className="mt-4 lg:mt-0 lg:sticky lg:top-4">
           <p className="eyebrow eyebrow-muted mb-2">Chat del directo</p>
-          <div className="card-premium p-3 space-y-2.5 max-h-72 overflow-y-auto">
+          <div ref={chatRef} className="card-premium p-3 space-y-2.5 max-h-72 lg:max-h-[420px] overflow-y-auto">
             {chat.map((c, i) => (
-              <div key={i} className="flex items-start gap-2">
+              <div key={i} className="flex items-start gap-2 animate-slide-up-sm">
                 <span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-[#0A0A0F] font-black text-xs shrink-0" style={{ background: c.color }}>{c.u[0]}</span>
                 <div className="min-w-0">
                   <span className="text-[12px] font-bold" style={{ color: c.color }}>{c.u}</span>

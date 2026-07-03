@@ -2,6 +2,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, STANDINGS_SAMPLE } from '@/lib/torneos/sample'
 import { ArrowLeft, Crown, Trophy } from 'lucide-react'
+import { CountUp } from '@/components/ui/CountUp'
 
 const STANDINGS = STANDINGS_SAMPLE
 
@@ -33,21 +34,21 @@ export default function ResultadosPage() {
         <h1 className="text-2xl font-bold text-white text-display tracking-tight">{t?.nombre || 'Torneo'}</h1>
 
         {/* Campeón */}
-        <div className="mt-5 card-premium p-5 text-center relative overflow-hidden">
+        <div className="mt-5 card-premium p-5 text-center relative overflow-hidden animate-slide-up-sm">
           <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full bg-[#E0BE63]/20 blur-3xl" />
           <Crown size={26} className="mx-auto text-[#E0BE63] mb-1" fill="#E0BE63" />
           <p className="text-[11px] uppercase tracking-[0.2em] text-[#E0BE63] font-bold">Campeón</p>
           <div className="relative mt-3 flex flex-col items-center">
-            <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] ring-4 ring-[#E0BE63]/40" style={{ background: avatarColor(STANDINGS[0]) }}>{STANDINGS[0][0]}</span>
+            <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] ring-4 ring-[#E0BE63]/40 animate-pop" style={{ background: avatarColor(STANDINGS[0]), boxShadow: '0 0 40px -6px rgba(224,190,99,.55)' }}>{STANDINGS[0][0]}</span>
             <p className="mt-3 text-2xl font-bold text-white text-display">{STANDINGS[0]}</p>
-            {bote > 0 && <p className="mt-1 text-lg font-bold text-[#E0BE63] text-numeric">{premios[0]}€</p>}
+            {bote > 0 && <p className="mt-1 text-lg font-bold text-[#E0BE63] text-numeric"><CountUp value={premios[0]} suffix="€" duration={1200} /></p>}
           </div>
         </div>
 
         {/* Podio 2-3 */}
         <div className="mt-3 grid grid-cols-2 gap-3">
           {[1, 2].map(i => (
-            <div key={i} className="card-premium p-4 text-center">
+            <div key={i} className="card-premium p-4 text-center stagger-item" style={{ ['--delay' as string]: `${150 + i * 90}ms` }}>
               <span className="inline-flex items-center justify-center w-14 h-14 rounded-xl text-xl font-black text-[#0A0A0F] mx-auto" style={{ background: avatarColor(STANDINGS[i]) }}>{STANDINGS[i][0]}</span>
               <p className="mt-2 text-sm font-bold text-white">{STANDINGS[i]}</p>
               <p className="text-[11px] font-bold" style={{ color: medallas[i] }}>{i + 1}º puesto</p>
@@ -68,7 +69,7 @@ export default function ResultadosPage() {
         <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Clasificación completa</p>
         <div className="space-y-1.5">
           {STANDINGS.map((n, i) => (
-            <div key={n} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8">
+            <div key={n} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 10) * 50}ms` }}>
               <span className="w-6 text-center text-sm font-bold text-numeric" style={{ color: i < 3 ? medallas[i] : '#8B8BA8' }}>{i + 1}</span>
               <span className="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black text-[#0A0A0F] shrink-0" style={{ background: avatarColor(n) }}>{n[0]}</span>
               <span className="flex-1 text-sm font-bold text-white">{n}</span>

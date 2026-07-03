@@ -124,7 +124,7 @@ function BracketGrid({ rondas, color, onPick }: { rondas: RondaSample[]; color: 
       <div className="bkt min-w-max min-h-[440px]" style={{ ['--bkt-line' as string]: 'rgba(255,255,255,0.14)' }}>
         {rondas.map((ronda, ri) => (
           <div key={ronda.nombre} className="contents">
-            <div className="flex flex-col" style={{ minWidth: 184 }}>
+            <div className="flex flex-col stagger-item" style={{ minWidth: 184, ['--delay' as string]: `${ri * 90}ms` }}>
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8] mb-3 px-1 h-4 shrink-0">{ronda.nombre}</p>
               <div className="bkt-round flex-1">
                 {ronda.matches.map(m => (
@@ -159,7 +159,9 @@ function MatchCard({ m, color, onPick }: { m: MatchSample; color: string; onPick
   const winA = done && m.ganador === 'a'
   const winB = done && m.ganador === 'b'
   return (
-    <div className="w-44 rounded-xl border overflow-hidden bg-[#12121C]" style={{ borderColor: live ? color : 'rgba(255,255,255,0.08)' }}>
+    <div className="w-44 rounded-xl border overflow-hidden bg-[#161A24]" style={live
+      ? { borderColor: color, boxShadow: `0 0 22px -6px ${color}77, 0 0 0 1px ${color}33 inset` }
+      : { borderColor: 'rgba(255,255,255,0.08)' }}>
       <Row name={m.a} score={m.scoreA} win={winA} champ={winA} onPick={onPick} show={done || live} />
       <div className="h-px bg-white/8" />
       <Row name={m.b} score={m.scoreB} win={winB} champ={winB} onPick={onPick} show={done || live} />

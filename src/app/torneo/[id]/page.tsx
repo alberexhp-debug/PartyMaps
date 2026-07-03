@@ -7,6 +7,7 @@ import {
 } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
+import { FillBar, CountUp } from '@/components/ui/CountUp'
 import { InscripcionSheet } from '@/components/todh/InscripcionSheet'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import type { Jugador } from '@/lib/torneos/sample'
@@ -98,11 +99,11 @@ export default function TorneoDetallePage() {
   return (
     <div className="relative min-h-screen pb-28 lg:pb-12 max-w-xl lg:max-w-6xl mx-auto">
       {/* Banner: el del torneo si lo tiene; si no, el keyart del juego */}
-      <div className="relative h-48 lg:h-64 overflow-hidden lg:rounded-b-3xl">
+      <div className="relative h-56 lg:h-80 overflow-hidden lg:rounded-b-3xl">
         {t.banner
           ? <img src={t.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
           : <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.12) 28%, #0D0F15)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.18) 10%, rgba(8,8,15,0.05) 34%, rgba(11,13,19,0.62) 62%, #0D0F15 96%)' }} />
         <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
           <div className="flex gap-2">
@@ -113,26 +114,26 @@ export default function TorneoDetallePage() {
             </button>
           </div>
         </div>
-        <div className="absolute bottom-3 left-5 right-5 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[11px] font-bold" style={{ background: `${juego.color}26`, color: juego.color, border: `1px solid ${juego.color}55` }}>
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.nombre}
-          </span>
-          {t.online && <span className="inline-flex items-center gap-1 px-2 h-7 rounded-full text-[10px] font-bold uppercase tracking-wide bg-[#4F8EF7]/20 text-[#4F8EF7] border border-[#4F8EF7]/40"><Wifi size={10} /> Online</span>}
+        <div className="absolute bottom-3 left-5 right-5 lg:left-6 lg:right-6">
+          <div className="flex items-center gap-2 animate-slide-up-sm">
+            <span className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[11px] font-bold backdrop-blur-sm" style={{ background: `${juego.color}30`, color: juego.color, border: `1px solid ${juego.color}55` }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.nombre}
+            </span>
+            {t.online && <span className="inline-flex items-center gap-1 px-2 h-7 rounded-full text-[10px] font-bold uppercase tracking-wide bg-[#4F8EF7]/25 text-[#7FB0FF] border border-[#4F8EF7]/40 backdrop-blur-sm"><Wifi size={10} /> Online</span>}
+            {t.vip && <span className="inline-flex items-center gap-1 px-2 h-7 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/40 text-[#E0BE63] border border-[#D4A84B]/40 backdrop-blur-sm"><Lock size={10} /> {t.vip}</span>}
+          </div>
+          <h1 className="mt-2.5 text-[26px] lg:text-4xl font-bold text-white text-display tracking-tight leading-[1.08] animate-slide-up-sm" style={{ textShadow: '0 2px 24px rgba(0,0,0,.5)' }}>{t.nombre}</h1>
         </div>
       </div>
 
       {/* Escritorio: 2 columnas (contenido + tarjeta de inscripción sticky). Móvil: una columna. */}
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8 lg:px-6 lg:items-start lg:mt-6">
       <div className="px-5 lg:px-0 lg:min-w-0">
-        <h1 className="mt-3 text-2xl font-bold text-white text-display tracking-tight leading-tight">{t.nombre}</h1>
-        <div className="flex flex-wrap items-center gap-2 mt-2">
-          {t.vip && (
-            <span className="inline-flex items-center gap-1 px-2 h-7 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40"><Lock size={11} /> Exclusivo {t.vip}</span>
-          )}
-          {inscrito && (
+        {inscrito && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 px-2 h-7 rounded-full text-[11px] font-bold bg-[#B6FF3A]/15 text-[#B6FF3A] border border-[#B6FF3A]/40"><Check size={12} /> Inscrito</span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Tu combate (inscrito + en directo) */}
         {inscrito && t.enDirecto && (
@@ -188,9 +189,7 @@ export default function TorneoDetallePage() {
             <span className="inline-flex items-center gap-1.5 text-white font-semibold"><Users size={15} /> <span className="font-mono-num">{inscritosVis} / {t.plazas}</span> inscritos</span>
             <span className={completo && !inscrito ? 'text-[#FF8A5C] font-semibold text-sm' : 'text-[#B6FF3A] font-semibold text-sm'}>{completo && !inscrito ? 'Completo' : `${Math.max(0, t.plazas - inscritosVis)} plazas libres`}</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-white/8 overflow-hidden">
-            <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${pct}%`, background: completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)` }} />
-          </div>
+          <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
         </div>
 
         {/* Premios */}
@@ -201,10 +200,8 @@ export default function TorneoDetallePage() {
               {repartoBote(t.bote!).map(r => (
                 <div key={r.puesto} className="flex items-center gap-3">
                   <span className="w-8 text-sm font-bold text-white font-mono-num">{r.puesto}</span>
-                  <div className="flex-1 h-2.5 rounded-full bg-white/8 overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${r.pct}%`, background: r.puesto === '1º' ? '#E0BE63' : r.puesto === '2º' ? '#B8C0CC' : '#C08A4B' }} />
-                  </div>
-                  <span className="w-16 text-right text-sm font-bold text-white font-mono-num">{r.importe}€</span>
+                  <FillBar pct={r.pct} color={r.puesto === '1º' ? '#E0BE63' : r.puesto === '2º' ? '#B8C0CC' : '#C08A4B'} trackClassName="flex-1 h-2.5 rounded-full bg-white/8 overflow-hidden" />
+                  <span className="w-16 text-right text-sm font-bold text-white font-mono-num"><CountUp value={r.importe} suffix="€" /></span>
                 </div>
               ))}
               <p className="text-[11px] text-[#8B8BA8] pt-1">El bote crece con cada inscripción. Reparto editable por el organizador.</p>
@@ -277,9 +274,7 @@ export default function TorneoDetallePage() {
               <div className="flex items-center gap-2 text-[#B8B8CC]"><MapPin size={15} className="text-[#4F8EF7]" /> {t.online ? 'Online' : t.local}</div>
               <div className="flex items-center gap-2 text-[#B8B8CC]"><Users size={15} className="text-[#9B82FF]" /> <span className="font-mono-num">{inscritosVis}/{t.plazas}</span> · {completo && !inscrito ? 'completo' : `${Math.max(0, t.plazas - inscritosVis)} libres`}</div>
             </div>
-            <div className="h-2 w-full rounded-full bg-white/8 overflow-hidden">
-              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)` }} />
-            </div>
+            <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
             {ctaBtn}
             <button onClick={compartir} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors"><Share2 size={15} /> Compartir</button>
           </div>
