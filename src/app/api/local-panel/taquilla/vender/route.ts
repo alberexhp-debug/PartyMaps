@@ -32,7 +32,7 @@ export async function GET() {
   const porMetodo: Record<string, number> = {}
   for (const e of data ?? []) porMetodo[e.metodo_pago || 'otro'] = (porMetodo[e.metodo_pago || 'otro'] || 0) + Number(e.precio_total || 0)
 
-  // Cupo de la noche en TODH (si está configurado): cuánto queda. Cuenta TODAS las
+  // Cupo de la noche en Tourneum (si está configurado): cuánto queda. Cuenta TODAS las
   // entradas de noche regular de hoy (online + taquilla), no solo taquilla.
   const { data: loc } = await db.from('locales').select('entradas_disponibles_noche').eq('id', t.local_id).maybeSingle()
   let cupo_noche: { limite: number; vendidas: number; quedan: number } | null = null
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     consumiciones_canjeadas: 0,
     consumiciones_descripcion: consumicionesDesc,
     precio_local: precioRedondeado,
-    comision_plataforma: 0,                 // venta en mano: TODH no procesa el dinero
+    comision_plataforma: 0,                 // venta en mano: Tourneum no procesa el dinero
     precio_total: precioRedondeado,
     qr_code: `PM2:${crypto.randomUUID()}`,
     estado: 'activa',

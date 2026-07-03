@@ -147,7 +147,7 @@ export default function MensajesPage() {
             <LifeBuoy size={17} className="text-[#B6FF3A]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">Soporte de TODH</p>
+            <p className="text-sm font-semibold text-white">Soporte de Tourneum</p>
             <p className="text-xs text-[#8B8BA8]">¿Una duda o incidencia? Abre un ticket con nuestro equipo.</p>
           </div>
           {soporteNoLeidos > 0 && (

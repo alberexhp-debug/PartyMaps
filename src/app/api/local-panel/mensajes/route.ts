@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // ── Mi gestor de TODH (si el local tiene gestor asignado) ──
+    // ── Mi gestor de Tourneum (si el local tiene gestor asignado) ──
     // Graceful con la 053 pendiente: si mensajes_gestor aún no existe, la
     // conversación aparece igualmente (sin mensajes) para poder iniciarla.
     const { data: localRow } = await db.from('locales').select('gestor_id').eq('id', t.local_id).maybeSingle()

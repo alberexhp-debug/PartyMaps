@@ -180,7 +180,7 @@ export default function PedidoBarPage() {
         </div>
 
         <p className="text-center text-[10px] text-[#8B8BA8] uppercase tracking-[0.18em]">
-          TODH · Pedido {pedido.qr_code.slice(0, 14)}…
+          Tourneum · Pedido {pedido.qr_code.slice(0, 14)}…
         </p>
       </div>
     </div>

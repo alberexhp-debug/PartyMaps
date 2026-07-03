@@ -39,12 +39,12 @@ export async function brevoCuenta(apiKey: string): Promise<{ ok: boolean; email?
 /** Sincroniza los contactos (por teléfono/SMS) como una lista de Brevo con el nombre del segmento. */
 export async function brevoSyncLista(apiKey: string, nombreLista: string, contactos: { tel: string; nombre: string }[]): Promise<{ ok: boolean; importados: number; error?: string }> {
   try {
-    // 1) Carpeta (reutiliza la primera o crea "TODH").
+    // 1) Carpeta (reutiliza la primera o crea "Tourneum").
     let folderId: number | undefined
     const fr = await fetch(`${BASE}/contacts/folders?limit=1`, { headers: headers(apiKey) })
     if (fr.ok) folderId = (await fr.json() as { folders?: { id: number }[] }).folders?.[0]?.id
     if (!folderId) {
-      const cf = await fetch(`${BASE}/contacts/folders`, { method: 'POST', headers: headers(apiKey), body: JSON.stringify({ name: 'TODH' }) })
+      const cf = await fetch(`${BASE}/contacts/folders`, { method: 'POST', headers: headers(apiKey), body: JSON.stringify({ name: 'Tourneum' }) })
       folderId = cf.ok ? (await cf.json() as { id: number }).id : undefined
     }
     if (!folderId) return { ok: false, importados: 0, error: 'No se pudo crear la carpeta en Brevo' }

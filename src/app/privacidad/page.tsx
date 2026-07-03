@@ -14,7 +14,7 @@ export default function PrivacidadPage() {
 
         <div className="space-y-8 text-sm text-[#A0A0B8] leading-relaxed">
           <Section title="1. Responsable del tratamiento">
-            TODH es responsable del tratamiento de tus datos personales. Contacto: <span className="text-[#B6FF3A]">privacidad@partymaps.com</span>
+            Tourneum es responsable del tratamiento de tus datos personales. Contacto: <span className="text-[#B6FF3A]">privacidad@partymaps.com</span>
           </Section>
 
           <Section title="2. Datos que recogemos">
@@ -38,7 +38,7 @@ export default function PrivacidadPage() {
           </Section>
 
           <Section title="7. Terceros">
-            TODH usa Supabase (base de datos, autenticación), Mapbox (mapas) y Stripe (pagos). Cada servicio tiene su propia política de privacidad. No vendemos tus datos a terceros.
+            Tourneum usa Supabase (base de datos, autenticación), Mapbox (mapas) y Stripe (pagos). Cada servicio tiene su propia política de privacidad. No vendemos tus datos a terceros.
           </Section>
 
           <Section title="8. Cookies">

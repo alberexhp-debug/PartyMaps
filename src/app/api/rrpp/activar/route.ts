@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   if (!existente) {
     return NextResponse.json({
-      error: 'No tienes ninguna invitación activa. Para ser RRPP en TODH necesitas que un local te invite o que el administrador te dé de alta.',
+      error: 'No tienes ninguna invitación activa. Para ser RRPP en Tourneum necesitas que un local te invite o que el administrador te dé de alta.',
       code: 'NO_INVITATION'
     }, { status: 403 })
   }

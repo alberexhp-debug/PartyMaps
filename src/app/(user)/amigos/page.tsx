@@ -105,8 +105,8 @@ export default function AmigosPage() {
   }
   const compartir = async () => {
     const url = `${location.origin}/amigo/${usuario!.id}`
-    const texto = `Añádeme en TODH y competimos juntos 🎮`
-    if (navigator.share) { try { await navigator.share({ title: 'TODH', text: texto, url }) } catch { /* cancelado */ } }
+    const texto = `Añádeme en Tourneum y competimos juntos 🎮`
+    if (navigator.share) { try { await navigator.share({ title: 'Tourneum', text: texto, url }) } catch { /* cancelado */ } }
     else { await navigator.clipboard.writeText(url); toast.success('Enlace copiado') }
   }
   const salirGrupo = async (id: string) => {

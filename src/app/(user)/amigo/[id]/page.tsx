@@ -41,7 +41,7 @@ export default function AmigoInvitePage() {
 
       {estado === 'enviada' && (
         <Card icon={<Clock size={30} className="text-[#F39C12]" />} titulo="Solicitud enviada"
-          texto={`Le hemos enviado tu solicitud a ${nombre}. Cuando la acepte, seréis amigos en TODH.`}
+          texto={`Le hemos enviado tu solicitud a ${nombre}. Cuando la acepte, seréis amigos en Tourneum.`}
           cta={{ href: '/amigos', label: 'Ver mis amigos' }} />
       )}
       {estado === 'aceptada' && (
@@ -56,7 +56,7 @@ export default function AmigoInvitePage() {
       )}
       {estado === 'login' && (
         <Card icon={<LogIn size={30} className="text-[#B6FF3A]" />} titulo="Entra para añadir a tu amigo"
-          texto="Inicia sesión o crea tu cuenta en TODH y os conectaréis al instante."
+          texto="Inicia sesión o crea tu cuenta en Tourneum y os conectaréis al instante."
           cta={{ href: '/login', label: 'Entrar o registrarme' }} />
       )}
       {estado === 'error' && (

@@ -27,7 +27,7 @@ export function TOSideNav() {
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F]"><Trophy size={18} /></span>
         <span className="min-w-0">
           <span className="block text-[15px] font-black text-white text-display tracking-tight leading-tight">Consola TO</span>
-          <span className="block text-[10px] uppercase tracking-[0.16em] text-[#B6FF3A] font-bold">TODH</span>
+          <span className="block text-[10px] uppercase tracking-[0.16em] text-[#B6FF3A] font-bold">Tourneum</span>
         </span>
       </Link>
 

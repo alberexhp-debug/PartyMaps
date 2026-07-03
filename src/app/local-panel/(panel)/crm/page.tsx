@@ -739,7 +739,7 @@ function AjustesTab() {
           <span className="w-9 h-9 rounded-xl bg-[#27AE60]/15 border border-[#27AE60]/25 flex items-center justify-center shrink-0"><ShieldCheck size={16} className="text-[#27AE60]" /></span>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white">Protección de datos</p>
-            <p className="text-xs text-[#8B8BA8] mt-0.5">Contrato de encargo (art. 28 RGPD): tú eres el responsable de los datos; TODH, el encargado.</p>
+            <p className="text-xs text-[#8B8BA8] mt-0.5">Contrato de encargo (art. 28 RGPD): tú eres el responsable de los datos; Tourneum, el encargado.</p>
             {aceptado ? (
               <div className="mt-2 flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#27AE60]/15 text-[#27AE60] border border-[#27AE60]/25">Aceptado el {fecha(aceptado)}</span>
@@ -775,10 +775,10 @@ function AjustesTab() {
 
 const CONTRATO_ENCARGO_TXT = `CONTRATO DE ENCARGO DEL TRATAMIENTO (art. 28 RGPD) — [PENDIENTE REVISIÓN LEGAL]
 
-1. Objeto: TODH trata por cuenta del LOCAL (responsable) los datos de sus clientes con el único fin de prestar el servicio de CRM.
+1. Objeto: Tourneum trata por cuenta del LOCAL (responsable) los datos de sus clientes con el único fin de prestar el servicio de CRM.
 2. Duración: mientras esté activa la cuenta del local.
 3. Tipos de datos: identificativos y de contacto (nombre, teléfono), y de actividad (visitas, consumo).
-4. Confidencialidad: TODH y su personal guardan secreto sobre los datos.
+4. Confidencialidad: Tourneum y su personal guardan secreto sobre los datos.
 5. Sub-encargados: Supabase (base de datos), Vercel (hosting), Brevo (email, si se activa).
 6. Medidas de seguridad: cifrado en tránsito y reposo, control de acceso por rol, auditoría de exportaciones.
 7. Fin del encargo: a la terminación, devolución o supresión de los datos a elección del responsable.

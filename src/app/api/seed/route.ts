@@ -85,34 +85,34 @@ export async function POST(req: NextRequest) {
     else log.push(`Administrador OK: ${acc.email} (${acc.rol})`)
   }
 
-  // ── 1b. CUENTA TODHGESTOR ────────────────────────────────────────────────
+  // ── 1b. CUENTA TourneumGESTOR ────────────────────────────────────────────────
   {
     const g = await crearAuthUserPorEmail('gestor@rumbo.com', 'PM_TODHGestor2025!')
     if (g) {
       const { error } = await admin.from('gestores').upsert({
         auth_id: g.id,
-        nombre: 'TODHGestor',
+        nombre: 'TourneumGestor',
         email: 'gestor@rumbo.com',
         incentivo_pct: 10,
         activo: true,
       }, { onConflict: 'email' })
       if (error) errors.push(`Gestor gestor@rumbo.com: ${error.message}`)
-      else log.push('TODHGestor OK: gestor@rumbo.com')
+      else log.push('TourneumGestor OK: gestor@rumbo.com')
     }
   }
 
   // ── 2. LOCAL DE TEST GENÉRICO ─────────────────────────────────────────────
   let localTestId: string | null = null
   const { data: localExistente } = await admin
-    .from('locales').select('id').eq('nombre', 'Club Test TODH').maybeSingle()
+    .from('locales').select('id').eq('nombre', 'Club Test Tourneum').maybeSingle()
 
   if (localExistente) {
     localTestId = localExistente.id
-    log.push(`Local "Club Test TODH" ya existe: ${localTestId}`)
+    log.push(`Local "Club Test Tourneum" ya existe: ${localTestId}`)
   } else {
     const { data: newLocal, error: localErr } = await admin.from('locales').insert({
-      nombre: 'Club Test TODH',
-      descripcion: 'Local de prueba para testear la plataforma TODH. Discoteca electrónica en el centro de Madrid.',
+      nombre: 'Club Test Tourneum',
+      descripcion: 'Local de prueba para testear la plataforma Tourneum. Discoteca electrónica en el centro de Madrid.',
       tipo_local: 'discoteca',
       musica: ['techno', 'house', 'electronica'],
       direccion: 'Calle Gran Vía, 45, 28013 Madrid',
@@ -147,10 +147,10 @@ export async function POST(req: NextRequest) {
     }).select('id').single()
 
     if (localErr || !newLocal) { errors.push(`Local: ${localErr?.message}`); }
-    else { localTestId = newLocal.id; log.push(`Local "Club Test TODH" creado: ${localTestId}`) }
+    else { localTestId = newLocal.id; log.push(`Local "Club Test Tourneum" creado: ${localTestId}`) }
   }
 
-  // ── 3. CUENTAS PANEL LOCAL — Club Test TODH (las originales) ─────────
+  // ── 3. CUENTAS PANEL LOCAL — Club Test Tourneum (las originales) ─────────
   if (localTestId) {
     const localAccounts = [
       { email: 'dueno@testlocal.com',     password: 'PM_Dueno2025!',    rol: 'dueno',           nombre: 'Dueño Test' },

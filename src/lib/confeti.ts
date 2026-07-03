@@ -1,5 +1,5 @@
 /**
- * Helpers de confeti — usa canvas-confetti con la paleta de TODH.
+ * Helpers de confeti — usa canvas-confetti con la paleta de Tourneum.
  * Lazy-load para no incluir en el bundle inicial.
  */
 const COLORES_PM = ['#B6FF3A', '#A6EE2B', '#7C5CFF', '#4F8EF7', '#FBE08F']

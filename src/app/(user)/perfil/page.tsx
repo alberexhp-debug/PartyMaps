@@ -259,7 +259,7 @@ export default function PerfilPage() {
 
         <div className="lg:col-span-2">
           <div className="divider-gradient mt-6" />
-          <p className="text-center text-[10px] text-[#6B6B85] tracking-[0.18em] uppercase pb-2 pt-2">TODH · v0.1.0</p>
+          <p className="text-center text-[10px] text-[#6B6B85] tracking-[0.18em] uppercase pb-2 pt-2">Tourneum · v0.1.0</p>
         </div>
       </div>
     </div>

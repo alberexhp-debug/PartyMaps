@@ -159,7 +159,7 @@ function AltaLocalModal({ onClose, onCreado }: { onClose: () => void; onCreado: 
 
   const copiar = () => {
     if (!credenciales) return
-    navigator.clipboard.writeText(`Acceso TODH\nEmail: ${credenciales.email}\nContraseña: ${credenciales.password}\nEntra en: ${location.origin}/local-panel/login`)
+    navigator.clipboard.writeText(`Acceso Tourneum\nEmail: ${credenciales.email}\nContraseña: ${credenciales.password}\nEntra en: ${location.origin}/local-panel/login`)
     setCopiado(true)
     setTimeout(() => setCopiado(false), 2000)
   }
@@ -207,7 +207,7 @@ function AltaLocalModal({ onClose, onCreado }: { onClose: () => void; onCreado: 
             </div>
 
             <div className="space-y-4">
-              <Input label="Nombre del local" icon={<Building2 size={16} />} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Sala TODH" />
+              <Input label="Nombre del local" icon={<Building2 size={16} />} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Sala Tourneum" />
 
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-[#A0A0B8]">Tipo</label>

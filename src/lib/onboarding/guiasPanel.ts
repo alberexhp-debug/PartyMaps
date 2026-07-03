@@ -86,6 +86,6 @@ export const GUIAS_PANEL: Record<string, PasoTour[]> = {
     { sel: '', texto: 'Tu checklist para dejar el local listo. Completa los pasos obligatorios para salir bien en el mapa.' },
   ],
   'soporte': [
-    { sel: '', texto: '¿Dudas o algún problema? Desde aquí contactas con el soporte de TODH.' },
+    { sel: '', texto: '¿Dudas o algún problema? Desde aquí contactas con el soporte de Tourneum.' },
   ],
 }

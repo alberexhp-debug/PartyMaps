@@ -8,7 +8,7 @@ import { X, Calendar, MapPin, Sun } from 'lucide-react'
 export function TicketModal({ torneo, onClose }: { torneo: TorneoSample; onClose: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const juego = JUEGOS[torneo.juego]
-  const code = `TODH-${torneo.id.toUpperCase()}-DEMO`
+  const code = `Tourneum-${torneo.id.toUpperCase()}-DEMO`
 
   useEffect(() => {
     import('qrcode').then(QRCode => {

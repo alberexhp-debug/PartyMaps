@@ -166,7 +166,7 @@ function NuevoManagerModal({ locales, onClose, onHecho, toastError }: {
               <p className="mt-2 font-mono">{cred.password}</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" fullWidth onClick={() => { navigator.clipboard?.writeText(`Acceso TODH (Grupo)\nEmail: ${cred.email}\nContraseña: ${cred.password}\n/grupo/login`); setCopiado(true); setTimeout(() => setCopiado(false), 1500) }}>
+              <Button variant="outline" fullWidth onClick={() => { navigator.clipboard?.writeText(`Acceso Tourneum (Grupo)\nEmail: ${cred.email}\nContraseña: ${cred.password}\n/grupo/login`); setCopiado(true); setTimeout(() => setCopiado(false), 1500) }}>
                 {copiado ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
               </Button>
               <Button fullWidth onClick={onHecho}>Hecho</Button>

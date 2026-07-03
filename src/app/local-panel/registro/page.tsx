@@ -71,7 +71,7 @@ export default function LocalPanelRegistroPage() {
     // Todo el alta va por el servidor: la RLS no permite a un usuario normal
     // crear `locales`/`usuario_local` (solo service_role), y allí la cuenta se
     // crea ya confirmada (alta directa, sin correo). El local nace en
-    // `pendiente_verificacion` → solicitud en el panel de admin de TODH.
+    // `pendiente_verificacion` → solicitud en el panel de admin de Tourneum.
     try {
       const res = await fetch('/api/local-panel/registro', {
         method: 'POST',
@@ -127,13 +127,13 @@ export default function LocalPanelRegistroPage() {
         <div>
           <h1 className="text-2xl font-black text-white mb-2">¡Solicitud enviada!</h1>
           <p className="text-[#A0A0B8] max-w-xs">
-            Tu local está pendiente de verificación. El equipo de TODH revisará la información y activará tu cuenta en 24-48h.
+            Tu local está pendiente de verificación. El equipo de Tourneum revisará la información y activará tu cuenta en 24-48h.
           </p>
         </div>
         <div className="glass rounded-2xl p-4 text-sm text-[#A0A0B8] text-left w-full max-w-xs space-y-1">
           <p className="text-white font-semibold mb-2">Próximos pasos:</p>
           <p>1. Tu cuenta ya está creada (sin pasos extra)</p>
-          <p>2. El equipo de TODH revisa y aprueba tu local</p>
+          <p>2. El equipo de Tourneum revisa y aprueba tu local</p>
           <p>3. Cuando se apruebe, accede al panel con tu email y contraseña</p>
         </div>
         <Button onClick={() => router.push('/local-panel/login')}>

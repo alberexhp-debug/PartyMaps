@@ -78,7 +78,7 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
               <span className="text-sm font-black text-white">T</span>
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#9B82FF]">TODHGestor</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#9B82FF]">TourneumGestor</p>
               <p className="text-sm font-semibold text-white truncate">{gestor.nombre}</p>
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function GestorPanelLayout({ children }: { children: React.ReactN
               <span className="text-xs font-black text-white">T</span>
             </div>
             <div className="leading-tight">
-              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#9B82FF]">TODHGestor</p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#9B82FF]">TourneumGestor</p>
               <p className="text-sm font-semibold text-white truncate max-w-[40vw]">{gestor.nombre}</p>
             </div>
           </div>

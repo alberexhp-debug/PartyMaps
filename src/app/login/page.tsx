@@ -158,7 +158,7 @@ export default function LoginPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#B6FF3A] shadow-[0_8px_28px_-8px_rgba(182,255,58,0.6)]">
             <span className="text-lg font-black text-[#0A0A0F] text-display">T</span>
           </div>
-          <span className="text-2xl font-black text-display uppercase tracking-[0.22em] text-white">TODH</span>
+          <span className="text-2xl font-black text-display uppercase tracking-[0.22em] text-white">Tourneum</span>
         </div>
 
         {/* Mensaje */}
@@ -188,7 +188,7 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        <p className="relative text-xs text-[#6B6B85] tracking-wide">© TODH · Que gane el mejor</p>
+        <p className="relative text-xs text-[#6B6B85] tracking-wide">© Tourneum · Que gane el mejor</p>
       </aside>
 
       {/* ====== Formulario ====== */}
@@ -198,7 +198,7 @@ export default function LoginPage() {
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#B6FF3A] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.6)]">
             <span className="text-xl font-black text-[#0A0A0F] text-display">T</span>
           </div>
-          <span className="text-xl font-black text-display uppercase tracking-[0.22em] text-white">TODH</span>
+          <span className="text-xl font-black text-display uppercase tracking-[0.22em] text-white">Tourneum</span>
         </div>
 
         {/* Tarjeta de acceso */}

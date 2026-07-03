@@ -249,7 +249,7 @@ export default function CrearTorneoPage() {
               </div>
             </Field>
           </div>
-          <p className="text-[11px] text-[#8B8BA8]">Comisión TODH: 6% hasta 32, 5% hasta 128, 4% por encima. Gratis → sin comisión.</p>
+          <p className="text-[11px] text-[#8B8BA8]">Comisión Tourneum: 6% hasta 32, 5% hasta 128, 4% por encima. Gratis → sin comisión.</p>
         </Section>
 
         {/* Premios */}

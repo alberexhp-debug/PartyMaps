@@ -54,7 +54,7 @@ export default function AdminDemoPage() {
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Panel Admin · Demo</p>
-          <p className="text-base font-bold text-white">TODH · Plataforma</p>
+          <p className="text-base font-bold text-white">Tourneum · Plataforma</p>
         </div>
         <Settings2 size={18} className="text-[#8B8BA8]" />
       </div>

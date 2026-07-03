@@ -13,7 +13,7 @@ type Fila = { nombre?: string; telefono?: string; email?: string }
  * Requiere declaración responsable. Tier Pro + contrato. Reglas duras:
  *  - el teléfono es la llave: si ya hay usuario con ese tel, se ata a su ficha;
  *  - si esa identidad ya dijo "no" a este local, el NO gana (no se resucita);
- *  - origen del consentimiento = 'importado_declarado' (distinto del captado por TODH).
+ *  - origen del consentimiento = 'importado_declarado' (distinto del captado por Tourneum).
  */
 export async function POST(req: NextRequest) {
   const t = await getTrabajadorLocal()

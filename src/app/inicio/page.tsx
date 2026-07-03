@@ -25,7 +25,7 @@ export default function InicioPage() {
         <div className="relative px-6 pt-16 pb-10 safe-top max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2.5 mb-9">
             <span className="w-10 h-10 rounded-xl bg-[#B6FF3A] flex items-center justify-center text-[#0A0A0F] text-base font-black text-display">T</span>
-            <span className="text-xl font-black text-display uppercase tracking-[0.22em] text-white">TODH</span>
+            <span className="text-xl font-black text-display uppercase tracking-[0.22em] text-white">Tourneum</span>
           </div>
 
           {live > 0 && (
@@ -54,7 +54,7 @@ export default function InicioPage() {
 
       {/* Juegos */}
       <div className="relative px-6 max-w-3xl mx-auto">
-        <p className="eyebrow eyebrow-muted text-center mb-4">Juegos en TODH</p>
+        <p className="eyebrow eyebrow-muted text-center mb-4">Juegos en Tourneum</p>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
           {Object.values(JUEGOS).map(j => (
             <Link key={j.id} href="/explorar" className="relative h-20 rounded-2xl overflow-hidden ring-grad hover:-translate-y-0.5 transition-transform">
@@ -100,7 +100,7 @@ export default function InicioPage() {
           <span>·</span>
           <Link href="/admin-demo" className="hover:text-[#B6FF3A]">Admin</Link>
         </div>
-        <p className="text-[10px] text-[#6B6B85] uppercase tracking-[0.2em] mt-4">© TODH · Que gane el mejor</p>
+        <p className="text-[10px] text-[#6B6B85] uppercase tracking-[0.2em] mt-4">© Tourneum · Que gane el mejor</p>
       </div>
     </div>
   )

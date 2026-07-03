@@ -23,7 +23,7 @@ export async function POST() {
   await svc.from('trabajador_totp').upsert({ usuario_local_id: t.id, secret }, { onConflict: 'usuario_local_id' })
 
   const label = yo?.username || 'trabajador'
-  const issuer = local?.nombre ? `TODH · ${local.nombre}` : 'TODH'
+  const issuer = local?.nombre ? `Tourneum · ${local.nombre}` : 'Tourneum'
   const otpauth = generateURI({ strategy: 'totp', issuer, label, secret })
   return NextResponse.json({ otpauth, secret })
 }

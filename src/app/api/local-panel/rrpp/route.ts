@@ -16,7 +16,7 @@ const ROLES_GESTION = ['dueno', 'gestor'] as const
  *      el slug es información pública).
  *      Body: { rrpp_slug | rrpp_id, comision_pct, tope_por_venta?, triggers_activos? }
  *
- *   2) Por email: la persona puede o no ser usuaria TODH.
+ *   2) Por email: la persona puede o no ser usuaria Tourneum.
  *      Si existe usuario con ese email → creamos rrpp en estado 'invitado' +
  *      rrpp_venue 'pendiente'; el usuario verá la invitación en /rrpp.
  *      Si no existe → creamos invitacion_rrpp con token y devolvemos un link

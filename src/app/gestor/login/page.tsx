@@ -32,7 +32,7 @@ export default function GestorLoginPage() {
 
     if (!gestor) {
       await supabase.auth.signOut()
-      toast.error('No tienes acceso de Gestor de TODH')
+      toast.error('No tienes acceso de Gestor de Tourneum')
       setLoading(false)
       return
     }
@@ -50,9 +50,9 @@ export default function GestorLoginPage() {
         <div className="w-16 h-16 holo-bg rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-[0_12px_30px_-8px_rgba(124,92,255,0.6)]">
           <Briefcase size={28} className="text-white" />
         </div>
-        <p className="eyebrow mb-2">Equipo TODH</p>
+        <p className="eyebrow mb-2">Equipo Tourneum</p>
         <h1 className="text-3xl font-bold text-white text-display tracking-tight">Panel de Gestor</h1>
-        <p className="text-[#A0A0B8] text-sm mt-2">Acceso para TODHGestor</p>
+        <p className="text-[#A0A0B8] text-sm mt-2">Acceso para TourneumGestor</p>
       </div>
 
       <div className="relative card-premium w-full max-w-sm rounded-3xl p-6 sm:p-8 space-y-4 animate-slide-up">

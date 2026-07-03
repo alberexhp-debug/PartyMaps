@@ -53,7 +53,7 @@ export default function BienvenidaPage() {
           <span className="w-9 h-9 rounded-xl holo-bg flex items-center justify-center text-white text-sm font-black shadow-[0_8px_22px_-6px_rgba(124,92,255,0.7)]">
             T
           </span>
-          <span className="text-sm font-bold text-white uppercase tracking-[0.24em]">TODH</span>
+          <span className="text-sm font-bold text-white uppercase tracking-[0.24em]">Tourneum</span>
         </div>
       </div>
 

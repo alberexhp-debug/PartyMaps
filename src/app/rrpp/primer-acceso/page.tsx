@@ -79,7 +79,7 @@ export default function RrppPrimerAccesoPage() {
     finalizar()
   }
 
-  const finalizar = () => { toast.success('¡Listo! Bienvenido a TODH'); router.push('/rrpp') }
+  const finalizar = () => { toast.success('¡Listo! Bienvenido a Tourneum'); router.push('/rrpp') }
   const copiarSecret = async () => { try { await navigator.clipboard.writeText(secret); toast.success('Clave copiada') } catch { toast.error('No se pudo copiar') } }
 
   if (cargando) {

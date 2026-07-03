@@ -21,7 +21,7 @@ export function UserSideNav() {
     <aside className="hidden lg:flex fixed inset-y-0 left-0 z-30 w-[244px] flex-col border-r border-white/8 bg-[#0D0F15] px-4 py-6">
       <Link href="/explorar" className="flex items-center gap-2.5 px-2 mb-7">
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-black text-lg text-display">T</span>
-        <span className="text-[19px] font-black text-white text-display tracking-tight">TODH</span>
+        <span className="text-[19px] font-black text-white text-display tracking-tight">Tourneum</span>
       </Link>
 
       <Link href="/buscar" className="flex items-center gap-2.5 px-3 h-10 mb-2 rounded-xl border border-white/10 text-[#8B8BA8] hover:text-white hover:border-white/20 transition-colors text-sm">
@@ -62,7 +62,7 @@ export function UserSideNav() {
       </Link>
 
       <div className="mt-4 px-2 text-[11px] text-[#6B6B82]">
-        <p className="font-semibold text-[#8B8BA8]">TODH</p>
+        <p className="font-semibold text-[#8B8BA8]">Tourneum</p>
         <p>Tu circuito de torneos</p>
       </div>
     </aside>

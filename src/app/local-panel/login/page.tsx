@@ -178,7 +178,7 @@ export default function LocalPanelLoginPage() {
       {paso === 'cred' && (
         <div className="relative mt-8 space-y-2 text-center">
           <p className="text-sm text-[#A0A0B8]">
-            ¿Tu local aún no está en TODH?{' '}
+            ¿Tu local aún no está en Tourneum?{' '}
             <Link href="/local-panel/registro" className="font-semibold text-[#B6FF3A]">Regístralo gratis</Link>
             {' '}·{' '}
             <Link href="/para-locales" className="font-semibold text-[#A0A0B8] hover:text-white">Más información</Link>

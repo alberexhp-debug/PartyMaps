@@ -1,6 +1,6 @@
 {
-  "name": "TODH",
-  "short_name": "TODH",
+  "name": "Tourneum",
+  "short_name": "Tourneum",
   "description": "Organiza y descubre torneos presenciales de videojuegos y cartas",
   "start_url": "/",
   "display": "standalone",
@@ -22,6 +22,10 @@
     }
   ],
   "screenshots": [],
-  "categories": ["sports", "games", "entertainment"],
+  "categories": [
+    "sports",
+    "games",
+    "entertainment"
+  ],
   "lang": "es"
 }

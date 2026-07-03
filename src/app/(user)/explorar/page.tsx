@@ -80,7 +80,7 @@ export default function ExplorarPage() {
 
       {/* Top bar (solo móvil/tablet; en escritorio la sidebar cubre logo/buscar/avisos) */}
       <div className="relative flex lg:hidden items-center justify-between px-5 pt-5 safe-top">
-        <span className="text-lg font-black text-display tracking-tight text-white">TODH</span>
+        <span className="text-lg font-black text-display tracking-tight text-white">Tourneum</span>
         <div className="flex items-center gap-2">
           <Link href="/buscar" aria-label="Buscar" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><Search size={18} /></Link>
           <Link href="/notificaciones" aria-label="Notificaciones" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white relative">

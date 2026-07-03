@@ -16,7 +16,7 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
  * para que el alta sea directa, sin correo de confirmación.
  *
  * El local nace en `pendiente_verificacion`: aparece como solicitud en
- * /admin/locales, donde el equipo de TODH lo Verifica o Rechaza.
+ * /admin/locales, donde el equipo de Tourneum lo Verifica o Rechaza.
  */
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>

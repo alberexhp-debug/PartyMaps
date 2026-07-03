@@ -258,7 +258,7 @@ export default function EntradaDetallePage() {
             <span className="text-white">{formatearPrecio(entrada.precio_local)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-[#A0A0B8]">Servicio TODH</span>
+            <span className="text-[#A0A0B8]">Servicio Tourneum</span>
             <span className="text-white">{formatearPrecio(entrada.comision_plataforma)}</span>
           </div>
           <div className="pt-2 border-t border-white/10 flex justify-between font-bold">

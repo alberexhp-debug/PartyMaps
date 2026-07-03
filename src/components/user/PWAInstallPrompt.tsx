@@ -77,7 +77,7 @@ export function PWAInstallPrompt() {
               <Download size={20} className="text-[#B6FF3A]" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-white text-sm">Instala TODH</p>
+              <p className="font-semibold text-white text-sm">Instala Tourneum</p>
               <p className="text-xs text-[#A0A0B8] mt-0.5">
                 Acceso rápido desde tu pantalla de inicio y notificaciones.
               </p>
@@ -108,7 +108,7 @@ export function PWAInstallPrompt() {
               <Share size={20} className="text-[#4F8EF7]" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-white text-sm">Añade TODH a tu pantalla</p>
+              <p className="font-semibold text-white text-sm">Añade Tourneum a tu pantalla</p>
               <p className="text-xs text-[#A0A0B8] mt-1 leading-relaxed">
                 Pulsa <Share size={11} className="inline mb-0.5" /> abajo en Safari y luego{' '}
                 <span className="inline-flex items-center gap-1">

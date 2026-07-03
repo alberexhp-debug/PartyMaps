@@ -99,7 +99,7 @@ const NOTIS_INICIALES: Notificacion[] = [
   { id: 'seed1', tipo: 'combate', titulo: 'Te toca · Mesa 3', cuerpo: 'Cuartos vs Sora. Abre el plano para ver tu mesa.', cuando: 'hace 2 min', leida: false, href: '/torneo/t1/mesa?n=3&vs=Cuartos%20vs%20Sora' },
   { id: 'seed2', tipo: 'nuevo-torneo', titulo: 'Lima Esports publicó un torneo', cuerpo: 'Smash Arena Madrid — Major · Sáb 5 jul. ¡Plazas abiertas!', cuando: 'hace 1 h', leida: false, href: '/torneo/t11' },
   { id: 'seed3', tipo: 'lleno', titulo: 'Torneo casi lleno', cuerpo: 'Tekken 8 Arena Night está al 97%. Inscríbete antes de que se agote.', cuando: 'hace 3 h', leida: true, href: '/torneo/t5' },
-  { id: 'seed4', tipo: 'sistema', titulo: 'Bienvenido a TODH', cuerpo: 'Descubre torneos cerca de ti y compite por subir en el ranking.', cuando: 'ayer', leida: true },
+  { id: 'seed4', tipo: 'sistema', titulo: 'Bienvenido a Tourneum', cuerpo: 'Descubre torneos cerca de ti y compite por subir en el ranking.', cuando: 'ayer', leida: true },
 ]
 
 export const useDemoStore = create<DemoState>()(

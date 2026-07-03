@@ -3,13 +3,13 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'TODH — Torneos presenciales de juegos',
+  title: 'Tourneum — Torneos presenciales de juegos',
   description: 'Organiza y descubre torneos presenciales de videojuegos y cartas. Brackets en vivo, inscripción, ranking y comunidad.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'TODH',
+    title: 'Tourneum',
   },
   icons: {
     icon: '/icons/icon-192.png',
@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Providers>{children}</Providers>
-        {/* SW sin registrar durante el pivote TODH: evita caché vieja de TODH
+        {/* SW sin registrar durante el pivote Tourneum: evita caché vieja de Tourneum
             (el /sw.js es ahora un kill-switch que purga y se desregistra). */}
       </body>
     </html>

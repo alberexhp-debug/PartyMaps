@@ -1,4 +1,4 @@
-// Datos de muestra para el MVP visual de TODH mientras no existe la tabla real de
+// Datos de muestra para el MVP visual de Tourneum mientras no existe la tabla real de
 // torneos. Cuando se construya el modelo (juegos, torneos, inscripciones) esto se
 // sustituye por la query a Supabase. NO usar en producción con datos reales.
 

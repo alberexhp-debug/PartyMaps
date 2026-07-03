@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { MapPin, Handshake, Monitor, Wallet, Star, ShieldCheck, ArrowRight, Check } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'TODH para locales — llena tu sala con torneos',
+  title: 'Tourneum para locales — llena tu sala con torneos',
   description: 'Ofrece tu sala a organizadores de torneos, publica tu disponibilidad y cobra tu parte automáticamente. Aparece en el mapa de torneos. Sin permanencia. Empieza gratis.',
 }
 
@@ -23,11 +23,11 @@ const PASOS = [
 ]
 
 const FAQ = [
-  { q: '¿Cuánto cuesta?', a: 'Aparecer en el mapa y recibir solicitudes es gratis. TODH no cobra comisión sobre el pago de sala (solo el coste de Stripe): la plataforma se monetiza con las inscripciones de los jugadores, no con tu alquiler.' },
+  { q: '¿Cuánto cuesta?', a: 'Aparecer en el mapa y recibir solicitudes es gratis. Tourneum no cobra comisión sobre el pago de sala (solo el coste de Stripe): la plataforma se monetiza con las inscripciones de los jugadores, no con tu alquiler.' },
   { q: '¿Quién decide el precio de la sala?', a: 'Tú. Eliges el modelo (cuota fija, por setup, por hora o % de inscripciones) al publicar tu disponibilidad, y se pacta con cada organizador en el chat de negociación.' },
   { q: '¿Cómo controlo quién entra?', a: 'Mantienes una lista de TOs de confianza que reservan directo. Los organizadores que no conoces te mandan una solicitud con fecha, nº de personas y condiciones, y tú aceptas, contraofertas o rechazas.' },
   { q: '¿Hay permanencia?', a: 'Ninguna. Es nuestra bandera: te quedas porque te sirve, no porque firmaste.' },
-  { q: '¿Necesito instalar algo?', a: 'No. Tu panel funciona desde el navegador del móvil, la tablet o el ordenador. Los jugadores y organizadores usan la app de TODH.' },
+  { q: '¿Necesito instalar algo?', a: 'No. Tu panel funciona desde el navegador del móvil, la tablet o el ordenador. Los jugadores y organizadores usan la app de Tourneum.' },
 ]
 
 export default function ParaLocalesPage() {
@@ -36,7 +36,7 @@ export default function ParaLocalesPage() {
       {/* Barra superior */}
       <header className="sticky top-0 z-20 glass-strong border-b border-white/8">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="font-black text-display text-lg tracking-tight">TODH</Link>
+          <Link href="/" className="font-black text-display text-lg tracking-tight">Tourneum</Link>
           <div className="flex items-center gap-2">
             <Link href="/local-panel/login" className="btn-ghost text-sm h-9">Entrar</Link>
             <Link href="/local-panel/registro" className="btn-primary text-sm h-9">Registra tu sala</Link>
@@ -53,7 +53,7 @@ export default function ParaLocalesPage() {
             Llena tu sala con torneos.
           </h1>
           <p className="text-lg md:text-xl text-[#B8B8CC] mt-5 max-w-2xl">
-            TODH pone tu sala en el mapa de torneos de Madrid, te conecta con organizadores que buscan dónde
+            Tourneum pone tu sala en el mapa de torneos de Madrid, te conecta con organizadores que buscan dónde
             competir y reparte tu parte automáticamente. Sin permanencia.
           </p>
           <div className="flex flex-wrap gap-3 mt-8">
@@ -103,7 +103,7 @@ export default function ParaLocalesPage() {
           <p className="eyebrow mb-3">Empieza sin riesgo</p>
           <h2 className="text-display text-2xl md:text-4xl font-bold tracking-tight">Pruébalo gratis. Sin permanencia.</h2>
           <p className="text-[#B8B8CC] mt-3 max-w-xl mx-auto">
-            Aparece en el mapa y recibe solicitudes de organizadores desde el primer día sin coste. TODH no
+            Aparece en el mapa y recibe solicitudes de organizadores desde el primer día sin coste. Tourneum no
             cobra comisión sobre el alquiler de tu sala.
           </p>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-6 text-sm text-[#B8B8CC]">
@@ -143,7 +143,7 @@ export default function ParaLocalesPage() {
           </Link>
         </div>
         <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 text-sm text-[#6B6B85]">
-          <span>© TODH · Torneos presenciales</span>
+          <span>© Tourneum · Torneos presenciales</span>
           <div className="flex gap-4">
             <Link href="/terminos" className="hover:text-white">Términos</Link>
             <Link href="/privacidad" className="hover:text-white">Privacidad</Link>

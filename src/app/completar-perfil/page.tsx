@@ -90,7 +90,7 @@ export default function CompletarPerfilPage() {
 
     try { sessionStorage.removeItem('rumbo_ref') } catch {}
     setUsuario(data)
-    toast.success('¡Listo! Bienvenido/a a TODH')
+    toast.success('¡Listo! Bienvenido/a a Tourneum')
     router.push('/mapa')
   }
 
@@ -161,7 +161,7 @@ export default function CompletarPerfilPage() {
           </label>
 
           <Button fullWidth size="lg" onClick={finalizar} loading={loading}>
-            Entrar a TODH
+            Entrar a Tourneum
           </Button>
         </div>
       </div>
