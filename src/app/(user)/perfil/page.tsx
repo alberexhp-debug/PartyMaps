@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 import { CompetitiveCard } from '@/components/todh/CompetitiveCard'
+import { CountUp } from '@/components/ui/CountUp'
 
 const LOGROS = [
   { icon: '🥇', label: 'Campeón regional' },
@@ -175,7 +176,7 @@ export default function PerfilPage() {
           <div className="flex items-center gap-2 mb-2"><Award size={15} className="text-[#E0BE63]" /><p className="eyebrow eyebrow-muted">Logros</p></div>
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
             {LOGROS.map(l => (
-              <div key={l.label} className="shrink-0 flex flex-col items-center gap-1.5 w-20 card-premium py-3 px-1">
+              <div key={l.label} className="shrink-0 flex flex-col items-center gap-1.5 w-20 card-premium card-int py-3 px-1" title={l.label}>
                 <span className="text-2xl">{l.icon}</span>
                 <span className="text-[10px] text-[#B8B8CC] text-center leading-tight font-medium">{l.label}</span>
               </div>
@@ -264,7 +265,7 @@ function KPITile({ icon: Icon, label, value, color, onClick }: { icon: React.Ele
         <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style={{ background: `${color}22`, border: `1px solid ${color}40` }}>
           <Icon size={16} style={{ color }} />
         </div>
-        <p className="text-3xl font-bold text-white text-display font-mono-num leading-none">{value}</p>
+        <p className="text-3xl font-bold text-white text-display font-mono-num leading-none"><CountUp value={value} /></p>
         <p className="text-[10px] uppercase tracking-[0.15em] text-[#A0A0B8] font-semibold mt-1.5">{label}</p>
       </div>
     </button>

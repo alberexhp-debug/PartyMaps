@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react'
 import { JUEGOS, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
+import { CountUp } from '@/components/ui/CountUp'
 import { cn } from '@/lib/utils'
 import { Globe, MapPin, Crown, ChevronUp, ChevronDown, Minus } from 'lucide-react'
 
@@ -90,13 +91,13 @@ export default function RankingPage() {
       </div>
 
       {/* Podio */}
-      <div className="relative px-4 mt-5 flex items-end justify-center gap-3">
+      <div key={`${juego}-${ambito}`} className="relative px-4 mt-5 flex items-end justify-center gap-3 max-w-2xl mx-auto">
         {podio.map((p, i) => {
           const first = i === 1
           const jColor = JUEGOS[juego].color
           const puesto = first ? 1 : i === 0 ? 2 : 3
           return (
-            <button key={p.id} onClick={() => setSel({ j: p, puesto })} className="flex flex-col items-center" style={{ width: 96 }}>
+            <button key={p.id} onClick={() => setSel({ j: p, puesto })} className="flex flex-col items-center stagger-item" style={{ width: 96, ['--delay' as string]: `${i * 80}ms` }}>
               <div className="relative">
                 {first && <div className="absolute -inset-2.5 rounded-full blur-xl opacity-50" style={{ background: jColor }} />}
                 <div className="relative rounded-full p-[2.5px]" style={{ background: first ? `linear-gradient(135deg, #E0BE63, ${jColor})` : `${medallas[i]}55` }}>
@@ -105,7 +106,7 @@ export default function RankingPage() {
                 {first && <Crown size={22} className="absolute -top-4 left-1/2 -translate-x-1/2 text-[#E0BE63]" fill="#E0BE63" />}
               </div>
               <p className="mt-2 text-sm font-bold text-white truncate max-w-full">{p.nombre} {p.bandera}</p>
-              <p className="text-[15px] font-bold text-score" style={{ color: first ? '#E0BE63' : '#B6FF3A' }}>{p.rating}</p>
+              <p className="text-[15px] font-bold text-score" style={{ color: first ? '#E0BE63' : '#B6FF3A' }}><CountUp value={p.rating} duration={1000} /></p>
               <div className="mt-2 w-full rounded-t-xl flex items-start justify-center pt-1.5 ring-grad relative overflow-hidden"
                 style={{ height: alturas[i], background: `linear-gradient(180deg, ${medallas[i]}2E, ${medallas[i]}08)`, borderTop: `2px solid ${medallas[i]}` }}>
                 <span className="text-3xl font-bold text-score" style={{ color: medallas[i] }}>{puesto}</span>
@@ -116,12 +117,12 @@ export default function RankingPage() {
       </div>
 
       {/* Tabla */}
-      <div className="relative px-4 mt-4 space-y-1.5 pb-28">
+      <div key={`t-${juego}-${ambito}`} className="relative px-4 mt-4 space-y-1.5 pb-28 max-w-2xl mx-auto">
         {resto.map((p, i) => {
           const puesto = i + 4
           return (
             <button key={p.id} onClick={() => setSel({ j: p, puesto })}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 hover:bg-white/[0.07] transition-colors text-left">
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 hover:bg-white/[0.07] transition-colors text-left stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
               <span className="w-6 text-center text-sm font-bold text-[#8B8BA8] font-mono-num">{puesto}</span>
               <Avatar name={p.nombre} size={38} ring={TIER_COLOR[p.tier]} />
               <div className="flex-1 min-w-0">
