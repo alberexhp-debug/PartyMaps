@@ -256,6 +256,36 @@ const D = {
   'sd.confirmada': ['Confirmada', 'Confirmed'],
   'sd.rechazada': ['Rechazada', 'Declined'],
   'sd.contraoferta': ['Contraoferta', 'Counteroffer'],
+  // Plano de mesas (estados)
+  'em.libre': ['Libre', 'Free'],
+  'em.ocupada': ['En juego', 'Playing'],
+  'em.disputa': ['Disputa', 'Dispute'],
+  'em.caida': ['Caída', 'Down'],
+  'em.fuera': ['Fuera del torneo', 'Not in event'],
+
+  // Panel de la sede (local)
+  'sede.panel': ['Panel de la sede · Demo', 'Venue panel · Demo'],
+  'sede.setupsUso': ['Setups en uso', 'Setups in use'],
+  'sede.torneosMes': ['Torneos este mes', 'Events this month'],
+  'sede.ingresosMes': ['Ingresos del mes', 'Monthly revenue'],
+  'sede.tosConfianza': ['TOs de confianza', 'Trusted TOs'],
+  'sede.solicitudes': ['Solicitudes de organizadores', 'Organizer requests'],
+  'sede.plano': ['Plano de la sala', 'Floor plan'],
+  'sede.mesas': ['mesas', 'tables'],
+  'sede.torneosAlojados': ['Torneos alojados', 'Hosted events'],
+  'sede.aceptar': ['Aceptar', 'Accept'],
+  'sede.contraofertar': ['Contraofertar', 'Counteroffer'],
+
+  // MiniLocal
+  'ml.espacio': ['Espacio', 'Space'],
+  'ml.aforo': ['Aforo', 'Capacity'],
+  'ml.paraTOs': ['Para organizadores', 'For organizers'],
+  'ml.desde': ['desde', 'from'],
+  'ml.noche': ['noche', 'night'],
+  'ml.torneosSede': ['Torneos en esta sede', 'Events at this venue'],
+  'ml.solicitar': ['Solicitar reserva como TO', 'Request a booking as TO'],
+  'ml.enviada': ['Solicitud enviada a la sede', 'Request sent to the venue'],
+  'ml.resenas': ['reseñas', 'reviews'],
 } as const
 
 export type ClaveI18n = keyof typeof D

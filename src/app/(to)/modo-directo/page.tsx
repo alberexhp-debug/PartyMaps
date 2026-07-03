@@ -268,7 +268,7 @@ export default function ModoDirectoPage() {
                       <p className="text-sm font-bold text-white">Mesa {m.n} <span className="text-[#8B8BA8] font-semibold">· {m.tipo} · {m.plazas} plazas</span></p>
                       {estado
                         ? <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: ESTADO_MESA[estado].color }}>
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: ESTADO_MESA[estado].color }} /> {ESTADO_MESA[estado].label}
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: ESTADO_MESA[estado].color }} /> {tr(ESTADO_MESA[estado].clave)}
                           </span>
                         : <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B8BA8]">Fuera del torneo</span>}
                     </div>

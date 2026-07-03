@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { TORNEOS_SAMPLE, LOCALES, ORGANIZADORES, JUEGOS, type Mesa, type MesaForma, type MesaTipo } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { MapaMesas } from '@/components/todh/MapaMesas'
 import {
   ArrowLeft, Monitor, Wallet, Star, CalendarClock, Check, X, ChevronRight,
@@ -27,6 +28,7 @@ const SETUPS: Setup[] = [
 ]
 
 export default function SedePage() {
+  const { t: tr } = useT()
   const router = useRouter()
   const local = LOCALES.gamba
   const torneos = TORNEOS_SAMPLE.filter(t => t.localId === local.id)
@@ -82,7 +84,7 @@ export default function SedePage() {
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, #0D0F15)' }} />
         <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold">Panel de la sede · Demo</span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold">{tr('sede.panel')}</span>
         </div>
       </div>
 
@@ -95,14 +97,14 @@ export default function SedePage() {
 
         {/* KPIs */}
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KPI icon={<Monitor size={16} className="text-[#B6FF3A]" />} value={`${ocupados}/${SETUPS.length}`} label="Setups en uso" />
-          <KPI icon={<Trophy size={16} className="text-[#9B82FF]" />} value={String(torneos.length)} label="Torneos este mes" />
-          <KPI icon={<Wallet size={16} className="text-[#E0BE63]" />} value={`${ingresos}€`} label="Ingresos del mes" />
-          <KPI icon={<Users size={16} className="text-[#4F8EF7]" />} value={String(ORGANIZADORES ? 3 : 0)} label="TOs de confianza" />
+          <KPI icon={<Monitor size={16} className="text-[#B6FF3A]" />} value={`${ocupados}/${SETUPS.length}`} label={tr('sede.setupsUso')} />
+          <KPI icon={<Trophy size={16} className="text-[#9B82FF]" />} value={String(torneos.length)} label={tr('sede.torneosMes')} />
+          <KPI icon={<Wallet size={16} className="text-[#E0BE63]" />} value={`${ingresos}€`} label={tr('sede.ingresosMes')} />
+          <KPI icon={<Users size={16} className="text-[#4F8EF7]" />} value={String(ORGANIZADORES ? 3 : 0)} label={tr('sede.tosConfianza')} />
         </div>
 
         {/* Solicitudes de TOs */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Solicitudes de organizadores</p>
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('sede.solicitudes')}</p>
         <div className="space-y-2">
           {solicitudes.length === 0 && solicitudesTO.length === 0 && <p className="text-sm text-[#8B8BA8] card-premium p-4 text-center">No hay solicitudes pendientes.</p>}
           {solicitudesTO.map(s => {
@@ -118,9 +120,9 @@ export default function SedePage() {
                   </div>
                 </div>
                 <div className="mt-2.5 flex gap-2">
-                  <button onClick={() => resolverSolicitud(s.id, 'aceptada', local.nombre)} className="flex-1 h-9 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[12px] font-bold inline-flex items-center justify-center gap-1"><Check size={14} /> Aceptar</button>
+                  <button onClick={() => resolverSolicitud(s.id, 'aceptada', local.nombre)} className="flex-1 h-9 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[12px] font-bold inline-flex items-center justify-center gap-1"><Check size={14} /> {tr('sede.aceptar')}</button>
                   <button onClick={() => { setCoId(coId === s.id ? null : s.id); setCoFecha(s.fecha); setCoFranja(s.franja) }}
-                    className={`flex-1 h-9 rounded-lg text-[12px] font-bold ${coId === s.id ? 'bg-[#FF8A5C]/20 text-[#FF8A5C] border border-[#FF8A5C]/40' : 'bg-white/8 text-white'}`}>Contraofertar</button>
+                    className={`flex-1 h-9 rounded-lg text-[12px] font-bold ${coId === s.id ? 'bg-[#FF8A5C]/20 text-[#FF8A5C] border border-[#FF8A5C]/40' : 'bg-white/8 text-white'}`}>{tr('sede.contraofertar')}</button>
                   <button onClick={() => resolverSolicitud(s.id, 'rechazada', local.nombre)} aria-label="Rechazar" className="h-9 w-9 rounded-lg bg-white/6 text-[#FF6076] inline-flex items-center justify-center"><X size={15} /></button>
                 </div>
                 {coId === s.id && (
@@ -160,8 +162,8 @@ export default function SedePage() {
                   </div>
                 </div>
                 <div className="mt-2.5 flex gap-2">
-                  <button onClick={() => setSolicitudes(p => p.filter(x => x.id !== s.id))} className="flex-1 h-9 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[12px] font-bold inline-flex items-center justify-center gap-1"><Check size={14} /> Aceptar</button>
-                  <button className="flex-1 h-9 rounded-lg bg-white/8 text-white text-[12px] font-bold">Contraofertar</button>
+                  <button onClick={() => setSolicitudes(p => p.filter(x => x.id !== s.id))} className="flex-1 h-9 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[12px] font-bold inline-flex items-center justify-center gap-1"><Check size={14} /> {tr('sede.aceptar')}</button>
+                  <button className="flex-1 h-9 rounded-lg bg-white/8 text-white text-[12px] font-bold">{tr('sede.contraofertar')}</button>
                   <button onClick={() => setSolicitudes(p => p.filter(x => x.id !== s.id))} aria-label="Rechazar" className="h-9 w-9 rounded-lg bg-white/6 text-[#FF6076] inline-flex items-center justify-center"><X size={15} /></button>
                 </div>
               </div>
@@ -171,8 +173,8 @@ export default function SedePage() {
 
         {/* Plano de la sala: el local coloca y define sus mesas */}
         <div className="mt-6 mb-2.5 flex items-center justify-between">
-          <p className="eyebrow eyebrow-muted">Plano de la sala</p>
-          <span className="text-[11px] text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{mesas.length}</span> mesas</span>
+          <p className="eyebrow eyebrow-muted">{tr('sede.plano')}</p>
+          <span className="text-[11px] text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{mesas.length}</span> {tr('sede.mesas')}</span>
         </div>
         {/* Escritorio: plano a la izquierda + panel de edición a la derecha */}
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start">
@@ -219,7 +221,7 @@ export default function SedePage() {
         </div>{/* fin grid plano+editor */}
 
         {/* Torneos alojados */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Torneos alojados</p>
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('sede.torneosAlojados')}</p>
         <div className="space-y-2">
           {torneos.map(t => (
             <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-center gap-3 card-premium card-int p-3">
@@ -234,7 +236,7 @@ export default function SedePage() {
         </div>
 
         {/* Lista de confianza */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">TOs de confianza</p>
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('sede.tosConfianza')}</p>
         <div className="card-premium p-3.5 space-y-2.5">
           {[ORGANIZADORES.lima, ORGANIZADORES['dragon-to']].map(o => (
             <div key={o.id} className="flex items-center gap-3">

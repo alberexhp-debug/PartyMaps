@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { TORNEOS_SAMPLE, JUEGOS, type Local } from '@/lib/torneos/sample'
 import { X, Star, Ruler, Monitor, Users, Wallet, CalendarClock, ChevronRight, Check } from 'lucide-react'
 import { useState } from 'react'
@@ -9,6 +10,7 @@ import { useState } from 'react'
 // Se abre al pinchar la sede en la ficha de torneo o en el mapa: espacio, setups,
 // tarifa para TOs y torneos activos en ese local.
 export function MiniLocal({ local, onClose }: { local: Local; onClose: () => void }) {
+  const { t: tr } = useT()
   const creados = useDemoStore(s => s.creados)
   const cancelados = useDemoStore(s => s.cancelados)
   const [solicitado, setSolicitado] = useState(false)
@@ -33,7 +35,7 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
           </div>
 
           <div className="mt-3 flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-[11px] font-bold text-[#E0BE63] bg-[#E0BE63]/12 border border-[#E0BE63]/40"><Star size={11} className="fill-[#E0BE63]" /> {local.rating} · {local.valoraciones} reseñas</span>
+            <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-[11px] font-bold text-[#E0BE63] bg-[#E0BE63]/12 border border-[#E0BE63]/40"><Star size={11} className="fill-[#E0BE63]" /> {local.rating} · {local.valoraciones} {tr('ml.resenas')}</span>
             {local.tiposSetup.map(ts => (
               <span key={ts} className="px-2.5 h-7 inline-flex items-center rounded-full text-[11px] font-semibold bg-white/6 border border-white/10 text-[#D4D4E4]">{ts}</span>
             ))}
@@ -41,9 +43,9 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
 
           {/* Espacio del venue */}
           <div className="mt-4 grid grid-cols-3 gap-2">
-            <Stat icon={<Ruler size={14} className="text-[#4F8EF7]" />} label="Espacio" value={`${local.m2} m²`} />
+            <Stat icon={<Ruler size={14} className="text-[#4F8EF7]" />} label={tr('ml.espacio')} value={`${local.m2} m²`} />
             <Stat icon={<Monitor size={14} className="text-[#B6FF3A]" />} label="Setups" value={String(local.setups)} />
-            <Stat icon={<Users size={14} className="text-[#9B82FF]" />} label="Aforo" value={String(local.aforo)} />
+            <Stat icon={<Users size={14} className="text-[#9B82FF]" />} label={tr('ml.aforo')} value={String(local.aforo)} />
           </div>
 
           {/* Tarifa para TOs */}
@@ -51,8 +53,8 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
             <div className="flex items-center gap-2.5">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#B6FF3A]/15 text-[#B6FF3A]"><Wallet size={16} /></span>
               <div>
-                <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">Para organizadores</p>
-                <p className="text-sm font-bold text-white">desde <span className="text-[#B6FF3A] font-mono-num">{local.precioNoche}€</span>/noche · {local.mesas.length} mesas</p>
+                <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">{tr('ml.paraTOs')}</p>
+                <p className="text-sm font-bold text-white">{tr('ml.desde')} <span className="text-[#B6FF3A] font-mono-num">{local.precioNoche}€</span>/{tr('ml.noche')} · {local.mesas.length} mesas</p>
               </div>
             </div>
           </div>
@@ -60,7 +62,7 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
           {/* Torneos activos en esta sede */}
           {torneos.length > 0 && (
             <div className="mt-4">
-              <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider mb-2">Torneos en esta sede</p>
+              <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider mb-2">{tr('ml.torneosSede')}</p>
               <div className="space-y-1.5">
                 {torneos.map(t => (
                   <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-center gap-2.5 card-premium card-int px-3 py-2.5">
@@ -80,7 +82,7 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
           {/* CTA para TOs (demo) */}
           <button onClick={() => setSolicitado(true)} disabled={solicitado}
             className={`mt-4 w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors ${solicitado ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border border-[#B6FF3A]/40' : 'bg-[#B6FF3A] text-[#0A0A0F]'}`}>
-            {solicitado ? <><Check size={16} /> Solicitud enviada a la sede</> : <><CalendarClock size={16} /> Solicitar reserva como TO</>}
+            {solicitado ? <><Check size={16} /> {tr('ml.enviada')}</> : <><CalendarClock size={16} /> {tr('ml.solicitar')}</>}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 'use client'
 import type { Mesa } from '@/lib/torneos/sample'
+import { useT, type ClaveI18n } from '@/lib/i18n'
 import { Monitor, Tv, Gamepad2, Joystick, Grid2x2 } from 'lucide-react'
 
 // Plano de mesas del local, compartido por: el TO en modo directo (estados en vivo),
@@ -8,11 +9,11 @@ import { Monitor, Tv, Gamepad2, Joystick, Grid2x2 } from 'lucide-react'
 
 export type EstadoMesa = 'libre' | 'ocupada' | 'disputa' | 'caida'
 
-export const ESTADO_MESA: Record<EstadoMesa, { color: string; label: string }> = {
-  libre: { color: '#4F8EF7', label: 'Libre' },
-  ocupada: { color: '#B6FF3A', label: 'En juego' },
-  disputa: { color: '#FF8A5C', label: 'Disputa' },
-  caida: { color: '#FF6076', label: 'Caída' },
+export const ESTADO_MESA: Record<EstadoMesa, { color: string; label: string; clave: ClaveI18n }> = {
+  libre: { color: '#4F8EF7', label: 'Libre', clave: 'em.libre' },
+  ocupada: { color: '#B6FF3A', label: 'En juego', clave: 'em.ocupada' },
+  disputa: { color: '#FF8A5C', label: 'Disputa', clave: 'em.disputa' },
+  caida: { color: '#FF6076', label: 'Caída', clave: 'em.caida' },
 }
 
 const COLS = 8
@@ -34,6 +35,7 @@ export function MapaMesas({
   onCeldaVacia?: (x: number, y: number) => void  // modo editor: añadir mesa
   className?: string
 }) {
+  const { t: tr } = useT()
   const ocupadasXY = new Set<string>()
   for (const m of mesas) {
     ocupadasXY.add(`${m.x},${m.y}`)
@@ -79,7 +81,7 @@ export function MapaMesas({
           : 'radial-gradient(120% 120% at 35% 25%, #20242F 0%, #141822 78%)'
         return (
           <button key={m.n} onClick={() => onPick?.(m)} disabled={!onPick}
-            aria-label={`Mesa ${m.n}${estado ? ` · ${c!.label}` : ''}`}
+            aria-label={`Mesa ${m.n}${estado ? ` · ${tr(c!.clave)}` : ''}`}
             className="absolute p-[3.5%] sm:p-[3%] transition-all"
             style={{
               left: `${(m.x / COLS) * 100}%`, top: `${(m.y / ROWS) * 100}%`,
@@ -105,7 +107,7 @@ export function MapaMesas({
               </span>
               {ocupantes?.[m.n]
                 ? <span className="max-w-full truncate px-1 text-[7px] sm:text-[9px] font-semibold text-[#B8B8CC] leading-none">{ocupantes[m.n]}</span>
-                : <span className="text-[7px] sm:text-[9px] font-semibold leading-none" style={{ color: c?.color || '#5A5A70' }}>{c ? c.label : `${m.plazas} pl.`}</span>}
+                : <span className="text-[7px] sm:text-[9px] font-semibold leading-none" style={{ color: c?.color || '#5A5A70' }}>{c ? tr(c.clave) : `${m.plazas} pl.`}</span>}
             </span>
           </button>
         )
@@ -116,16 +118,17 @@ export function MapaMesas({
 
 // Leyenda compacta de estados para acompañar al plano.
 export function LeyendaMesas({ conNeutra = false }: { conNeutra?: boolean }) {
+  const { t: tr } = useT()
   return (
     <div className="flex items-center gap-3 flex-wrap">
       {(Object.keys(ESTADO_MESA) as EstadoMesa[]).map(k => (
         <span key={k} className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#8B8BA8]">
-          <span className="w-2 h-2 rounded-full" style={{ background: ESTADO_MESA[k].color }} /> {ESTADO_MESA[k].label}
+          <span className="w-2 h-2 rounded-full" style={{ background: ESTADO_MESA[k].color }} /> {tr(ESTADO_MESA[k].clave)}
         </span>
       ))}
       {conNeutra && (
         <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#8B8BA8]">
-          <span className="w-2 h-2 rounded-full bg-white/25" /> Fuera del torneo
+          <span className="w-2 h-2 rounded-full bg-white/25" /> {tr('em.fuera')}
         </span>
       )}
     </div>
