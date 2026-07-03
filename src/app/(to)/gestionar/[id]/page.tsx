@@ -8,6 +8,7 @@ import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
+import { BannerPicker } from '@/components/todh/BannerPicker'
 import {
   ArrowLeft, Search, Check, Users, ListTree, Radio, Lock, UserCheck,
   Trophy, Share2, Zap, CircleDot, Ban, RotateCcw, Megaphone,
@@ -33,7 +34,7 @@ export default function GestionarTorneoPage() {
   const [tab, setTab] = useState<'inscritos' | 'bracket' | 'ajustes'>('inscritos')
   const [q, setQ] = useState('')
   const [sel, setSel] = useState<Jugador | null>(null)
-  const [form, setForm] = useState<{ nombre: string; plazas: number; precio: number; formato: string; fechaLabel: string; videoUrl: string } | null>(null)
+  const [form, setForm] = useState<{ nombre: string; plazas: number; precio: number; formato: string; fechaLabel: string; videoUrl: string; banner?: string } | null>(null)
   const [guardado, setGuardado] = useState(false)
 
   // Estado de gestión persistido en el store demo: sobrevive a la navegación y
@@ -121,10 +122,10 @@ export default function GestionarTorneoPage() {
     for (const k of Object.keys(p)) if (rondaDe(k) > ri) delete p[k]
     setGestion(id, { winners: w, puntos: p })
   }
-  const f = form ?? { nombre: t.nombre, plazas: t.plazas, precio: t.precio, formato: t.formato as string, fechaLabel: t.fechaLabel, videoUrl: t.videoUrl ?? '' }
+  const f = form ?? { nombre: t.nombre, plazas: t.plazas, precio: t.precio, formato: t.formato as string, fechaLabel: t.fechaLabel, videoUrl: t.videoUrl ?? '', banner: t.banner }
   const setF = (patch: Partial<typeof f>) => { setForm({ ...f, ...patch }); setGuardado(false) }
   const guardar = () => {
-    editarTorneo(t.id, { nombre: f.nombre.trim() || t.nombre, plazas: f.plazas, precio: f.precio, formato: f.formato.trim() || t.formato, fechaLabel: f.fechaLabel, videoUrl: f.videoUrl.trim() || undefined })
+    editarTorneo(t.id, { nombre: f.nombre.trim() || t.nombre, plazas: f.plazas, precio: f.precio, formato: f.formato.trim() || t.formato, fechaLabel: f.fechaLabel, videoUrl: f.videoUrl.trim() || undefined, banner: f.banner })
     setGuardado(true)
     pushNoti({
       tipo: 'sistema', titulo: 'Torneo actualizado',
@@ -405,6 +406,10 @@ export default function GestionarTorneoPage() {
                       className={`px-3 h-9 rounded-full text-sm font-semibold border transition-all disabled:opacity-50 ${f.formato === fmt ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border-[#B6FF3A]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>{fmt}</button>
                   ))}
                 </div>
+              </div>
+              <div>
+                <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">Imagen / banner</label>
+                <BannerPicker juegoId={t.juego} value={f.banner} onChange={b => setF({ banner: b })} />
               </div>
               <div>
                 <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">Vídeo o directo (YouTube/Twitch)</label>

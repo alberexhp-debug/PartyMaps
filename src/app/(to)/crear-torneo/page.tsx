@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { JUEGOS, LOCALES, FORMATOS_SUGERIDOS, type TorneoSample, type Tier, type Juego, type Local } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
-import { GameKeyart } from '@/components/todh/GameKeyart'
+import { GameKeyart, TorneoArt } from '@/components/todh/GameKeyart'
+import { BannerPicker } from '@/components/todh/BannerPicker'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe, Check, Eye, Plus, Search, X, Star, Map as MapIcon, ImagePlus } from 'lucide-react'
 
@@ -51,6 +52,7 @@ export default function CrearTorneoPage() {
   const [comentarios, setComentarios] = useState('')
   const [premiosImgs, setPremiosImgs] = useState<string[]>([])
   const [videoUrl, setVideoUrl] = useState('')
+  const [banner, setBanner] = useState<string | undefined>(undefined)
   const [nuevoJuego, setNuevoJuego] = useState(false)
   const [publicado, setPublicado] = useState<TorneoSample | null>(null)
   const crearTorneo = useDemoStore(s => s.crearTorneo)
@@ -80,6 +82,7 @@ export default function CrearTorneoPage() {
       comentarios: comentarios.trim() || undefined,
       premiosImgs: premiosImgs.length ? premiosImgs : undefined,
       videoUrl: videoUrl.trim() || undefined,
+      banner,
     }
     crearTorneo(t)
     setPublicado(t)
@@ -103,7 +106,7 @@ export default function CrearTorneoPage() {
       <div className="px-5 pt-4 lg:px-0 lg:pt-0 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-24">
         <p className="text-[10px] uppercase tracking-[0.18em] text-[#8B8BA8] font-bold mb-2">Vista previa en vivo</p>
         <div className="ring-grad card-premium card-int relative overflow-hidden rounded-2xl flex items-stretch">
-          <GameKeyart juegoId={juego} className="w-[92px] shrink-0" />
+          <TorneoArt t={{ juego, banner }} className="w-[92px] shrink-0" />
           <div className="flex-1 p-3.5 min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${j.color}1F`, color: j.color, border: `1px solid ${j.color}44` }}>
@@ -177,6 +180,11 @@ export default function CrearTorneoPage() {
               ))}
             </div>
           </Field>
+        </Section>
+
+        {/* Imagen / banner del torneo */}
+        <Section title="Imagen del torneo">
+          <BannerPicker juegoId={juego} value={banner} onChange={setBanner} />
         </Section>
 
         {/* Cuándo y dónde */}
