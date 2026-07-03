@@ -96,7 +96,9 @@ export default function PerfilPage() {
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Perfil</h1>
       </div>
 
-      <div className="relative px-4 space-y-5 mt-4">
+      {/* Escritorio: identidad a la izquierda, actividad/ajustes a la derecha */}
+      <div className="relative px-4 mt-4 space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+        <div className="space-y-5">
         {/* Tarjeta usuario */}
         <div className={cn('card-premium p-5 stagger-item relative', avatarPicker && 'z-30')} style={{ ['--delay' as string]: '40ms' }}>
           <div className="flex items-center gap-4">
@@ -170,7 +172,9 @@ export default function PerfilPage() {
           <KPITile icon={Users} label="Crew" value={crew} color="#7C5CFF" onClick={() => router.push('/amigos')} />
           <KPITile icon={Bell} label="Sigo" value={sigoTOs} color="#4F8EF7" onClick={() => router.push('/amigos')} />
         </div>
+        </div>{/* fin columna izquierda */}
 
+        <div className="space-y-5">
         {/* Logros */}
         <div className="stagger-item" style={{ ['--delay' as string]: '160ms' }}>
           <div className="flex items-center gap-2 mb-2"><Award size={15} className="text-[#E0BE63]" /><p className="eyebrow eyebrow-muted">Logros</p></div>
@@ -249,9 +253,12 @@ export default function PerfilPage() {
             <LogOut size={16} />{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
           </button>
         )}
+        </div>{/* fin columna derecha */}
 
-        <div className="divider-gradient mt-6" />
-        <p className="text-center text-[10px] text-[#6B6B85] tracking-[0.18em] uppercase pb-2">TODH · v0.1.0</p>
+        <div className="lg:col-span-2">
+          <div className="divider-gradient mt-6" />
+          <p className="text-center text-[10px] text-[#6B6B85] tracking-[0.18em] uppercase pb-2 pt-2">TODH · v0.1.0</p>
+        </div>
       </div>
     </div>
   )

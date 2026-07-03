@@ -52,7 +52,7 @@ export default function RankingPage() {
   const yo = lista[miPuesto - 1]
 
   return (
-    <div className="relative min-h-screen overflow-hidden pb-24">
+    <div className="relative min-h-screen overflow-hidden pb-24 lg:max-w-4xl lg:mx-auto">
       <div className="hero-halo-violet" />
 
       <div className="relative px-5 pt-6 pb-2 safe-top">
@@ -92,7 +92,7 @@ export default function RankingPage() {
       </div>
 
       {/* Podio */}
-      <div key={`${juego}-${ambito}`} className="relative px-4 mt-5 flex items-end justify-center gap-3 max-w-2xl mx-auto">
+      <div key={`${juego}-${ambito}`} className="relative px-4 mt-5 flex items-end justify-center gap-3 max-w-2xl lg:max-w-4xl mx-auto">
         {podio.map((p, i) => {
           const first = i === 1
           const jColor = JUEGOS[juego].color
@@ -118,7 +118,7 @@ export default function RankingPage() {
       </div>
 
       {/* Tabla */}
-      <div key={`t-${juego}-${ambito}`} className="relative px-4 mt-4 space-y-1.5 pb-28 max-w-2xl mx-auto">
+      <div key={`t-${juego}-${ambito}`} className="relative px-4 mt-4 space-y-1.5 pb-28 max-w-2xl lg:max-w-4xl mx-auto">
         {resto.map((p, i) => {
           const puesto = i + 4
           return (

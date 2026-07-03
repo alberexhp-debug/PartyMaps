@@ -28,7 +28,7 @@ export default function NotificacionesPage() {
   return (
     <div className="relative min-h-screen pb-10">
       <div className="px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
-      <div className="flex items-center gap-3 max-w-2xl mx-auto">
+      <div className="flex items-center gap-3 max-w-2xl lg:max-w-3xl mx-auto">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Bandeja</p>
@@ -40,7 +40,7 @@ export default function NotificacionesPage() {
       </div>
       </div>
 
-      <div className="px-4 pt-4 space-y-2 max-w-2xl mx-auto">
+      <div className="px-4 pt-4 space-y-2 max-w-2xl lg:max-w-3xl mx-auto">
         {notis.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
             <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center"><Bell size={28} className="text-[#8B8BA8]" /></div>
