@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { AnimatedValue } from '@/components/ui/CountUp'
 import { useRouter } from 'next/navigation'
-import { TORNEOS_SAMPLE, ORGANIZADORES, JUEGOS } from '@/lib/torneos/sample'
+import { TORNEOS_SAMPLE, ORGANIZADORES, JUEGOS, LOCALES } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import {
@@ -104,19 +104,45 @@ export default function ConsolaTOPage() {
           </>
         )}
 
-        {/* Mis torneos */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Mis torneos</p>
+        {/* Agenda: torneos propios + reservas de sede confirmadas, como calendario */}
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Agenda</p>
         <div className="space-y-2">
-          {misTorneos.map((t, i) => (
+          {misTorneos.map((t, i) => {
+            const dia = t.fechaLabel.split('·')[0].trim()
+            const hora = (t.fechaLabel.split('·')[1] ?? '').trim()
+            return (
             <Link key={t.id} href={`/gestionar/${t.id}`} className="flex items-center gap-3 card-premium card-int p-3 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 8) * 45}ms` }}>
+              <span className="w-12 shrink-0 text-center">
+                <span className={`block text-[11px] font-black uppercase leading-tight ${t.esHoy ? 'text-[#B6FF3A]' : 'text-white'}`}>{dia}</span>
+                <span className="block text-[10px] text-[#8B8BA8] font-mono-num">{hora}</span>
+              </span>
               <span className="w-1 self-stretch rounded-full" style={{ background: JUEGOS[t.juego].color }} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
-                <p className="text-[11px] text-[#8B8BA8] font-mono-num">{t.fechaLabel} · {t.inscritos}/{t.plazas}</p>
+                <p className="text-[11px] text-[#8B8BA8] font-mono-num">{t.local} · {t.inscritos}/{t.plazas}</p>
               </div>
               {t.enDirecto ? <span className="badge-live shrink-0">Live</span> : <span className="text-[11px] text-[#B6FF3A] font-semibold shrink-0">Abierto</span>}
             </Link>
-          ))}
+          )})}
+          {/* Reservas de sede confirmadas (aún sin torneo publicado) */}
+          {solicitudesSede.filter(s => s.estado === 'aceptada').map(s => {
+            const l = LOCALES[s.localId]
+            if (!l) return null
+            return (
+              <Link key={`res-${s.id}`} href="/crear-torneo" className="flex items-center gap-3 card-premium card-int p-3 border border-[#E0BE63]/25">
+                <span className="w-12 shrink-0 text-center">
+                  <span className="block text-[11px] font-black uppercase leading-tight text-[#E0BE63]">{s.fecha.split('·')[0].trim().slice(0, 9)}</span>
+                  <span className="block text-[10px] text-[#8B8BA8]">{s.franja.split(' ')[0]}</span>
+                </span>
+                <span className="w-1 self-stretch rounded-full bg-[#E0BE63]" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white truncate">Reserva confirmada · {l.nombre}</p>
+                  <p className="text-[11px] text-[#8B8BA8]">{s.personas} jugadores · {JUEGOS[s.juego]?.corto} · publica el torneo →</p>
+                </div>
+                <span className="text-[11px] text-[#E0BE63] font-semibold shrink-0">Sede lista</span>
+              </Link>
+            )
+          })}
         </div>
 
         {/* Comunidad */}
