@@ -4,10 +4,10 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
-import { TorneoArt } from '@/components/todh/GameKeyart'
+import { TorneoArt, GameKeyart } from '@/components/todh/GameKeyart'
 import { FillBar } from '@/components/ui/CountUp'
 import {
-  Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown, Bell, SlidersHorizontal, X,
+  Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown, Bell, SlidersHorizontal, X, Eye,
 } from 'lucide-react'
 
 const FORMATOS_ALL = ['Doble eliminación', 'Eliminación simple', 'Suizo', 'Pools → Top cut', 'Round robin']
@@ -78,8 +78,8 @@ export default function ExplorarPage() {
     <div className="relative min-h-screen overflow-hidden">
       <div className="hero-halo-rose" />
 
-      {/* Top bar */}
-      <div className="relative flex items-center justify-between px-5 pt-5 safe-top">
+      {/* Top bar (solo móvil/tablet; en escritorio la sidebar cubre logo/buscar/avisos) */}
+      <div className="relative flex lg:hidden items-center justify-between px-5 pt-5 safe-top">
         <span className="text-lg font-black text-display tracking-tight text-white">TODH</span>
         <div className="flex items-center gap-2">
           <Link href="/buscar" aria-label="Buscar" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><Search size={18} /></Link>
@@ -91,7 +91,7 @@ export default function ExplorarPage() {
       </div>
 
       {/* Header */}
-      <div className="relative px-5 pt-3 pb-3">
+      <div className="relative px-5 pt-3 lg:pt-7 pb-3">
         <p className="eyebrow mb-2">Próximos torneos</p>
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Explorar</h1>
         <p className="text-sm text-[#B8B8CC] mt-2">
@@ -107,18 +107,31 @@ export default function ExplorarPage() {
             <span className="dot-live" />
             <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-white">En directo ahora</p>
           </div>
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1">
-            {TORNEOS_SAMPLE.filter(t => t.enDirecto).map(t => {
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1.5">
+            {TORNEOS_SAMPLE.filter(t => t.enDirecto).map((t, i) => {
               const jj = JUEGOS[t.juego]
               return (
-                <Link key={t.id} href={`/torneo/${t.id}`} className="relative shrink-0 w-[170px] h-[104px] rounded-2xl overflow-hidden ring-grad group">
-                  <TorneoArt t={t} className="absolute inset-0 transition-transform duration-300 group-hover:scale-105" />
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,.86) 8%, rgba(0,0,0,.12) 55%, transparent)' }} />
-                  <span className="badge-live absolute top-2 left-2">Live</span>
-                  <div className="absolute bottom-2 left-2.5 right-2.5">
-                    <p className="text-[12.5px] font-bold text-white leading-tight truncate text-display">{t.nombre}</p>
-                    <p className="text-[10px] text-white/75 font-mono-num mt-0.5">{jj.corto} · {Math.round(t.popularidad * 1.4)} viendo</p>
+                <Link key={t.id} href={`/torneo/${t.id}/directo`}
+                  className="relative shrink-0 w-[236px] h-[140px] lg:w-[300px] lg:h-[172px] rounded-2xl overflow-hidden ring-grad group card-int stagger-item"
+                  style={{ ['--delay' as string]: `${i * 60}ms`, boxShadow: `0 14px 34px -18px ${jj.color}66` }}>
+                  <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-[1.06]">
+                    <GameKeyart juegoId={t.juego} label={false} className="h-full w-full" />
+                    {t.banner && <img src={t.banner} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60 mix-blend-luminosity brightness-[1.6] contrast-[1.05]" />}
                   </div>
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(6,8,12,.9) 4%, rgba(6,8,12,.2) 46%, transparent 68%)' }} />
+                  <span className="badge-live absolute top-2.5 left-2.5 backdrop-blur-sm" style={{ background: 'rgba(10,10,16,.6)' }}>Live</span>
+                  <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 px-2 h-6 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold font-mono-num border border-white/12">
+                    <Eye size={10} /> {Math.round(t.popularidad * 1.4)}
+                  </span>
+                  <div className="absolute inset-x-0 bottom-0 p-3">
+                    <span className="inline-flex items-center gap-1.5 px-2 h-5 rounded-full text-[9px] font-bold mb-1.5"
+                      style={{ background: `${jj.color}30`, color: jj.color, border: `1px solid ${jj.color}55` }}>
+                      <span className="w-1 h-1 rounded-full" style={{ background: jj.color }} /> {jj.corto}
+                    </span>
+                    <p className="text-[14px] lg:text-[15px] font-bold text-white leading-tight truncate text-display">{t.nombre}</p>
+                    <p className="text-[10.5px] text-white/70 font-mono-num mt-0.5">{t.local} · {t.fechaLabel}</p>
+                  </div>
+                  <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full opacity-80" style={{ background: `linear-gradient(90deg, ${jj.color}, transparent)` }} />
                 </Link>
               )
             })}

@@ -1,8 +1,9 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, Compass, Trophy, Ticket, User, Search, Plus } from 'lucide-react'
+import { Map, Compass, Trophy, Ticket, User, Search, Plus, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
 
 const tabs = [
   { href: '/explorar', icon: Compass, label: 'Explorar' },
@@ -15,6 +16,7 @@ const tabs = [
 // Rail lateral fijo para escritorio (≥ lg). En móvil/tablet se usa UserBottomNav.
 export function UserSideNav() {
   const pathname = usePathname()
+  const noLeidas = useDemoStore(s => s.notificaciones.filter(n => !n.leida).length)
   return (
     <aside className="hidden lg:flex fixed inset-y-0 left-0 z-30 w-[244px] flex-col border-r border-white/8 bg-[#0D0F15] px-4 py-6">
       <Link href="/explorar" className="flex items-center gap-2.5 px-2 mb-7">
@@ -24,6 +26,17 @@ export function UserSideNav() {
 
       <Link href="/buscar" className="flex items-center gap-2.5 px-3 h-10 mb-2 rounded-xl border border-white/10 text-[#8B8BA8] hover:text-white hover:border-white/20 transition-colors text-sm">
         <Search size={16} /> Buscar
+      </Link>
+
+      <Link href="/notificaciones" className={cn(
+        'flex items-center gap-2.5 px-3 h-10 mb-2 rounded-xl text-sm font-semibold transition-colors',
+        pathname === '/notificaciones' ? 'bg-[#B6FF3A]/12 text-[#B6FF3A]' : 'text-[#B8B8CC] hover:bg-white/5 hover:text-white',
+      )}>
+        <span className="relative inline-flex">
+          <Bell size={16} />
+          {noLeidas > 0 && <span className="absolute -top-1.5 -right-2 min-w-[15px] h-[15px] px-0.5 rounded-full bg-[#FF3D71] text-white text-[9px] font-bold flex items-center justify-center font-mono-num">{noLeidas}</span>}
+        </span>
+        Notificaciones
       </Link>
 
       <nav className="flex flex-col gap-1 mt-2">

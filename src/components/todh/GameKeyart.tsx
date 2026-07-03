@@ -4,9 +4,12 @@ import { JUEGOS, type TorneoSample } from '@/lib/torneos/sample'
 // juego + grano + brillo diagonal. Da identidad visual fuerte a cards/fichas/perfil.
 export function GameKeyart({ juegoId, className = '', label = true }: { juegoId: string; className?: string; label?: boolean }) {
   const j = JUEGOS[juegoId] || { color: '#B6FF3A', corto: '' }
+  // 'relative' solo si el caller no posiciona él mismo (evita el choque relative/absolute
+  // que colapsaba el keyart a altura 0 cuando se pasaba "absolute inset-0")
+  const pos = /\babsolute\b|\bfixed\b/.test(className) ? '' : 'relative'
   return (
     <div
-      className={`relative overflow-hidden pointer-events-none ${className}`}
+      className={`${pos} overflow-hidden pointer-events-none ${className}`}
       style={{ background: `radial-gradient(135% 120% at 0% 0%, ${j.color} 0%, ${j.color}7A 40%, transparent 78%), radial-gradient(90% 90% at 100% 100%, ${j.color}33 0%, transparent 60%), #12161F` }}
       aria-hidden="true"
     >
@@ -35,8 +38,9 @@ export function GameKeyart({ juegoId, className = '', label = true }: { juegoId:
 // Unifica el fallback usado en la ficha, las cards de Explorar y la hoja del mapa.
 export function TorneoArt({ t, className = '', label = false }: { t: Pick<TorneoSample, 'juego' | 'banner'>; className?: string; label?: boolean }) {
   if (t.banner) {
+    const pos = /\babsolute\b|\bfixed\b/.test(className) ? '' : 'relative'
     return (
-      <div className={`relative overflow-hidden pointer-events-none ${className}`} aria-hidden="true">
+      <div className={`${pos} overflow-hidden pointer-events-none ${className}`} aria-hidden="true">
         <img src={t.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
       </div>
     )
