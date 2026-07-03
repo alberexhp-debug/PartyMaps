@@ -19,6 +19,11 @@ import {
   Check, Star, Coins, Wifi, X, MessageSquare,
 } from 'lucide-react'
 
+function plazasLibresLabel(n: number): string {
+  const libres = Math.max(0, n)
+  return libres === 1 ? '1 plaza libre' : `${libres} plazas libres`
+}
+
 // Comisión de plataforma por tramo (la paga el jugador encima del precio)
 function comision(precio: number, inscritos: number): { pct: number; importe: number } {
   if (precio === 0) return { pct: 0, importe: 0 }
@@ -204,7 +209,7 @@ export default function TorneoDetallePage() {
         <div className="mt-4 card-premium p-4">
           <div className="flex items-center justify-between text-sm mb-2">
             <span className="inline-flex items-center gap-1.5 text-white font-semibold"><Users size={15} /> <span className="font-mono-num">{inscritosVis} / {t.plazas}</span> inscritos</span>
-            <span className={completo && !inscrito ? 'text-[#FF8A5C] font-semibold text-sm' : 'text-[#B6FF3A] font-semibold text-sm'}>{completo && !inscrito ? 'Completo' : `${Math.max(0, t.plazas - inscritosVis)} plazas libres`}</span>
+            <span className={completo && !inscrito ? 'text-[#FF8A5C] font-semibold text-sm' : 'text-[#B6FF3A] font-semibold text-sm'}>{completo && !inscrito ? 'Completo' : plazasLibresLabel(t.plazas - inscritosVis)}</span>
           </div>
           <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
         </div>
@@ -311,7 +316,7 @@ export default function TorneoDetallePage() {
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-[#B8B8CC]"><Calendar size={15} className="text-[#B6FF3A]" /> {t.fechaLabel}</div>
               <div className="flex items-center gap-2 text-[#B8B8CC]"><MapPin size={15} className="text-[#4F8EF7]" /> {t.online ? 'Online' : t.local}</div>
-              <div className="flex items-center gap-2 text-[#B8B8CC]"><Users size={15} className="text-[#9B82FF]" /> <span className="font-mono-num">{inscritosVis}/{t.plazas}</span> · {completo && !inscrito ? 'completo' : `${Math.max(0, t.plazas - inscritosVis)} libres`}</div>
+              <div className="flex items-center gap-2 text-[#B8B8CC]"><Users size={15} className="text-[#9B82FF]" /> <span className="font-mono-num">{inscritosVis}/{t.plazas}</span> · {completo && !inscrito ? 'completo' : `${Math.max(0, t.plazas - inscritosVis)} ${t.plazas - inscritosVis === 1 ? 'libre' : 'libres'}`}</div>
             </div>
             <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
             {ctaBtn}

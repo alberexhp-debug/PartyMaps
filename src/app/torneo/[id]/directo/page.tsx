@@ -10,7 +10,7 @@ import { ArrowLeft, Radio, Send, ListTree, Eye, Play } from 'lucide-react'
 
 const CHAT0 = [
   { u: 'Kaze', m: 'GGs en cuartos 🔥', mio: false, color: '#E63E54' },
-  { u: 'Sora', m: 'Vamos con el siguiente, setup 3', mio: false, color: '#4F8EF7' },
+  { u: 'Sora', m: 'Vamos con el siguiente, mesa 3', mio: false, color: '#4F8EF7' },
   { u: 'Cast', m: '¡Empieza la semi en el escenario principal!', mio: false, color: '#9B5DE5' },
 ]
 
@@ -19,7 +19,7 @@ const CHAT_POOL = [
   { u: 'Vega', m: 'Ese edge guard 😱', color: '#F4912B' },
   { u: 'Mist', m: 'Sora lo tiene, confíen', color: '#2EC4B6' },
   { u: 'Drako', m: 'Rei remontando otra vez jaja', color: '#9B5DE5' },
-  { u: 'Nyx', m: 'El setup 2 quedó libre, siguiente combate ya', color: '#4F8EF7' },
+  { u: 'Nyx', m: 'La mesa 2 quedó libre, siguiente combate ya', color: '#4F8EF7' },
   { u: 'Lex', m: 'Clip eso YA 🎬', color: '#E63E54' },
   { u: 'Volt', m: 'Bo5 de infarto', color: '#B6FF3A' },
   { u: 'Cast', m: 'Punto de campeonato…', color: '#9B5DE5' },

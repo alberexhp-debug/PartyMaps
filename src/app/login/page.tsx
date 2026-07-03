@@ -155,10 +155,10 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent" />
         {/* Marca */}
         <div className="relative flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl holo-bg shadow-[0_8px_28px_-8px_rgba(124,92,255,0.7)]">
-            <span className="text-lg font-black text-white">T</span>
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#B6FF3A] shadow-[0_8px_28px_-8px_rgba(182,255,58,0.6)]">
+            <span className="text-lg font-black text-[#0A0A0F] text-display">T</span>
           </div>
-          <span className="text-2xl font-black text-display uppercase tracking-[0.22em] bg-gradient-to-r from-[#A6EE2B] via-[#9B82FF] to-[#5BA0FF] bg-clip-text text-transparent">TODH</span>
+          <span className="text-2xl font-black text-display uppercase tracking-[0.22em] text-white">TODH</span>
         </div>
 
         {/* Mensaje */}
@@ -195,10 +195,10 @@ export default function LoginPage() {
       <main className="relative flex min-h-screen flex-col items-center justify-center px-5 py-10 sm:px-8">
         {/* Marca compacta (solo móvil) */}
         <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl holo-bg shadow-[0_10px_30px_-8px_rgba(124,92,255,0.7)]">
-            <span className="text-xl font-black text-white">T</span>
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#B6FF3A] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.6)]">
+            <span className="text-xl font-black text-[#0A0A0F] text-display">T</span>
           </div>
-          <span className="text-xl font-black text-display uppercase tracking-[0.22em] bg-gradient-to-r from-[#A6EE2B] via-[#9B82FF] to-[#5BA0FF] bg-clip-text text-transparent">TODH</span>
+          <span className="text-xl font-black text-display uppercase tracking-[0.22em] text-white">TODH</span>
         </div>
 
         {/* Tarjeta de acceso */}

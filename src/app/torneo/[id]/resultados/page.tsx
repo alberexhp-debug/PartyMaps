@@ -43,7 +43,7 @@ export default function ResultadosPage() {
         </div>
       </div>
 
-      <div className="px-5 -mt-6">
+      <div className="relative px-5 -mt-6">
         <p className="eyebrow eyebrow-muted">Clasificación final</p>
         <h1 className="text-2xl font-bold text-white text-display tracking-tight">{t?.nombre || 'Torneo'}</h1>
         {real && (

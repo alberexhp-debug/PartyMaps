@@ -61,6 +61,35 @@ export default function BuscarPage() {
                 <button key={s} onClick={() => setQ(s)} className="px-3 h-9 rounded-full bg-white/4 border border-white/10 text-sm text-[#B8B8CC] hover:text-white transition-colors">{s}</button>
               ))}
             </div>
+
+            {/* Descubrimiento antes de escribir: tendencias y TOs top */}
+            <p className="eyebrow eyebrow-muted mt-7 mb-2.5">En tendencia</p>
+            <div className="space-y-1.5">
+              {[...TORNEOS_SAMPLE].sort((a, b) => b.popularidad - a.popularidad).slice(0, 4).map((t, i) => (
+                <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-center gap-3 card-premium card-int p-2.5 stagger-item" style={{ ['--delay' as string]: `${i * 45}ms` }}>
+                  <span className="w-5 text-center text-sm font-black text-[#B6FF3A] font-mono-num">{i + 1}</span>
+                  <GameKeyart juegoId={t.juego} label={false} className="w-11 h-11 rounded-xl shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
+                    <p className="text-[11px] text-[#8B8BA8]">{JUEGOS[t.juego]?.corto} · {t.fechaLabel} · <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></p>
+                  </div>
+                  {t.enDirecto && <span className="badge-live shrink-0">Live</span>}
+                </Link>
+              ))}
+            </div>
+
+            <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Organizadores destacados</p>
+            <div className="space-y-1.5">
+              {Object.values(ORGANIZADORES).filter(o => o.verificado).slice(0, 3).map((o, i) => (
+                <Link key={o.id} href={`/organizador/${o.id}`} className="flex items-center gap-3 card-premium card-int p-2.5 stagger-item" style={{ ['--delay' as string]: `${i * 45}ms` }}>
+                  <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-[#0A0A0F] font-black shrink-0" style={{ background: o.color }}>{o.nombre[0]}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-white truncate flex items-center gap-1">{o.nombre} <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#4F8EF7] text-white text-[8px] items-center justify-center">✓</span></p>
+                    <p className="text-[11px] text-[#8B8BA8] flex items-center gap-1"><Star size={10} className="text-[#E0BE63]" /> {o.rating} · {o.torneosOrg} torneos</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         ) : total === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-2 text-center">

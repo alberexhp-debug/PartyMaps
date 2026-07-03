@@ -7,6 +7,13 @@ import { cn } from '@/lib/utils'
 import {
   UserPlus, Users, Share2, Check, X, Trash2, Plus, Crown, ArrowLeft, UserCog,
 } from 'lucide-react'
+import { JUEGOS, JUEGOS_LIST, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
+import { MiniPerfil } from '@/components/todh/MiniPerfil'
+import { PersonajeIcon } from '@/components/todh/PersonajeChip'
+
+// Perfil competitivo de muestra de cada amigo (por nombre) para enriquecer la lista
+const POOL_JUGADORES: Jugador[] = JUEGOS_LIST.flatMap(j => rankingPorJuego(j.id))
+const jugadorDe = (nombre: string) => POOL_JUGADORES.find(p => p.nombre === nombre)
 
 type Persona = { amistad_id?: string; id: string; nombre: string; foto_perfil_url: string | null; created_at?: string }
 type Grupo = { id: string; nombre: string; emoji: string | null; creador_id: string; miembros: { id: string; nombre: string; foto_perfil_url: string | null }[] }
@@ -30,11 +37,20 @@ const DEMO_GRUPOS: Grupo[] = [
     { id: 'd5', nombre: 'Drako', foto_perfil_url: null }, { id: 'd2', nombre: 'Sora', foto_perfil_url: null } ] },
 ]
 
+// Color determinista por nombre (como en ranking/resultados) para que cada
+// amigo tenga identidad propia, no el mismo degradado.
+function avatarColor(name: string) {
+  const c = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
+  let h = 0
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  return c[h % c.length]
+}
+
 function Avatar({ nombre, foto, size = 40 }: { nombre: string; foto: string | null; size?: number }) {
   const ini = (nombre?.trim()?.[0] || '?').toUpperCase()
   return (
-    <span className="shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#B6FF3A] to-[#7C5CFF] flex items-center justify-center font-bold text-white"
-      style={{ width: size, height: size, fontSize: size * 0.4 }}>
+    <span className="shrink-0 overflow-hidden rounded-full flex items-center justify-center font-black text-[#0A0A0F]"
+      style={{ width: size, height: size, fontSize: size * 0.4, background: avatarColor(nombre || '?') }}>
       {foto ? <img src={foto} alt="" className="h-full w-full object-cover" /> : ini}
     </span>
   )
@@ -51,6 +67,7 @@ export default function AmigosPage() {
   const [grupos, setGrupos] = useState<Grupo[]>([])
   const [loading, setLoading] = useState(true)
   const [crear, setCrear] = useState(false)
+  const [verJugador, setVerJugador] = useState<Jugador | null>(null)
 
   const cargar = useCallback(async () => {
     const [a, g] = await Promise.all([
@@ -150,13 +167,24 @@ export default function AmigosPage() {
             <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">Tus amigos ({amigos.length})</p>
             {amigos.length === 0 ? (
               <EmptyInvite onInvite={compartir} />
-            ) : amigos.map((p, i) => (
-              <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 stagger-item" style={{ ['--delay' as string]: `${(recibidas.length + i) * 50}ms` }}>
-                <Avatar nombre={p.nombre} foto={p.foto_perfil_url} />
-                <p className="flex-1 min-w-0 truncate text-sm font-semibold text-white">{p.nombre}</p>
+            ) : amigos.map((p, i) => {
+              const j = jugadorDe(p.nombre)
+              return (
+              <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 stagger-item card-int" style={{ ['--delay' as string]: `${(recibidas.length + i) * 50}ms` }}>
+                <button onClick={() => j && setVerJugador(j)} className="flex items-center gap-3 flex-1 min-w-0 text-left" disabled={!j}>
+                  <Avatar nombre={p.nombre} foto={p.foto_perfil_url} />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-white">{p.nombre} {j && <span className="text-xs">{j.bandera}</span>}</span>
+                    {j && (
+                      <span className="flex items-center gap-1 text-[11px] text-[#8B8BA8] font-mono-num">
+                        {JUEGOS[j.juego]?.corto} · {j.rating} · <PersonajeIcon juegoId={j.juego} nombre={j.main} px={14} /> {j.main}
+                      </span>
+                    )}
+                  </span>
+                </button>
                 <button onClick={() => quitar(p.id)} aria-label="Quitar amigo" className="flex h-9 w-9 items-center justify-center rounded-xl text-[#6B6B85] hover:text-[#B6FF3A]"><Trash2 size={16} /></button>
               </div>
-            ))}
+            )})}
           </section>
 
           {/* Enviadas */}
@@ -206,6 +234,7 @@ export default function AmigosPage() {
       )}
 
       {crear && <CrearGrupoModal amigos={amigos} onClose={() => setCrear(false)} onCreado={() => { setCrear(false); cargar() }} />}
+      {verJugador && <MiniPerfil jugador={verJugador} onClose={() => setVerJugador(null)} />}
     </div>
   )
 }

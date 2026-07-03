@@ -80,7 +80,7 @@ export default function SedePage() {
         </div>
       </div>
 
-      <div className="px-5 -mt-9">
+      <div className="relative px-5 -mt-9">
         <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-2xl font-black text-[#0A0A0F] border-4 border-[#0D0F15]" style={{ background: local.color }}>{local.nombre[0]}</span>
         <div className="mt-2.5">
           <p className="text-lg font-bold text-white text-display leading-tight">{local.nombre}</p>

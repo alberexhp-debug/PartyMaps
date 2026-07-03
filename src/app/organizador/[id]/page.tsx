@@ -28,7 +28,7 @@ export default function OrganizadorPage() {
         </div>
       </div>
 
-      <div className="px-5 -mt-10">
+      <div className="relative px-5 -mt-10">
         <div className="flex items-end gap-4">
           <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] border-4 border-[#0D0F15] shrink-0" style={{ background: to.color }}>{to.nombre[0]}</span>
           <button onClick={() => alternarSeguir(to.id, to.nombre)}

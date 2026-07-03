@@ -18,14 +18,14 @@ export default function InicioPage() {
       {/* Hero */}
       <div className="relative">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -left-32 w-[40rem] h-[40rem] rounded-full blur-[140px] opacity-30" style={{ background: '#B6FF3A' }} />
-          <div className="absolute top-24 -right-44 w-[36rem] h-[36rem] rounded-full blur-[140px] opacity-25" style={{ background: '#7C5CFF' }} />
+          <div className="absolute -top-40 -left-32 w-[40rem] h-[40rem] rounded-full blur-[140px] opacity-[0.16]" style={{ background: '#B6FF3A' }} />
+          <div className="absolute top-32 -right-44 w-[32rem] h-[32rem] rounded-full blur-[150px] opacity-[0.10]" style={{ background: '#7C5CFF' }} />
         </div>
 
         <div className="relative px-6 pt-16 pb-10 safe-top max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2.5 mb-9">
-            <span className="w-10 h-10 rounded-xl holo-bg flex items-center justify-center text-white text-base font-black">T</span>
-            <span className="text-xl font-black text-display uppercase tracking-[0.22em] bg-gradient-to-r from-[#A6EE2B] via-[#9B82FF] to-[#5BA0FF] bg-clip-text text-transparent">TODH</span>
+            <span className="w-10 h-10 rounded-xl bg-[#B6FF3A] flex items-center justify-center text-[#0A0A0F] text-base font-black text-display">T</span>
+            <span className="text-xl font-black text-display uppercase tracking-[0.22em] text-white">TODH</span>
           </div>
 
           {live > 0 && (
