@@ -83,7 +83,7 @@ export default function CrearTorneoPage() {
   }
 
   return (
-    <div className="relative min-h-screen pb-28 max-w-xl lg:max-w-2xl mx-auto">
+    <div className="relative min-h-screen pb-28 lg:pb-16 max-w-xl lg:max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
@@ -93,8 +93,11 @@ export default function CrearTorneoPage() {
         </div>
       </div>
 
+      {/* Escritorio: formulario a la izquierda + vista previa sticky a la derecha.
+          Móvil: vista previa arriba y formulario en columna. */}
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-10 lg:px-8 lg:items-start lg:mt-6">
       {/* Vista previa en vivo */}
-      <div className="px-5 pt-4">
+      <div className="px-5 pt-4 lg:px-0 lg:pt-0 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-24">
         <p className="text-[10px] uppercase tracking-[0.18em] text-[#8B8BA8] font-bold mb-2">Vista previa en vivo</p>
         <div className="ring-grad card-premium card-int relative overflow-hidden rounded-2xl flex items-stretch">
           <GameKeyart juegoId={juego} className="w-[92px] shrink-0" />
@@ -128,9 +131,14 @@ export default function CrearTorneoPage() {
             </div>
           </div>
         </div>
+        {/* Publicar (solo escritorio; en móvil está la CTA fija) */}
+        <button onClick={publicar} disabled={!nombre.trim()}
+          className="hidden lg:flex mt-4 w-full h-13 py-3.5 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] items-center justify-center disabled:opacity-50">
+          Publicar torneo de {j.corto}
+        </button>
       </div>
 
-      <div className="px-5 pt-5 space-y-6">
+      <div className="px-5 pt-5 space-y-6 lg:px-0 lg:pt-0 lg:col-start-1 lg:row-start-1">
         {/* Lo básico */}
         <Section title="Lo básico">
           <Field label="Nombre del torneo">
@@ -287,9 +295,10 @@ export default function CrearTorneoPage() {
           </div>
         </Section>
       </div>
+      </div>{/* fin grid escritorio */}
 
-      {/* CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0D0F15] via-[#0D0F15] to-transparent">
+      {/* CTA (móvil/tablet) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0D0F15] via-[#0D0F15] to-transparent">
         <div className="max-w-lg mx-auto">
           <button onClick={publicar} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform disabled:opacity-50"
             disabled={!nombre.trim()}>

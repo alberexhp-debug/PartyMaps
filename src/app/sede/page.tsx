@@ -121,6 +121,9 @@ export default function SedePage() {
           <p className="eyebrow eyebrow-muted">Plano de la sala</p>
           <span className="text-[11px] text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{mesas.length}</span> mesas</span>
         </div>
+        {/* Escritorio: plano a la izquierda + panel de edición a la derecha */}
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start">
+        <div>
         <MapaMesas
           mesas={mesas}
           seleccionada={mesaSel ?? undefined}
@@ -128,7 +131,12 @@ export default function SedePage() {
           onCeldaVacia={addMesa}
         />
         <p className="mt-2 text-[11px] text-[#8B8BA8]">Toca una celda vacía para añadir mesa y una mesa para editarla. Los TOs ven este plano en el modo directo y los jugadores reciben su mesa resaltada.</p>
+        </div>
 
+        <div className="lg:sticky lg:top-6">
+        {!sel && (
+          <div className="hidden lg:flex card-premium p-4 text-sm text-[#8B8BA8] items-center justify-center text-center min-h-24">Selecciona una mesa del plano para editarla.</div>
+        )}
         {sel && (
           <div className="mt-3 card-premium p-3.5 animate-slide-up-sm space-y-3">
             <div className="flex items-center justify-between">
@@ -154,6 +162,8 @@ export default function SedePage() {
             </div>
           </div>
         )}
+        </div>
+        </div>{/* fin grid plano+editor */}
 
         {/* Torneos alojados */}
         <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Torneos alojados</p>

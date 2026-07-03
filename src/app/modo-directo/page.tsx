@@ -158,6 +158,8 @@ export default function ModoDirectoPage() {
           </div>
         )}
 
+        {/* Escritorio: plano de mesas a la izquierda + cola de combates a la derecha */}
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-8 lg:items-start space-y-5 lg:space-y-0">
         {/* Mesas del local */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
@@ -282,6 +284,7 @@ export default function ModoDirectoPage() {
             ))}
           </div>
         </div>
+        </div>{/* fin grid escritorio */}
       </div>
 
       {/* Toast */}
