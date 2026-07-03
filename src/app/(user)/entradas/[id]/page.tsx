@@ -65,7 +65,7 @@ export default function EntradaDetallePage() {
       QRCode.toCanvas(canvasRef.current!, entrada!.qr_code, {
         width: 260,
         margin: 2,
-        color: { dark: '#0D0D1A', light: '#FFFFFF' },
+        color: { dark: '#11141C', light: '#FFFFFF' },
         errorCorrectionLevel: 'H',
       })
     })
@@ -97,7 +97,7 @@ export default function EntradaDetallePage() {
 
   return (
     <div className={cn('min-h-screen transition-all', brightness ? 'brightness-125' : '')}
-      style={{ background: '#0D0D1A' }}>
+      style={{ background: '#11141C' }}>
       {/* Header */}
       <div className="px-4 py-3 flex items-center gap-3 safe-top">
         <button aria-label="Volver" onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
@@ -117,7 +117,7 @@ export default function EntradaDetallePage() {
               className="w-full h-full object-cover"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A2E] to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1E2333] to-transparent" />
             <div className="absolute bottom-3 left-4">
               <h2 className="text-lg font-bold text-white">{entrada.local?.nombre}</h2>
             </div>

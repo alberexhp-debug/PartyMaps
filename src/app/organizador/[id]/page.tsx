@@ -20,9 +20,9 @@ export default function OrganizadorPage() {
   return (
     <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-4xl mx-auto">
       <div className="relative h-36 overflow-hidden">
-        <div className="absolute inset-0" style={{ background: `radial-gradient(125% 130% at 0% 0%, ${to.color} 0%, ${to.color}55 30%, transparent 70%), #0C0E13` }} />
+        <div className="absolute inset-0" style={{ background: `radial-gradient(125% 130% at 0% 0%, ${to.color} 0%, ${to.color}55 30%, transparent 70%), #0D0F15` }} />
         <div className="absolute inset-0 opacity-[0.14] mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, #fff .6px, transparent 1.2px), radial-gradient(circle at 75% 65%, #fff .5px, transparent 1px)', backgroundSize: '9px 9px, 13px 13px' }} />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 45%, #0C0E13)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 45%, #0D0F15)' }} />
         <div className="relative flex items-center px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
         </div>
@@ -30,7 +30,7 @@ export default function OrganizadorPage() {
 
       <div className="px-5 -mt-10">
         <div className="flex items-end gap-4">
-          <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] border-4 border-[#0C0E13] shrink-0" style={{ background: to.color }}>{to.nombre[0]}</span>
+          <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] border-4 border-[#0D0F15] shrink-0" style={{ background: to.color }}>{to.nombre[0]}</span>
           <button onClick={() => alternarSeguir(to.id, to.nombre)}
             className={cn('ml-auto mb-1 h-10 px-5 rounded-xl text-sm font-bold transition-all',
               siguiendo ? 'bg-white/8 text-white border border-white/15' : 'bg-[#B6FF3A] text-[#0A0A0F]')}>

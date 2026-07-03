@@ -166,7 +166,7 @@ export default function PlanDetallePage() {
   return (
     <div className="flex flex-col h-screen bg-white/5">
       {/* Header */}
-      <div className="bg-white/5 border-b border-[#1A1A2E] safe-top">
+      <div className="bg-white/5 border-b border-[#1E2333] safe-top">
         <div className="flex items-center gap-3 px-4 py-3">
           <button aria-label="Volver" onClick={() => router.back()} className="p-2 -ml-2 text-[#A0A0B8]">
             <ArrowLeft size={20} />
@@ -370,7 +370,7 @@ export default function PlanDetallePage() {
 
           {/* Input chat */}
           {soyMiembro && (
-            <div className="border-t border-[#1A1A2E] p-3 flex gap-2 pb-safe">
+            <div className="border-t border-[#1E2333] p-3 flex gap-2 pb-safe">
               <input
                 ref={inputRef}
                 value={mensaje}
@@ -460,7 +460,7 @@ function InvitarAmigosModal({ planId, yaParticipantes, huecos, onClose, onInvita
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
-      <div className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-3xl border border-white/10 bg-[#0E0E1A] p-6 sm:rounded-3xl" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-3xl border border-white/10 bg-[#12161F] p-6 sm:rounded-3xl" onClick={e => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-white">Invitar amigos</h2>
           <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>

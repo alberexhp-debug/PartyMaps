@@ -72,7 +72,7 @@ export function ChatRrpp({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
-      <div className="flex h-[80vh] w-full max-w-md flex-col rounded-t-3xl bg-[#0E0E1A] sm:h-[70vh] sm:rounded-3xl overflow-hidden border border-white/10" onClick={e => e.stopPropagation()}>
+      <div className="flex h-[80vh] w-full max-w-md flex-col rounded-t-3xl bg-[#12161F] sm:h-[70vh] sm:rounded-3xl overflow-hidden border border-white/10" onClick={e => e.stopPropagation()}>
         <header className="flex items-center justify-between gap-3 border-b border-white/8 px-4 py-3 glass-strong">
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-white">{titulo}</p>

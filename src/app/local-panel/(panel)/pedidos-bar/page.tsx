@@ -287,9 +287,9 @@ function ConfigPrioridad({ onClose }: { onClose: () => void }) {
             <span className="text-sm text-white">{z.label}</span>
             <select value={prio[z.key]} onChange={e => setPrio(p => ({ ...p, [z.key]: e.target.value }))}
               className="h-10 rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60">
-              <option value="alta" className="bg-[#15151F]">Alta</option>
-              <option value="media" className="bg-[#15151F]">Media</option>
-              <option value="baja" className="bg-[#15151F]">Baja</option>
+              <option value="alta" className="bg-[#181D28]">Alta</option>
+              <option value="media" className="bg-[#181D28]">Media</option>
+              <option value="baja" className="bg-[#181D28]">Baja</option>
             </select>
           </div>
         ))}

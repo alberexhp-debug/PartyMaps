@@ -117,7 +117,7 @@ export function FiltrosMapa({ open, onClose }: Props) {
         </div>
 
         {/* Footer fijo: "Aplicar" siempre visible y por encima del notch / barra de navegación (§3.5) */}
-        <div className="sticky bottom-0 -mx-5 px-5 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] bg-[#0E0E16]/85 backdrop-blur-md border-t border-white/5">
+        <div className="sticky bottom-0 -mx-5 px-5 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] bg-[#12151D]/85 backdrop-blur-md border-t border-white/5">
           <Button fullWidth onClick={onClose}>
             Aplicar filtros
           </Button>

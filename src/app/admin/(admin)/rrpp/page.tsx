@@ -292,7 +292,7 @@ function ModalCrear({ onClose, onCreado }: { onClose: () => void; onCreado: () =
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-      <div className="bg-[#0D0D1A] border border-white/10 rounded-2xl w-full max-w-md p-5 space-y-3">
+      <div className="bg-[#11141C] border border-white/10 rounded-2xl w-full max-w-md p-5 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-bold text-white">Dar de alta RRPP (free agent)</h3>
           <button onClick={onClose} className="text-xs text-[#A0A0B8] hover:text-white">Cerrar</button>

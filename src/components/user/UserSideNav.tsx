@@ -16,7 +16,7 @@ const tabs = [
 export function UserSideNav() {
   const pathname = usePathname()
   return (
-    <aside className="hidden lg:flex fixed inset-y-0 left-0 z-30 w-[244px] flex-col border-r border-white/8 bg-[#0C0E13] px-4 py-6">
+    <aside className="hidden lg:flex fixed inset-y-0 left-0 z-30 w-[244px] flex-col border-r border-white/8 bg-[#0D0F15] px-4 py-6">
       <Link href="/explorar" className="flex items-center gap-2.5 px-2 mb-7">
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-black text-lg text-display">T</span>
         <span className="text-[19px] font-black text-white text-display tracking-tight">TODH</span>

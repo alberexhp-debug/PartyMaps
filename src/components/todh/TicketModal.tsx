@@ -37,8 +37,8 @@ export function TicketModal({ torneo, onClose }: { torneo: TorneoSample; onClose
           </div>
           {/* Perforación */}
           <div className="relative h-6 my-1">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 h-6 w-6 rounded-full bg-[#0C0E13]" />
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 h-6 w-6 rounded-full bg-[#0C0E13]" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 h-6 w-6 rounded-full bg-[#0D0F15]" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 h-6 w-6 rounded-full bg-[#0D0F15]" />
             <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 border-t-2 border-dashed border-[#0A0A0F]/15" />
           </div>
           {/* QR */}

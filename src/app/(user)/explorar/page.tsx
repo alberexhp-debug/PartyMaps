@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { TorneoArt } from '@/components/todh/GameKeyart'
+import { FillBar } from '@/components/ui/CountUp'
 import {
   Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown, Bell, SlidersHorizontal, X,
 } from 'lucide-react'
@@ -245,8 +246,8 @@ export default function ExplorarPage() {
       {showFiltros && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowFiltros(false)} />
-          <div className="relative w-full max-w-lg bg-[#101019] border-t border-white/10 rounded-t-3xl pb-6 animate-slide-up-sm max-h-[85vh] overflow-y-auto">
-            <div className="sticky top-0 bg-[#101019] pt-3 pb-2 px-5 flex items-center justify-between z-10 border-b border-white/5">
+          <div className="relative w-full max-w-lg bg-[#141822] border-t border-white/10 rounded-t-3xl pb-6 animate-slide-up-sm max-h-[85vh] overflow-y-auto">
+            <div className="sticky top-0 bg-[#141822] pt-3 pb-2 px-5 flex items-center justify-between z-10 border-b border-white/5">
               <span className="absolute left-1/2 -translate-x-1/2 top-2 w-10 h-1 rounded-full bg-white/15" />
               <p className="text-[15px] font-bold text-white mt-2">Filtros</p>
               <button onClick={() => setShowFiltros(false)} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC] mt-1"><X size={16} /></button>
@@ -345,9 +346,7 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
                 <span className="inline-flex items-center gap-1 text-[#8B8BA8]"><Users size={10} /> <span className="font-mono-num text-[#B8B8CC]">{t.inscritos}/{t.plazas}</span></span>
                 <span className={cn('font-semibold', completo ? 'text-[#FF8A5C]' : 'text-[#B6FF3A]')}>{completo ? 'Lista de espera' : 'Abierta'}</span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-white/8 overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)` }} />
-              </div>
+              <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} />
             </div>
             <div className="text-right shrink-0">
               <p className="text-[8px] text-[#8B8BA8] uppercase tracking-[0.12em] font-bold">{t.bote ? 'Bote' : 'Entrada'}</p>

@@ -32,7 +32,7 @@ const FAQ = [
 
 export default function ParaLocalesPage() {
   return (
-    <div className="min-h-screen bg-[#0B0B12] text-white">
+    <div className="min-h-screen bg-[#0E1118] text-white">
       {/* Barra superior */}
       <header className="sticky top-0 z-20 glass-strong border-b border-white/8">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">

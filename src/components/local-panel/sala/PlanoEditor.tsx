@@ -316,7 +316,7 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
             onPointerCancel={onCanvasPointerUp}
             onWheel={onCanvasWheel}
             className="relative w-full aspect-[4/3] rounded-2xl border border-white/10 overflow-hidden select-none cursor-grab active:cursor-grabbing"
-            style={{ background: 'var(--p-plano-bg, #0C0C15)', touchAction: 'none' }}
+            style={{ background: 'var(--p-plano-bg, #10131B)', touchAction: 'none' }}
           >
             {/* Mundo transformable (zoom + pan). El grid escala con el contenido. */}
             <div
@@ -410,7 +410,7 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
                   <select value={seleccionada.tipo}
                     onChange={e => guardarMesa({ tipo: e.target.value as TipoMesa })}
                     className="mt-1 w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50">
-                    {(Object.keys(TIPO_LABEL) as TipoMesa[]).map(t => <option key={t} value={t} className="bg-[#15152A]">{TIPO_LABEL[t]}</option>)}
+                    {(Object.keys(TIPO_LABEL) as TipoMesa[]).map(t => <option key={t} value={t} className="bg-[#181D2A]">{TIPO_LABEL[t]}</option>)}
                   </select>
                 </label>
               </div>
@@ -420,7 +420,7 @@ export function PlanoEditor({ localId, plantas, mesas: mesasIniciales, onChange 
                 <select value={seleccionada.forma}
                   onChange={e => guardarMesa({ forma: e.target.value as FormaMesa })}
                   className="mt-1 w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-[#B6FF3A]/50">
-                  {(Object.keys(FORMA_LABEL) as FormaMesa[]).map(f => <option key={f} value={f} className="bg-[#15152A]">{FORMA_LABEL[f]}</option>)}
+                  {(Object.keys(FORMA_LABEL) as FormaMesa[]).map(f => <option key={f} value={f} className="bg-[#181D2A]">{FORMA_LABEL[f]}</option>)}
                 </select>
               </label>
 

@@ -87,12 +87,12 @@ export default function MapaTorneos() {
 
       // Punta inferior (tip): rombo recortado que apunta a la coordenada.
       const tail = document.createElement('span')
-      tail.style.cssText = `position:absolute;left:50%;bottom:2px;width:12px;height:12px;background:linear-gradient(135deg,#171A24,#0C0E13);border-right:2px solid ${j.color};border-bottom:2px solid ${j.color};transform:translateX(-50%) rotate(45deg);border-radius:0 0 3px 0;`
+      tail.style.cssText = `position:absolute;left:50%;bottom:2px;width:12px;height:12px;background:linear-gradient(135deg,#171A24,#0D0F15);border-right:2px solid ${j.color};border-bottom:2px solid ${j.color};transform:translateX(-50%) rotate(45deg);border-radius:0 0 3px 0;`
       wrap.appendChild(tail)
 
       // Cuerpo: círculo glass con aro del color del juego + halo suave.
       const body = document.createElement('span')
-      body.style.cssText = `position:absolute;top:0;left:1px;width:40px;height:40px;border-radius:50%;background:radial-gradient(120% 120% at 32% 24%, #232634 0%, #0C0E13 72%);border:2px solid ${j.color};box-shadow:0 8px 18px rgba(0,0,0,.5), 0 0 0 ${sel ? 5 : 3}px ${j.color}${sel ? '33' : '1F'}, inset 0 1px 0 rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;transition:transform .16s cubic-bezier(.34,1.56,.64,1);transform:scale(${sel ? 1.12 : 1});`
+      body.style.cssText = `position:absolute;top:0;left:1px;width:40px;height:40px;border-radius:50%;background:radial-gradient(120% 120% at 32% 24%, #232634 0%, #0D0F15 72%);border:2px solid ${j.color};box-shadow:0 8px 18px rgba(0,0,0,.5), 0 0 0 ${sel ? 5 : 3}px ${j.color}${sel ? '33' : '1F'}, inset 0 1px 0 rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;transition:transform .16s cubic-bezier(.34,1.56,.64,1);transform:scale(${sel ? 1.12 : 1});`
       const inner = document.createElement('span')
       inner.textContent = j.emoji || j.corto[0]
       inner.style.cssText = 'font-size:19px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));'

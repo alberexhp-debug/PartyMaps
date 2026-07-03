@@ -71,8 +71,8 @@ export function ReservarModal({ local, usuario, onClose, onReservado }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
-      <div className="w-full bg-[#0E0E1A] rounded-t-3xl max-h-[92vh] overflow-y-auto">
-        <div className="sticky top-0 bg-[#0E0E1A] flex items-center justify-between px-6 pt-5 pb-3 z-10">
+      <div className="w-full bg-[#12161F] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="sticky top-0 bg-[#12161F] flex items-center justify-between px-6 pt-5 pb-3 z-10">
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2"><Sofa size={18} className="text-[#B6FF3A]" /> Reservar</h2>
             <p className="text-xs text-[#8B8BA8] mt-0.5">{local.nombre} · esta noche</p>
@@ -104,7 +104,7 @@ export function ReservarModal({ local, usuario, onClose, onReservado }: Props) {
               <div
                 className="relative w-full aspect-[4/3] rounded-2xl border border-white/10 overflow-hidden"
                 style={{
-                  background: '#0C0C15',
+                  background: '#10131B',
                   backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
                   backgroundSize: '6.25% 8.33%',
                 }}

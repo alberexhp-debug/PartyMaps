@@ -215,7 +215,7 @@ function SheetLocal({ local, estado, onClose, onEnviado }: {
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={img} alt="" className="w-full h-full object-cover" />
             : <div className="w-full h-full holo-bg opacity-60" />}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E1A] to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#12161F] to-transparent" />
           <button onClick={onClose} aria-label="Cerrar" className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"><X size={16} /></button>
           <div className="absolute bottom-2 left-3 right-3">
             <p className="text-white text-display text-lg font-bold truncate">{local.nombre}</p>

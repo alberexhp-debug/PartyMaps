@@ -44,7 +44,7 @@ export default function PedidoBarPage() {
       const url = await QRCode.toDataURL(pedido.qr_code, {
         width: 480,
         margin: 1,
-        color: { dark: '#0B0B16', light: '#FAFAFC' },
+        color: { dark: '#0F1219', light: '#FAFAFC' },
         errorCorrectionLevel: 'M',
       })
       setQrSrc(url)

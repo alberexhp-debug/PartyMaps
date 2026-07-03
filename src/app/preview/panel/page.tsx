@@ -25,7 +25,7 @@ const TEMA = {
     tint: (c: string) => `${c}14`,
   },
   oscuro: {
-    canvas: '#0B0B12', surface: '#15151F', surface2: '#1B1B2A',
+    canvas: '#0E1118', surface: '#181D28', surface2: '#1F242F',
     text: '#FAFAFC', text2: '#B8B8CC', text3: '#82829A',
     border: 'rgba(255,255,255,0.08)', accent: '#B6FF3A',
     green: '#34D399', amber: '#F39C12', blue: '#4F8EF7', violet: '#9B82FF',

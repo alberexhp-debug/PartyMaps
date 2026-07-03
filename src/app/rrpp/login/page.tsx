@@ -57,7 +57,7 @@ export default function RRPPLoginPage() {
   const volver = async () => { await supabase.auth.signOut(); setPaso('cred'); setCodigo('') }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0C0E13] p-6">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0D0F15] p-6">
       <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#B6FF3A]/22 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-[#7C5CFF]/20 blur-[120px]" />
 

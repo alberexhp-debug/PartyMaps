@@ -59,7 +59,7 @@ export default function CrearTorneoPage() {
   return (
     <div className="relative min-h-screen pb-28 max-w-xl lg:max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0C0E13]/92 backdrop-blur-md border-b border-white/6">
+      <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div>
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Consola del TO</p>
@@ -213,7 +213,7 @@ export default function CrearTorneoPage() {
       </div>
 
       {/* CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0C0E13] via-[#0C0E13] to-transparent">
+      <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0D0F15] via-[#0D0F15] to-transparent">
         <div className="max-w-lg mx-auto">
           <button onClick={publicar} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform disabled:opacity-50"
             disabled={!nombre.trim()}>

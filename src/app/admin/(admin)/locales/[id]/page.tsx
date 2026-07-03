@@ -200,7 +200,7 @@ export default function AdminLocalEditPage({ params }: { params: Promise<{ id: s
   return (
     <div className="min-h-screen pb-20 md:pb-8">
       {/* Header sticky */}
-      <div className="sticky top-0 z-20 bg-[#0E0E1A]/95 backdrop-blur border-b border-white/8 px-4 py-3">
+      <div className="sticky top-0 z-20 bg-[#12161F]/95 backdrop-blur border-b border-white/8 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <button onClick={() => router.push('/admin/locales')} aria-label="Volver"
             className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center hover:bg-white/10 transition-colors">

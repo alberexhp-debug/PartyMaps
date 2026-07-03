@@ -144,7 +144,7 @@ export default function LoginPage() {
   )
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#0C0E13] lg:grid lg:grid-cols-[1.05fr_1fr]">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#0D0F15] lg:grid lg:grid-cols-[1.05fr_1fr]">
       {/* Halos de fondo (cubren toda la pantalla) */}
       <div className="pointer-events-none absolute -top-40 -left-40 h-[34rem] w-[34rem] rounded-full bg-[#B6FF3A]/25 blur-[120px]" />
       <div className="pointer-events-none absolute top-1/3 -right-40 h-[34rem] w-[34rem] rounded-full bg-[#7C5CFF]/22 blur-[120px]" />
@@ -216,7 +216,7 @@ export default function LoginPage() {
             type="button"
             onClick={loginConGoogle}
             disabled={loadingGoogle}
-            className="flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-white text-[15px] font-semibold text-[#1A1A22] transition-all hover:bg-white/90 active:scale-[0.98] disabled:opacity-60"
+            className="flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-white text-[15px] font-semibold text-[#1D222C] transition-all hover:bg-white/90 active:scale-[0.98] disabled:opacity-60"
           >
             <GoogleIcon />
             {loadingGoogle ? 'Conectando…' : 'Continuar con Google'}

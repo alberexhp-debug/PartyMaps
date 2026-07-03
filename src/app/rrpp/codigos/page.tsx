@@ -63,7 +63,7 @@ export default function RrppCodigosPage() {
   const vivos = codigos.filter(c => estadoCodigo(c).vivo).length
 
   return (
-    <div className="min-h-screen bg-[#0C0E13] text-white pb-24">
+    <div className="min-h-screen bg-[#0D0F15] text-white pb-24">
       <div className="max-w-md mx-auto p-4 sm:p-6 space-y-5">
         <HeroBanner acento="rose" bleed="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6"
           eyebrow="Tus códigos" titulo="Códigos por persona"
@@ -181,7 +181,7 @@ function CrearCodigoModal({ locales, onClose, onCreado }: {
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Local</label>
             <select value={localId} onChange={e => setLocalId(e.target.value)}
               className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#B6FF3A]/60">
-              {locales.map(l => <option key={l.id} value={l.id} className="bg-[#15151F]">{l.nombre}</option>)}
+              {locales.map(l => <option key={l.id} value={l.id} className="bg-[#181D28]">{l.nombre}</option>)}
             </select>
           </div>
           <div>

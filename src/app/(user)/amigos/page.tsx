@@ -244,7 +244,7 @@ function CrearGrupoModal({ amigos, onClose, onCreado }: { amigos: Persona[]; onC
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
-      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-t-3xl bg-[#0E0E1A] p-6 sm:rounded-3xl border border-white/10" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-t-3xl bg-[#12161F] p-6 sm:rounded-3xl border border-white/10" onClick={e => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-white">Nuevo grupo</h2>
           <button onClick={onClose} className="text-[#8B8BA8] hover:text-white"><X size={20} /></button>

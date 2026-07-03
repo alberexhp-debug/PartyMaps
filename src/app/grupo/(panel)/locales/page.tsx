@@ -50,7 +50,7 @@ export default function GrupoLocalesPage() {
         <div className="space-y-2">
           {locales.map(l => (
             <div key={l.id} className="flex items-center gap-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.07] px-4 py-3.5">
-              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#1A1A28] flex items-center justify-center">
+              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#1E2331] flex items-center justify-center">
                 {l.imagen
                   ? // eslint-disable-next-line @next/next/no-img-element
                     <img src={l.imagen} alt="" className="h-full w-full object-cover" />

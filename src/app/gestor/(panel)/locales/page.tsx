@@ -75,7 +75,7 @@ export default function GestorLocalesPage() {
         <div className="space-y-2">
           {locales.map(local => (
             <div key={local.id} className="flex items-center gap-3.5 rounded-2xl glass px-4 py-3.5">
-              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#1A1A28]">
+              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#1E2331]">
                 {local.imagenes?.[0]
                   ? <img src={local.imagenes[0]} alt="" className="h-full w-full object-cover" />
                   : <span className="flex h-full w-full items-center justify-center text-[#6B6B85]"><Store size={18} /></span>}
@@ -216,7 +216,7 @@ function AltaLocalModal({ onClose, onCreado }: { onClose: () => void; onCreado: 
                   onChange={e => setTipo(e.target.value as TipoLocal)}
                   className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-[#B6FF3A]/60"
                 >
-                  {TIPOS.map(t => <option key={t.value} value={t.value} className="bg-[#15151F]">{t.label}</option>)}
+                  {TIPOS.map(t => <option key={t.value} value={t.value} className="bg-[#181D28]">{t.label}</option>)}
                 </select>
               </div>
 

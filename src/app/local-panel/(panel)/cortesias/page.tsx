@@ -56,7 +56,7 @@ export default function CortesiasPage() {
     if (!emitida?.qr_code) { setQrSrc(''); return }
     ;(async () => {
       const QRCode = (await import('qrcode')).default
-      setQrSrc(await QRCode.toDataURL(emitida.qr_code, { width: 460, margin: 1, color: { dark: '#0B0B16', light: '#FAFAFC' }, errorCorrectionLevel: 'M' }))
+      setQrSrc(await QRCode.toDataURL(emitida.qr_code, { width: 460, margin: 1, color: { dark: '#0F1219', light: '#FAFAFC' }, errorCorrectionLevel: 'M' }))
     })()
   }, [emitida?.qr_code])
 

@@ -32,8 +32,8 @@ export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={fase === 'resumen' ? onClose : undefined} />
-      <div className="relative w-full max-w-lg bg-[#101019] border-t border-white/10 rounded-t-3xl pb-6 animate-slide-up-sm max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-[#101019] pt-3 pb-2 px-5 flex items-center justify-between z-10">
+      <div className="relative w-full max-w-lg bg-[#141822] border-t border-white/10 rounded-t-3xl pb-6 animate-slide-up-sm max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-[#141822] pt-3 pb-2 px-5 flex items-center justify-between z-10">
           <span className="mx-auto absolute left-1/2 -translate-x-1/2 top-2 w-10 h-1 rounded-full bg-white/15" />
           <p className="text-[15px] font-bold text-white mt-2">{waitlist ? 'Lista de espera' : 'Inscripción'}</p>
           <button onClick={onClose} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC] mt-1"><X size={16} /></button>

@@ -68,7 +68,7 @@ export function LocalBottomSheet({ local, onClose }: Props) {
         {/* ── Hero ── */}
         <div className="relative h-40">
           <LocalImagen src={local.imagenes?.[0]} nombre={local.nombre} />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C15] via-[#0C0C15]/55 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#10131B] via-[#10131B]/55 to-transparent" />
           {/* Asa de arrastre — afordancia de hoja inferior */}
           <div className="absolute left-1/2 top-2 z-10 h-1 w-9 -translate-x-1/2 rounded-full bg-white/45 shadow-[0_1px_3px_rgba(0,0,0,0.4)]" />
 

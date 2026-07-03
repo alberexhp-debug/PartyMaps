@@ -51,7 +51,7 @@ export default function RrppPrimerAccesoPage() {
       if (!res.ok) { toast.error(data.error || 'No se pudo iniciar el authenticator'); return }
       setSecret(data.secret)
       const QRCode = (await import('qrcode')).default
-      setQrSrc(await QRCode.toDataURL(data.otpauth, { width: 460, margin: 1, color: { dark: '#0B0B16', light: '#FAFAFC' }, errorCorrectionLevel: 'M' }))
+      setQrSrc(await QRCode.toDataURL(data.otpauth, { width: 460, margin: 1, color: { dark: '#0F1219', light: '#FAFAFC' }, errorCorrectionLevel: 'M' }))
     })()
   }, [fase, totpActivado, toast])
 
@@ -83,11 +83,11 @@ export default function RrppPrimerAccesoPage() {
   const copiarSecret = async () => { try { await navigator.clipboard.writeText(secret); toast.success('Clave copiada') } catch { toast.error('No se pudo copiar') } }
 
   if (cargando) {
-    return <div className="flex min-h-screen items-center justify-center bg-[#0C0E13]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#B6FF3A]" /></div>
+    return <div className="flex min-h-screen items-center justify-center bg-[#0D0F15]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#B6FF3A]" /></div>
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0C0E13] p-6">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0D0F15] p-6">
       <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#7C5CFF]/22 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-[#B6FF3A]/20 blur-[120px]" />
 

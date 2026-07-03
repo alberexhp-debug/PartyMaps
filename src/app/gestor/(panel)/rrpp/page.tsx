@@ -84,7 +84,7 @@ export default function GestorRrppPage() {
               <Store size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B6B85]" />
               <select value={localId} onChange={e => setLocalId(e.target.value)}
                 className="h-12 w-full appearance-none rounded-xl border border-white/10 bg-white/5 pl-11 pr-10 text-white outline-none focus:border-[#B6FF3A]/60">
-                {locales.map(l => <option key={l.id} value={l.id} className="bg-[#15151F]">{l.nombre} · {l.ciudad}</option>)}
+                {locales.map(l => <option key={l.id} value={l.id} className="bg-[#181D28]">{l.nombre} · {l.ciudad}</option>)}
               </select>
               <ChevronDown size={16} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B6B85]" />
             </div>

@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import { AnimatedValue } from '@/components/ui/CountUp'
 import { useRouter } from 'next/navigation'
 import { TORNEOS_SAMPLE, ORGANIZADORES, JUEGOS } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
@@ -22,8 +23,8 @@ export default function ConsolaTOPage() {
     <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-5xl mx-auto">
       {/* Header */}
       <div className="relative h-32 overflow-hidden">
-        <div className="absolute inset-0" style={{ background: `radial-gradient(120% 130% at 0% 0%, ${org.color} 0%, ${org.color}44 32%, transparent 70%), #0C0E13` }} />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, #0C0E13)' }} />
+        <div className="absolute inset-0" style={{ background: `radial-gradient(120% 130% at 0% 0%, ${org.color} 0%, ${org.color}44 32%, transparent 70%), #0D0F15` }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, #0D0F15)' }} />
         <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
           <span className="text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold">Consola del TO · Demo</span>
@@ -32,7 +33,7 @@ export default function ConsolaTOPage() {
 
       <div className="px-5 -mt-9">
         {/* Identidad */}
-        <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-2xl font-black text-[#0A0A0F] border-4 border-[#0C0E13]" style={{ background: org.color }}>{org.nombre[0]}</span>
+        <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-2xl font-black text-[#0A0A0F] border-4 border-[#0D0F15]" style={{ background: org.color }}>{org.nombre[0]}</span>
         <div className="mt-2.5">
           <p className="text-lg font-bold text-white text-display leading-tight">{org.nombre}</p>
           <p className="text-xs text-[#8B8BA8] inline-flex items-center gap-1 mt-0.5"><Star size={11} className="text-[#E0BE63]" /> {org.rating} · {org.tier} · {org.seguidores.toLocaleString('es')} seguidores</p>
@@ -143,7 +144,7 @@ function KPI({ icon, value, label }: { icon: React.ReactNode; value: string; lab
   return (
     <div className="card-premium p-3.5">
       <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center mb-2">{icon}</div>
-      <p className="text-2xl font-bold text-white text-display font-mono-num leading-none">{value}</p>
+      <AnimatedValue value={value} className="block text-2xl font-bold text-white text-display font-mono-num leading-none" />
       <p className="text-[10px] uppercase tracking-[0.12em] text-[#8B8BA8] font-semibold mt-1.5">{label}</p>
     </div>
   )

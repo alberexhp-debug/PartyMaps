@@ -111,11 +111,11 @@ export default function PerfilPage() {
                   </div>
                 )}
               </div>
-              <button onClick={() => setAvatarPicker(v => !v)} aria-label="Cambiar avatar" className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#B6FF3A] rounded-full flex items-center justify-center shadow-[0_6px_14px_rgba(182,255,58,0.6)] border-2 border-[#0B0B16]">
+              <button onClick={() => setAvatarPicker(v => !v)} aria-label="Cambiar avatar" className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#B6FF3A] rounded-full flex items-center justify-center shadow-[0_6px_14px_rgba(182,255,58,0.6)] border-2 border-[#0F1219]">
                 <Camera size={13} className="text-[#0A0A0F]" />
               </button>
               {avatarPicker && (
-                <div className="absolute z-20 top-full mt-2 left-0 w-64 p-2.5 rounded-2xl bg-[#1A1A26] border border-white/12 shadow-xl animate-slide-up-sm">
+                <div className="absolute z-20 top-full mt-2 left-0 w-64 p-2.5 rounded-2xl bg-[#1D2230] border border-white/12 shadow-xl animate-slide-up-sm">
                   <div className="grid grid-cols-6 gap-1.5">
                     {AVATARS.map(e => (
                       <button key={e} onClick={() => { setAvatarEmoji(e); setAvatarPicker(false) }}

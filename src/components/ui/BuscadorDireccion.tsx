@@ -80,7 +80,7 @@ export function BuscadorDireccion({
       </div>
 
       {abierto && sugerencias.length > 0 && (
-        <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-white/12 bg-[#15151F] shadow-[0_12px_40px_-8px_rgba(0,0,0,0.7)]">
+        <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-white/12 bg-[#181D28] shadow-[0_12px_40px_-8px_rgba(0,0,0,0.7)]">
           {sugerencias.map(s => (
             <button
               key={s.id}

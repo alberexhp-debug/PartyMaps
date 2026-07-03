@@ -48,7 +48,7 @@ export default function RrppListasPage() {
   const nombreLocal = (id: string) => venues.find(v => v.id === id)?.nombre ?? 'Local'
 
   return (
-    <div className="min-h-screen bg-[#0C0E13] text-white pb-24">
+    <div className="min-h-screen bg-[#0D0F15] text-white pb-24">
       <div className="max-w-md mx-auto p-4 sm:p-6 space-y-5">
         <HeroBanner acento="violet" bleed="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6"
           eyebrow="Tus listas" titulo="Listas de invitados"
@@ -157,7 +157,7 @@ function CrearListaModal({ venues, onClose, onCreada }: {
         <div className="space-y-4">
           <Campo label="Local">
             <select value={localId} onChange={e => setLocalId(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60">
-              {venues.map(v => <option key={v.id} value={v.id} className="bg-[#15151F]">{v.nombre}</option>)}
+              {venues.map(v => <option key={v.id} value={v.id} className="bg-[#181D28]">{v.nombre}</option>)}
             </select>
           </Campo>
           <Campo label="Evento">
@@ -165,9 +165,9 @@ function CrearListaModal({ venues, onClose, onCreada }: {
               : eventos.length === 0 ? <p className="text-xs text-[#6B6B85]">Este local no tiene eventos próximos publicados.</p>
               : (
                 <select value={eventoId} onChange={e => setEventoId(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60">
-                  <option value="" className="bg-[#15151F]">Elige un evento…</option>
+                  <option value="" className="bg-[#181D28]">Elige un evento…</option>
                   {eventos.map(ev => (
-                    <option key={ev.id} value={ev.id} className="bg-[#15151F]">
+                    <option key={ev.id} value={ev.id} className="bg-[#181D28]">
                       {ev.nombre} · {new Date(ev.fecha_inicio).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                     </option>
                   ))}
@@ -180,8 +180,8 @@ function CrearListaModal({ venues, onClose, onCreada }: {
           <div className="grid grid-cols-2 gap-3">
             <Campo label="Tipo">
               <select value={tipo} onChange={e => setTipo(e.target.value as 'cerrada' | 'abierta')} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white text-sm outline-none focus:border-[#B6FF3A]/60">
-                <option value="cerrada" className="bg-[#15151F]">Cerrada</option>
-                <option value="abierta" className="bg-[#15151F]">Abierta</option>
+                <option value="cerrada" className="bg-[#181D28]">Cerrada</option>
+                <option value="abierta" className="bg-[#181D28]">Abierta</option>
               </select>
             </Campo>
             <Campo label="Cupo máx (opcional)">

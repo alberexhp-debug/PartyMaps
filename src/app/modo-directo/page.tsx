@@ -85,7 +85,7 @@ export default function ModoDirectoPage() {
 
   return (
     <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-6xl mx-auto">
-      <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0C0E13]/92 backdrop-blur-md border-b border-white/6">
+      <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Modo directo</p>
@@ -180,7 +180,7 @@ export default function ModoDirectoPage() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-[#1A1A26] border border-white/12 text-white text-sm font-semibold shadow-xl animate-slide-up-sm flex items-center gap-2">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-[#1D2230] border border-white/12 text-white text-sm font-semibold shadow-xl animate-slide-up-sm flex items-center gap-2">
           <Check size={15} className="text-[#B6FF3A]" /> {toast}
         </div>
       )}

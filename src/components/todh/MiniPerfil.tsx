@@ -23,14 +23,14 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/65 backdrop-blur-sm animate-fade-in" onClick={onClose} />
-      <div className="relative w-full max-w-sm bg-[#101019] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl overflow-hidden animate-slide-up-sm sm:animate-pop">
+      <div className="relative w-full max-w-sm bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl overflow-hidden animate-slide-up-sm sm:animate-pop">
         {/* Cabecera con keyart del juego */}
-        <div className="relative h-24" style={{ background: `radial-gradient(120% 140% at 0% 0%, ${juego.color} 0%, ${juego.color}55 40%, transparent 75%), #0A0A12` }}>
+        <div className="relative h-24" style={{ background: `radial-gradient(120% 140% at 0% 0%, ${juego.color} 0%, ${juego.color}55 40%, transparent 75%), #0E1119` }}>
           <button onClick={onClose} aria-label="Cerrar" className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/30 flex items-center justify-center text-white"><X size={16} /></button>
         </div>
         <div className="px-5 pb-6 -mt-10">
           <div className="flex items-end gap-3">
-            <span className="inline-flex items-center justify-center rounded-2xl font-black text-[#0A0A0F] border-4 border-[#101019]" style={{ width: 72, height: 72, background: color, fontSize: 30 }}>{jugador.nombre[0]}</span>
+            <span className="inline-flex items-center justify-center rounded-2xl font-black text-[#0A0A0F] border-4 border-[#141822]" style={{ width: 72, height: 72, background: color, fontSize: 30 }}>{jugador.nombre[0]}</span>
             <div className="pb-1">
               <p className="text-lg font-bold text-white text-display leading-tight">{jugador.nombre} <span className="text-base">{jugador.bandera}</span></p>
               <p className="text-xs text-[#8B8BA8]">{jugador.handle}</p>

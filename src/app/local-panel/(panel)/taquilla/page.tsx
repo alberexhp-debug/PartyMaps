@@ -145,9 +145,9 @@ export default function TaquillaPage() {
             <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Evento</label>
             <select value={eventoId} onChange={e => elegirEvento(e.target.value)}
               className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#B6FF3A]/60">
-              <option value="" className="bg-[#15151F]">Entrada general (sin evento)</option>
+              <option value="" className="bg-[#181D28]">Entrada general (sin evento)</option>
               {eventos.map(ev => (
-                <option key={ev.id} value={ev.id} className="bg-[#15151F]">
+                <option key={ev.id} value={ev.id} className="bg-[#181D28]">
                   {ev.nombre} · {new Date(ev.fecha_inicio).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                 </option>
               ))}

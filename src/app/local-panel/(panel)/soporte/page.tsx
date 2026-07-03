@@ -118,14 +118,14 @@ function NuevoTicketModal({ onClose, onCreado, toastError }: { onClose: () => vo
               <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Categoría</label>
               <select value={categoria} onChange={e => setCategoria(e.target.value as CategoriaTicket)}
                 className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#B6FF3A]/60">
-                {CATEGORIAS.map(c => <option key={c} value={c} className="bg-[#15151F]">{CATEGORIA_LABEL[c]}</option>)}
+                {CATEGORIAS.map(c => <option key={c} value={c} className="bg-[#181D28]">{CATEGORIA_LABEL[c]}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-[#A0A0B8] mb-1.5">Prioridad</label>
               <select value={prioridad} onChange={e => setPrioridad(e.target.value as PrioridadTicket)}
                 className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-white outline-none focus:border-[#B6FF3A]/60">
-                {PRIORIDADES.map(p => <option key={p} value={p} className="bg-[#15151F]">{PRIORIDAD_LABEL[p]}</option>)}
+                {PRIORIDADES.map(p => <option key={p} value={p} className="bg-[#181D28]">{PRIORIDAD_LABEL[p]}</option>)}
               </select>
             </div>
           </div>

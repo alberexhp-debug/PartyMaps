@@ -99,7 +99,7 @@ export default function ValoracionesPendientesPage() {
                   className="w-full h-full object-cover"
                   onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#14142A] via-[#14142A]/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#171C27] via-[#171C27]/60 to-transparent" />
                 <div className="absolute bottom-2 left-3">
                   <p className="font-bold text-white text-display">{p.plan.locales?.nombre || 'Plan'}</p>
                   <div className="flex items-center gap-2 text-xs text-[#A0A0B8] mt-0.5">

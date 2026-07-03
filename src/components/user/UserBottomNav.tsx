@@ -17,7 +17,7 @@ export function UserBottomNav() {
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 safe-bottom">
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0C0E13] via-[#0C0E13]/95 to-[#0C0E13]/0 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0D0F15] via-[#0D0F15]/95 to-[#0D0F15]/0 pointer-events-none" />
       <div className="relative glass-strong border-t border-white/8 mx-auto">
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
           {tabs.map(({ href, icon: Icon, label }) => {

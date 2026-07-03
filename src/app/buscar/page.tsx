@@ -41,7 +41,7 @@ export default function BuscarPage() {
 
   return (
     <div className="relative min-h-screen pb-10">
-      <div className="flex items-center gap-2 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0C0E13]/92 backdrop-blur-md border-b border-white/6">
+      <div className="flex items-center gap-2 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="flex-1 relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B8BA8]" />

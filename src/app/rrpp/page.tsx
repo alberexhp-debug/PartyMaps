@@ -262,7 +262,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
   const noLeidosTotal = conversaciones.reduce((s, c) => s + c.no_leidos, 0)
 
   return (
-    <div className="min-h-screen bg-[#0C0E13] text-white">
+    <div className="min-h-screen bg-[#0D0F15] text-white">
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 pb-24">
         <ChecklistCard panel="rrpp" />
         {/* HERO — cabecera con balance destacado */}
@@ -284,7 +284,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
                     {rrpp.nombre_publico.slice(0, 1).toUpperCase()}
                   </div>
                 )}
-                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#27AE60] border-2 border-[#0A0A14] flex items-center justify-center">
+                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#27AE60] border-2 border-[#0D1017] flex items-center justify-center">
                   <Check className="w-3 h-3 text-white" strokeWidth={3} />
                 </span>
               </div>

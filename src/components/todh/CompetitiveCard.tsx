@@ -21,9 +21,9 @@ export function CompetitiveCard() {
   const wr = Math.round((s.v / (s.v + s.d)) * 100)
 
   return (
-    <div className="ring-grad relative overflow-hidden rounded-2xl border border-white/8" style={{ background: '#14141E' }}>
+    <div className="ring-grad relative overflow-hidden rounded-2xl border border-white/8" style={{ background: '#171B25' }}>
       <GameKeyart juegoId={juego} label={false} className="absolute inset-x-0 top-0 h-24" />
-      <div className="absolute inset-x-0 top-0 h-24" style={{ background: 'linear-gradient(to bottom, transparent 18%, #14141E)' }} />
+      <div className="absolute inset-x-0 top-0 h-24" style={{ background: 'linear-gradient(to bottom, transparent 18%, #171B25)' }} />
 
       <div className="relative p-4">
         <div className="flex items-center gap-1.5 mb-3 overflow-x-auto scrollbar-hide">

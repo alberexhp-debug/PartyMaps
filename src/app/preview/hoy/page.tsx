@@ -18,7 +18,7 @@ const TEMA = {
     shadow: '0 1px 2px rgba(16,16,29,0.04), 0 8px 24px -14px rgba(16,16,29,0.18)',
   },
   oscuro: {
-    canvas: '#0B0B12', surface: '#15151F', surface2: '#1B1B2A',
+    canvas: '#0E1118', surface: '#181D28', surface2: '#1F242F',
     text: '#FAFAFC', text2: '#B8B8CC', text3: '#82829A',
     border: 'rgba(255,255,255,0.08)', accent: '#B6FF3A', accentInk: '#FFFFFF', accentSoft: 'rgba(182, 255, 58,0.14)',
     green: '#34D399', amber: '#F39C12', greenSoft: 'rgba(52,211,153,0.12)', amberSoft: 'rgba(243,156,18,0.12)',

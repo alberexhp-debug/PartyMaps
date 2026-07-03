@@ -71,7 +71,7 @@ export default function PrimerAccesoPage() {
       if (!res.ok) { toast.error(data.error || 'No se pudo iniciar el authenticator'); return }
       setSecret(data.secret)
       const QRCode = (await import('qrcode')).default
-      setQrSrc(await QRCode.toDataURL(data.otpauth, { width: 460, margin: 1, color: { dark: '#0B0B16', light: '#FAFAFC' }, errorCorrectionLevel: 'M' }))
+      setQrSrc(await QRCode.toDataURL(data.otpauth, { width: 460, margin: 1, color: { dark: '#0F1219', light: '#FAFAFC' }, errorCorrectionLevel: 'M' }))
     })()
   }, [fase, trab, toast])
 

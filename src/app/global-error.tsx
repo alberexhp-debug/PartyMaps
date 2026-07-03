@@ -11,7 +11,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
 
   return (
     <html lang="es">
-      <body style={{ background: '#0D0D1A', color: '#FFFFFF', fontFamily: 'system-ui, sans-serif' }}>
+      <body style={{ background: '#11141C', color: '#FFFFFF', fontFamily: 'system-ui, sans-serif' }}>
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', gap: 16 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Algo ha fallado</h1>
           <p style={{ color: '#A0A0B8', maxWidth: 320, fontSize: 14 }}>

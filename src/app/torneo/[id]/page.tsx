@@ -102,7 +102,7 @@ export default function TorneoDetallePage() {
         {t.banner
           ? <img src={t.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
           : <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.12) 28%, #0C0E13)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.12) 28%, #0D0F15)' }} />
         <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
           <div className="flex gap-2">
@@ -222,7 +222,7 @@ export default function TorneoDetallePage() {
             {participantes.map((p, i) => {
               const cols = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
               return (
-                <span key={p.id} className="inline-flex items-center justify-center rounded-full text-[#0A0A0F] font-black border-2 border-[#0C0C15]"
+                <span key={p.id} className="inline-flex items-center justify-center rounded-full text-[#0A0A0F] font-black border-2 border-[#10131B]"
                   style={{ width: 38, height: 38, marginLeft: i ? -10 : 0, background: cols[i % cols.length], zIndex: 10 - i }}>
                   {p.nombre[0]}
                 </span>
@@ -287,7 +287,7 @@ export default function TorneoDetallePage() {
       </div>{/* fin grid escritorio */}
 
       {/* CTA fija (móvil/tablet) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0C0E13] via-[#0C0E13] to-transparent">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0D0F15] via-[#0D0F15] to-transparent">
         <div className="max-w-lg mx-auto">
           {ctaBtn}
         </div>
@@ -305,8 +305,8 @@ export default function TorneoDetallePage() {
       {verParts && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setVerParts(false)} />
-          <div className="relative w-full max-w-lg bg-[#101019] border-t border-white/10 rounded-t-3xl pb-6 animate-slide-up-sm max-h-[80vh] overflow-y-auto">
-            <div className="sticky top-0 bg-[#101019] pt-3 pb-2 px-5 flex items-center justify-between z-10 border-b border-white/5">
+          <div className="relative w-full max-w-lg bg-[#141822] border-t border-white/10 rounded-t-3xl pb-6 animate-slide-up-sm max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-[#141822] pt-3 pb-2 px-5 flex items-center justify-between z-10 border-b border-white/5">
               <span className="absolute left-1/2 -translate-x-1/2 top-2 w-10 h-1 rounded-full bg-white/15" />
               <p className="text-[15px] font-bold text-white mt-2">Participantes · seeding</p>
               <button onClick={() => setVerParts(false)} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC] mt-1"><X size={16} /></button>

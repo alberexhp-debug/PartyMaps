@@ -227,7 +227,7 @@ function ConfiguracionContent() {
   return (
     <div className="min-h-screen">
       {/* Header fijo */}
-      <div className="sticky top-0 z-10 bg-[#0B0B16]/95 backdrop-blur-xl border-b border-white/6">
+      <div className="sticky top-0 z-10 bg-[#0F1219]/95 backdrop-blur-xl border-b border-white/6">
         <div className="px-5 py-4 flex items-center justify-between">
           <div>
             <p className="text-xs text-[#8B8BA8] font-medium uppercase tracking-widest mb-0.5">Configuración</p>

@@ -84,7 +84,7 @@ export default function GestionarTorneoPage() {
       {/* Cabecera */}
       <div className="relative h-32 lg:h-40 overflow-hidden lg:rounded-b-3xl">
         <GameKeyart juegoId={t.juego} label={false} className="absolute inset-0" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.2) 28%, #0C0E13)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,8,15,0.2) 28%, #0D0F15)' }} />
         <div className="relative flex items-center gap-3 px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
           <p className="text-[11px] uppercase tracking-[0.16em] text-[#B6FF3A] font-bold">Consola del TO · Demo</p>
@@ -324,7 +324,7 @@ export default function GestionarTorneoPage() {
       </div>
 
       {/* CTA fija móvil */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0C0E13] via-[#0C0E13] to-transparent">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0D0F15] via-[#0D0F15] to-transparent">
         <button onClick={() => { generar(); setTab('bracket') }} disabled={nCheck < 2}
           className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold flex items-center justify-center gap-2 disabled:opacity-40">
           <Zap size={17} /> Generar bracket · {nCheck} con check-in

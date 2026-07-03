@@ -272,7 +272,7 @@ export default function RegistroPage() {
               type="button"
               onClick={registroGoogle}
               disabled={loadingGoogle}
-              className="flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-white text-[15px] font-semibold text-[#1A1A22] transition-all hover:bg-white/90 active:scale-[0.98] disabled:opacity-60"
+              className="flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-white text-[15px] font-semibold text-[#1D222C] transition-all hover:bg-white/90 active:scale-[0.98] disabled:opacity-60"
             >
               <GoogleIcon />
               {loadingGoogle ? 'Conectando…' : 'Registrarme con Google'}

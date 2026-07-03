@@ -28,7 +28,7 @@ export function SeguridadSection() {
     setSecret(j.secret)
     try {
       const QRCode = (await import('qrcode')).default
-      setQrSrc(await QRCode.toDataURL(j.otpauth, { width: 320, margin: 1, color: { dark: '#0B0B16', light: '#FAFAFC' } }))
+      setQrSrc(await QRCode.toDataURL(j.otpauth, { width: 320, margin: 1, color: { dark: '#0F1219', light: '#FAFAFC' } }))
     } catch { /* el secreto manual sigue valiendo */ }
     setCargando(false)
     setFase('setup')

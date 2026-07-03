@@ -29,7 +29,7 @@ export function IlustracionBola({ className, size = 120 }: IllustrationProps) {
         <animate attributeName="r" values="70;76;70" dur="3s" repeatCount="indefinite" />
       </circle>
       {/* Bola */}
-      <circle cx="80" cy="82" r="44" fill="#14142A" stroke="url(#bola-rim)" strokeWidth="2" />
+      <circle cx="80" cy="82" r="44" fill="#171C27" stroke="url(#bola-rim)" strokeWidth="2" />
       {/* Facetas */}
       <g opacity="0.7" stroke="#FAFAFC" strokeWidth="0.7" fill="none">
         <ellipse cx="80" cy="82" rx="44" ry="14" />
@@ -70,7 +70,7 @@ export function IlustracionTickets({ className, size = 120 }: IllustrationProps)
       <circle cx="80" cy="80" r="74" fill="url(#ticket-halo)" />
       {/* Ticket trasero */}
       <g transform="rotate(-8 80 80)">
-        <rect x="32" y="58" width="96" height="50" rx="10" fill="#1A1A30" stroke="rgba(255,255,255,0.12)" />
+        <rect x="32" y="58" width="96" height="50" rx="10" fill="#1E2334" stroke="rgba(255,255,255,0.12)" />
         <circle cx="62" cy="83" r="5" fill="#06060C" />
         <circle cx="98" cy="83" r="5" fill="#06060C" />
         <line x1="62" y1="83" x2="98" y2="83" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />

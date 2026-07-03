@@ -17,7 +17,7 @@ function avatarColor(name: string) {
 function Avatar({ name, size = 44, ring }: { name: string; size?: number; ring?: string }) {
   return (
     <span className="inline-flex items-center justify-center rounded-full font-black text-[#0A0A0F] shrink-0"
-      style={{ width: size, height: size, background: avatarColor(name), fontSize: size * 0.4, boxShadow: ring ? `0 0 0 2px #101019, 0 0 0 4px ${ring}` : undefined }}>
+      style={{ width: size, height: size, background: avatarColor(name), fontSize: size * 0.4, boxShadow: ring ? `0 0 0 2px #141822, 0 0 0 4px ${ring}` : undefined }}>
       {name[0]}
     </span>
   )

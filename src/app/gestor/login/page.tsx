@@ -42,7 +42,7 @@ export default function GestorLoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden bg-[#0C0E13]">
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden bg-[#0D0F15]">
       <div className="pointer-events-none absolute -top-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#7C5CFF]/22 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-[#B6FF3A]/20 blur-[120px]" />
 

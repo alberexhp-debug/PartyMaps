@@ -6,10 +6,10 @@
 
 @theme {
   /* Base — Nocturno Premium (neutros más fríos y sobrios) */
-  --color-bg-base: #0C0E13;
-  --color-bg-primary: #0C0C15;
-  --color-bg-secondary: #131320;
-  --color-bg-tertiary: #1B1B2A;
+  --color-bg-base: #0D0F15;
+  --color-bg-primary: #10131B;
+  --color-bg-secondary: #161A24;
+  --color-bg-tertiary: #1F242F;
   --color-bg-elevated: #17172420;
 
   /* Acentos — rosa de marca algo menos neón; el resto se usa con moderación */
@@ -63,7 +63,7 @@ body {
   background:
     radial-gradient(1100px 650px at 30% -15%, rgba(124, 92, 255, 0.05), transparent 55%),
     radial-gradient(900px 550px at 95% 5%, rgba(182, 255, 58, 0.035), transparent 55%),
-    #0C0E13;
+    #0D0F15;
   color: #FAFAFC;
   overscroll-behavior: none;
   margin: 0;
@@ -148,21 +148,21 @@ body {
 
 /* ---------- Glass cards ---------- */
 .glass {
-  background: linear-gradient(180deg, rgba(26, 26, 48, 0.7), rgba(20, 20, 42, 0.55));
+  background: linear-gradient(180deg, rgba(30, 36, 52, 0.72), rgba(23, 28, 42, 0.56));
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-strong {
-  background: linear-gradient(180deg, rgba(31, 31, 56, 0.88), rgba(22, 22, 42, 0.78));
+  background: linear-gradient(180deg, rgba(35, 41, 60, 0.88), rgba(25, 30, 45, 0.78));
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .glass-subtle {
-  background: rgba(20, 20, 42, 0.45);
+  background: rgba(24, 29, 44, 0.5);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -171,7 +171,7 @@ body {
 /* Card "premium": glass con borde gradiente sutil */
 .card-premium {
   position: relative;
-  background: linear-gradient(180deg, rgba(24, 24, 42, 0.6), rgba(18, 18, 34, 0.48));
+  background: linear-gradient(180deg, rgba(28, 33, 50, 0.62), rgba(21, 25, 38, 0.5));
   backdrop-filter: blur(20px) saturate(135%);
   -webkit-backdrop-filter: blur(20px) saturate(135%);
   border-radius: 22px;
@@ -280,6 +280,13 @@ body {
 .card-int:hover::after { opacity: 0.05; }
 .card-int:hover { transform: translateY(-2px); box-shadow: 0 18px 42px -20px rgba(0,0,0,.8); }
 
+/* Scrim sistemático para texto sobre arte/fotos (insight competencia) */
+.scrim-b { position: relative; }
+.scrim-b::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, transparent 30%, rgba(6,8,12,.55) 68%, rgba(6,8,12,.88) 100%); }
+.scrim-t::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(0deg, transparent 55%, rgba(6,8,12,.6) 100%); }
+
 /* Borde gradiente premium reutilizable */
 .ring-grad { position: relative; }
 .ring-grad::before {
@@ -355,8 +362,12 @@ button, a, [role="button"] {
     color 0.18s ease,
     box-shadow 0.2s ease,
     transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    scale 0.16s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.18s ease;
 }
+/* Press feedback universal: propiedad scale independiente (no pisa translate) */
+button:not(:disabled):active, [role="button"]:active { scale: 0.97; }
+a:active .card-int, a:active.card-int { scale: 0.985; }
 /* Inputs también con transición suave de foco */
 input, textarea, select {
   transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
@@ -368,14 +379,14 @@ input, textarea, select {
 /* Foco accesible — visible siempre con teclado/tabulación */
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #0C0E13, 0 0 0 4px rgba(182, 255, 58, 0.55);
+  box-shadow: 0 0 0 2px #0D0F15, 0 0 0 4px rgba(182, 255, 58, 0.55);
   border-radius: 10px;
 }
 button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #0C0E13, 0 0 0 4px rgba(182, 255, 58, 0.55);
+  box-shadow: 0 0 0 2px #0D0F15, 0 0 0 4px rgba(182, 255, 58, 0.55);
 }
 
 /* ─── Botones de marca ───
@@ -496,9 +507,9 @@ a:focus-visible,
   --color-bg-tertiary: #EFEFF3;
 }
 [data-pt="dark"] {
-  --p-canvas: #0B0B12;
-  --p-surface: #15151F;
-  --p-surface-2: #1B1B2A;
+  --p-canvas: #0E1118;
+  --p-surface: #181D28;
+  --p-surface-2: #1F242F;
   --p-text: #FAFAFC;
   --p-text-2: #B8B8CC;
   --p-text-3: #82829A;
@@ -506,7 +517,7 @@ a:focus-visible,
   --p-border-strong: rgba(255,255,255,0.14);
   --p-accent: #B6FF3A;
   --p-accent-soft: rgba(182, 255, 58,0.14);
-  --p-plano-bg: #0C0C15;
+  --p-plano-bg: #10131B;
   --p-plano-grid: rgba(255,255,255,0.04);
   --p-shadow: 0 10px 30px -16px rgba(0,0,0,0.7);
 }
@@ -535,18 +546,18 @@ a:focus-visible,
 [data-pt="light"] [class~="bg-white/[0.08]"] { background-color: var(--p-surface-2) !important; }
 
 /* Superficies oscuras hardcodeadas (contenedores/tarjetas, incl. variantes con
-   opacidad como bg-[#0B0B16]/95) → superficie clara. Usamos *= para pillar el
+   opacidad como bg-[#0F1219]/95) → superficie clara. Usamos *= para pillar el
    sufijo de opacidad. backdrop-blur también se anula para que quede limpio. */
-[data-pt="light"] [class*="bg-[#15151F]"],
-[data-pt="light"] [class*="bg-[#15152A]"],
-[data-pt="light"] [class*="bg-[#14142A]"],
-[data-pt="light"] [class*="bg-[#0B0B16]"],
-[data-pt="light"] [class*="bg-[#0C0C15]"],
-[data-pt="light"] [class*="bg-[#131320]"],
-[data-pt="light"] [class*="bg-[#1B1B2A]"],
-[data-pt="light"] [class*="bg-[#0E0E1A]"],
-[data-pt="light"] [class*="bg-[#0C0E13]"],
-[data-pt="light"] [class*="bg-[#0A0A14]"] { background-color: var(--p-surface) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+[data-pt="light"] [class*="bg-[#181D28]"],
+[data-pt="light"] [class*="bg-[#181D2A]"],
+[data-pt="light"] [class*="bg-[#171C27]"],
+[data-pt="light"] [class*="bg-[#0F1219]"],
+[data-pt="light"] [class*="bg-[#10131B]"],
+[data-pt="light"] [class*="bg-[#161A24]"],
+[data-pt="light"] [class*="bg-[#1F242F]"],
+[data-pt="light"] [class*="bg-[#12161F]"],
+[data-pt="light"] [class*="bg-[#0D0F15]"],
+[data-pt="light"] [class*="bg-[#0D1017]"] { background-color: var(--p-surface) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 
 [data-pt="light"] [class~="border-white/10"],
 [data-pt="light"] [class~="border-white/8"],
