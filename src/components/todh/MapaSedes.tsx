@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { TORNEOS_SAMPLE, LOCALES, JUEGOS, JUEGOS_LIST, type Local } from '@/lib/torneos/sample'
@@ -35,14 +35,6 @@ export default function MapaSedes() {
     return filtro === 'todas' ? true : filtro === 'con-torneos' ? n > 0 : n === 0
   }), [filtro, torneosPorLocal])
 
-  const wrapsRef = useRef<HTMLSpanElement[]>([])
-  const applyZoom = useCallback(() => {
-    const map = mapRef.current
-    if (!map) return
-    const s = Math.max(0.5, Math.min(1.2, 0.55 + (map.getZoom() - 10) * 0.16))
-    wrapsRef.current.forEach(w => { w.style.transform = `scale(${s})` })
-  }, [])
-
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
     const map = new mapboxgl.Map({
@@ -53,13 +45,12 @@ export default function MapaSedes() {
       attributionControl: false,
     })
     mapRef.current = map
-    map.on('load', () => { map.resize(); applyZoom() })
-    map.on('zoom', applyZoom)
+    map.on('load', () => map.resize())
     const t1 = setTimeout(() => map.resize(), 120)
     const ro = new ResizeObserver(() => map.resize())
     ro.observe(containerRef.current)
     return () => { clearTimeout(t1); ro.disconnect(); map.remove(); mapRef.current = null }
-  }, [applyZoom])
+  }, [])
 
   // Un pin por sede, clavado a su coordenada; las disponibles llevan aro lima discontinuo.
   const markersRef = useRef<mapboxgl.Marker[]>([])
@@ -68,7 +59,6 @@ export default function MapaSedes() {
     if (!map) return
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
-    wrapsRef.current = []
     for (const l of locales) {
       const n = torneosPorLocal[l.id] ?? 0
       const activo = l.id === sel
@@ -99,12 +89,10 @@ export default function MapaSedes() {
       }
       wrap.appendChild(body)
       el.appendChild(wrap)
-      wrapsRef.current.push(wrap)
       el.onclick = (e) => { e.stopPropagation(); setSel(l.id); map.flyTo({ center: [l.lng, l.lat], zoom: Math.max(map.getZoom(), 13.5), offset: [0, -150] }) }
       markersRef.current.push(new mapboxgl.Marker({ element: el, anchor: 'bottom' }).setLngLat([l.lng, l.lat]).addTo(map))
     }
-    applyZoom()
-  }, [locales, sel, torneosPorLocal, applyZoom])
+  }, [locales, sel, torneosPorLocal])
 
   const localSel = sel ? LOCALES[sel] : null
 

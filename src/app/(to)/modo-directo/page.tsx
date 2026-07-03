@@ -2,18 +2,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { getTorneo, getLocal, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
+import Link from 'next/link'
+import { getTorneo, getLocal, rankingPorJuego, TORNEOS_SAMPLE, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, nombreRonda } from '@/lib/torneos/bracket'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { MapaMesas, LeyendaMesas, ESTADO_MESA, type EstadoMesa } from '@/components/todh/MapaMesas'
-import { ArrowLeft, Radio, Pause, Play, AlertTriangle, Tv, Clock, Check, RotateCcw, Flag, ListTree, Map as MapIcon, List } from 'lucide-react'
+import { ArrowLeft, Radio, Pause, Play, AlertTriangle, Tv, Clock, Check, RotateCcw, Flag, ListTree, Map as MapIcon, List, CalendarClock } from 'lucide-react'
 
 type Estado = 'ocupado' | 'libre' | 'caido'
 type Setup = { n: number; tipo: string; stream?: boolean; estado: Estado; a?: string; b?: string; seg?: number; mid?: string }
 type ColaItem = { id: string; a: string; b: string; ronda: string }
 
-// Torneo en directo del demo (el LIVE de la consola)
-const TORNEO_LIVE = 't1'
+// El TO puede gestionar VARIOS torneos: los que están en directo y los próximos
+// (para dejar ajustes hechos con antelación). Se cambia con el selector superior.
 
 const SETUPS0: Setup[] = [
   { n: 1, tipo: 'Consola', estado: 'ocupado', a: 'Kaze', b: 'Volt', seg: 7 * 60 },
@@ -43,12 +44,32 @@ export default function ModoDirectoPage() {
   const [usados, setUsados] = useState<string[]>([])
   const [pausada, setPausada] = useState(false)
 
+  // Torneos del TO (demo: Lima): en directo primero, después los próximos.
+  const creados = useDemoStore(s => s.creados)
+  const cancelados = useDemoStore(s => s.cancelados)
+  const misTorneos = useMemo(() => {
+    const todos = [...creados, ...TORNEOS_SAMPLE].filter(t => t.organizadorId === 'lima' && !cancelados.includes(t.id))
+    return [...todos.filter(t => t.enDirecto), ...todos.filter(t => !t.enDirecto)]
+  }, [creados, cancelados])
+  const [torneoId, setTorneoId] = useState('t1')
+
+  // Al cambiar de torneo se resetea el estado de sala (setups/cola/disputa demo).
+  useEffect(() => {
+    setSetups(SETUPS0)
+    setCola(COLA0)
+    setUsados([])
+    setPausada(false)
+    setMesaSel(null)
+    setDisputa(torneoId === 't1' ? { setup: 5, a: 'Lux', b: 'Nyx' } : null)
+  }, [torneoId])
+
   // Si el TO generó bracket en /gestionar, la cola sale de los combates
   // pendientes reales; si no, datos de muestra.
-  const gestion = useDemoStore(s => s.gestion[TORNEO_LIVE])
-  const override = useDemoStore(s => s.editados[TORNEO_LIVE])
+  const gestion = useDemoStore(s => s.gestion[torneoId])
+  const override = useDemoStore(s => s.editados[torneoId])
   const pushNoti = useDemoStore(s => s.pushNoti)
-  const torneo = getTorneo(TORNEO_LIVE)
+  const torneo = getTorneo(torneoId) ?? creados.find(c => c.id === torneoId)
+  const enDirecto = !!torneo?.enDirecto
   // Plano de mesas del local que acoge el torneo (el que edita la sede en su panel).
   const local = getLocal(torneo?.localId ?? 'gamba')
   const mesasOverride = useDemoStore(s => s.mesasSede[local?.id ?? ''])
@@ -96,7 +117,7 @@ export default function ModoDirectoPage() {
     pushNoti({
       tipo: 'combate', titulo: `Te toca · Mesa ${n}`,
       cuerpo: `${next.a} vs ${next.b} (${next.ronda}). Preséntate en la mesa ${n}.`,
-      href: `/torneo/${TORNEO_LIVE}/mesa?n=${n}&vs=${encodeURIComponent(`${next.a} vs ${next.b}`)}`,
+      href: `/torneo/${torneoId}/mesa?n=${n}&vs=${encodeURIComponent(`${next.a} vs ${next.b}`)}`,
     })
   }
   function liberar(n: number) {
@@ -133,12 +154,50 @@ export default function ModoDirectoPage() {
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Modo directo</p>
           <p className="text-base font-bold text-white truncate">{nombreTorneo}</p>
         </div>
-        <span className="inline-flex items-center gap-1 px-2.5 h-9 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#E63E54] text-white shrink-0"><Radio size={12} className="animate-pulse-heat" /> Directo</span>
+        {enDirecto
+          ? <span className="inline-flex items-center gap-1 px-2.5 h-9 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#E63E54] text-white shrink-0"><Radio size={12} className="animate-pulse-heat" /> Directo</span>
+          : <span className="inline-flex items-center gap-1 px-2.5 h-9 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#4F8EF7]/20 text-[#7FB0FF] border border-[#4F8EF7]/40 shrink-0"><CalendarClock size={12} /> Próximo</span>}
         <button onClick={() => { setPausada(p => !p); flash(pausada ? 'Cola reanudada' : 'Cola pausada') }} aria-label="Pausar cola"
           className={cn('h-9 w-9 rounded-xl flex items-center justify-center shrink-0', pausada ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'glass-strong text-white')}>
           {pausada ? <Play size={15} /> : <Pause size={15} />}
         </button>
       </div>
+
+      {/* Selector: torneos en directo y PRÓXIMOS (para preparar con antelación) */}
+      <div className="px-4 pt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+        {misTorneos.map(mt => {
+          const on = mt.id === torneoId
+          return (
+            <button key={mt.id} onClick={() => setTorneoId(mt.id)}
+              className={`shrink-0 inline-flex items-center gap-1.5 px-3 h-9 rounded-xl text-xs font-bold border transition-all ${on ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border-[#B6FF3A]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10 hover:text-white'}`}>
+              {mt.enDirecto ? <span className="dot-live" /> : <CalendarClock size={12} className="opacity-70" />}
+              <span className="max-w-40 truncate">{mt.nombre}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Torneo próximo: vista de PREPARACIÓN (aún no en directo) */}
+      {!enDirecto && torneo && (
+        <div className="px-4 pt-2">
+          <div className="flex items-center gap-3 rounded-2xl border border-[#4F8EF7]/35 bg-[#4F8EF7]/[0.08] px-4 py-3">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#4F8EF7]/20 text-[#7FB0FF] shrink-0"><CalendarClock size={17} /></span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white">Empieza {torneo.fechaLabel}</p>
+              <p className="text-xs text-[#9FC2FF]">Deja el plano y el bracket listos: al pasar a directo, todo estará preparado.</p>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="card-premium p-3"><p className="text-lg font-bold text-white font-mono-num leading-none">{torneo.inscritos}/{torneo.plazas}</p><p className="text-[10px] uppercase tracking-[0.1em] text-[#8B8BA8] font-semibold mt-1">Inscritos</p></div>
+            <div className="card-premium p-3"><p className="text-lg font-bold text-white font-mono-num leading-none">{gestion?.checkin?.length ?? 0}</p><p className="text-[10px] uppercase tracking-[0.1em] text-[#8B8BA8] font-semibold mt-1">Check-in</p></div>
+            <div className="card-premium p-3"><p className="text-lg font-bold text-white font-mono-num leading-none">{gestion?.generado ? 'Sí' : 'No'}</p><p className="text-[10px] uppercase tracking-[0.1em] text-[#8B8BA8] font-semibold mt-1">Bracket listo</p></div>
+          </div>
+          <div className="mt-2.5 grid grid-cols-2 gap-2">
+            <Link href={`/gestionar/${torneo.id}`} className="h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-2">Gestionar inscritos y bracket</Link>
+            <Link href={`/torneo/${torneo.id}`} className="h-11 rounded-xl bg-white/6 border border-white/10 text-white text-sm font-semibold flex items-center justify-center gap-2">Ficha pública</Link>
+          </div>
+        </div>
+      )}
 
       <div className="px-4 pt-4 space-y-5">
         {/* Disputa */}
@@ -174,7 +233,9 @@ export default function ModoDirectoPage() {
                 ))}
               </div>
             </div>
-            <p className="text-xs text-[#8B8BA8]"><span className="text-[#B6FF3A] font-bold font-mono-num">{enJuego}</span> en juego · <span className="text-[#6FB0FF] font-bold font-mono-num">{libres}</span> libres</p>
+            {enDirecto
+              ? <p className="text-xs text-[#8B8BA8]"><span className="text-[#B6FF3A] font-bold font-mono-num">{enJuego}</span> en juego · <span className="text-[#6FB0FF] font-bold font-mono-num">{libres}</span> libres</p>
+              : <p className="text-xs text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{mesas.length}</span> mesas del local</p>}
           </div>
 
           {vistaMesas === 'plano' && (
@@ -182,8 +243,10 @@ export default function ModoDirectoPage() {
               {/* El plano lo define la sede; los estados salen de los setups del torneo */}
               <MapaMesas
                 mesas={mesas}
-                estados={Object.fromEntries(setups.map(s => [s.n, disputa?.setup === s.n ? 'disputa' : s.estado === 'ocupado' ? 'ocupada' : s.estado === 'caido' ? 'caida' : 'libre']) ) as Record<number, EstadoMesa>}
-                ocupantes={Object.fromEntries(setups.filter(s => s.a && s.b).map(s => [s.n, `${s.a} vs ${s.b}`]))}
+                estados={enDirecto
+                  ? Object.fromEntries(setups.map(s => [s.n, disputa?.setup === s.n ? 'disputa' : s.estado === 'ocupado' ? 'ocupada' : s.estado === 'caido' ? 'caida' : 'libre'])) as Record<number, EstadoMesa>
+                  : Object.fromEntries(setups.map(s => [s.n, 'libre'])) as Record<number, EstadoMesa>}
+                ocupantes={enDirecto ? Object.fromEntries(setups.filter(s => s.a && s.b).map(s => [s.n, `${s.a} vs ${s.b}`])) : undefined}
                 seleccionada={mesaSel ?? undefined}
                 onPick={m => setMesaSel(sel => sel === m.n ? null : m.n)}
               />
@@ -261,7 +324,7 @@ export default function ModoDirectoPage() {
         {/* Cola */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <p className="eyebrow eyebrow-muted inline-flex items-center gap-1.5">Cola de combates
+            <p className="eyebrow eyebrow-muted inline-flex items-center gap-1.5">{enDirecto ? 'Cola de combates' : 'Cola prevista (primera ronda)'}
               {bracketReal && <span className="inline-flex items-center gap-1 normal-case tracking-normal px-1.5 h-5 rounded-md bg-[#B6FF3A]/12 text-[#B6FF3A] text-[10px] font-bold"><ListTree size={10} /> Bracket real</span>}
             </p>
             <p className="text-xs text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{colaViva.length}</span> listos {pausada && <span className="text-[#FF8A5C]">· pausada</span>}</p>

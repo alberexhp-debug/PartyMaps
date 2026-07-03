@@ -13,7 +13,7 @@ const tabs = [
   { href: '/crear-torneo', icon: Plus, label: 'Crear torneo', match: ['/crear-torneo'] },
   { href: '/modo-directo', icon: Radio, label: 'Modo directo', match: ['/modo-directo'] },
   { href: '/sedes', icon: MapPin, label: 'Sedes', match: ['/sedes'] },
-  { href: '/organizador/lima', icon: Megaphone, label: 'Mi página pública', match: [] },
+  { href: '/mi-pagina', icon: Megaphone, label: 'Mi página pública', match: ['/mi-pagina'] },
 ]
 
 export function TOSideNav() {

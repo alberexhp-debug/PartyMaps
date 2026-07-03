@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -34,15 +34,6 @@ export default function MapaTorneos() {
   }, [creados, juego])
   const nTorneos = useMemo(() => [...porLocal.values()].reduce((a, ts) => a + ts.length, 0), [porLocal])
 
-  // Los pines escalan con el zoom (pequeños al alejar), anclados por la punta.
-  const wrapsRef = useRef<HTMLSpanElement[]>([])
-  const applyZoom = useCallback(() => {
-    const map = mapRef.current
-    if (!map) return
-    const z = map.getZoom()
-    const s = Math.max(0.5, Math.min(1.2, 0.55 + (z - 10) * 0.16))
-    wrapsRef.current.forEach(w => { w.style.transform = `scale(${s})` })
-  }, [])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -55,14 +46,13 @@ export default function MapaTorneos() {
     })
     mapRef.current = map
     // El contenedor puede medir 0px en el primer frame → forzar resize cuando ya tiene tamaño.
-    map.on('load', () => { map.resize(); applyZoom() })
-    map.on('zoom', applyZoom)
+    map.on('load', () => map.resize())
     const t1 = setTimeout(() => map.resize(), 120)
     const t2 = setTimeout(() => map.resize(), 500)
     const ro = new ResizeObserver(() => map.resize())
     ro.observe(containerRef.current)
     return () => { clearTimeout(t1); clearTimeout(t2); ro.disconnect(); map.remove(); mapRef.current = null }
-  }, [applyZoom])
+  }, [])
 
   // Marcadores: uno por local, en su coordenada exacta
   const markersRef = useRef<mapboxgl.Marker[]>([])
@@ -71,7 +61,6 @@ export default function MapaTorneos() {
     if (!map) return
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
-    wrapsRef.current = []
     for (const [localId, torneos] of porLocal) {
       const l = LOCALES[localId]
       const sel = localId === selLocal
@@ -109,15 +98,13 @@ export default function MapaTorneos() {
       }
       wrap.appendChild(body)
       el.appendChild(wrap)
-      wrapsRef.current.push(wrap)
       el.onmouseenter = () => { body.style.transform = 'scale(1.14)' }
       el.onmouseleave = () => { body.style.transform = `scale(${localId === selLocal ? 1.12 : 1})` }
       el.onclick = (e) => { e.stopPropagation(); setSelLocal(localId); map.flyTo({ center: [l.lng, l.lat], zoom: Math.max(map.getZoom(), 14.5), offset: [0, -140] }) }
       const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' }).setLngLat([l.lng, l.lat]).addTo(map)
       markersRef.current.push(m)
     }
-    applyZoom()
-  }, [porLocal, selLocal, applyZoom])
+  }, [porLocal, selLocal])
 
   const localSel = selLocal ? getLocal(selLocal) : null
   const torneosSel = selLocal ? porLocal.get(selLocal) ?? [] : []

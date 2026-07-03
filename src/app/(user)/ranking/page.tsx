@@ -5,7 +5,7 @@ import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { CountUp } from '@/components/ui/CountUp'
 import { cn } from '@/lib/utils'
-import { Globe, MapPin, Crown, ChevronUp, ChevronDown, Minus } from 'lucide-react'
+import { Globe, MapPin, Crown, ChevronUp, ChevronDown, Minus, Store, Wifi, Trophy, CalendarClock } from 'lucide-react'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
@@ -31,16 +31,32 @@ function Tendencia({ n }: { n: number }) {
   return <span className="inline-flex items-center gap-0.5 text-[#FF6B6B] text-[11px] font-bold"><ChevronDown size={13} />{Math.abs(n)}</span>
 }
 
+// Tres rankings: PRESENCIAL (torneos en locales), ONLINE y TOURNEUM (el circuito
+// oficial de la app: se disputa 2 veces al año, sin ámbito país/global).
+type TipoRanking = 'presencial' | 'online' | 'tourneum'
+const TIPOS: { id: TipoRanking; label: string; icon: typeof Store }[] = [
+  { id: 'presencial', label: 'Presencial', icon: Store },
+  { id: 'online', label: 'Online', icon: Wifi },
+  { id: 'tourneum', label: 'Tourneum', icon: Trophy },
+]
+
 export default function RankingPage() {
+  const [tipo, setTipo] = useState<TipoRanking>('presencial')
   const [juego, setJuego] = useState('smash')
   const [ambito, setAmbito] = useState<'pais' | 'mundial'>('pais')
   const [sel, setSel] = useState<{ j: Jugador; puesto: number } | null>(null)
+  const esTourneum = tipo === 'tourneum'
 
   const lista = useMemo(() => {
     const base = rankingPorJuego(juego)
+    if (tipo === 'tourneum') {
+      // Solo quienes jugaron los torneos oficiales del split (demo: top 10)
+      return base.slice(0, 10).map(j => ({ ...j, rating: Math.max(0, Math.round((j.rating - 1600) * 1.4)) }))
+    }
+    const conTipo = tipo === 'online' ? base.map(j => ({ ...j, rating: j.rating + 85 })) : base
     // Mundial: ratings ligeramente superiores para diferenciar el ámbito
-    return ambito === 'mundial' ? base.map(j => ({ ...j, rating: j.rating + 120 })) : base
-  }, [juego, ambito])
+    return ambito === 'mundial' ? conTipo.map(j => ({ ...j, rating: j.rating + 120 })) : conTipo
+  }, [tipo, juego, ambito])
 
   const top3 = lista.slice(0, 3)
   const resto = lista.slice(3)
@@ -63,7 +79,35 @@ export default function RankingPage() {
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Ranking</h1>
       </div>
 
-      {/* País / Mundial */}
+      {/* Tipo de ranking */}
+      <div className="relative px-4 mt-3">
+        <div className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1 max-w-md">
+          {TIPOS.map(({ id, label, icon: Icon }) => (
+            <button key={id} onClick={() => setTipo(id)}
+              className={cn('flex h-9 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold transition-all',
+                tipo === id ? (id === 'tourneum' ? 'bg-[#E0BE63]/20 text-[#E0BE63] shadow-sm' : 'bg-white/12 text-white shadow-sm') : 'text-[#8B8BA8] hover:text-white')}>
+              <Icon size={14} /> {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Circuito oficial (Tourneum): sin país/global — puntúas jugando los oficiales */}
+      {esTourneum && (
+        <div className="relative px-4 mt-3">
+          <div className="rounded-2xl border border-[#E0BE63]/35 bg-[#E0BE63]/[0.07] px-4 py-3 flex items-center gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#E0BE63]/15 text-[#E0BE63] shrink-0"><Trophy size={18} /></span>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-white">Circuito oficial Tourneum · Split 2 · 2026</p>
+              <p className="text-[11px] text-[#D8C48A]">Se disputa 2 veces al año en los torneos oficiales de la app. Puntúan solo sus participantes — sin ámbito por país ni global.</p>
+              <p className="mt-1 text-[11px] font-bold text-[#E0BE63] inline-flex items-center gap-1"><CalendarClock size={11} /> Próximo oficial: 13 dic 2026</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* País / Mundial (solo presencial y online) */}
+      {!esTourneum && (
       <div className="relative px-4 mt-3">
         <div className="grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1 max-w-xs">
           {([['pais', 'España', MapPin], ['mundial', 'Mundial', Globe]] as const).map(([k, label, Icon]) => (
@@ -75,6 +119,7 @@ export default function RankingPage() {
           ))}
         </div>
       </div>
+      )}
 
       {/* Chips de juego */}
       <div className="relative px-4 mt-3">
@@ -95,7 +140,7 @@ export default function RankingPage() {
       </div>
 
       {/* Podio */}
-      <div key={`${juego}-${ambito}`} className="relative px-4 mt-5 flex items-end justify-center gap-3 max-w-2xl lg:max-w-4xl mx-auto">
+      <div key={`${tipo}-${juego}-${ambito}`} className="relative px-4 mt-5 flex items-end justify-center gap-3 max-w-2xl lg:max-w-4xl mx-auto">
         {podio.map((p, i) => {
           const first = i === 1
           const jColor = JUEGOS[juego].color
@@ -121,7 +166,7 @@ export default function RankingPage() {
       </div>
 
       {/* Tabla */}
-      <div key={`t-${juego}-${ambito}`} className="relative px-4 mt-4 space-y-1.5 pb-28 max-w-2xl lg:max-w-4xl mx-auto">
+      <div key={`t-${tipo}-${juego}-${ambito}`} className="relative px-4 mt-4 space-y-1.5 pb-28 max-w-2xl lg:max-w-4xl mx-auto">
         {resto.map((p, i) => {
           const puesto = i + 4
           return (

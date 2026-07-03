@@ -62,7 +62,8 @@ export default function CrearTorneoPage() {
 
   function publicar() {
     if (!nombre.trim()) return
-    if (sala === 'local' && !sede) { setPickerSede(true); return }
+    // La sede debe admitir el aforo del torneo: si no llega, se obliga a cambiarla.
+    if (sala === 'local' && (!sede || sede.aforo < plazas)) { setPickerSede(true); return }
     const id = `c${Date.now().toString(36)}${creadoSeq++}`
     const fechaLabel = fecha
       ? `${new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} · ${hora}`
@@ -207,13 +208,18 @@ export default function CrearTorneoPage() {
             {/* Sede asignada como perfil de la app (tipo contacto) */}
             {sala === 'local' && (
               sede ? (
-                <div className="mt-2 card-premium p-3 flex items-center gap-3">
-                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-[#0A0A0F] font-black" style={{ background: sede.color }}>{sede.nombre[0]}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{sede.nombre}</p>
-                    <p className="text-[11px] text-[#8B8BA8]">{sede.zona} · {sede.setups} setups · <span className="text-[#E0BE63]">★ {sede.rating}</span> · desde <span className="font-mono-num">{sede.precioNoche}€</span>/noche</p>
+                <div className={`mt-2 card-premium p-3 ${sede.aforo < plazas ? 'border border-[#FF6B6B]/50' : ''}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-[#0A0A0F] font-black" style={{ background: sede.color }}>{sede.nombre[0]}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{sede.nombre}</p>
+                      <p className="text-[11px] text-[#8B8BA8]">{sede.zona} · aforo <span className="font-mono-num">{sede.aforo}</span> · {sede.setups} setups · <span className="text-[#E0BE63]">★ {sede.rating}</span> · desde <span className="font-mono-num">{sede.precioNoche}€</span>/noche</p>
+                    </div>
+                    <button onClick={() => setPickerSede(true)} className="h-9 px-3 rounded-lg bg-white/8 text-white text-xs font-bold shrink-0">Cambiar</button>
                   </div>
-                  <button onClick={() => setPickerSede(true)} className="h-9 px-3 rounded-lg bg-white/8 text-white text-xs font-bold shrink-0">Cambiar</button>
+                  {sede.aforo < plazas && (
+                    <p className="mt-2 text-[11px] font-bold text-[#FF8A8A]">Esta sede admite {sede.aforo} personas y tu torneo es de {plazas}. Elige otra sede o baja las plazas.</p>
+                  )}
                 </div>
               ) : (
                 <button onClick={() => setPickerSede(true)} className="mt-2 w-full h-12 rounded-xl border border-dashed border-white/20 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors">
@@ -322,6 +328,7 @@ export default function CrearTorneoPage() {
       {/* Selector de sede (perfil de local de la app) */}
       {pickerSede && (
         <SedePicker
+          plazas={plazas}
           onClose={() => setPickerSede(false)}
           onPick={l => { setSedeId(l.id); setSala('local'); setPickerSede(false) }}
         />
@@ -386,9 +393,12 @@ function NuevoJuegoForm({ onCreado }: { onCreado: (id: string) => void }) {
 }
 
 // Selector de sede: perfiles de local de la app, como asignar un contacto.
-function SedePicker({ onClose, onPick }: { onClose: () => void; onPick: (l: Local) => void }) {
+function SedePicker({ plazas, onClose, onPick }: { plazas: number; onClose: () => void; onPick: (l: Local) => void }) {
   const [q, setQ] = useState('')
-  const locales = Object.values(LOCALES).filter(l =>
+  // Solo se ofrecen sedes cuyo AFORO admite las plazas configuradas del torneo.
+  const conAforo = Object.values(LOCALES).filter(l => l.aforo >= plazas)
+  const excluidas = Object.keys(LOCALES).length - conAforo.length
+  const locales = conAforo.filter(l =>
     (l.nombre + ' ' + l.zona).toLowerCase().includes(q.trim().toLowerCase()))
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -396,7 +406,10 @@ function SedePicker({ onClose, onPick }: { onClose: () => void; onPick: (l: Loca
       <div className="relative w-full max-w-md bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop max-h-[85vh] overflow-y-auto">
         <div className="sticky top-0 bg-[#141822] px-5 pt-4 pb-3 z-10 border-b border-white/5">
           <div className="flex items-center justify-between">
-            <p className="text-[15px] font-bold text-white">Elige la sede</p>
+            <div>
+              <p className="text-[15px] font-bold text-white">Elige la sede</p>
+              <p className="text-[11px] text-[#8B8BA8]">Con aforo para <span className="text-[#B6FF3A] font-bold font-mono-num">{plazas}</span> jugadores{excluidas > 0 ? ` · ${excluidas} ${excluidas === 1 ? 'local oculto' : 'locales ocultos'} por aforo` : ''}</p>
+            </div>
             <button onClick={onClose} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC]"><X size={16} /></button>
           </div>
           <div className="mt-3 relative">
@@ -412,12 +425,12 @@ function SedePicker({ onClose, onPick }: { onClose: () => void; onPick: (l: Loca
               <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-[#0A0A0F] font-black text-lg shrink-0" style={{ background: l.color }}>{l.nombre[0]}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{l.nombre}</p>
-                <p className="text-[11px] text-[#8B8BA8]">{l.zona} · {l.setups} setups · {l.m2} m² · <span className="inline-flex items-center gap-0.5 text-[#E0BE63]"><Star size={9} className="fill-[#E0BE63]" /> {l.rating}</span></p>
+                <p className="text-[11px] text-[#8B8BA8]">{l.zona} · aforo <span className="font-mono-num text-white">{l.aforo}</span> · {l.setups} setups · <span className="inline-flex items-center gap-0.5 text-[#E0BE63]"><Star size={9} className="fill-[#E0BE63]" /> {l.rating}</span></p>
               </div>
               <span className="text-[11px] font-bold text-[#B6FF3A] font-mono-num shrink-0">{l.precioNoche}€/noche</span>
             </button>
           ))}
-          {locales.length === 0 && <p className="text-center text-sm text-[#8B8BA8] py-6">Ningún local con ese nombre.</p>}
+          {locales.length === 0 && <p className="text-center text-sm text-[#8B8BA8] py-6">Ninguna sede admite {plazas} jugadores con esa búsqueda. Baja las plazas o descubre más sedes en el mapa.</p>}
           <Link href="/mapa" className="w-full h-11 rounded-xl border border-dashed border-white/20 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors">
             <MapIcon size={15} /> Descubrir sedes en el mapa
           </Link>

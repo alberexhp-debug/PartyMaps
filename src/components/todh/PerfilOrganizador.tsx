@@ -1,5 +1,5 @@
 'use client'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TORNEOS_SAMPLE, JUEGOS, getOrganizador, ORGANIZADORES } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
@@ -9,8 +9,9 @@ import { TorneoArt } from '@/components/todh/GameKeyart'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
-export default function OrganizadorPage() {
-  const { id } = useParams<{ id: string }>()
+// Perfil público del organizador. `backButton=false` cuando se incrusta en el
+// panel del TO (Mi página pública), donde el rail ya da la navegación.
+export function PerfilOrganizador({ id, backButton = true }: { id: string; backButton?: boolean }) {
   const router = useRouter()
   const to = getOrganizador(id) || ORGANIZADORES.lima
   const siguiendo = useDemoStore(s => s.seguidos.includes(to.id))
@@ -25,7 +26,7 @@ export default function OrganizadorPage() {
         <div className="absolute inset-0 opacity-[0.14] mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, #fff .6px, transparent 1.2px), radial-gradient(circle at 75% 65%, #fff .5px, transparent 1px)', backgroundSize: '9px 9px, 13px 13px' }} />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 45%, #0D0F15)' }} />
         <div className="relative flex items-center px-4 pt-5 safe-top">
-          <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
+          {backButton && <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>}
         </div>
       </div>
 

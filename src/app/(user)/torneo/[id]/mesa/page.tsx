@@ -139,7 +139,7 @@ function MesaContent() {
       </div>
 
       {/* CTA fija (móvil/tablet) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 px-4 pb-5 pt-3 safe-bottom bg-gradient-to-t from-[#0D0F15] via-[#0D0F15] to-transparent">
+      <div className="lg:hidden fixed bottom-16 left-0 right-0 z-20 px-4 pb-3 pt-3 bg-gradient-to-t from-[#0D0F15] via-[#0D0F15] to-transparent">
         <div className="max-w-lg mx-auto">
           {!confirmado ? (
             <button onClick={() => setConfirmado(true)}
