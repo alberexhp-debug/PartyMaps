@@ -3,20 +3,23 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { TORNEOS_SAMPLE, LOCALES, JUEGOS, getTorneo, type TorneoSample } from '@/lib/torneos/sample'
+import { TORNEOS_SAMPLE, LOCALES, JUEGOS, getTorneo, getLocal, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { TorneoArt } from '@/components/todh/GameKeyart'
-import { Calendar, Users, X, Radio } from 'lucide-react'
+import { MiniLocal } from '@/components/todh/MiniLocal'
+import { Calendar, Users, X, Radio, MapPin } from 'lucide-react'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
-// Pequeño desplazamiento determinista para separar varios torneos en el mismo local.
-function jitter(localId: string, i: number): [number, number] {
+// Varios torneos en el mismo local se separan con un offset EN PÍXELES del marcador,
+// no moviendo la coordenada: así el pin queda clavado a su local a cualquier zoom.
+// (El jitter geográfico anterior desplazaba los pines ~200 m y "flotaban" al hacer zoom.)
+const OFFSETS_PX: [number, number][] = [
+  [0, 0], [30, -14], [-30, -14], [0, -34], [46, 6], [-46, 6], [24, -44], [-24, -44],
+]
+function coordsDe(localId: string): [number, number] {
   const l = LOCALES[localId]
-  if (!l) return [-3.7038, 40.4262]
-  const a = (i % 4) * (Math.PI / 2) + (i * 0.7)
-  const r = i === 0 ? 0 : 0.0016 + (i % 3) * 0.0009
-  return [l.lng + Math.cos(a) * r, l.lat + Math.sin(a) * r]
+  return l ? [l.lng, l.lat] : [-3.7038, 40.4262]
 }
 
 export default function MapaTorneos() {
@@ -72,7 +75,10 @@ export default function MapaTorneos() {
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
     wrapsRef.current = []
-    presenciales.forEach((t, i) => {
+    const porLocal: Record<string, number> = {}
+    presenciales.forEach((t) => {
+      const idxLocal = porLocal[t.localId!] ?? 0
+      porLocal[t.localId!] = idxLocal + 1
       const j = JUEGOS[t.juego]
       const sel = t.id === selId
       // Medallón circular tipo "moneda": fondo glass oscuro, aro del color del juego,
@@ -82,8 +88,10 @@ export default function MapaTorneos() {
       el.style.cssText = `position:relative;width:42px;height:50px;cursor:pointer;background:none;border:none;padding:0;z-index:${sel ? 5 : 1};`
 
       // Wrapper que escala con el zoom (origen en la punta, que es el ancla real).
+      // Sin transition: durante el zoom la escala debe seguir al mapa sin retardo
+      // (con transition los pines "nadaban" respecto al plano).
       const wrap = document.createElement('span')
-      wrap.style.cssText = 'position:absolute;inset:0;transform-origin:50% 100%;transition:transform .12s ease-out;'
+      wrap.style.cssText = 'position:absolute;inset:0;transform-origin:50% 100%;'
 
       // Punta inferior (tip): rombo recortado que apunta a la coordenada.
       const tail = document.createElement('span')
@@ -108,8 +116,9 @@ export default function MapaTorneos() {
       wrapsRef.current.push(wrap)
       el.onmouseenter = () => { body.style.transform = 'scale(1.14)' }
       el.onmouseleave = () => { body.style.transform = `scale(${t.id === selId ? 1.12 : 1})` }
-      el.onclick = (e) => { e.stopPropagation(); setSelId(t.id); map.flyTo({ center: jitter(t.localId!, i), zoom: 13.5, offset: [0, -120] }) }
-      const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' }).setLngLat(jitter(t.localId!, i)).addTo(map)
+      el.onclick = (e) => { e.stopPropagation(); setSelId(t.id); map.flyTo({ center: coordsDe(t.localId!), zoom: 14.5, offset: [0, -120] }) }
+      const m = new mapboxgl.Marker({ element: el, anchor: 'bottom', offset: OFFSETS_PX[idxLocal % OFFSETS_PX.length] })
+        .setLngLat(coordsDe(t.localId!)).addTo(map)
       markersRef.current.push(m)
     })
     applyZoom()
@@ -152,30 +161,37 @@ export default function MapaTorneos() {
 
 function MapSheet({ t, onClose }: { t: TorneoSample; onClose: () => void }) {
   const juego = JUEGOS[t.juego]
+  const local = t.localId ? getLocal(t.localId) : undefined
+  const [verSede, setVerSede] = useState(false)
   return (
     <div className="absolute bottom-4 left-3 right-3 z-20 animate-slide-up-sm">
       <div className="ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch shadow-2xl">
         <button onClick={onClose} aria-label="Cerrar" className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/40 flex items-center justify-center text-white"><X size={14} /></button>
         <TorneoArt t={t} className="w-[84px] shrink-0" />
-        <Link href={`/torneo/${t.id}`} className="flex-1 p-3.5 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
-            </span>
-            {t.enDirecto && <span className="badge-live">Live</span>}
-          </div>
-          <p className="font-bold text-white text-display tracking-tight text-[15px] leading-snug truncate pr-6">{t.nombre}</p>
+        <div className="flex-1 p-3.5 min-w-0">
+          <Link href={`/torneo/${t.id}`} className="block">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
+              </span>
+              {t.enDirecto && <span className="badge-live">Live</span>}
+            </div>
+            <p className="font-bold text-white text-display tracking-tight text-[15px] leading-snug truncate pr-6">{t.nombre}</p>
+          </Link>
           <div className="mt-1 flex items-center gap-2 text-[11px] text-[#A0A0B8]">
             <span className="inline-flex items-center gap-1 text-white"><Calendar size={11} className="text-[#B6FF3A]" /> {t.fechaLabel}</span>
             <span className="text-[#3A3A4A]">·</span>
-            <span className="truncate">{t.local}</span>
+            {local
+              ? <button onClick={() => setVerSede(true)} className="inline-flex items-center gap-1 truncate text-[#B6FF3A] font-semibold"><MapPin size={10} /> {t.local}</button>
+              : <span className="truncate">{t.local}</span>}
           </div>
-          <div className="mt-1.5 flex items-center justify-between">
+          <Link href={`/torneo/${t.id}`} className="mt-1.5 flex items-center justify-between">
             <span className="inline-flex items-center gap-1 text-[11px] text-[#8B8BA8]"><Users size={10} /> <span className="font-mono-num text-[#B8B8CC]">{t.inscritos}/{t.plazas}</span></span>
             <span className="text-[13px] font-bold text-white font-mono-num">{t.bote ? `${t.bote}€` : t.precio === 0 ? 'Free' : `${t.precio}€`}</span>
-          </div>
-        </Link>
+          </Link>
+        </div>
       </div>
+      {verSede && local && <MiniLocal local={local} onClose={() => setVerSede(false)} />}
     </div>
   )
 }

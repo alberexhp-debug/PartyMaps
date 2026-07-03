@@ -56,3 +56,13 @@ export function nombreRonda(nMatches: number): string {
   if (nMatches === 8) return 'Octavos'
   return `Ronda de ${nMatches * 2}`
 }
+
+// Sets por ronda: bo.base al principio del cuadro y bo.top desde la ronda elegida
+// ('final' = solo la final, 'semis' = últimas 2 rondas, 'top8' = últimas 3).
+export function boDeRonda(ri: number, totalRondas: number, bo: { base: number; top: number; desde: 'final' | 'semis' | 'top8' }): number {
+  const topRondas = bo.desde === 'final' ? 1 : bo.desde === 'semis' ? 2 : 3
+  return ri >= totalRondas - topRondas ? bo.top : bo.base
+}
+
+// Juegos necesarios para cerrar un set (Bo3 → 2, Bo5 → 3).
+export const paraGanar = (bo: number) => Math.ceil(bo / 2)

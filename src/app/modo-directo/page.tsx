@@ -2,10 +2,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { getTorneo, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
+import { getTorneo, getLocal, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, nombreRonda } from '@/lib/torneos/bracket'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
-import { ArrowLeft, Radio, Pause, Play, AlertTriangle, Tv, Clock, Check, RotateCcw, Flag, ListTree } from 'lucide-react'
+import { MapaMesas, LeyendaMesas, ESTADO_MESA, type EstadoMesa } from '@/components/todh/MapaMesas'
+import { ArrowLeft, Radio, Pause, Play, AlertTriangle, Tv, Clock, Check, RotateCcw, Flag, ListTree, Map as MapIcon, List } from 'lucide-react'
 
 type Estado = 'ocupado' | 'libre' | 'caido'
 type Setup = { n: number; tipo: string; stream?: boolean; estado: Estado; a?: string; b?: string; seg?: number; mid?: string }
@@ -46,7 +47,14 @@ export default function ModoDirectoPage() {
   // pendientes reales; si no, datos de muestra.
   const gestion = useDemoStore(s => s.gestion[TORNEO_LIVE])
   const override = useDemoStore(s => s.editados[TORNEO_LIVE])
+  const pushNoti = useDemoStore(s => s.pushNoti)
   const torneo = getTorneo(TORNEO_LIVE)
+  // Plano de mesas del local que acoge el torneo (el que edita la sede en su panel).
+  const local = getLocal(torneo?.localId ?? 'gamba')
+  const mesasOverride = useDemoStore(s => s.mesasSede[local?.id ?? ''])
+  const mesas = mesasOverride ?? local?.mesas ?? []
+  const [vistaMesas, setVistaMesas] = useState<'plano' | 'lista'>('plano')
+  const [mesaSel, setMesaSel] = useState<number | null>(null)
   const nombreTorneo = override?.nombre ?? torneo?.nombre ?? 'Torneo en directo'
   const colaBracket = useMemo<ColaItem[]>(() => {
     if (!torneo || !gestion?.generado) return []
@@ -83,11 +91,17 @@ export default function ModoDirectoPage() {
     if (bracketReal) setUsados(u => [...u, next.id])
     else setCola(c => c.slice(1))
     setSetups(prev => prev.map(s => s.n === n ? { ...s, estado: 'ocupado', a: next.a, b: next.b, seg: 0, mid: next.id } : s))
-    flash(`${next.a} vs ${next.b} → Setup ${n}`)
+    flash(`${next.a} vs ${next.b} → Mesa ${n}`)
+    // Aviso "te toca" al jugador: abre su vista de mesa (resaltada + vibración).
+    pushNoti({
+      tipo: 'combate', titulo: `Te toca · Mesa ${n}`,
+      cuerpo: `${next.a} vs ${next.b} (${next.ronda}). Preséntate en la mesa ${n}.`,
+      href: `/torneo/${TORNEO_LIVE}/mesa?n=${n}&vs=${encodeURIComponent(`${next.a} vs ${next.b}`)}`,
+    })
   }
   function liberar(n: number) {
     setSetups(prev => prev.map(s => s.n === n ? { ...s, estado: 'libre', a: undefined, b: undefined, seg: undefined, mid: undefined } : s))
-    flash(`Setup ${n} liberado`)
+    flash(`Mesa ${n} liberada`)
   }
   function toggleCaido(n: number) {
     setSetups(prev => prev.map(s => {
@@ -132,7 +146,7 @@ export default function ModoDirectoPage() {
           <div className="flex items-center gap-3 rounded-2xl border border-[#FF6076]/40 bg-[#FF6076]/10 px-4 py-3 animate-slide-up-sm">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF6076]/20 text-[#FF6076] shrink-0"><AlertTriangle size={18} /></span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white">Disputa en Setup {disputa.setup}</p>
+              <p className="text-sm font-bold text-white">Disputa en Mesa {disputa.setup}</p>
               <p className="text-xs text-[#FFB3BD]">{disputa.a} y {disputa.b} reclaman la victoria</p>
             </div>
           </div>
@@ -144,19 +158,77 @@ export default function ModoDirectoPage() {
           </div>
         )}
 
-        {/* Setups */}
+        {/* Mesas del local */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <p className="eyebrow eyebrow-muted">Setups</p>
+            <div className="flex items-center gap-2">
+              <p className="eyebrow eyebrow-muted">Mesas · {local?.nombre}</p>
+              <div className="flex rounded-lg border border-white/10 bg-white/4 p-0.5">
+                {([['plano', MapIcon], ['lista', List]] as const).map(([k, Ic]) => (
+                  <button key={k} onClick={() => setVistaMesas(k)} aria-label={`Vista ${k}`}
+                    className={cn('h-6 w-7 rounded-md flex items-center justify-center transition-colors', vistaMesas === k ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'text-[#8B8BA8]')}>
+                    <Ic size={12} />
+                  </button>
+                ))}
+              </div>
+            </div>
             <p className="text-xs text-[#8B8BA8]"><span className="text-[#B6FF3A] font-bold font-mono-num">{enJuego}</span> en juego · <span className="text-[#6FB0FF] font-bold font-mono-num">{libres}</span> libres</p>
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
+
+          {vistaMesas === 'plano' && (
+            <div>
+              {/* El plano lo define la sede; los estados salen de los setups del torneo */}
+              <MapaMesas
+                mesas={mesas}
+                estados={Object.fromEntries(setups.map(s => [s.n, disputa?.setup === s.n ? 'disputa' : s.estado === 'ocupado' ? 'ocupada' : s.estado === 'caido' ? 'caida' : 'libre']) ) as Record<number, EstadoMesa>}
+                ocupantes={Object.fromEntries(setups.filter(s => s.a && s.b).map(s => [s.n, `${s.a} vs ${s.b}`]))}
+                seleccionada={mesaSel ?? undefined}
+                onPick={m => setMesaSel(sel => sel === m.n ? null : m.n)}
+              />
+              <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+                <LeyendaMesas conNeutra />
+              </div>
+              {mesaSel != null && (() => {
+                const s = setups.find(x => x.n === mesaSel)
+                const m = mesas.find(x => x.n === mesaSel)
+                if (!m) return null
+                const estado: EstadoMesa | null = s ? (disputa?.setup === s.n ? 'disputa' : s.estado === 'ocupado' ? 'ocupada' : s.estado === 'caido' ? 'caida' : 'libre') : null
+                return (
+                  <div className="mt-2.5 card-premium p-3.5 animate-slide-up-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-bold text-white">Mesa {m.n} <span className="text-[#8B8BA8] font-semibold">· {m.tipo} · {m.plazas} plazas</span></p>
+                      {estado
+                        ? <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: ESTADO_MESA[estado].color }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: ESTADO_MESA[estado].color }} /> {ESTADO_MESA[estado].label}
+                          </span>
+                        : <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B8BA8]">Fuera del torneo</span>}
+                    </div>
+                    {s?.estado === 'ocupado' && <p className="text-sm text-white font-semibold mb-2">{s.a} <span className="text-[#6B6B85]">vs</span> {s.b} · <span className="text-[#B6FF3A] font-mono-num text-[12px]">{fmt(s.seg ?? 0)}</span></p>}
+                    {s ? (
+                      <div className="flex gap-2">
+                        {s.estado === 'libre' && <button onClick={() => { asignar(s.n); setMesaSel(null) }} className="flex-1 h-9 rounded-lg bg-[#4F8EF7]/15 text-[#6FB0FF] text-xs font-bold">Asignar siguiente →</button>}
+                        {s.estado === 'ocupado' && <>
+                          <button onClick={() => { liberar(s.n); setMesaSel(null) }} className="flex-1 h-9 rounded-lg bg-[#B6FF3A]/15 text-[#B6FF3A] text-xs font-bold inline-flex items-center justify-center gap-1"><Check size={13} /> Liberar</button>
+                          <button onClick={() => { toggleCaido(s.n); setMesaSel(null) }} className="h-9 px-3 rounded-lg bg-white/6 text-[#FF6076] text-xs font-bold inline-flex items-center justify-center gap-1"><Flag size={12} /> Caída</button>
+                        </>}
+                        {s.estado === 'caido' && <button onClick={() => { toggleCaido(s.n); setMesaSel(null) }} className="flex-1 h-9 rounded-lg bg-white/6 text-[#FF6076] text-xs font-bold inline-flex items-center justify-center gap-1"><RotateCcw size={12} /> Reactivar</button>}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-[#8B8BA8]">Esta mesa del local no está asignada al torneo. La sede gestiona su plano desde su panel.</p>
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+          )}
+
+          <div className={cn('grid grid-cols-2 gap-2.5', vistaMesas !== 'lista' && 'hidden')}>
             {setups.map(s => {
               const c = COLORS[s.estado]
               return (
                 <div key={s.n} className="card-premium p-3" style={{ borderColor: s.estado === 'caido' ? 'rgba(255,96,118,0.3)' : undefined }}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-bold text-white">Setup {s.n}</span>
+                    <span className="text-sm font-bold text-white">Mesa {s.n}</span>
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: c.text }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: c.dot }} /> {c.label}
                     </span>

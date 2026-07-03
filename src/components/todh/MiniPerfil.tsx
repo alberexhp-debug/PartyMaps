@@ -2,6 +2,7 @@
 import type { Jugador } from '@/lib/torneos/sample'
 import { JUEGOS } from '@/lib/torneos/sample'
 import { X, Star, Swords, TrendingUp, Trophy } from 'lucide-react'
+import { PersonajeChip } from '@/components/todh/PersonajeChip'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
@@ -58,7 +59,7 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
             {jugador.main && (
               <div className="flex items-center justify-between card-premium px-3.5 py-2.5">
                 <span className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">Main</span>
-                <span className="text-sm font-bold text-white">{jugador.main}</span>
+                <PersonajeChip juegoId={jugador.juego} nombre={jugador.main} size="md" />
               </div>
             )}
             <div className="flex items-center justify-between card-premium px-3.5 py-2.5">

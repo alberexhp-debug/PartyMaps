@@ -10,6 +10,8 @@ import { GameKeyart } from '@/components/todh/GameKeyart'
 import { FillBar, CountUp } from '@/components/ui/CountUp'
 import { InscripcionSheet } from '@/components/todh/InscripcionSheet'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
+import { MiniLocal } from '@/components/todh/MiniLocal'
+import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import type { Jugador } from '@/lib/torneos/sample'
 import {
   ArrowLeft, Calendar, MapPin, Trophy, Users, Lock, Radio, Share2, ListTree, ShieldCheck,
@@ -38,6 +40,7 @@ export default function TorneoDetallePage() {
   const [copiado, setCopiado] = useState(false)
   const [verParts, setVerParts] = useState(false)
   const [selJugador, setSelJugador] = useState<Jugador | null>(null)
+  const [verSede, setVerSede] = useState(false)
 
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
   const override = useDemoStore(s => s.editados[id])
@@ -141,11 +144,11 @@ export default function TorneoDetallePage() {
             <div className="flex items-center gap-2 mb-2">
               <span className="dot-live" /><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#B6FF3A]">Tu combate está listo</p>
             </div>
-            <p className="text-sm text-white font-semibold">Cuartos vs <span className="text-white">Sora</span> · Setup 3</p>
-            <p className="text-xs text-[#A0A0B8] mt-0.5">Preséntate en tu estación. Reporta el resultado al terminar.</p>
+            <p className="text-sm text-white font-semibold">Cuartos vs <span className="text-white">Sora</span> · Mesa 3</p>
+            <p className="text-xs text-[#A0A0B8] mt-0.5">Preséntate en tu mesa. Reporta el resultado al terminar.</p>
             <div className="mt-3 flex gap-2">
-              <Link href={`/torneo/${t.id}/directo`} className="flex-1 h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-1.5"><MessageSquare size={15} /> Chat del combate</Link>
-              <Link href={`/torneo/${t.id}/bracket`} className="flex-1 h-10 rounded-xl bg-white/8 text-white text-sm font-bold flex items-center justify-center gap-1.5"><ListTree size={15} /> Ver bracket</Link>
+              <Link href={`/torneo/${t.id}/mesa?n=3&vs=${encodeURIComponent('Cuartos vs Sora')}`} className="flex-1 h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-1.5"><MapPin size={15} /> Ver mi mesa</Link>
+              <Link href={`/torneo/${t.id}/directo`} className="flex-1 h-10 rounded-xl bg-white/8 text-white text-sm font-bold flex items-center justify-center gap-1.5"><MessageSquare size={15} /> Chat</Link>
             </div>
           </div>
         )}
@@ -209,6 +212,27 @@ export default function TorneoDetallePage() {
           </div>
         )}
 
+        {/* Premios en producto + comentarios del TO */}
+        {(t.premiosImgs?.length || t.comentarios) && (
+          <div className="mt-4">
+            <p className="eyebrow eyebrow-muted mb-2">Del organizador</p>
+            <div className="card-premium p-4 space-y-3">
+              {t.comentarios && <p className="text-sm text-[#B8B8CC] leading-relaxed">{t.comentarios}</p>}
+              {(t.premiosImgs?.length ?? 0) > 0 && (
+                <div>
+                  <p className="text-[11px] text-[#8B8BA8] font-semibold uppercase tracking-wider mb-1.5">Premios en producto</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {t.premiosImgs!.map(url => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img key={url} src={url} alt="Premio en producto" className="aspect-square w-full rounded-xl object-cover border border-white/10" />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Participantes */}
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
@@ -233,7 +257,7 @@ export default function TorneoDetallePage() {
         <div className="mt-5">
           <p className="eyebrow eyebrow-muted mb-2">Reglas</p>
           <ul className="space-y-2 text-sm text-[#B8B8CC]">
-            <li className="flex gap-2"><ShieldCheck size={16} className="text-[#B6FF3A] shrink-0 mt-0.5" /> {t.bestOf || 'Best of 3'} · formato {t.formato.toLowerCase()}.</li>
+            <li className="flex gap-2"><ShieldCheck size={16} className="text-[#B6FF3A] shrink-0 mt-0.5" /> {t.bestOf || 'Best of 3'} · {t.formato}.</li>
             <li className="flex gap-2"><ShieldCheck size={16} className="text-[#B6FF3A] shrink-0 mt-0.5" /> Check-in con QR y reporte de resultados por consenso.</li>
             <li className="flex gap-2"><ShieldCheck size={16} className="text-[#B6FF3A] shrink-0 mt-0.5" /> Seeding por ranking; el organizador resuelve las disputas.</li>
             {t.online && <li className="flex gap-2"><ShieldCheck size={16} className="text-[#B6FF3A] shrink-0 mt-0.5" /> Código de sala por el chat del combate.</li>}
@@ -244,13 +268,14 @@ export default function TorneoDetallePage() {
         {local && (
           <div className="mt-5">
             <p className="eyebrow eyebrow-muted mb-2">Sede</p>
-            <div className="card-premium p-4 flex items-center gap-3">
+            <button onClick={() => setVerSede(true)} className="w-full card-premium card-int p-4 flex items-center gap-3 text-left">
               <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-[#0A0A0F] font-black" style={{ background: local.color }}>{local.nombre[0]}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{local.nombre}</p>
                 <p className="text-xs text-[#8B8BA8]">{local.zona} · {local.setups} setups · <span className="text-[#E0BE63]">★ {local.rating}</span></p>
               </div>
-            </div>
+              <span className="text-[#8B8BA8] text-lg">›</span>
+            </button>
           </div>
         )}
 
@@ -314,7 +339,7 @@ export default function TorneoDetallePage() {
                   <span className="inline-flex items-center justify-center w-9 h-9 rounded-full text-[#0A0A0F] font-black shrink-0" style={{ background: juego.color }}>{p.nombre[0]}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white truncate">{p.nombre} <span className="text-xs">{p.bandera}</span></p>
-                    <p className="text-[11px] text-[#8B8BA8] font-mono-num">{p.rating} · {p.tier} · {p.main}</p>
+                    <p className="text-[11px] text-[#8B8BA8] font-mono-num flex items-center gap-1">{p.rating} · {p.tier} · <PersonajeChip juegoId={p.juego} nombre={p.main} /></p>
                   </div>
                   <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wide">Seed {i + 1}</span>
                 </button>
@@ -325,6 +350,7 @@ export default function TorneoDetallePage() {
       )}
 
       {selJugador && <MiniPerfil jugador={selJugador} onClose={() => setSelJugador(null)} />}
+      {verSede && local && <MiniLocal local={local} onClose={() => setVerSede(false)} />}
     </div>
   )
 }

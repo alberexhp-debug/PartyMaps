@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react'
 import { JUEGOS, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
+import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { CountUp } from '@/components/ui/CountUp'
 import { cn } from '@/lib/utils'
 import { Globe, MapPin, Crown, ChevronUp, ChevronDown, Minus } from 'lucide-react'
@@ -127,7 +128,7 @@ export default function RankingPage() {
               <Avatar name={p.nombre} size={38} ring={TIER_COLOR[p.tier]} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{p.nombre} <span className="text-xs">{p.bandera}</span></p>
-                <p className="text-[11px] text-[#8B8BA8] font-mono-num">{p.victorias}V · {p.derrotas}D · {p.main}</p>
+                <p className="text-[11px] text-[#8B8BA8] font-mono-num flex items-center gap-1">{p.victorias}V · {p.derrotas}D · <PersonajeChip juegoId={p.juego} nombre={p.main} /></p>
               </div>
               <Tendencia n={p.tendencia} />
               <span className="text-sm font-bold text-white font-mono-num w-12 text-right">{p.rating}</span>

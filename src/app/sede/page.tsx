@@ -3,11 +3,21 @@ import { useState } from 'react'
 import { AnimatedValue } from '@/components/ui/CountUp'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { TORNEOS_SAMPLE, LOCALES, ORGANIZADORES, JUEGOS } from '@/lib/torneos/sample'
+import { TORNEOS_SAMPLE, LOCALES, ORGANIZADORES, JUEGOS, type Mesa, type MesaForma, type MesaTipo } from '@/lib/torneos/sample'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { MapaMesas } from '@/components/todh/MapaMesas'
 import {
   ArrowLeft, Monitor, Wallet, Star, CalendarClock, Check, X, ChevronRight,
-  Tv, ShieldCheck, Users, Trophy,
+  Tv, ShieldCheck, Users, Trophy, Trash2,
 } from 'lucide-react'
+
+const FORMAS: { id: MesaForma; label: string }[] = [
+  { id: 'cuadrada', label: 'Cuadrada' }, { id: 'redonda', label: 'Redonda' }, { id: 'alargada', label: 'Alargada' },
+]
+const TIPOS: { id: MesaTipo; label: string }[] = [
+  { id: 'consola', label: 'Consola' }, { id: 'pc', label: 'PC' }, { id: 'mesa', label: 'Mesa' },
+  { id: 'arcade', label: 'Arcade' }, { id: 'stream', label: 'Stream' },
+]
 
 type Setup = { n: number; tipo: string; estado: 'libre' | 'ocupado'; stream?: boolean }
 const SETUPS: Setup[] = [
@@ -27,6 +37,32 @@ export default function SedePage() {
   ])
   const ocupados = SETUPS.filter(s => s.estado === 'ocupado').length
   const [dispoPublicada, setDispoPublicada] = useState(false)
+
+  // Plano de mesas: el local es quien define dónde está cada mesa y cómo es.
+  // Se persiste en el store demo y lo leen el TO (modo directo) y el jugador (te toca).
+  const mesasStore = useDemoStore(s => s.mesasSede[local.id])
+  const setMesasSede = useDemoStore(s => s.setMesasSede)
+  const mesas = mesasStore ?? local.mesas
+  const [mesaSel, setMesaSel] = useState<number | null>(null)
+  const sel = mesas.find(m => m.n === mesaSel) ?? null
+
+  const guardarMesas = (list: Mesa[]) => setMesasSede(local.id, list)
+  const addMesa = (x: number, y: number) => {
+    const n = mesas.reduce((mx, m) => Math.max(mx, m.n), 0) + 1
+    guardarMesas([...mesas, { n, x, y, forma: 'cuadrada', plazas: 2, tipo: 'consola' }])
+    setMesaSel(n)
+  }
+  const editarMesa = (patch: Partial<Mesa>) => {
+    if (!sel) return
+    // Una alargada en la última columna se saldría del plano: la retraemos.
+    const fix = patch.forma === 'alargada' && sel.x >= 7 ? { x: 6 } : {}
+    guardarMesas(mesas.map(m => m.n === sel.n ? { ...m, ...patch, ...fix } : m))
+  }
+  const eliminarMesa = () => {
+    if (!sel) return
+    guardarMesas(mesas.filter(m => m.n !== sel.n))
+    setMesaSel(null)
+  }
 
   return (
     <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-5xl mx-auto">
@@ -80,19 +116,44 @@ export default function SedePage() {
           })}
         </div>
 
-        {/* Setups en vivo */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Estado de los setups</p>
-        <div className="grid grid-cols-3 gap-2">
-          {SETUPS.map(s => (
-            <div key={s.n} className="card-premium p-2.5 text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                {s.stream ? <Tv size={13} className="text-[#9B82FF]" /> : <Monitor size={13} className="text-[#8B8BA8]" />}
-                <span className="text-xs font-bold text-white">#{s.n}</span>
-              </div>
-              <span className={`inline-block text-[10px] font-bold uppercase tracking-wide ${s.estado === 'ocupado' ? 'text-[#B6FF3A]' : 'text-[#6FB0FF]'}`}>{s.estado === 'ocupado' ? 'En uso' : 'Libre'}</span>
-            </div>
-          ))}
+        {/* Plano de la sala: el local coloca y define sus mesas */}
+        <div className="mt-6 mb-2.5 flex items-center justify-between">
+          <p className="eyebrow eyebrow-muted">Plano de la sala</p>
+          <span className="text-[11px] text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{mesas.length}</span> mesas</span>
         </div>
+        <MapaMesas
+          mesas={mesas}
+          seleccionada={mesaSel ?? undefined}
+          onPick={m => setMesaSel(s => s === m.n ? null : m.n)}
+          onCeldaVacia={addMesa}
+        />
+        <p className="mt-2 text-[11px] text-[#8B8BA8]">Toca una celda vacía para añadir mesa y una mesa para editarla. Los TOs ven este plano en el modo directo y los jugadores reciben su mesa resaltada.</p>
+
+        {sel && (
+          <div className="mt-3 card-premium p-3.5 animate-slide-up-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold text-white">Mesa {sel.n}</p>
+              <button onClick={eliminarMesa} className="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg bg-[#FF6B6B]/12 text-[#FF8A8A] text-[11px] font-bold"><Trash2 size={12} /> Quitar</button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {FORMAS.map(f => (
+                <button key={f.id} onClick={() => editarMesa({ forma: f.id })}
+                  className={`px-2.5 h-8 rounded-lg text-xs font-bold border transition-all ${sel.forma === f.id ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border-[#B6FF3A]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>{f.label}</button>
+              ))}
+              <span className="w-px h-8 bg-white/10 mx-1" />
+              {TIPOS.map(tp => (
+                <button key={tp.id} onClick={() => editarMesa({ tipo: tp.id })}
+                  className={`px-2.5 h-8 rounded-lg text-xs font-bold border transition-all ${sel.tipo === tp.id ? 'bg-[#9B82FF]/15 text-[#B9A6FF] border-[#9B82FF]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>{tp.label}</button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-[#8B8BA8] font-semibold">Personas</span>
+              <button onClick={() => editarMesa({ plazas: Math.max(1, sel.plazas - 1) })} aria-label="Menos plazas" className="h-8 w-8 rounded-lg bg-white/8 text-white">−</button>
+              <span className="w-8 text-center text-sm font-bold text-white font-mono-num">{sel.plazas}</span>
+              <button onClick={() => editarMesa({ plazas: sel.plazas + 1 })} aria-label="Más plazas" className="h-8 w-8 rounded-lg bg-white/8 text-white">+</button>
+            </div>
+          </div>
+        )}
 
         {/* Torneos alojados */}
         <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Torneos alojados</p>

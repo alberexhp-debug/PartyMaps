@@ -1,16 +1,15 @@
 'use client'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { JUEGOS, type TorneoSample, type FormatoTorneo, type Tier } from '@/lib/torneos/sample'
+import { JUEGOS, LOCALES, FORMATOS_SUGERIDOS, type TorneoSample, type Tier, type Juego, type Local } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe, Check, Eye } from 'lucide-react'
+import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe, Check, Eye, Plus, Search, X, Star, Map as MapIcon, ImagePlus } from 'lucide-react'
 
 let creadoSeq = 0
 
-const FORMATOS = ['Doble eliminación', 'Eliminación simple', 'Suizo', 'Pools → Top cut', 'Round robin']
 const CIERRES = ['Al empezar', '1 hora antes', '1 día antes', 'Manual']
 const REPARTOS = ['100%', '70/30', '70/20/10', '50/30/20']
 const ACCESOS = [
@@ -20,37 +19,64 @@ const ACCESOS = [
   { id: 'platino', label: 'Platino', color: '#C9CCD6' },
 ] as const
 
+// Distancia de muestra a cada sede (con backend real sale de la geolocalización).
+const DIST_KM: Record<string, number> = { gamba: 1.2, dragon: 2.6, cardkingdom: 3.1, arcade: 4.8, respawn: 5.4 }
+
+const EMOJIS_JUEGO = ['🎮', '🕹️', '🎲', '🃏', '♟️', '⚽', '🏓', '🎯', '🧩', '🤖']
+const COLORES_JUEGO = ['#FF7A5C', '#5CC8FF', '#C05CFF', '#3FA65C', '#FF5CA8', '#E0BE63']
+
+// Fotos de muestra para premios en producto (sobres, merch, periféricos…).
+const PREMIOS_PRESET = [
+  'https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=600&q=80',
+  'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=600&q=80',
+  'https://images.unsplash.com/photo-1615680022647-99c397cbcaea?w=600&q=80',
+  'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=600&q=80',
+]
+
 export default function CrearTorneoPage() {
   const router = useRouter()
   const [nombre, setNombre] = useState('')
   const [juego, setJuego] = useState('smash')
-  const [formato, setFormato] = useState(FORMATOS[0])
+  const [formato, setFormato] = useState('Doble eliminación')
   const [fecha, setFecha] = useState('')
   const [hora, setHora] = useState('18:00')
   const [plazas, setPlazas] = useState(32)
   const [precio, setPrecio] = useState(8)
   const [acceso, setAcceso] = useState<typeof ACCESOS[number]['id']>('abierto')
   const [sala, setSala] = useState<'local' | 'online'>('local')
+  const [sedeId, setSedeId] = useState<string | null>(null)
+  const [pickerSede, setPickerSede] = useState(false)
   const [cierre, setCierre] = useState(CIERRES[1])
   const [reparto, setReparto] = useState(REPARTOS[1])
+  const [comentarios, setComentarios] = useState('')
+  const [premiosImgs, setPremiosImgs] = useState<string[]>([])
+  const [nuevoJuego, setNuevoJuego] = useState(false)
   const [publicado, setPublicado] = useState<TorneoSample | null>(null)
   const crearTorneo = useDemoStore(s => s.crearTorneo)
+  const juegosCustom = useDemoStore(s => s.juegosCustom)
+  // juegosCustom en la dependencia: al añadir un juego la lista se recalcula.
+  const juegos = useMemo(() => Object.values(JUEGOS), [juegosCustom])
   const j = JUEGOS[juego]
+  const sede = sedeId ? LOCALES[sedeId] : null
 
   function publicar() {
     if (!nombre.trim()) return
+    if (sala === 'local' && !sede) { setPickerSede(true); return }
     const id = `c${Date.now().toString(36)}${creadoSeq++}`
     const fechaLabel = fecha
       ? `${new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} · ${hora}`
       : `Próximamente · ${hora}`
     const vipMap: Record<string, Tier | null> = { abierto: null, oro: 'Oro', diamante: 'Diamante', platino: 'Platino' }
     const t: TorneoSample = {
-      id, nombre: nombre.trim(), juego, formato: formato as FormatoTorneo, fechaLabel,
-      online: sala === 'online', local: sala === 'online' ? 'Online' : 'Tu sala', localId: sala === 'online' ? undefined : 'gamba',
-      ciudad: sala === 'online' ? 'Online' : 'Madrid', distanciaKm: sala === 'online' ? 0 : 1.2,
+      id, nombre: nombre.trim(), juego, formato: formato.trim() || 'Formato por anunciar', fechaLabel,
+      online: sala === 'online',
+      local: sala === 'online' ? 'Online' : sede!.nombre, localId: sala === 'online' ? undefined : sede!.id,
+      ciudad: sala === 'online' ? 'Online' : sede!.ciudad, distanciaKm: sala === 'online' ? 0 : (DIST_KM[sede!.id] ?? 2),
       inscritos: 0, plazas, precio, bote: precio > 0 ? Math.round(plazas * precio * 0.8) : 0,
       enDirecto: false, vip: vipMap[acceso], organizadorId: 'lima', popularidad: 50,
-      bestOf: 'Bo3', descripcion: `Torneo de ${j.nombre}. Formato ${(formato as string).toLowerCase()}. Cierre de inscripciones: ${cierre.toLowerCase()}.`,
+      bestOf: 'Bo3', descripcion: `Torneo de ${j.nombre}. Formato: ${formato.trim() || 'por anunciar'}. Cierre de inscripciones: ${cierre.toLowerCase()}.`,
+      comentarios: comentarios.trim() || undefined,
+      premiosImgs: premiosImgs.length ? premiosImgs : undefined,
     }
     crearTorneo(t)
     setPublicado(t)
@@ -83,7 +109,7 @@ export default function CrearTorneoPage() {
             <div className="mt-1.5 flex items-center gap-2 text-[11px] text-[#A0A0B8] min-w-0">
               <span className="inline-flex items-center gap-1 text-white shrink-0"><Calendar size={11} className="text-[#B6FF3A]" /> {fecha ? new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : 'Fecha'} · {hora}</span>
               <span className="text-[#3A3A4A]">·</span>
-              <span className="inline-flex items-center gap-1">{sala === 'online' ? <Globe size={11} /> : <MapPin size={11} />} {sala === 'online' ? 'Online' : 'Tu sala'}</span>
+              <span className="inline-flex items-center gap-1 truncate">{sala === 'online' ? <Globe size={11} /> : <MapPin size={11} />} {sala === 'online' ? 'Online' : sede?.nombre || 'Elige sede'}</span>
             </div>
             <div className="mt-2.5 flex items-end justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -113,7 +139,7 @@ export default function CrearTorneoPage() {
           </Field>
           <Field label="Juego">
             <div className="flex flex-wrap gap-2">
-              {Object.values(JUEGOS).map(g => {
+              {juegos.map(g => {
                 const on = juego === g.id
                 return (
                   <button key={g.id} onClick={() => setJuego(g.id)}
@@ -123,11 +149,19 @@ export default function CrearTorneoPage() {
                   </button>
                 )
               })}
+              <button onClick={() => setNuevoJuego(v => !v)}
+                className={cn('inline-flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-bold border border-dashed transition-all',
+                  nuevoJuego ? 'border-[#B6FF3A]/60 text-[#B6FF3A] bg-[#B6FF3A]/8' : 'border-white/20 text-[#B8B8CC] hover:text-white')}>
+                <Plus size={13} /> Añadir juego
+              </button>
             </div>
+            {nuevoJuego && <NuevoJuegoForm onCreado={id => { setJuego(id); setNuevoJuego(false) }} />}
           </Field>
-          <Field label="Formato">
-            <div className="flex flex-wrap gap-2">
-              {FORMATOS.map(f => (
+          <Field label="Formato (texto libre — cada juego tiene los suyos)">
+            <input value={formato} onChange={e => setFormato(e.target.value)} placeholder="Ej. Suizo 6 rondas + top 8, Bo3"
+              className="w-full h-12 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-[#6B6B85] focus:border-[#B6FF3A]/60 outline-none transition-colors" />
+            <div className="flex flex-wrap gap-2 mt-2">
+              {FORMATOS_SUGERIDOS.map(f => (
                 <Chip key={f} on={formato === f} onClick={() => setFormato(f)}>{f}</Chip>
               ))}
             </div>
@@ -151,15 +185,32 @@ export default function CrearTorneoPage() {
           </div>
           <Field label="Sala">
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => setSala('local')} className={cn('flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-semibold border transition-all',
+              <button onClick={() => { setSala('local'); if (!sede) setPickerSede(true) }} className={cn('flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-semibold border transition-all',
                 sala === 'local' ? 'bg-[#B6FF3A]/12 text-white border-[#B6FF3A]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10')}>
-                <MapPin size={15} /> Local físico
+                <MapPin size={15} /> Sede física
               </button>
               <button onClick={() => setSala('online')} className={cn('flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-semibold border transition-all',
                 sala === 'online' ? 'bg-[#B6FF3A]/12 text-white border-[#B6FF3A]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10')}>
                 <Globe size={15} /> Online
               </button>
             </div>
+            {/* Sede asignada como perfil de la app (tipo contacto) */}
+            {sala === 'local' && (
+              sede ? (
+                <div className="mt-2 card-premium p-3 flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-[#0A0A0F] font-black" style={{ background: sede.color }}>{sede.nombre[0]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{sede.nombre}</p>
+                    <p className="text-[11px] text-[#8B8BA8]">{sede.zona} · {sede.setups} setups · <span className="text-[#E0BE63]">★ {sede.rating}</span> · desde <span className="font-mono-num">{sede.precioNoche}€</span>/noche</p>
+                  </div>
+                  <button onClick={() => setPickerSede(true)} className="h-9 px-3 rounded-lg bg-white/8 text-white text-xs font-bold shrink-0">Cambiar</button>
+                </div>
+              ) : (
+                <button onClick={() => setPickerSede(true)} className="mt-2 w-full h-12 rounded-xl border border-dashed border-white/20 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors">
+                  <Search size={15} /> Elegir sede de la app
+                </button>
+              )
+            )}
           </Field>
           <Field label="Cierre de inscripciones">
             <div className="flex flex-wrap gap-2">
@@ -195,6 +246,31 @@ export default function CrearTorneoPage() {
           )}
         </Section>
 
+        {/* Otros comentarios + premios en producto */}
+        <Section title="Otros comentarios">
+          <Field label="Reglas extra, premios en producto, avisos…">
+            <textarea value={comentarios} onChange={e => setComentarios(e.target.value)} rows={3}
+              placeholder="Ej. Al top 4 también le caen 2 cajas de sobres de la colección nueva. Trae tu mando."
+              className="w-full px-3.5 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-[#6B6B85] focus:border-[#B6FF3A]/60 outline-none transition-colors resize-none" />
+          </Field>
+          <Field label="Fotos de los premios en producto">
+            <div className="grid grid-cols-4 gap-2">
+              {PREMIOS_PRESET.map(url => {
+                const on = premiosImgs.includes(url)
+                return (
+                  <button key={url} onClick={() => setPremiosImgs(p => on ? p.filter(u => u !== url) : [...p, url])}
+                    className={cn('relative aspect-square rounded-xl overflow-hidden border-2 transition-all', on ? 'border-[#B6FF3A]' : 'border-white/10 opacity-80 hover:opacity-100')}>
+                    { /* eslint-disable-next-line @next/next/no-img-element */ }
+                    <img src={url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                    {on && <span className="absolute top-1 right-1 h-5 w-5 rounded-full bg-[#B6FF3A] text-[#0A0A0F] flex items-center justify-center"><Check size={12} /></span>}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="text-[11px] text-[#8B8BA8] flex items-center gap-1"><ImagePlus size={12} /> En la versión real subirás tus propias fotos; en la demo elige de la galería.</p>
+          </Field>
+        </Section>
+
         {/* Acceso */}
         <Section title="Acceso">
           <div className="flex flex-wrap gap-2">
@@ -222,6 +298,14 @@ export default function CrearTorneoPage() {
         </div>
       </div>
 
+      {/* Selector de sede (perfil de local de la app) */}
+      {pickerSede && (
+        <SedePicker
+          onClose={() => setPickerSede(false)}
+          onPick={l => { setSedeId(l.id); setSala('local'); setPickerSede(false) }}
+        />
+      )}
+
       {/* Éxito */}
       {publicado && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
@@ -237,6 +321,87 @@ export default function CrearTorneoPage() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// Alta de un juego no contemplado en la app: nombre + icono; el color se asigna solo.
+function NuevoJuegoForm({ onCreado }: { onCreado: (id: string) => void }) {
+  const crearJuego = useDemoStore(s => s.crearJuego)
+  const juegosCustom = useDemoStore(s => s.juegosCustom)
+  const [nombre, setNombre] = useState('')
+  const [emoji, setEmoji] = useState(EMOJIS_JUEGO[0])
+
+  function crear() {
+    const limpio = nombre.trim()
+    if (!limpio) return
+    const id = 'cj-' + limpio.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    const color = COLORES_JUEGO[Object.keys(juegosCustom).length % COLORES_JUEGO.length]
+    const j: Juego = { id, nombre: limpio, corto: limpio.length > 14 ? limpio.slice(0, 12) + '…' : limpio, color, emoji }
+    crearJuego(j)
+    onCreado(id)
+  }
+
+  return (
+    <div className="mt-2 card-premium p-3.5 space-y-3 animate-slide-up-sm">
+      <p className="text-[11px] text-[#8B8BA8]">¿Tu juego no está en la lista? Añádelo y organiza igualmente: el catálogo oficial crece con lo que la comunidad organiza.</p>
+      <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre del juego · Ej. Guilty Gear Strive" autoFocus
+        onKeyDown={e => { if (e.key === 'Enter') crear() }}
+        className="w-full h-11 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-[#6B6B85] focus:border-[#B6FF3A]/60 outline-none" />
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {EMOJIS_JUEGO.map(e => (
+          <button key={e} onClick={() => setEmoji(e)}
+            className={cn('h-9 w-9 rounded-lg text-lg flex items-center justify-center border transition-all', emoji === e ? 'border-[#B6FF3A]/70 bg-[#B6FF3A]/12' : 'border-white/10 bg-white/4')}>
+            {e}
+          </button>
+        ))}
+      </div>
+      <button onClick={crear} disabled={!nombre.trim()}
+        className="w-full h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold disabled:opacity-40">
+        Añadir «{nombre.trim() || 'juego'}»
+      </button>
+    </div>
+  )
+}
+
+// Selector de sede: perfiles de local de la app, como asignar un contacto.
+function SedePicker({ onClose, onPick }: { onClose: () => void; onPick: (l: Local) => void }) {
+  const [q, setQ] = useState('')
+  const locales = Object.values(LOCALES).filter(l =>
+    (l.nombre + ' ' + l.zona).toLowerCase().includes(q.trim().toLowerCase()))
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="absolute inset-0 bg-black/65 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop max-h-[85vh] overflow-y-auto">
+        <div className="sticky top-0 bg-[#141822] px-5 pt-4 pb-3 z-10 border-b border-white/5">
+          <div className="flex items-center justify-between">
+            <p className="text-[15px] font-bold text-white">Elige la sede</p>
+            <button onClick={onClose} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC]"><X size={16} /></button>
+          </div>
+          <div className="mt-3 relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B8BA8]" />
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar local o zona…" autoFocus
+              className="w-full h-11 pl-9 pr-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none" />
+          </div>
+        </div>
+        <div className="px-4 py-3 space-y-1.5">
+          {locales.map(l => (
+            <button key={l.id} onClick={() => onPick(l)}
+              className="w-full flex items-center gap-3 card-premium card-int p-3 text-left">
+              <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-[#0A0A0F] font-black text-lg shrink-0" style={{ background: l.color }}>{l.nombre[0]}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white truncate">{l.nombre}</p>
+                <p className="text-[11px] text-[#8B8BA8]">{l.zona} · {l.setups} setups · {l.m2} m² · <span className="inline-flex items-center gap-0.5 text-[#E0BE63]"><Star size={9} className="fill-[#E0BE63]" /> {l.rating}</span></p>
+              </div>
+              <span className="text-[11px] font-bold text-[#B6FF3A] font-mono-num shrink-0">{l.precioNoche}€/noche</span>
+            </button>
+          ))}
+          {locales.length === 0 && <p className="text-center text-sm text-[#8B8BA8] py-6">Ningún local con ese nombre.</p>}
+          <Link href="/mapa" className="w-full h-11 rounded-xl border border-dashed border-white/20 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors">
+            <MapIcon size={15} /> Descubrir sedes en el mapa
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }

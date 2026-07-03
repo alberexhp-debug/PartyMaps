@@ -18,8 +18,10 @@ export const JUEGOS: Record<string, Juego> = {
 
 export const JUEGOS_LIST = Object.values(JUEGOS)
 
-export type FormatoTorneo =
-  | 'Doble eliminación' | 'Eliminación simple' | 'Suizo' | 'Pools → Top cut' | 'Round robin'
+// El formato es texto libre del TO (no se comparte entre juegos: Smash ≠ TFT ≠ Magic).
+// Estos son solo atajos sugeridos en los formularios.
+export type FormatoTorneo = string
+export const FORMATOS_SUGERIDOS = ['Doble eliminación', 'Eliminación simple', 'Suizo', 'Pools → Top cut', 'Round robin']
 
 export type Tier = 'Platino' | 'Diamante' | 'Oro'
 
@@ -48,6 +50,8 @@ export type TorneoSample = {
   checkInAbierto?: boolean
   descripcion?: string
   banner?: string          // URL del banner del torneo; si falta, se usa el keyart del juego
+  comentarios?: string     // otros comentarios del TO (reglas extra, premios en producto…)
+  premiosImgs?: string[]   // fotos de premios en producto
 }
 
 export const TORNEOS_SAMPLE: TorneoSample[] = [
@@ -209,6 +213,20 @@ export function getOrganizador(id: string): Organizador | undefined {
 // ─────────────────────────────────────────────────────────────────────────────
 // Locales (sedes)
 // ─────────────────────────────────────────────────────────────────────────────
+// Mesa/estación física dentro del local. El LOCAL define su plano: dónde está cada
+// mesa, su forma, cuánta gente cabe y si tiene equipo (consola/PC/stream) o es mesa
+// de cartas. Posición en cuadrícula de 8×5 (x:0-7, y:0-4).
+export type MesaForma = 'cuadrada' | 'redonda' | 'alargada'
+export type MesaTipo = 'consola' | 'pc' | 'mesa' | 'arcade' | 'stream'
+export type Mesa = {
+  n: number
+  x: number
+  y: number
+  forma: MesaForma
+  plazas: number
+  tipo: MesaTipo
+}
+
 export type Local = {
   id: string
   nombre: string
@@ -221,14 +239,63 @@ export type Local = {
   color: string
   lat: number
   lng: number
+  m2: number               // espacio del venue
+  aforo: number
+  precioNoche: number      // tarifa orientativa para TOs (€/noche)
+  mesas: Mesa[]            // plano de mesas definido por el local
 }
 
+const M = (n: number, x: number, y: number, forma: MesaForma, plazas: number, tipo: MesaTipo): Mesa =>
+  ({ n, x, y, forma, plazas, tipo })
+
 export const LOCALES: Record<string, Local> = {
-  gamba: { id: 'gamba', nombre: 'Gamba Esports', ciudad: 'Madrid', zona: 'Malasaña', setups: 24, tiposSetup: ['Consola', 'PC', 'Setup stream'], rating: 4.9, valoraciones: 210, color: '#E63E54', lat: 40.4262, lng: -3.7038 },
-  dragon: { id: 'dragon', nombre: 'La Tienda del Dragón', ciudad: 'Madrid', zona: 'Chamberí', setups: 12, tiposSetup: ['Mesa'], rating: 4.7, valoraciones: 132, color: '#F4912B', lat: 40.4357, lng: -3.7045 },
-  cardkingdom: { id: 'cardkingdom', nombre: 'Card Kingdom', ciudad: 'Madrid', zona: 'Salamanca', setups: 16, tiposSetup: ['Mesa'], rating: 4.8, valoraciones: 88, color: '#FFC83D', lat: 40.4280, lng: -3.6790 },
-  arcade: { id: 'arcade', nombre: 'Arcade Planet', ciudad: 'Madrid', zona: 'Tetuán', setups: 20, tiposSetup: ['Arcade', 'Consola', 'Setup stream'], rating: 4.5, valoraciones: 70, color: '#9B5DE5', lat: 40.4610, lng: -3.6990 },
-  respawn: { id: 'respawn', nombre: 'Respawn Bar', ciudad: 'Madrid', zona: 'Lavapiés', setups: 8, tiposSetup: ['Consola'], rating: 4.6, valoraciones: 51, color: '#2EC4B6', lat: 40.4090, lng: -3.7010 },
+  gamba: {
+    id: 'gamba', nombre: 'Gamba Esports', ciudad: 'Madrid', zona: 'Malasaña', setups: 24, tiposSetup: ['Consola', 'PC', 'Setup stream'], rating: 4.9, valoraciones: 210, color: '#E63E54', lat: 40.4262, lng: -3.7038,
+    m2: 340, aforo: 120, precioNoche: 60,
+    // Las mesas 1-6 son los setups que ve el TO en modo directo.
+    mesas: [
+      M(1, 0, 0, 'cuadrada', 2, 'consola'), M(2, 2, 0, 'cuadrada', 2, 'consola'),
+      M(3, 5, 0, 'alargada', 4, 'stream'), M(4, 0, 2, 'cuadrada', 2, 'consola'),
+      M(5, 2, 2, 'cuadrada', 2, 'pc'), M(6, 4, 2, 'cuadrada', 2, 'pc'),
+      M(7, 6, 2, 'redonda', 4, 'mesa'), M(8, 1, 4, 'alargada', 6, 'mesa'),
+    ],
+  },
+  dragon: {
+    id: 'dragon', nombre: 'La Tienda del Dragón', ciudad: 'Madrid', zona: 'Chamberí', setups: 12, tiposSetup: ['Mesa'], rating: 4.7, valoraciones: 132, color: '#F4912B', lat: 40.4357, lng: -3.7045,
+    m2: 180, aforo: 60, precioNoche: 40,
+    mesas: [
+      M(1, 0, 0, 'alargada', 4, 'mesa'), M(2, 3, 0, 'alargada', 4, 'mesa'), M(3, 6, 0, 'cuadrada', 2, 'mesa'),
+      M(4, 0, 2, 'alargada', 4, 'mesa'), M(5, 3, 2, 'alargada', 4, 'mesa'), M(6, 6, 2, 'cuadrada', 2, 'mesa'),
+      M(7, 1, 4, 'redonda', 4, 'mesa'), M(8, 4, 4, 'redonda', 4, 'mesa'),
+    ],
+  },
+  cardkingdom: {
+    id: 'cardkingdom', nombre: 'Card Kingdom', ciudad: 'Madrid', zona: 'Salamanca', setups: 16, tiposSetup: ['Mesa'], rating: 4.8, valoraciones: 88, color: '#FFC83D', lat: 40.4280, lng: -3.6790,
+    m2: 220, aforo: 80, precioNoche: 45,
+    mesas: [
+      M(1, 0, 0, 'alargada', 6, 'mesa'), M(2, 4, 0, 'alargada', 6, 'mesa'),
+      M(3, 0, 2, 'alargada', 6, 'mesa'), M(4, 4, 2, 'alargada', 6, 'mesa'),
+      M(5, 1, 4, 'redonda', 4, 'mesa'), M(6, 4, 4, 'redonda', 4, 'mesa'),
+    ],
+  },
+  arcade: {
+    id: 'arcade', nombre: 'Arcade Planet', ciudad: 'Madrid', zona: 'Tetuán', setups: 20, tiposSetup: ['Arcade', 'Consola', 'Setup stream'], rating: 4.5, valoraciones: 70, color: '#9B5DE5', lat: 40.4610, lng: -3.6990,
+    m2: 420, aforo: 150, precioNoche: 80,
+    mesas: [
+      M(1, 0, 0, 'cuadrada', 2, 'arcade'), M(2, 1, 0, 'cuadrada', 2, 'arcade'), M(3, 2, 0, 'cuadrada', 2, 'arcade'), M(4, 3, 0, 'cuadrada', 2, 'arcade'),
+      M(5, 5, 0, 'alargada', 4, 'stream'), M(6, 0, 2, 'cuadrada', 2, 'consola'), M(7, 2, 2, 'cuadrada', 2, 'consola'),
+      M(8, 4, 2, 'cuadrada', 2, 'consola'), M(9, 6, 2, 'cuadrada', 2, 'consola'), M(10, 2, 4, 'alargada', 6, 'mesa'),
+    ],
+  },
+  respawn: {
+    id: 'respawn', nombre: 'Respawn Bar', ciudad: 'Madrid', zona: 'Lavapiés', setups: 8, tiposSetup: ['Consola'], rating: 4.6, valoraciones: 51, color: '#2EC4B6', lat: 40.4090, lng: -3.7010,
+    m2: 150, aforo: 50, precioNoche: 35,
+    mesas: [
+      M(1, 0, 0, 'cuadrada', 2, 'consola'), M(2, 2, 0, 'cuadrada', 2, 'consola'), M(3, 4, 0, 'cuadrada', 2, 'consola'),
+      M(4, 0, 2, 'cuadrada', 2, 'consola'), M(5, 2, 2, 'cuadrada', 2, 'consola'),
+      M(6, 5, 3, 'redonda', 6, 'mesa'),
+    ],
+  },
 }
 
 export function getLocal(id: string): Local | undefined {
@@ -270,6 +337,9 @@ const MAINS: Record<string, string[]> = {
   tft: ['Hyper Roll', 'Fast 8', 'Reroll', 'Standard'],
   magic: ['Aggro', 'Control', 'Midrange', 'Combo'],
   pokemon: ['Charizard ex', 'Lugia', 'Lost Box', 'Gardevoir ex'],
+  valorant: ['Jett', 'Reyna', 'Omen', 'Sage', 'Raze', 'Killjoy'],
+  lol: ['Ahri', 'Yasuo', 'Lee Sin', 'Lux', 'Thresh', 'Jinx'],
+  cod: ['Asalto', 'SMG', 'Francotirador', 'Escopeta', 'Apoyo'],
 }
 
 export function rankingPorJuego(juegoId: string): Jugador[] {
@@ -314,9 +384,9 @@ export function bracketDe(_torneoId: string): RondaSample[] {
     {
       nombre: 'Cuartos',
       matches: [
-        { id: 'q1', a: N[0], b: N[7], scoreA: 2, scoreB: 0, estado: 'jugado', ganador: 'a', setup: 'Setup 1' },
-        { id: 'q2', a: N[3], b: N[4], scoreA: 1, scoreB: 2, estado: 'jugado', ganador: 'b', setup: 'Setup 2' },
-        { id: 'q3', a: N[1], b: N[6], scoreA: 2, scoreB: 1, estado: 'jugado', ganador: 'a', setup: 'Setup 3' },
+        { id: 'q1', a: N[0], b: N[7], scoreA: 2, scoreB: 0, estado: 'jugado', ganador: 'a', setup: 'Mesa 1' },
+        { id: 'q2', a: N[3], b: N[4], scoreA: 1, scoreB: 2, estado: 'jugado', ganador: 'b', setup: 'Mesa 2' },
+        { id: 'q3', a: N[1], b: N[6], scoreA: 2, scoreB: 1, estado: 'jugado', ganador: 'a', setup: 'Mesa 3' },
         { id: 'q4', a: N[2], b: N[5], scoreA: 1, scoreB: 1, estado: 'en-juego', setup: 'Stream' },
       ],
     },
@@ -346,9 +416,9 @@ export function bracketDobleDe(_torneoId: string): BracketDoble {
       {
         nombre: 'WB Cuartos',
         matches: [
-          { id: 'wq1', a: N[0], b: N[7], scoreA: 2, scoreB: 0, estado: 'jugado', ganador: 'a', setup: 'Setup 1' },
-          { id: 'wq2', a: N[3], b: N[4], scoreA: 1, scoreB: 2, estado: 'jugado', ganador: 'b', setup: 'Setup 2' },
-          { id: 'wq3', a: N[1], b: N[6], scoreA: 2, scoreB: 1, estado: 'jugado', ganador: 'a', setup: 'Setup 3' },
+          { id: 'wq1', a: N[0], b: N[7], scoreA: 2, scoreB: 0, estado: 'jugado', ganador: 'a', setup: 'Mesa 1' },
+          { id: 'wq2', a: N[3], b: N[4], scoreA: 1, scoreB: 2, estado: 'jugado', ganador: 'b', setup: 'Mesa 2' },
+          { id: 'wq3', a: N[1], b: N[6], scoreA: 2, scoreB: 1, estado: 'jugado', ganador: 'a', setup: 'Mesa 3' },
           { id: 'wq4', a: N[2], b: N[5], scoreA: 1, scoreB: 1, estado: 'en-juego', setup: 'Stream' },
         ],
       },
@@ -368,7 +438,7 @@ export function bracketDobleDe(_torneoId: string): BracketDoble {
       {
         nombre: 'LB Ronda 1',
         matches: [
-          { id: 'lr1', a: N[7], b: N[3], scoreA: 2, scoreB: 1, estado: 'jugado', ganador: 'a', setup: 'Setup 4' },
+          { id: 'lr1', a: N[7], b: N[3], scoreA: 2, scoreB: 1, estado: 'jugado', ganador: 'a', setup: 'Mesa 4' },
           { id: 'lr2', a: N[6], b: N[5], scoreA: null, scoreB: null, estado: 'pendiente' },
         ],
       },

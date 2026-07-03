@@ -3,11 +3,12 @@ import { JUEGOS } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from './GameKeyart'
 import { CountUp } from '@/components/ui/CountUp'
+import { PersonajeIcon } from '@/components/todh/PersonajeChip'
 
 type Stat = { rating: number; tier: string; v: number; d: number; mejor: string; mains: string[]; pos: number; racha: string[] }
 const STATS: Record<string, Stat> = {
   smash:   { rating: 2210, tier: 'Oro III',     v: 94,  d: 55, mejor: 'Top 4', mains: ['Pikachu', 'Fox'], pos: 5,  racha: ['V', 'V', 'D', 'V', 'V'] },
-  magic:   { rating: 1980, tier: 'Plata I',     v: 41,  d: 33, mejor: 'Top 8', mains: ['Mono-Red'],        pos: 22, racha: ['D', 'V', 'V', 'D', 'V'] },
+  magic:   { rating: 1980, tier: 'Plata I',     v: 41,  d: 33, mejor: 'Top 8', mains: ['Aggro'],           pos: 22, racha: ['D', 'V', 'V', 'D', 'V'] },
   pokemon: { rating: 2050, tier: 'Oro I',       v: 58,  d: 30, mejor: 'Top 8', mains: ['Charizard ex'],    pos: 14, racha: ['V', 'V', 'V', 'D', 'V'] },
   tft:     { rating: 2340, tier: 'Diamante II', v: 120, d: 60, mejor: '1º',    mains: ['Reroll'],           pos: 3,  racha: ['V', 'V', 'V', 'V', 'D'] },
   tekken:  { rating: 1890, tier: 'Plata II',    v: 33,  d: 29, mejor: 'Top 16', mains: ['King'],            pos: 31, racha: ['D', 'V', 'D', 'V', 'V'] },
@@ -69,7 +70,9 @@ export function CompetitiveCard() {
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Mains</span>
           {s.mains.map(m => (
-            <span key={m} className="px-2.5 h-6 inline-flex items-center rounded-full text-[11px] font-semibold bg-white/6 border border-white/10 text-[#D4D4E4]">{m}</span>
+            <span key={m} className="pl-1 pr-2.5 h-6 inline-flex items-center gap-1 rounded-full text-[11px] font-semibold bg-white/6 border border-white/10 text-[#D4D4E4]">
+              <PersonajeIcon juegoId={juego} nombre={m} px={17} /> {m}
+            </span>
           ))}
         </div>
 
