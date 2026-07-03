@@ -17,12 +17,16 @@ const FORMATOS_DEF: Record<string, { formatos: number; regla: string }> = {
   tft:     { formatos: 2, regla: 'Lobbies de 8 · puntos' },
   tekken:  { formatos: 2, regla: 'Auto-reporte por consenso' },
   sf6:     { formatos: 2, regla: 'Auto-reporte por consenso' },
+  valorant: { formatos: 2, regla: 'Equipos de 5 · BO3' },
+  lol:      { formatos: 2, regla: 'Equipos de 5 · BO3' },
+  cod:      { formatos: 2, regla: 'Equipos de 4 · BO5' },
 }
+const FORMATO_FALLBACK = { formatos: 2, regla: 'Auto-reporte por consenso' }
 
 export default function AdminDemoPage() {
   const router = useRouter()
   const [juegos, setJuegos] = useState<Juego[]>(
-    JUEGOS_LIST.map(j => ({ id: j.id, nombre: j.nombre, corto: j.corto, color: j.color, ...FORMATOS_DEF[j.id], activo: true }))
+    JUEGOS_LIST.map(j => ({ id: j.id, nombre: j.nombre, corto: j.corto, color: j.color, ...(FORMATOS_DEF[j.id] ?? FORMATO_FALLBACK), activo: true }))
   )
   const [propuestas, setPropuestas] = useState([
     { id: 'p1', nombre: 'Guilty Gear Strive', to: 'Arcade Planet', color: '#FF5C8A' },
