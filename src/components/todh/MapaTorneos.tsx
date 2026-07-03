@@ -69,7 +69,7 @@ export default function MapaTorneos() {
       const el = document.createElement('button')
       el.className = 'todh-pin'
       el.setAttribute('aria-label', `${l.nombre} · ${torneos.length} torneos`)
-      el.style.cssText = `position:relative;width:46px;height:54px;cursor:pointer;background:none;border:none;padding:0;z-index:${sel ? 5 : 1};`
+      el.style.cssText = `width:46px;height:54px;cursor:pointer;background:none;border:none;padding:0;z-index:${sel ? 5 : 1};`
 
       const wrap = document.createElement('span')
       wrap.style.cssText = 'position:absolute;inset:0;transform-origin:50% 100%;'

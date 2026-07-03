@@ -64,7 +64,7 @@ export default function MapaSedes() {
       const activo = l.id === sel
       const el = document.createElement('button')
       el.setAttribute('aria-label', `${l.nombre} · ${n ? `${n} torneos` : 'disponible'}`)
-      el.style.cssText = `position:relative;width:46px;height:54px;cursor:pointer;background:none;border:none;padding:0;z-index:${activo ? 5 : 1};`
+      el.style.cssText = `width:46px;height:54px;cursor:pointer;background:none;border:none;padding:0;z-index:${activo ? 5 : 1};`
       const wrap = document.createElement('span')
       wrap.style.cssText = 'position:absolute;inset:0;transform-origin:50% 100%;'
       const tail = document.createElement('span')
