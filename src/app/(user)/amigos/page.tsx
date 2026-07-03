@@ -104,7 +104,7 @@ export default function AmigosPage() {
   }
 
   return (
-    <div className="max-w-lg lg:max-w-3xl mx-auto px-4 py-5 space-y-5">
+    <div className="max-w-lg lg:max-w-3xl mx-auto lg:mx-0 px-4 py-5 space-y-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <button onClick={() => router.back()} className="text-[#8B8BA8] hover:text-white"><ArrowLeft size={20} /></button>

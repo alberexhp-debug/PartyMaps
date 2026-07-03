@@ -125,7 +125,7 @@ export default function MapaTorneos() {
   }, [presenciales, selId, applyZoom])
 
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: 'calc(100dvh - 4rem)' }}>
+    <div className="relative w-full overflow-hidden h-[calc(100dvh-4rem)] lg:h-full">
       <div ref={containerRef} className="absolute inset-0 h-full w-full" onClick={() => setSelId(null)} />
 
       {/* Cabecera */}

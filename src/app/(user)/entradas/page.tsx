@@ -62,7 +62,7 @@ export default function EntradasPage() {
             {tab === 'proximos' && <Link href="/explorar" className="mt-1 px-4 h-10 inline-flex items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">Explorar torneos</Link>}
           </div>
         ) : (
-          <div key={tab} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div key={tab} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
             {lista.map((i, idx) => (
               <div key={i.t.id + i.estado} className="stagger-item" style={{ ['--delay' as string]: `${idx * 60}ms` }}>
                 <TicketCard insc={i} onQr={() => setTicket(i.t)} />

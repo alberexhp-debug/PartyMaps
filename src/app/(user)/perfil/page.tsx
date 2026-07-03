@@ -97,7 +97,7 @@ export default function PerfilPage() {
       </div>
 
       {/* Escritorio: identidad a la izquierda, actividad/ajustes a la derecha */}
-      <div className="relative px-4 mt-4 space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+      <div className="relative px-4 mt-4 space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start lg:max-w-6xl">
         <div className="space-y-5">
         {/* Tarjeta usuario */}
         <div className={cn('card-premium p-5 stagger-item relative', avatarPicker && 'z-30')} style={{ ['--delay' as string]: '40ms' }}>
