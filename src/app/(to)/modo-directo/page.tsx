@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getTorneo, getLocal, rankingPorJuego, TORNEOS_SAMPLE, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, nombreRonda } from '@/lib/torneos/bracket'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { MapaMesas, LeyendaMesas, ESTADO_MESA, type EstadoMesa } from '@/components/todh/MapaMesas'
 import { ArrowLeft, Radio, Pause, Play, AlertTriangle, Tv, Clock, Check, RotateCcw, Flag, ListTree, Map as MapIcon, List, CalendarClock } from 'lucide-react'
 
@@ -38,6 +39,7 @@ const COLORS: Record<Estado, { dot: string; label: string; text: string }> = {
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
 export default function ModoDirectoPage() {
+  const { t: tr } = useT()
   const router = useRouter()
   const [setups, setSetups] = useState<Setup[]>(SETUPS0)
   const [cola, setCola] = useState<ColaItem[]>(COLA0)
@@ -153,12 +155,12 @@ export default function ModoDirectoPage() {
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Modo directo</p>
+          <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{tr('md.titulo')}</p>
           <p className="text-base font-bold text-white truncate">{nombreTorneo}</p>
         </div>
         {enDirecto
-          ? <span className="inline-flex items-center gap-1 px-2.5 h-9 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#E63E54] text-white shrink-0"><Radio size={12} className="animate-pulse-heat" /> Directo</span>
-          : <span className="inline-flex items-center gap-1 px-2.5 h-9 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#4F8EF7]/20 text-[#7FB0FF] border border-[#4F8EF7]/40 shrink-0"><CalendarClock size={12} /> Próximo</span>}
+          ? <span className="inline-flex items-center gap-1 px-2.5 h-9 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#E63E54] text-white shrink-0"><Radio size={12} className="animate-pulse-heat" /> {tr('md.directo')}</span>
+          : <span className="inline-flex items-center gap-1 px-2.5 h-9 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#4F8EF7]/20 text-[#7FB0FF] border border-[#4F8EF7]/40 shrink-0"><CalendarClock size={12} /> {tr('md.proximo')}</span>}
         <button onClick={() => { setPausada(p => !p); flash(pausada ? 'Cola reanudada' : 'Cola pausada') }} aria-label="Pausar cola"
           className={cn('h-9 w-9 rounded-xl flex items-center justify-center shrink-0', pausada ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'glass-strong text-white')}>
           {pausada ? <Play size={15} /> : <Pause size={15} />}
@@ -208,13 +210,13 @@ export default function ModoDirectoPage() {
             <div className="flex items-center gap-3 rounded-2xl border border-[#FF6076]/40 bg-[#FF6076]/10 px-4 py-3">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF6076]/20 text-[#FF6076] shrink-0"><AlertTriangle size={18} /></span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white">Disputa en Mesa {d.mesa}</p>
+                <p className="text-sm font-bold text-white">{tr('md.disputaEn')} {d.mesa}</p>
                 <p className="text-xs text-[#FFB3BD]">{d.a} y {d.b} reclaman la victoria{d.mid ? ' · combate del bracket' : ''}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => resolver(d, 'a')} className="h-11 rounded-xl bg-white/8 border border-white/12 text-white text-sm font-bold hover:bg-white/12">Gana {d.a}</button>
-              <button onClick={() => resolver(d, 'b')} className="h-11 rounded-xl bg-white/8 border border-white/12 text-white text-sm font-bold hover:bg-white/12">Gana {d.b}</button>
+              <button onClick={() => resolver(d, 'a')} className="h-11 rounded-xl bg-white/8 border border-white/12 text-white text-sm font-bold hover:bg-white/12">{tr('md.gana')} {d.a}</button>
+              <button onClick={() => resolver(d, 'b')} className="h-11 rounded-xl bg-white/8 border border-white/12 text-white text-sm font-bold hover:bg-white/12">{tr('md.gana')} {d.b}</button>
             </div>
           </div>
         ))}
@@ -225,7 +227,7 @@ export default function ModoDirectoPage() {
         <div>
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2">
-              <p className="eyebrow eyebrow-muted">Mesas · {local?.nombre}</p>
+              <p className="eyebrow eyebrow-muted">{tr('md.mesas')} · {local?.nombre}</p>
               <div className="flex rounded-lg border border-white/10 bg-white/4 p-0.5">
                 {([['plano', MapIcon], ['lista', List]] as const).map(([k, Ic]) => (
                   <button key={k} onClick={() => setVistaMesas(k)} aria-label={`Vista ${k}`}
@@ -236,7 +238,7 @@ export default function ModoDirectoPage() {
               </div>
             </div>
             {enDirecto
-              ? <p className="text-xs text-[#8B8BA8]"><span className="text-[#B6FF3A] font-bold font-mono-num">{enJuego}</span> en juego · <span className="text-[#6FB0FF] font-bold font-mono-num">{libres}</span> libres</p>
+              ? <p className="text-xs text-[#8B8BA8]"><span className="text-[#B6FF3A] font-bold font-mono-num">{enJuego}</span> {tr('md.enJuego')} · <span className="text-[#6FB0FF] font-bold font-mono-num">{libres}</span> {tr('md.libres')}</p>
               : <p className="text-xs text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{mesas.length}</span> mesas del local</p>}
           </div>
 
@@ -273,9 +275,9 @@ export default function ModoDirectoPage() {
                     {s?.estado === 'ocupado' && <p className="text-sm text-white font-semibold mb-2">{s.a} <span className="text-[#6B6B85]">vs</span> {s.b} · <span className="text-[#B6FF3A] font-mono-num text-[12px]">{fmt(s.seg ?? 0)}</span></p>}
                     {s ? (
                       <div className="flex gap-2">
-                        {s.estado === 'libre' && <button onClick={() => { asignar(s.n); setMesaSel(null) }} className="flex-1 h-9 rounded-lg bg-[#4F8EF7]/15 text-[#6FB0FF] text-xs font-bold">Asignar siguiente →</button>}
+                        {s.estado === 'libre' && <button onClick={() => { asignar(s.n); setMesaSel(null) }} className="flex-1 h-9 rounded-lg bg-[#4F8EF7]/15 text-[#6FB0FF] text-xs font-bold">{tr('md.asignar')}</button>}
                         {s.estado === 'ocupado' && <>
-                          <button onClick={() => { liberar(s.n); setMesaSel(null) }} className="flex-1 h-9 rounded-lg bg-[#B6FF3A]/15 text-[#B6FF3A] text-xs font-bold inline-flex items-center justify-center gap-1"><Check size={13} /> Liberar</button>
+                          <button onClick={() => { liberar(s.n); setMesaSel(null) }} className="flex-1 h-9 rounded-lg bg-[#B6FF3A]/15 text-[#B6FF3A] text-xs font-bold inline-flex items-center justify-center gap-1"><Check size={13} /> {tr('md.liberar')}</button>
                           <button onClick={() => { toggleCaido(s.n); setMesaSel(null) }} className="h-9 px-3 rounded-lg bg-white/6 text-[#FF6076] text-xs font-bold inline-flex items-center justify-center gap-1"><Flag size={12} /> Caída</button>
                         </>}
                         {s.estado === 'caido' && <button onClick={() => { toggleCaido(s.n); setMesaSel(null) }} className="flex-1 h-9 rounded-lg bg-white/6 text-[#FF6076] text-xs font-bold inline-flex items-center justify-center gap-1"><RotateCcw size={12} /> Reactivar</button>}
@@ -308,12 +310,12 @@ export default function ModoDirectoPage() {
                       <p className="text-sm text-white font-semibold truncate">{s.a} <span className="text-[#6B6B85]">vs</span> {s.b}</p>
                       <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-[#B6FF3A] font-mono-num"><Clock size={10} /> {fmt(s.seg ?? 0)}</p>
                       <div className="mt-2 flex gap-1.5">
-                        <button onClick={() => liberar(s.n)} className="flex-1 h-8 rounded-lg bg-[#B6FF3A]/15 text-[#B6FF3A] text-[11px] font-bold inline-flex items-center justify-center gap-1"><Check size={12} /> Liberar</button>
+                        <button onClick={() => liberar(s.n)} className="flex-1 h-8 rounded-lg bg-[#B6FF3A]/15 text-[#B6FF3A] text-[11px] font-bold inline-flex items-center justify-center gap-1"><Check size={12} /> {tr('md.liberar')}</button>
                         <button onClick={() => toggleCaido(s.n)} aria-label="Marcar caído" className="h-8 w-8 rounded-lg bg-white/6 text-[#FF6076] inline-flex items-center justify-center"><Flag size={13} /></button>
                       </div>
                     </div>
                   ) : s.estado === 'libre' ? (
-                    <button onClick={() => asignar(s.n)} className="w-full h-8 rounded-lg bg-[#4F8EF7]/15 text-[#6FB0FF] text-[12px] font-bold hover:bg-[#4F8EF7]/25 transition-colors">Asignar siguiente →</button>
+                    <button onClick={() => asignar(s.n)} className="w-full h-8 rounded-lg bg-[#4F8EF7]/15 text-[#6FB0FF] text-[12px] font-bold hover:bg-[#4F8EF7]/25 transition-colors">{tr('md.asignar')}</button>
                   ) : (
                     <button onClick={() => toggleCaido(s.n)} className="w-full h-8 rounded-lg bg-white/6 text-[#FF6076] text-[12px] font-bold inline-flex items-center justify-center gap-1"><RotateCcw size={12} /> Reactivar</button>
                   )}
@@ -326,10 +328,10 @@ export default function ModoDirectoPage() {
         {/* Cola */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <p className="eyebrow eyebrow-muted inline-flex items-center gap-1.5">{enDirecto ? 'Cola de combates' : 'Cola prevista (primera ronda)'}
+            <p className="eyebrow eyebrow-muted inline-flex items-center gap-1.5">{enDirecto ? tr('md.cola') : tr('md.colaPrevista')}
               {bracketReal && <span className="inline-flex items-center gap-1 normal-case tracking-normal px-1.5 h-5 rounded-md bg-[#B6FF3A]/12 text-[#B6FF3A] text-[10px] font-bold"><ListTree size={10} /> Bracket real</span>}
             </p>
-            <p className="text-xs text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{colaViva.length}</span> listos {pausada && <span className="text-[#FF8A5C]">· pausada</span>}</p>
+            <p className="text-xs text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{colaViva.length}</span> {tr('md.listos')} {pausada && <span className="text-[#FF8A5C]">· pausada</span>}</p>
           </div>
           <div className="space-y-2">
             {colaViva.length === 0 && (
@@ -344,7 +346,7 @@ export default function ModoDirectoPage() {
                   <p className="text-sm text-white font-semibold truncate">{m.a} <span className="text-[#6B6B85]">vs</span> {m.b}</p>
                   <p className="text-[11px] text-[#8B8BA8]">{m.ronda}</p>
                 </div>
-                <span className={cn('text-[11px] font-semibold shrink-0', i === 0 ? 'text-[#B6FF3A]' : 'text-[#8B8BA8]')}>{i === 0 ? 'Siguiente' : 'Listo'}</span>
+                <span className={cn('text-[11px] font-semibold shrink-0', i === 0 ? 'text-[#B6FF3A]' : 'text-[#8B8BA8]')}>{i === 0 ? tr('md.siguiente') : tr('md.listo')}</span>
               </div>
             ))}
           </div>

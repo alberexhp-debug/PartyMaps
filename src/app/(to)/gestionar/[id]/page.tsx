@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { getTorneo, JUEGOS, rankingPorJuego, FORMATOS_SUGERIDOS, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, nombreRonda, boDeRonda, paraGanar } from '@/lib/torneos/bracket'
 import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
@@ -18,6 +19,7 @@ import type { MatchB } from '@/lib/torneos/bracket'
 // Panel de gestión del TO para un torneo (demo, sin login). Flujo real:
 // inscritos → check-in → generar bracket → reportar resultados → editar/cancelar.
 export default function GestionarTorneoPage() {
+  const { t: tr } = useT()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
@@ -169,26 +171,26 @@ export default function GestionarTorneoPage() {
         )}
         {/* KPIs */}
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-          <Kpi icon={<Users size={15} className="text-[#9B82FF]" />} value={`${inscritos.length}/${t.plazas}`} label="Inscritos" />
-          <Kpi icon={<UserCheck size={15} className="text-[#B6FF3A]" />} value={`${nCheck}`} label="Con check-in" />
-          <Kpi icon={<Trophy size={15} className="text-[#E0BE63]" />} value={t.bote ? `${t.bote}€` : '—'} label="Bote" />
-          <Kpi icon={<CircleDot size={15} className="text-[#4F8EF7]" />} value={t.formato.split(' ')[0]} label="Formato" />
+          <Kpi icon={<Users size={15} className="text-[#9B82FF]" />} value={`${inscritos.length}/${t.plazas}`} label={tr('ges.tabInscritos')} />
+          <Kpi icon={<UserCheck size={15} className="text-[#B6FF3A]" />} value={`${nCheck}`} label={tr('ges.conCheckin')} />
+          <Kpi icon={<Trophy size={15} className="text-[#E0BE63]" />} value={t.bote ? `${t.bote}€` : '—'} label={tr('ges.bote')} />
+          <Kpi icon={<CircleDot size={15} className="text-[#4F8EF7]" />} value={t.formato.split(' ')[0]} label={tr('ges.formato')} />
         </div>
 
         {/* Acciones rápidas */}
         <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
           <button onClick={() => setGestion(id, { cerrado: !cerrado })} disabled={cancelado} className="h-11 rounded-xl bg-white/6 border border-white/10 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors disabled:opacity-40">
-            <Lock size={15} /> {cerrado ? 'Reabrir' : 'Cerrar inscripción'}
+            <Lock size={15} /> {cerrado ? tr('ges.reabrir') : tr('ges.cerrarInscripcion')}
           </button>
           <button onClick={() => { generar(); setTab('bracket') }} disabled={nCheck < 2 || cancelado}
             className="h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
-            <Zap size={15} /> Generar bracket
+            <Zap size={15} /> {tr('ges.generarBracket')}
           </button>
           <Link href="/modo-directo" className="h-11 rounded-xl bg-[#7C5CFF]/15 border border-[#7C5CFF]/40 text-[#B9A6FF] text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#7C5CFF]/25 transition-colors">
-            <Radio size={15} /> Modo directo
+            <Radio size={15} /> {tr('to.modoDirecto')}
           </Link>
           <Link href={`/torneo/${t.id}`} className="h-11 rounded-xl bg-white/6 border border-white/10 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
-            <Share2 size={15} /> Ficha pública
+            <Share2 size={15} /> {tr('ges.fichaPublica')}
           </Link>
         </div>
 
@@ -197,7 +199,7 @@ export default function GestionarTorneoPage() {
           {(['inscritos', 'bracket', 'ajustes'] as const).map(tb => (
             <button key={tb} onClick={() => setTab(tb)}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all ${tab === tb ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'text-[#A0A0B8] hover:text-white'}`}>
-              {tb === 'inscritos' ? `Inscritos · ${inscritos.length}` : tb === 'bracket' ? 'Bracket' : 'Ajustes'}
+              {tb === 'inscritos' ? `${tr('ges.tabInscritos')} · ${inscritos.length}` : tb === 'bracket' ? tr('ges.tabBracket') : tr('ges.tabAjustes')}
             </button>
           ))}
         </div>
@@ -212,7 +214,7 @@ export default function GestionarTorneoPage() {
                   className="w-full h-11 pl-9 pr-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none" />
               </div>
               <button onClick={checkAll} className="h-11 px-3.5 rounded-xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] text-sm font-bold whitespace-nowrap flex items-center gap-1.5">
-                <UserCheck size={15} /> Check-in masivo
+                <UserCheck size={15} /> {tr('ges.checkinMasivo')}
               </button>
             </div>
             <p className="mt-2.5 text-[11px] text-[#8B8BA8]"><span className="font-mono-num text-[#B6FF3A]">{nCheck}</span> de <span className="font-mono-num">{inscritos.length}</span> con check-in · seeding por ranking</p>
@@ -246,7 +248,7 @@ export default function GestionarTorneoPage() {
             {/* Config de sets (Bo por ronda): editable siempre, como en Smash o LoL */}
             <div className="card-premium p-3.5 mb-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[11px] uppercase tracking-[0.14em] text-[#8B8BA8] font-bold">Sets por ronda</p>
+                <p className="text-[11px] uppercase tracking-[0.14em] text-[#8B8BA8] font-bold">{tr('ges.setsPorRonda')}</p>
                 <span className="text-[11px] font-mono-num text-[#B6FF3A]">Bo{bo.base} → Bo{bo.top} {bo.desde === 'final' ? 'en la final' : bo.desde === 'semis' ? 'desde semis' : 'desde top 8'}</span>
               </div>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -279,7 +281,7 @@ export default function GestionarTorneoPage() {
                 <p className="text-sm text-[#A0A0B8] max-w-xs">Haz check-in a los jugadores y pulsa <span className="text-[#B6FF3A] font-semibold">Generar bracket</span>. Se siembra por ranking ({nCheck} listos).</p>
                 <button onClick={generar} disabled={nCheck < 2}
                   className="mt-1 h-11 px-5 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center gap-2 disabled:opacity-40">
-                  <Zap size={15} /> Generar bracket
+                  <Zap size={15} /> {tr('ges.generarBracket')}
                 </button>
               </div>
             ) : (
@@ -419,7 +421,7 @@ export default function GestionarTorneoPage() {
               </div>
               <button onClick={guardar} disabled={cancelado}
                 className="w-full h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold flex items-center justify-center gap-2 disabled:opacity-40">
-                {guardado ? <><Check size={17} /> Guardado</> : 'Guardar cambios'}
+                {guardado ? <><Check size={17} /> {tr('ges.guardado')}</> : tr('ges.guardar')}
               </button>
               {guardado && <p className="text-center text-[12px] text-[#8B8BA8]">Los cambios ya se ven en la ficha pública y en Explorar.</p>}
             </div>
@@ -453,6 +455,7 @@ export default function GestionarTorneoPage() {
 // Podio al cerrar la final: campeón + subcampeón + semifinalistas (3º-4º), con
 // publicación de resultados a los jugadores.
 function Podio({ rondas, campeon, juegoColor, onPublicar }: { rondas: MatchB[][]; campeon: Jugador; juegoColor: string; onPublicar: () => void }) {
+  const { t: tr } = useT()
   const [publicado, setPublicado] = useState(false)
   const final = rondas[rondas.length - 1]?.[0]
   const subcampeon = final?.ganador ? (final.ganador === 'a' ? final.b : final.a) : null
@@ -467,7 +470,7 @@ function Podio({ rondas, campeon, juegoColor, onPublicar }: { rondas: MatchB[][]
       <div className="flex items-center gap-3">
         <span className="grid h-12 w-12 place-items-center rounded-xl text-[#0A0A0F] font-black text-lg" style={{ background: '#E0BE63' }}>{campeon.nombre[0]}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] uppercase tracking-[0.16em] font-bold" style={{ color: '#E0BE63' }}>🏆 Campeón</p>
+          <p className="text-[11px] uppercase tracking-[0.16em] font-bold" style={{ color: '#E0BE63' }}>🏆 {tr('ges.campeon')}</p>
           <p className="text-lg font-bold text-white truncate">{campeon.nombre} <span className="text-sm">{campeon.bandera}</span></p>
         </div>
         <Trophy size={24} className="text-[#E0BE63]" />
@@ -490,7 +493,7 @@ function Podio({ rondas, campeon, juegoColor, onPublicar }: { rondas: MatchB[][]
       </div>
       <button onClick={() => { if (!publicado) { onPublicar(); setPublicado(true) } }} disabled={publicado}
         className={`mt-3 w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors ${publicado ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border border-[#B6FF3A]/40' : 'bg-[#E0BE63] text-[#0A0A0F]'}`}>
-        {publicado ? <><Check size={15} /> Resultados publicados</> : <><Megaphone size={15} /> Publicar resultados a los jugadores</>}
+        {publicado ? <><Check size={15} /> Resultados publicados</> : <><Megaphone size={15} /> {tr('ges.publicarResultados')}</>}
       </button>
     </div>
   )

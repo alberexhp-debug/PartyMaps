@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { JUEGOS, LOCALES, FORMATOS_SUGERIDOS, type TorneoSample, type Tier, type Juego, type Local } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { GameKeyart, TorneoArt } from '@/components/todh/GameKeyart'
 import { BannerPicker } from '@/components/todh/BannerPicker'
 import { cn } from '@/lib/utils'
@@ -35,6 +36,7 @@ const PREMIOS_PRESET = [
 ]
 
 export default function CrearTorneoPage() {
+  const { t: tr } = useT()
   const router = useRouter()
   const [nombre, setNombre] = useState('')
   const [juego, setJuego] = useState('smash')
@@ -95,7 +97,7 @@ export default function CrearTorneoPage() {
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div>
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Consola del TO</p>
-          <p className="text-base font-bold text-white">Crear torneo</p>
+          <p className="text-base font-bold text-white">{tr('ct.titulo')}</p>
         </div>
       </div>
 
@@ -104,7 +106,7 @@ export default function CrearTorneoPage() {
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-10 lg:px-8 lg:items-start lg:mt-6">
       {/* Vista previa en vivo */}
       <div className="px-5 pt-4 lg:px-0 lg:pt-0 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-24">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-[#8B8BA8] font-bold mb-2">Vista previa en vivo</p>
+        <p className="text-[10px] uppercase tracking-[0.18em] text-[#8B8BA8] font-bold mb-2">{tr('ct.vistaPrevia')}</p>
         <div className="ring-grad card-premium card-int relative overflow-hidden rounded-2xl flex items-stretch">
           <TorneoArt t={{ juego, banner }} className="w-[92px] shrink-0" />
           <div className="flex-1 p-3.5 min-w-0">
@@ -140,13 +142,13 @@ export default function CrearTorneoPage() {
         {/* Publicar (solo escritorio; en móvil está la CTA fija) */}
         <button onClick={publicar} disabled={!nombre.trim()}
           className="hidden lg:flex mt-4 w-full h-13 py-3.5 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] items-center justify-center disabled:opacity-50">
-          Publicar torneo de {j.corto}
+          {tr('ct.publicar')} {j.corto}
         </button>
       </div>
 
       <div className="px-5 pt-5 space-y-6 lg:px-0 lg:pt-0 lg:col-start-1 lg:row-start-1">
         {/* Lo básico */}
-        <Section title="Lo básico">
+        <Section title={tr('ct.basico')}>
           <Field label="Nombre del torneo">
             <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Lima Smash Weekly #43"
               className="w-full h-12 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-[#6B6B85] focus:border-[#B6FF3A]/60 outline-none transition-colors" />
@@ -166,7 +168,7 @@ export default function CrearTorneoPage() {
               <button onClick={() => setNuevoJuego(v => !v)}
                 className={cn('inline-flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-bold border border-dashed transition-all',
                   nuevoJuego ? 'border-[#B6FF3A]/60 text-[#B6FF3A] bg-[#B6FF3A]/8' : 'border-white/20 text-[#B8B8CC] hover:text-white')}>
-                <Plus size={13} /> Añadir juego
+                <Plus size={13} /> {tr('ct.anadirJuego')}
               </button>
             </div>
             {nuevoJuego && <NuevoJuegoForm onCreado={id => { setJuego(id); setNuevoJuego(false) }} />}
@@ -183,12 +185,12 @@ export default function CrearTorneoPage() {
         </Section>
 
         {/* Imagen / banner del torneo */}
-        <Section title="Imagen del torneo">
+        <Section title={tr('ct.imagen')}>
           <BannerPicker juegoId={juego} value={banner} onChange={setBanner} />
         </Section>
 
         {/* Cuándo y dónde */}
-        <Section title="Cuándo y dónde">
+        <Section title={tr('ct.cuandoDonde')}>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Fecha">
               <div className="relative">
@@ -231,7 +233,7 @@ export default function CrearTorneoPage() {
                 </div>
               ) : (
                 <button onClick={() => setPickerSede(true)} className="mt-2 w-full h-12 rounded-xl border border-dashed border-white/20 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors">
-                  <Search size={15} /> Elegir sede de la app
+                  <Search size={15} /> {tr('ct.elegirSede')}
                 </button>
               )
             )}
@@ -244,7 +246,7 @@ export default function CrearTorneoPage() {
         </Section>
 
         {/* Plazas y precio */}
-        <Section title="Plazas y precio">
+        <Section title={tr('ct.plazasPrecio')}>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Plazas">
               <div className="flex items-center gap-2">
@@ -261,7 +263,7 @@ export default function CrearTorneoPage() {
         </Section>
 
         {/* Premios */}
-        <Section title="Premios (bote por % de inscripciones)">
+        <Section title={tr('ct.premios')}>
           <div className="flex flex-wrap gap-2">
             {REPARTOS.map(r => <Chip key={r} on={reparto === r} onClick={() => setReparto(r)}>{r}</Chip>)}
           </div>
@@ -271,7 +273,7 @@ export default function CrearTorneoPage() {
         </Section>
 
         {/* Vídeo o directo del torneo */}
-        <Section title="Vídeo o directo (opcional)">
+        <Section title={tr('ct.videoDirecto')}>
           <Field label="URL de YouTube o Twitch — se verá incrustado en la ficha del torneo">
             <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} type="url"
               placeholder="Ej. https://youtube.com/watch?v=… o https://twitch.tv/tucanal"
@@ -281,7 +283,7 @@ export default function CrearTorneoPage() {
         </Section>
 
         {/* Otros comentarios + premios en producto */}
-        <Section title="Otros comentarios">
+        <Section title={tr('ct.comentarios')}>
           <Field label="Reglas extra, premios en producto, avisos…">
             <textarea value={comentarios} onChange={e => setComentarios(e.target.value)} rows={3}
               placeholder="Ej. Al top 4 también le caen 2 cajas de sobres de la colección nueva. Trae tu mando."
@@ -306,7 +308,7 @@ export default function CrearTorneoPage() {
         </Section>
 
         {/* Acceso */}
-        <Section title="Acceso">
+        <Section title={tr('ct.acceso')}>
           <div className="flex flex-wrap gap-2">
             {ACCESOS.map(a => {
               const on = acceso === a.id
@@ -328,7 +330,7 @@ export default function CrearTorneoPage() {
         <div className="max-w-lg mx-auto">
           <button onClick={publicar} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform disabled:opacity-50"
             disabled={!nombre.trim()}>
-            Publicar torneo de {j.corto}
+            {tr('ct.publicar')} {j.corto}
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { AnimatedValue } from '@/components/ui/CountUp'
 import { useRouter } from 'next/navigation'
 import { TORNEOS_SAMPLE, ORGANIZADORES, JUEGOS, LOCALES } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import {
   ArrowLeft, Plus, Radio, Trophy, Users, Wallet, AlertTriangle, Calendar,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react'
 
 export default function ConsolaTOPage() {
+  const { t: tr } = useT()
   const router = useRouter()
   const org = ORGANIZADORES.lima
   const creados = useDemoStore(s => s.creados)
@@ -68,14 +70,14 @@ export default function ConsolaTOPage() {
 
         {/* KPIs */}
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KPI icon={<Trophy size={16} className="text-[#B6FF3A]" />} value={String(misTorneos.length)} label="Torneos activos" />
-          <KPI icon={<Users size={16} className="text-[#9B82FF]" />} value={String(totalInscritos)} label="Inscritos" />
-          <KPI icon={<Wallet size={16} className="text-[#E0BE63]" />} value={`${ingresos}€`} label="Ingresos del mes" />
-          <KPI icon={<TrendingUp size={16} className="text-[#4F8EF7]" />} value={`+${Math.round(org.seguidores * 0.04)}`} label="Nuevos seguidores" />
+          <KPI icon={<Trophy size={16} className="text-[#B6FF3A]" />} value={String(misTorneos.length)} label={tr('to.torneosActivos')} />
+          <KPI icon={<Users size={16} className="text-[#9B82FF]" />} value={String(totalInscritos)} label={tr('to.inscritos')} />
+          <KPI icon={<Wallet size={16} className="text-[#E0BE63]" />} value={`${ingresos}€`} label={tr('to.ingresosMes')} />
+          <KPI icon={<TrendingUp size={16} className="text-[#4F8EF7]" />} value={`+${Math.round(org.seguidores * 0.04)}`} label={tr('to.nuevosSeguidores')} />
         </div>
 
         {/* Acciones rápidas */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Acciones</p>
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('to.acciones')}</p>
         <div className="grid grid-cols-3 gap-2.5">
           <Accion href="/crear-torneo" icon={<Plus size={20} />} label="Crear torneo" primary />
           <Accion href="/modo-directo" icon={<Radio size={20} />} label="Modo directo" />
@@ -85,7 +87,7 @@ export default function ConsolaTOPage() {
         {/* Próximo torneo destacado */}
         {proximo && (
           <>
-            <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Próximo torneo</p>
+            <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('to.proximoTorneo')}</p>
             <Link href={`/gestionar/${proximo.id}`} className="block ring-grad card-premium card-int relative overflow-hidden rounded-2xl flex items-stretch">
               <GameKeyart juegoId={proximo.juego} className="w-[92px] shrink-0" />
               <div className="flex-1 p-3.5 min-w-0">
@@ -105,7 +107,7 @@ export default function ConsolaTOPage() {
         )}
 
         {/* Agenda: torneos propios + reservas de sede confirmadas, como calendario */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Agenda</p>
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('to.agenda')}</p>
         <div className="space-y-2">
           {misTorneos.map((t, i) => {
             const dia = t.fechaLabel.split('·')[0].trim()
@@ -121,7 +123,7 @@ export default function ConsolaTOPage() {
                 <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
                 <p className="text-[11px] text-[#8B8BA8] font-mono-num">{t.local} · {t.inscritos}/{t.plazas}</p>
               </div>
-              {t.enDirecto ? <span className="badge-live shrink-0">Live</span> : <span className="text-[11px] text-[#B6FF3A] font-semibold shrink-0">Abierto</span>}
+              {t.enDirecto ? <span className="badge-live shrink-0">Live</span> : <span className="text-[11px] text-[#B6FF3A] font-semibold shrink-0">{tr('to.abierto')}</span>}
             </Link>
           )})}
           {/* Reservas de sede confirmadas (aún sin torneo publicado) */}
@@ -139,14 +141,14 @@ export default function ConsolaTOPage() {
                   <p className="text-sm font-bold text-white truncate">Reserva confirmada · {l.nombre}</p>
                   <p className="text-[11px] text-[#8B8BA8]">{s.personas} jugadores · {JUEGOS[s.juego]?.corto} · publica el torneo →</p>
                 </div>
-                <span className="text-[11px] text-[#E0BE63] font-semibold shrink-0">Sede lista</span>
+                <span className="text-[11px] text-[#E0BE63] font-semibold shrink-0">{tr('to.sedeLista')}</span>
               </Link>
             )
           })}
         </div>
 
         {/* Comunidad */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Comunidad</p>
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('to.comunidad')}</p>
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="card-premium p-3.5">
             <Users size={15} className="text-[#9B82FF] mb-1.5" />

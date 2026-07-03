@@ -5,18 +5,20 @@ import { LayoutDashboard, Plus, Radio, Megaphone, ArrowLeft, Trophy, MapPin } fr
 import { cn } from '@/lib/utils'
 import { getOrganizador } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT, type ClaveI18n } from '@/lib/i18n'
 
 // Rail lateral del PANEL DEL TO (escritorio). Los jugadores no crean torneos:
 // todo lo de organizar vive aquí, separado de la app de jugador.
-const tabs = [
-  { href: '/consola', icon: LayoutDashboard, label: 'Resumen', match: ['/consola', '/gestionar'] },
-  { href: '/crear-torneo', icon: Plus, label: 'Crear torneo', match: ['/crear-torneo'] },
-  { href: '/modo-directo', icon: Radio, label: 'Modo directo', match: ['/modo-directo'] },
-  { href: '/sedes', icon: MapPin, label: 'Sedes', match: ['/sedes'] },
-  { href: '/mi-pagina', icon: Megaphone, label: 'Mi página pública', match: ['/mi-pagina'] },
+const tabs: { href: string; icon: typeof Plus; label: ClaveI18n; match: string[] }[] = [
+  { href: '/consola', icon: LayoutDashboard, label: 'to.resumen', match: ['/consola', '/gestionar'] },
+  { href: '/crear-torneo', icon: Plus, label: 'to.crearTorneo', match: ['/crear-torneo'] },
+  { href: '/modo-directo', icon: Radio, label: 'to.modoDirecto', match: ['/modo-directo'] },
+  { href: '/sedes', icon: MapPin, label: 'to.sedes', match: ['/sedes'] },
+  { href: '/mi-pagina', icon: Megaphone, label: 'to.miPagina', match: ['/mi-pagina'] },
 ]
 
 export function TOSideNav() {
+  const { t: tr } = useT()
   const pathname = usePathname()
   const org = getOrganizador('lima')!
   const creados = useDemoStore(s => s.creados.length)
@@ -26,7 +28,7 @@ export function TOSideNav() {
       <Link href="/consola" className="flex items-center gap-2.5 px-2 mb-2">
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F]"><Trophy size={18} /></span>
         <span className="min-w-0">
-          <span className="block text-[15px] font-black text-white text-display tracking-tight leading-tight">Consola TO</span>
+          <span className="block text-[15px] font-black text-white text-display tracking-tight leading-tight">{tr('to.consola')}</span>
           <span className="block text-[10px] uppercase tracking-[0.16em] text-[#B6FF3A] font-bold">Tourneum</span>
         </span>
       </Link>
@@ -49,17 +51,17 @@ export function TOSideNav() {
                 'flex items-center gap-3 px-3 h-11 rounded-xl text-[15px] font-semibold transition-colors',
                 active ? 'bg-[#B6FF3A]/12 text-[#B6FF3A]' : 'text-[#B8B8CC] hover:bg-white/5 hover:text-white',
               )}>
-              <Icon size={20} strokeWidth={active ? 2.4 : 1.9} /> {label}
+              <Icon size={20} strokeWidth={active ? 2.4 : 1.9} /> {tr(label)}
             </Link>
           )
         })}
       </nav>
 
       <Link href="/explorar" className="mt-auto flex items-center gap-2.5 px-3 h-10 rounded-xl text-sm text-[#8B8BA8] hover:text-white hover:bg-white/5 transition-colors">
-        <ArrowLeft size={15} /> Volver a la app
+        <ArrowLeft size={15} /> {tr('to.volver')}
       </Link>
       <div className="mt-3 px-2 text-[11px] text-[#6B6B82]">
-        <p className="font-semibold text-[#8B8BA8]">Panel del organizador</p>
+        <p className="font-semibold text-[#8B8BA8]">{tr('to.panelDe')}</p>
         <p>Demo sin login</p>
       </div>
     </aside>

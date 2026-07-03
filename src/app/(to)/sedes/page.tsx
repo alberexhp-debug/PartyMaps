@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { PageLoader } from '@/components/ui/Spinner'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useT } from '@/lib/i18n'
 import { LOCALES, JUEGOS } from '@/lib/torneos/sample'
 import { useState } from 'react'
 import { ArrowLeft, Clock, Check, X, ArrowLeftRight, Star } from 'lucide-react'
@@ -16,6 +17,7 @@ const MapaSedes = dynamic(() => import('@/components/todh/MapaSedes'), {
 // Mapa de sedes del TO: todos los locales dados de alta (con y sin torneos) para
 // contactar y pedir fecha. El jugador no ve los locales sin torneos publicados.
 export default function SedesPage() {
+  const { t: tr } = useT()
   const router = useRouter()
   const solicitudes = useDemoStore(s => s.solicitudesSede)
   const responderContraoferta = useDemoStore(s => s.responderContraoferta)
@@ -33,7 +35,7 @@ export default function SedesPage() {
         <button onClick={() => router.back()} aria-label="Volver" className="lg:hidden h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="flex-1">
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Consola del TO</p>
-          <p className="text-base font-bold text-white">Sedes · contacta y reserva</p>
+          <p className="text-base font-bold text-white">{tr('sd.titulo')}</p>
         </div>
         <p className="hidden sm:block text-xs text-[#8B8BA8]"><span className="text-white font-bold font-mono-num">{Object.keys(LOCALES).length}</span> locales dados de alta</p>
       </div>
@@ -48,7 +50,7 @@ export default function SedesPage() {
         {/* Mis solicitudes a sedes */}
         {solicitudes.length > 0 && (
           <div className="mt-4">
-            <p className="eyebrow eyebrow-muted mb-2">Mis solicitudes</p>
+            <p className="eyebrow eyebrow-muted mb-2">{tr('sd.misSolicitudes')}</p>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
               {solicitudes.map(s => {
                 const l = LOCALES[s.localId]
@@ -61,19 +63,19 @@ export default function SedesPage() {
                       <p className="text-sm font-bold text-white truncate">{l.nombre}</p>
                       <p className="text-[11px] text-[#8B8BA8]">{s.fecha} · {s.franja} · {s.personas} jug. · {j?.corto}</p>
                     </div>
-                    {s.estado === 'pendiente' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8A5C]"><Clock size={12} /> Pendiente</span>}
+                    {s.estado === 'pendiente' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8A5C]"><Clock size={12} /> {tr('sd.pendiente')}</span>}
                     {s.estado === 'aceptada' && (valoradas[s.id]
                       ? <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#E0BE63]">{valoradas[s.id]}★ enviada</span>
                       : <span className="inline-flex items-center gap-0.5">
-                          <span className="text-[11px] font-bold text-[#B6FF3A] inline-flex items-center gap-1 mr-1"><Check size={12} /> Confirmada</span>
+                          <span className="text-[11px] font-bold text-[#B6FF3A] inline-flex items-center gap-1 mr-1"><Check size={12} /> {tr('sd.confirmada')}</span>
                           {[1, 2, 3, 4, 5].map(st => (
                             <button key={st} onClick={() => valorar(s.id, l.nombre, st)} aria-label={`${st} estrellas`} className="p-0.5">
                               <Star size={13} className="text-[#4A4A5E] hover:text-[#E0BE63] transition-colors" />
                             </button>
                           ))}
                         </span>)}
-                    {s.estado === 'rechazada' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF6076]"><X size={12} /> Rechazada</span>}
-                    {s.estado === 'contraoferta' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8A5C]"><ArrowLeftRight size={12} /> Contraoferta</span>}
+                    {s.estado === 'rechazada' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF6076]"><X size={12} /> {tr('sd.rechazada')}</span>}
+                    {s.estado === 'contraoferta' && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8A5C]"><ArrowLeftRight size={12} /> {tr('sd.contraoferta')}</span>}
                   </div>
                 )
               })}
