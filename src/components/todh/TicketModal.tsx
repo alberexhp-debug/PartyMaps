@@ -2,13 +2,17 @@
 import { useEffect, useRef } from 'react'
 import type { TorneoSample } from '@/lib/torneos/sample'
 import { JUEGOS } from '@/lib/torneos/sample'
-import { X, Calendar, MapPin, Sun } from 'lucide-react'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { X, Calendar, MapPin, Sun, Check, QrCode } from 'lucide-react'
 
 // Modal de entrada con QR (offline). En demo el QR codifica un id ficticio.
 export function TicketModal({ torneo, onClose }: { torneo: TorneoSample; onClose: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const juego = JUEGOS[torneo.juego]
   const code = `Tourneum-${torneo.id.toUpperCase()}-DEMO`
+  const hecho = useDemoStore(s => s.checkinsJugador.includes(torneo.id))
+  const hacerCheckin = useDemoStore(s => s.hacerCheckin)
+  const puedeCheckin = torneo.esHoy || torneo.checkInAbierto
 
   useEffect(() => {
     import('qrcode').then(QRCode => {
@@ -47,6 +51,19 @@ export function TicketModal({ torneo, onClose }: { torneo: TorneoSample; onClose
             <p className="mt-3 font-mono-num text-[13px] font-bold text-[#0A0A0F] tracking-wider">{code}</p>
             <p className="mt-1 text-[11px] text-[#777] text-center">Muestra este QR en el check-in. Funciona sin conexión.</p>
             <div className="mt-3 flex items-center gap-1.5 text-[10px] text-[#999]"><Sun size={11} /> Sube el brillo para escanear mejor</div>
+            {/* Check-in del jugador (cuando el torneo lo tiene abierto) */}
+            {puedeCheckin && (
+              hecho ? (
+                <div className="mt-4 w-full h-11 rounded-xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/50 text-[#3E7A00] text-sm font-bold flex items-center justify-center gap-2">
+                  <Check size={16} /> Check-in hecho · te avisaremos al tocarte mesa
+                </div>
+              ) : (
+                <button onClick={() => hacerCheckin(torneo.id, torneo.nombre)}
+                  className="mt-4 w-full h-11 rounded-xl bg-[#0A0A0F] text-white text-sm font-bold flex items-center justify-center gap-2 active:scale-[0.99] transition-transform">
+                  <QrCode size={16} /> Ya estoy aquí · hacer check-in
+                </button>
+              )
+            )}
           </div>
         </div>
         <p className="mt-3 text-center text-[10px] text-[#6E6E85]">Modo demo · entrada de muestra</p>

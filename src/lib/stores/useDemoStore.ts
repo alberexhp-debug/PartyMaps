@@ -76,6 +76,7 @@ interface DemoState {
   mesasSede: Record<string, Mesa[]>        // plano de mesas editado por cada sede (override del de muestra)
   solicitudesSede: SolicitudSede[]         // peticiones del TO a sedes (organizar evento allí)
   disputas: Disputa[]                      // disputas de resultado pendientes de resolver por el TO
+  checkinsJugador: string[]                // torneos donde el jugador ya hizo check-in (QR)
   notificaciones: Notificacion[]
   juegoPerfil: string                 // juego activo en el perfil
   avatarEmoji: string | null          // avatar elegido en el perfil (demo)
@@ -96,6 +97,7 @@ interface DemoState {
   resolverSolicitudSede: (id: string, estado: 'aceptada' | 'rechazada', nombreLocal: string) => void
   contraofertarSede: (id: string, datos: { fecha: string; franja: string; precio: number }, nombreLocal: string) => void
   crearDisputa: (d: Omit<Disputa, 'id'>, nombreTorneo: string) => void
+  hacerCheckin: (torneoId: string, nombreTorneo: string) => void
   resolverDisputa: (id: string, lado: 'a' | 'b') => void
   responderContraoferta: (id: string, acepta: boolean, nombreLocal: string) => void
   pushNoti: (n: Omit<Notificacion, 'id' | 'leida' | 'cuando'> & { cuando?: string }) => void
@@ -130,6 +132,7 @@ export const useDemoStore = create<DemoState>()(
       solicitudesSede: [],
       // Disputa de muestra en el torneo live para que el modo directo luzca vivo
       disputas: [{ id: 'dsp-seed', torneoId: 't1', mesa: 5, a: 'Lux', b: 'Nyx' }],
+      checkinsJugador: [],
       notificaciones: NOTIS_INICIALES,
       juegoPerfil: 'smash',
       avatarEmoji: null,
@@ -205,6 +208,16 @@ export const useDemoStore = create<DemoState>()(
           solicitudesSede: [{ ...sol, id: nextId(), estado: 'pendiente' }, ...s.solicitudesSede],
           notificaciones: [noti, ...s.notificaciones],
         }
+      }),
+
+      hacerCheckin: (torneoId, nombreTorneo) => set((s) => {
+        if (s.checkinsJugador.includes(torneoId)) return s
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'combate', titulo: 'Check-in hecho ✓',
+          cuerpo: `Ya estás dentro de «${nombreTorneo}». Te avisaremos (con vibración) cuando te toque mesa.`,
+          cuando: 'ahora', leida: false,
+        }
+        return { checkinsJugador: [...s.checkinsJugador, torneoId], notificaciones: [noti, ...s.notificaciones] }
       }),
 
       crearDisputa: (d, nombreTorneo) => set((s) => {

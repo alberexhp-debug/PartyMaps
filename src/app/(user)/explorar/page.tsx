@@ -32,6 +32,7 @@ export default function ExplorarPage() {
   const [soloLibres, setSoloLibres] = useState(false)
   const [soloAbiertos, setSoloAbiertos] = useState(false)
   const creados = useDemoStore(s => s.creados)
+  const seguidos = useDemoStore(s => s.seguidos)
   const noLeidas = useDemoStore(s => s.notificaciones.filter(n => !n.leida).length)
 
   const resultados = useMemo(() => {
@@ -61,18 +62,20 @@ export default function ExplorarPage() {
   const sectioned = !busca.trim() && numFiltros === 0
   const secciones = useMemo(() => {
     if (!sectioned) return null
-    const hoy: TorneoSample[] = [], cerca: TorneoSample[] = [], resto: TorneoSample[] = []
+    const deSeguidos: TorneoSample[] = [], hoy: TorneoSample[] = [], cerca: TorneoSample[] = [], resto: TorneoSample[] = []
     for (const t of resultados) {
-      if (t.esHoy) hoy.push(t)
+      if (t.organizadorId && seguidos.includes(t.organizadorId)) deSeguidos.push(t)
+      else if (t.esHoy) hoy.push(t)
       else if (!t.online && t.distanciaKm > 0 && t.distanciaKm <= 3) cerca.push(t)
       else resto.push(t)
     }
     return [
+      { titulo: 'De tus organizadores', sub: 'TOs a los que sigues', items: deSeguidos },
       { titulo: 'Empieza hoy', sub: 'No te lo pierdas', items: hoy },
       { titulo: 'Cerca de ti', sub: 'A menos de 3 km', items: cerca },
       { titulo: 'Más torneos', sub: 'Esta semana y siguientes', items: resto },
     ].filter(s => s.items.length > 0)
-  }, [sectioned, resultados])
+  }, [sectioned, resultados, seguidos])
 
   return (
     <div className="relative min-h-screen overflow-hidden">
