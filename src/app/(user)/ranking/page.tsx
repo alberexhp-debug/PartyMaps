@@ -52,7 +52,7 @@ export default function RankingPage() {
   const yo = lista[miPuesto - 1]
 
   return (
-    <div className="relative min-h-screen overflow-hidden pb-24 lg:max-w-4xl">
+    <div className="relative min-h-screen overflow-hidden pb-24 lg:max-w-4xl lg:mx-auto">
       <div className="hero-halo-violet" />
 
       <div className="relative px-5 pt-6 pb-2 safe-top">

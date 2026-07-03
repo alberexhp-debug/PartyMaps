@@ -91,13 +91,13 @@ export default function PerfilPage() {
       <div className="hero-halo-rose" />
       <div className="hero-halo-violet" />
 
-      <div className="relative px-5 pt-6 pb-2 safe-top">
+      <div className="relative px-5 pt-6 pb-2 safe-top lg:max-w-6xl lg:mx-auto">
         <p className="eyebrow eyebrow-muted mb-2">Tu cuenta</p>
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">Perfil</h1>
       </div>
 
       {/* Escritorio: identidad a la izquierda, actividad/ajustes a la derecha */}
-      <div className="relative px-4 mt-4 space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start lg:max-w-6xl">
+      <div className="relative px-4 mt-4 space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start lg:max-w-6xl lg:mx-auto">
         <div className="space-y-5">
         {/* Tarjeta usuario */}
         <div className={cn('card-premium p-5 stagger-item relative', avatarPicker && 'z-30')} style={{ ['--delay' as string]: '40ms' }}>
