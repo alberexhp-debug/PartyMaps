@@ -23,6 +23,7 @@ export default function GestionarTorneoPage() {
   const cancelado = useDemoStore(s => s.cancelados.includes(id))
   const editarTorneo = useDemoStore(s => s.editarTorneo)
   const cancelarTorneo = useDemoStore(s => s.cancelarTorneo)
+  const pushNoti = useDemoStore(s => s.pushNoti)
   const base = getTorneo(id) || creado
   const t = base ? { ...base, ...(override || {}) } : undefined
 
@@ -66,13 +67,38 @@ export default function GestionarTorneoPage() {
   const toggle = (pid: string) => setCheckin(s => { const n = new Set(s); n.has(pid) ? n.delete(pid) : n.add(pid); return n })
   const checkAll = () => setCheckin(new Set(inscritos.map(p => p.id)))
   const seeded = [...inscritos].filter(p => checkin.has(p.id))
-  const generar = () => { setBracketSeeds(seeded); setWinners({}); setGenerado(true) }
-  const reportar = (matchId: string, lado: 'a' | 'b') => setWinners(w => ({ ...w, [matchId]: lado }))
+  // Avisos TO→jugador: en demo van a la bandeja local (/notificaciones); con
+  // backend serán push/email a cada inscrito.
+  const generar = () => {
+    setBracketSeeds(seeded); setWinners({}); setGenerado(true)
+    pushNoti({
+      tipo: 'combate', titulo: 'Tu combate está listo',
+      cuerpo: `Bracket de «${t!.nombre}» publicado (${seeded.length} jugadores). Consulta tu primer combate.`,
+      href: `/torneo/${t!.id}/bracket`,
+    })
+  }
+  const reportar = (matchId: string, lado: 'a' | 'b') => {
+    setWinners(w => ({ ...w, [matchId]: lado }))
+    const final = rondas[rondas.length - 1]?.[0]
+    if (final && final.id === matchId && final.a && final.b) {
+      const ganador = lado === 'a' ? final.a : final.b
+      pushNoti({
+        tipo: 'sistema', titulo: '🏆 Tenemos campeón',
+        cuerpo: `${ganador.nombre} gana «${t!.nombre}». Resultados y ranking ya actualizados.`,
+        href: `/torneo/${t!.id}/resultados`,
+      })
+    }
+  }
   const f = form ?? { nombre: t.nombre, plazas: t.plazas, precio: t.precio, formato: t.formato as string, fechaLabel: t.fechaLabel }
   const setF = (patch: Partial<typeof f>) => { setForm({ ...f, ...patch }); setGuardado(false) }
   const guardar = () => {
     editarTorneo(t.id, { nombre: f.nombre.trim() || t.nombre, plazas: f.plazas, precio: f.precio, formato: f.formato as FormatoTorneo, fechaLabel: f.fechaLabel })
     setGuardado(true)
+    pushNoti({
+      tipo: 'sistema', titulo: 'Torneo actualizado',
+      cuerpo: `El TO ha actualizado «${f.nombre.trim() || t.nombre}» (${f.fechaLabel}). Revisa los detalles.`,
+      href: `/torneo/${t.id}`,
+    })
   }
   const cancelar = () => {
     if (typeof window !== 'undefined' && !window.confirm(`¿Cancelar "${t.nombre}"? Se reembolsará el 100% a los inscritos. No se puede deshacer.`)) return
@@ -159,10 +185,10 @@ export default function GestionarTorneoPage() {
             <p className="mt-2.5 text-[11px] text-[#8B8BA8]"><span className="font-mono-num text-[#B6FF3A]">{nCheck}</span> de <span className="font-mono-num">{inscritos.length}</span> con check-in · seeding por ranking</p>
 
             <div className="mt-2 space-y-1.5">
-              {filtrados.map(p => {
+              {filtrados.map((p, i) => {
                 const ok = checkin.has(p.id)
                 return (
-                  <div key={p.id} className="flex items-center gap-3 card-premium p-2.5">
+                  <div key={p.id} className="flex items-center gap-3 card-premium p-2.5 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 12) * 35}ms` }}>
                     <span className="w-7 text-center text-xs font-bold text-[#8B8BA8] font-mono-num">#{seedOf(p.id)}</span>
                     <button onClick={() => setSel(p)} className="inline-flex items-center justify-center w-9 h-9 rounded-full text-[#0A0A0F] font-black shrink-0" style={{ background: juego.color }}>{p.nombre[0]}</button>
                     <button onClick={() => setSel(p)} className="flex-1 min-w-0 text-left">

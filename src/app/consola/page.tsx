@@ -90,8 +90,8 @@ export default function ConsolaTOPage() {
         {/* Mis torneos */}
         <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Mis torneos</p>
         <div className="space-y-2">
-          {misTorneos.map(t => (
-            <Link key={t.id} href={`/gestionar/${t.id}`} className="flex items-center gap-3 card-premium card-int p-3">
+          {misTorneos.map((t, i) => (
+            <Link key={t.id} href={`/gestionar/${t.id}`} className="flex items-center gap-3 card-premium card-int p-3 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 8) * 45}ms` }}>
               <span className="w-1 self-stretch rounded-full" style={{ background: JUEGOS[t.juego].color }} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
