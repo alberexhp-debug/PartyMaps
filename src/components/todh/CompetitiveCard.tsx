@@ -7,6 +7,7 @@ import { GameKeyart } from './GameKeyart'
 import { CountUp } from '@/components/ui/CountUp'
 import { PersonajeIcon } from '@/components/todh/PersonajeChip'
 import { Pencil, X, Check } from 'lucide-react'
+import { RangoChip, RangoProgreso } from '@/components/todh/RangoChip'
 
 type Stat = { rating: number; tier: string; v: number; d: number; mejor: string; mains: string[]; pos: number; racha: string[] }
 const STATS: Record<string, Stat> = {
@@ -59,10 +60,16 @@ export function CompetitiveCard() {
             <p className="text-[50px] font-bold text-score leading-none" style={{ color: j.color }}><CountUp key={juego} value={s.rating} duration={1100} /></p>
           </div>
           <div className="text-right">
-            <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-xs font-bold bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40">{s.tier}</span>
+            <div className="flex items-center gap-1.5 justify-end">
+              <RangoChip rating={s.rating} size="md" />
+              <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-xs font-bold bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40">{s.tier}</span>
+            </div>
             <p className="text-xs text-[#8B8BA8] mt-1.5 font-mono-num">#{s.pos} · {wr}% WR</p>
           </div>
         </div>
+
+        {/* Progreso hacia el siguiente rango (sistema de puntos de la reunión) */}
+        <div className="mt-3"><RangoProgreso rating={s.rating} /></div>
 
         <div className="mt-3.5 grid grid-cols-2 gap-2.5">
           <div className="rounded-xl bg-white/4 border border-white/8 px-3 py-2">

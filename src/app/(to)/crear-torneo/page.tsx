@@ -250,16 +250,19 @@ export default function CrearTorneoPage() {
           <div className="grid grid-cols-2 gap-3">
             <Field label="Plazas">
               <div className="flex items-center gap-2">
-                <Stepper value={plazas} onDec={() => setPlazas(p => Math.max(4, p - 4))} onInc={() => setPlazas(p => p + 4)} icon={<Users size={14} />} />
+                <Stepper value={plazas} onDec={() => setPlazas(p => Math.max(4, p - 4))} onInc={() => setPlazas(p => precio === 0 ? Math.min(32, p + 4) : p + 4)} icon={<Users size={14} />} />
+              {precio === 0 && plazas >= 32 && (
+                <p className="mt-1.5 text-[11px] text-[#E0BE63] font-semibold">Torneos gratis: hasta 32 plazas. Los tiers de TO (Oro/Platino/Diamante) desbloquean brackets más grandes.</p>
+              )}
               </div>
             </Field>
             <Field label="Inscripción (€)">
               <div className="flex items-center gap-2">
-                <Stepper value={precio} onDec={() => setPrecio(p => Math.max(0, p - 1))} onInc={() => setPrecio(p => p + 1)} suffix={precio === 0 ? 'Gratis' : '€'} />
+                <Stepper value={precio} onDec={() => setPrecio(p => { const np = Math.max(0, p - 1); if (np === 0) setPlazas(pl => Math.min(32, pl)); return np })} onInc={() => setPrecio(p => p + 1)} suffix={precio === 0 ? 'Gratis' : '€'} />
               </div>
             </Field>
           </div>
-          <p className="text-[11px] text-[#8B8BA8]">Comisión Tourneum: 6% hasta 32, 5% hasta 128, 4% por encima. Gratis → sin comisión.</p>
+          <p className="text-[11px] text-[#8B8BA8]">Comisión Tourneum sobre el jugador: 6% hasta 32 plazas · 8% hasta 128 · 10% en majors (la app aporta más cuanto más grande). Gratis → sin comisión.</p>
         </Section>
 
         {/* Premios */}

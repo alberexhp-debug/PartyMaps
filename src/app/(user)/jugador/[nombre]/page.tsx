@@ -6,6 +6,7 @@ import { JUEGOS, JUEGOS_LIST, TORNEOS_SAMPLE, rankingPorJuego, type Jugador } fr
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { CountUp } from '@/components/ui/CountUp'
+import { RangoChip } from '@/components/todh/RangoChip'
 import { useT } from '@/lib/i18n'
 import { ArrowLeft, Star, Swords, TrendingUp, Trophy, UserPlus, Check, Calendar, ChevronRight } from 'lucide-react'
 
@@ -95,6 +96,7 @@ function JugadorContent() {
 
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-bold text-white text-display tracking-tight">{jugador.nombre} <span className="text-lg">{jugador.bandera}</span></h1>
+          <RangoChip rating={jugador.rating} size="md" />
           <span className="inline-flex items-center px-2 h-6 rounded-full text-[11px] font-bold border" style={{ color: tierColor, borderColor: `${tierColor}55`, background: `${tierColor}1A` }}>{jugador.tier}</span>
           {jugador.online && <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-bold bg-[#2ED47A]/12 text-[#2ED47A] border border-[#2ED47A]/35"><span className="w-1.5 h-1.5 rounded-full bg-[#2ED47A]" /> {tr('mp.enLinea')}</span>}
         </div>

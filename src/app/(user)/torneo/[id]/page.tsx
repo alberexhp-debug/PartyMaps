@@ -10,6 +10,8 @@ import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { FillBar, CountUp } from '@/components/ui/CountUp'
 import { InscripcionSheet } from '@/components/todh/InscripcionSheet'
+import { RangoChip } from '@/components/todh/RangoChip'
+import { rangoDe } from '@/lib/torneos/rangos'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { MiniLocal } from '@/components/todh/MiniLocal'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
@@ -27,9 +29,11 @@ function plazasLibresLabel(n: number): string {
 }
 
 // Comisión de plataforma por tramo (la paga el jugador encima del precio)
+// Comisión variable de la reunión 5-jul: crece con el tamaño (más difícil de
+// organizar y más aporta la app). Gratis: 0.
 function comision(precio: number, inscritos: number): { pct: number; importe: number } {
   if (precio === 0) return { pct: 0, importe: 0 }
-  const pct = inscritos <= 32 ? 6 : inscritos <= 128 ? 5 : 4
+  const pct = inscritos <= 32 ? 6 : inscritos <= 128 ? 8 : 10
   return { pct, importe: +(precio * pct / 100).toFixed(2) }
 }
 
@@ -82,6 +86,11 @@ export default function TorneoDetallePage() {
   const totalJugador = t.precio + com.importe
   const pVer = precioEspectador(t)
   const participantes = rankingPorJuego(t.juego).slice(0, 6)
+  // Tier dinámico del torneo (reunión 5-jul): lo fijan sus inscritos top
+  const grupos = participantes.map(p => rangoDe(p.rating).grupo)
+  const tierTorneo = grupos.filter(g => g === 'S' || g === 'A').length >= 3 ? 'Platino'
+    : grupos.filter(g => g === 'S' || g === 'A' || g === 'B').length >= 3 ? 'Oro' : null
+  const TIER_TORNEO_COLOR: Record<string, string> = { Oro: '#E0BE63', Platino: '#67E8F9' }
 
   async function compartir() {
     const url = typeof window !== 'undefined' ? window.location.href : ''
@@ -153,6 +162,12 @@ export default function TorneoDetallePage() {
         </div>
         <div className="absolute bottom-3 left-5 right-5 lg:left-6 lg:right-6">
           <div className="flex items-center gap-2 animate-slide-up-sm">
+            {tierTorneo && (
+              <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-[11px] font-black backdrop-blur-sm"
+                style={{ background: `${TIER_TORNEO_COLOR[tierTorneo]}26`, color: TIER_TORNEO_COLOR[tierTorneo], border: `1px solid ${TIER_TORNEO_COLOR[tierTorneo]}66` }}>
+                ★ Torneo {tierTorneo}
+              </span>
+            )}
             <span className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[11px] font-bold backdrop-blur-sm" style={{ background: `${juego.color}30`, color: juego.color, border: `1px solid ${juego.color}55` }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.nombre}
             </span>
@@ -305,6 +320,19 @@ export default function TorneoDetallePage() {
             })}
             {t.inscritos > 6 && <span className="ml-3 text-sm text-[#B8B8CC] font-medium">+{t.inscritos - 6} más</span>}
           </button>
+          <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+            {participantes.slice(0, 4).map(p => (
+              <span key={p.id} className="inline-flex items-center gap-1.5 pl-1.5 pr-2 h-7 rounded-full bg-white/[0.05] border border-white/10">
+                <RangoChip rating={p.rating} />
+                <span className="text-[11px] font-bold text-[#D4D4E4]">{p.nombre}</span>
+              </span>
+            ))}
+          </div>
+          {tierTorneo && (
+            <p className="mt-2 text-[11px] font-semibold" style={{ color: TIER_TORNEO_COLOR[tierTorneo] }}>
+              ★ Los inscritos de rango alto elevan este torneo a tier {tierTorneo}: reparte más puntos y destaca en el mapa.
+            </p>
+          )}
         </div>
 
         {/* Reglas */}
@@ -355,6 +383,7 @@ export default function TorneoDetallePage() {
             </div>
             <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
             {ctaBtn}
+            {ctaEspectador}
             <button onClick={compartir} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors"><Share2 size={15} /> {tr('torneo.compartir')}</button>
           </div>
         </aside>
@@ -365,7 +394,6 @@ export default function TorneoDetallePage() {
         <div className="max-w-lg mx-auto">
           {ctaBtn}
               {ctaEspectador}
-          {ctaEspectador}
         </div>
       </div>
 

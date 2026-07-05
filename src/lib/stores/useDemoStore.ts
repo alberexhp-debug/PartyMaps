@@ -46,6 +46,17 @@ export type SolicitudSede = {
 
 // Disputa de resultado: los reportes de los jugadores no coinciden → la resuelve
 // el TO desde el modo directo. Si trae `mid`, resolverla avanza el bracket.
+export type ReporteTO = {
+  id: string
+  torneoId: string
+  torneoNombre: string
+  tipo: 'bracket' | 'seeding'
+  motivo: string
+  mensaje?: string
+  estado: 'abierto' | 'cambiado' | 'rebatido'
+  respuesta?: string
+}
+
 export type Disputa = {
   id: string
   torneoId: string
@@ -87,6 +98,8 @@ interface DemoState {
   entradasEspectador: string[]           // torneos con entrada de espectador comprada
   referidos: { codigo: string; jugados: number; canjeados: number[] }  // programa invita-y-gana (niveles 1/3/5)
   preregistro: { unido: boolean; pos: number; compartidos: number }    // lista de espera del lanzamiento
+  reportes: ReporteTO[]                  // reportes de bracket/seeding del jugador al TO (reunión 5-jul)
+  perfilTO: 'no' | 'pendiente' | 'aprobado'  // alta de TO self-service (perfil dual)
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string) => void
   desinscribir: (torneoId: string) => void
@@ -118,6 +131,9 @@ interface DemoState {
   canjearReferido: (nivel: 1 | 3 | 5) => void
   unirsePreregistro: () => void
   compartirPreregistro: () => void
+  crearReporte: (r: Omit<ReporteTO, 'id' | 'estado'>) => void
+  resolverReporte: (id: string, accion: 'cambiado' | 'rebatido', respuesta?: string) => void
+  solicitarTO: () => void
 }
 
 let nid = 0
@@ -155,6 +171,10 @@ export const useDemoStore = create<DemoState>()(
       entradasEspectador: [],
       referidos: { codigo: 'ALBERT-3F7', jugados: 2, canjeados: [] },
       preregistro: { unido: false, pos: 347, compartidos: 0 },
+      reportes: [
+        { id: 'rep-seed', torneoId: 't1', torneoNombre: 'Lima Smash Weekly #42', tipo: 'seeding', motivo: 'Me toca otra vez contra el mismo jugador en ronda 1', mensaje: 'Tercera semana seguida contra Sora en R1, tenemos nivel parecido y nos cruzáis pronto.', estado: 'abierto' },
+      ],
+      perfilTO: 'no',
 
       inscribir: (torneoId, nombreTorneo) => set((s) => {
         if (s.inscritos.includes(torneoId)) return s
@@ -346,6 +366,30 @@ export const useDemoStore = create<DemoState>()(
       compartirPreregistro: () => set((s) => ({
         preregistro: { ...s.preregistro, compartidos: s.preregistro.compartidos + 1, pos: Math.max(12, s.preregistro.pos - 47) },
       })),
+      crearReporte: (r) => set((s) => {
+        const rep: ReporteTO = { ...r, id: nextId(), estado: 'abierto' }
+        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: `Revisar ${r.tipo}`, cuerpo: `Reporte en «${r.torneoNombre}»: ${r.motivo}`, cuando: 'ahora', leida: false, href: `/gestionar/${r.torneoId}` }
+        return { reportes: [rep, ...s.reportes], notificaciones: [n, ...s.notificaciones] }
+      }),
+      resolverReporte: (id, accion, respuesta) => set((s) => {
+        const rep = s.reportes.find(r => r.id === id)
+        if (!rep) return s
+        const n: Notificacion = {
+          id: nextId(), tipo: 'sistema',
+          titulo: accion === 'cambiado' ? 'Seeding revisado' : 'Reporte respondido',
+          cuerpo: accion === 'cambiado' ? `El organizador ha ajustado el ${rep.tipo} de «${rep.torneoNombre}».` : `El organizador mantiene el ${rep.tipo}: ${respuesta || 'revisado y correcto'}.`,
+          cuando: 'ahora', leida: false, href: `/torneo/${rep.torneoId}/bracket`,
+        }
+        return {
+          reportes: s.reportes.map(r => r.id === id ? { ...r, estado: accion, respuesta } : r),
+          notificaciones: [n, ...s.notificaciones],
+        }
+      }),
+      solicitarTO: () => set((s) => {
+        if (s.perfilTO !== 'no') return s
+        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: 'Solicitud de organizador enviada', cuerpo: 'Revisaremos tu experiencia y te haremos una breve entrevista. Te avisamos aquí.', cuando: 'ahora', leida: false, href: '/perfil' }
+        return { perfilTO: 'pendiente', notificaciones: [n, ...s.notificaciones] }
+      }),
     }),
     {
       name: 'todh-demo',

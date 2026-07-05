@@ -10,6 +10,7 @@ import { GameKeyart } from '@/components/todh/GameKeyart'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { BannerPicker } from '@/components/todh/BannerPicker'
+import { Flag } from 'lucide-react'
 import {
   ArrowLeft, Search, Check, Users, ListTree, Radio, Lock, UserCheck,
   Trophy, Share2, Zap, CircleDot, Ban, RotateCcw, Megaphone,
@@ -21,6 +22,9 @@ import type { MatchB } from '@/lib/torneos/bracket'
 export default function GestionarTorneoPage() {
   const { t: tr } = useT()
   const { id } = useParams<{ id: string }>()
+  const reportesAll = useDemoStore(s => s.reportes)
+  const reportes = reportesAll.filter(r => r.torneoId === id && r.estado === 'abierto')
+  const resolverReporte = useDemoStore(s => s.resolverReporte)
   const router = useRouter()
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
   const override = useDemoStore(s => s.editados[id])
@@ -194,6 +198,25 @@ export default function GestionarTorneoPage() {
           </Link>
         </div>
 
+        {/* Reportes de jugadores (bracket/seeding) — reunión 5-jul */}
+        {reportes.length > 0 && (
+          <div className="mb-3 space-y-2">
+            {reportes.map(r => (
+              <div key={r.id} className="rounded-2xl border border-[#FF6076]/40 bg-[#FF6076]/[0.07] p-3.5">
+                <p className="text-[13px] font-bold text-white flex items-center gap-1.5"><Flag size={13} className="text-[#FF8A9A]" /> Revisar {r.tipo} · reporte de un jugador</p>
+                <p className="mt-1 text-[13px] text-[#E8C8CE]">{r.motivo}</p>
+                {r.mensaje && <p className="mt-0.5 text-[12px] text-[#B08890] italic">«{r.mensaje}»</p>}
+                <div className="mt-2.5 flex gap-2">
+                  <button onClick={() => resolverReporte(r.id, 'cambiado')}
+                    className="flex-1 h-9 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-xs font-bold">He ajustado el {r.tipo}</button>
+                  <button onClick={() => resolverReporte(r.id, 'rebatido', 'revisado: el cuadro sigue las reglas de siembra')}
+                    className="flex-1 h-9 rounded-xl bg-white/8 border border-white/15 text-white text-xs font-bold">Mantener y responder</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="mt-5 flex gap-1 glass-subtle rounded-2xl p-1 sm:max-w-sm">
           {(['inscritos', 'bracket', 'ajustes'] as const).map(tb => (
@@ -216,6 +239,12 @@ export default function GestionarTorneoPage() {
               <button onClick={checkAll} className="h-11 px-3.5 rounded-xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] text-sm font-bold whitespace-nowrap flex items-center gap-1.5">
                 <UserCheck size={15} /> {tr('ges.checkinMasivo')}
               </button>
+          {t.inscritos >= t.plazas && (
+            <button onClick={() => { editarTorneo(t.id, { plazas: t.plazas + 16 }); }}
+              className="h-11 px-3.5 rounded-xl bg-[#E0BE63]/12 border border-[#E0BE63]/45 text-[#E0BE63] text-[13px] font-bold inline-flex items-center gap-1.5">
+              + Ampliar 16 plazas (lista de espera)
+            </button>
+          )}
             </div>
             <p className="mt-2.5 text-[11px] text-[#8B8BA8]"><span className="font-mono-num text-[#B6FF3A]">{nCheck}</span> de <span className="font-mono-num">{inscritos.length}</span> con check-in · seeding por ranking</p>
 

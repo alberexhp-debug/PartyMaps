@@ -15,6 +15,7 @@ import {
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 import { CompetitiveCard } from '@/components/todh/CompetitiveCard'
 import { ReferidosCard } from '@/components/todh/ReferidosCard'
+import { PerfilDualCard } from '@/components/todh/PerfilDualCard'
 import { useT } from '@/lib/i18n'
 import { CountUp } from '@/components/ui/CountUp'
 
@@ -169,6 +170,8 @@ export default function PerfilPage() {
 
         {/* Identidad competitiva */}
         <div className="stagger-item" style={{ ['--delay' as string]: '90ms' }}>
+          <PerfilDualCard />
+          <div className="mt-3" />
           <CompetitiveCard />
         </div>
 

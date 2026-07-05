@@ -4,6 +4,7 @@ import { JUEGOS } from '@/lib/torneos/sample'
 import Link from 'next/link'
 import { X, Star, Swords, TrendingUp, Trophy, ArrowUpRight } from 'lucide-react'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
+import { RangoChip } from '@/components/todh/RangoChip'
 import { useT } from '@/lib/i18n'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
@@ -43,6 +44,7 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
 
           {/* Tier + juego */}
           <div className="mt-3 flex items-center gap-2">
+            <RangoChip rating={jugador.rating} size="md" />
             <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-[11px] font-bold border" style={{ color: tierColor, borderColor: `${tierColor}55`, background: `${tierColor}1A` }}>{jugador.tier}</span>
             <span className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[11px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}

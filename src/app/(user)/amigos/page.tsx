@@ -11,6 +11,7 @@ import { JUEGOS, JUEGOS_LIST, rankingPorJuego, type Jugador } from '@/lib/torneo
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { PersonajeIcon } from '@/components/todh/PersonajeChip'
 import { useT } from '@/lib/i18n'
+import { RangoChip } from '@/components/todh/RangoChip'
 
 // Perfil competitivo de muestra de cada amigo (por nombre) para enriquecer la lista
 const POOL_JUGADORES: Jugador[] = JUEGOS_LIST.flatMap(j => rankingPorJuego(j.id))

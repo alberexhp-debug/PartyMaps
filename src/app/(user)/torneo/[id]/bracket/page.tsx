@@ -5,6 +5,7 @@ import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, standingsSuizoDe, ranking
 import { construirRondas, nombreRonda, boDeRonda } from '@/lib/torneos/bracket'
 import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
+import { ReportButton } from '@/components/todh/ReportSheet'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Crown, ShieldCheck } from 'lucide-react'
@@ -68,10 +69,11 @@ export default function BracketPage() {
     <div className="min-h-screen max-w-xl lg:max-w-6xl mx-auto">
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{labelFormato} · {t?.formato || 'Eliminación'}</p>
           <p className="text-base font-bold text-white truncate">{t?.nombre || 'Torneo'}</p>
         </div>
+        {t && <ReportButton torneoId={t.id} torneoNombre={t.nombre} />}
       </div>
 
       <div className="px-4 pt-4 space-y-3">

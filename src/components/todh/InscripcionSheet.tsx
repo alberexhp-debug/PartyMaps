@@ -86,13 +86,17 @@ export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, 
                 <p className="text-[11px] text-[#8B8BA8]">Acceso al local, zona de público y seguimiento del bracket en vivo. No compite ni puntúa.</p>
               </div>
             ) : !waitlist && (
-              <div className="mt-4 space-y-2.5">
-                <div className="flex justify-between text-sm"><span className="text-[#B8B8CC]">Inscripción</span><span className="text-white font-mono-num">{torneo.precio === 0 ? 'Gratis' : `${torneo.precio.toFixed(2)}€`}</span></div>
+              <div className="mt-4 space-y-2">
+                <div className="flex justify-between items-baseline"><span className="text-white font-bold">Total</span><span className="text-[#B6FF3A] font-bold text-xl font-mono-num">{gratis ? 'Gratis' : `${total.toFixed(2)}€`}</span></div>
                 {comisionImporte > 0 && (
-                  <div className="flex justify-between text-sm"><span className="text-[#B8B8CC]">Comisión Tourneum ({comisionPct}%)</span><span className="text-white font-mono-num">{comisionImporte.toFixed(2)}€</span></div>
+                  <details className="group">
+                    <summary className="list-none cursor-pointer text-[11px] text-[#8B8BA8] flex items-center gap-1">Incluye gestión Tourneum <span className="group-open:rotate-180 transition-transform">▾</span></summary>
+                    <div className="mt-1.5 space-y-1 text-[12px] text-[#8B8BA8]">
+                      <div className="flex justify-between"><span>Inscripción</span><span className="font-mono-num">{torneo.precio.toFixed(2)}€</span></div>
+                      <div className="flex justify-between"><span>Gestión ({comisionPct}%)</span><span className="font-mono-num">{comisionImporte.toFixed(2)}€</span></div>
+                    </div>
+                  </details>
                 )}
-                <div className="h-px bg-white/8 my-1" />
-                <div className="flex justify-between"><span className="text-white font-bold">Total</span><span className="text-[#B6FF3A] font-bold text-lg font-mono-num">{gratis ? 'Gratis' : `${total.toFixed(2)}€`}</span></div>
               </div>
             )}
 

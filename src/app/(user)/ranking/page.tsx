@@ -5,6 +5,8 @@ import { JUEGOS, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
+import { RangoChip } from '@/components/todh/RangoChip'
+import { rangoDe, puntosPorVictoria, multiplicadorProfundidad } from '@/lib/torneos/rangos'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { CountUp } from '@/components/ui/CountUp'
 import { cn } from '@/lib/utils'
@@ -56,6 +58,7 @@ export default function RankingPage() {
   }, [favoritos, juegoTocado])
   const [ambito, setAmbito] = useState<'pais' | 'mundial'>('pais')
   const [sel, setSel] = useState<{ j: Jugador; puesto: number } | null>(null)
+  const [comoPuntua, setComoPuntua] = useState(false)
   const esTourneum = tipo === 'tourneum'
 
   const lista = useMemo(() => {
@@ -87,7 +90,10 @@ export default function RankingPage() {
 
       <div className="relative px-5 pt-6 pb-2 safe-top">
         <p className="eyebrow mb-2">{tr('ranking.eyebrow')}</p>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{tr('ranking.titulo')}</h1>
+        <div className="flex items-end justify-between gap-3">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{tr('ranking.titulo')}</h1>
+          <button onClick={() => setComoPuntua(true)} className="mb-1 h-8 px-3 rounded-full bg-white/6 border border-white/12 text-[11px] font-bold text-[#B8B8CC] hover:text-white transition-colors shrink-0">¿Cómo puntúa?</button>
+        </div>
       </div>
 
       {/* Tipo de ranking */}
@@ -167,6 +173,7 @@ export default function RankingPage() {
               </div>
               <p className="mt-2 text-sm font-bold text-white truncate max-w-full">{p.nombre} {p.bandera}</p>
               <p className="text-[15px] font-bold text-score" style={{ color: first ? '#E0BE63' : '#B6FF3A' }}><CountUp value={p.rating} duration={1000} /></p>
+              <div className="mt-0.5 flex justify-center"><RangoChip rating={p.rating} /></div>
               <div className="mt-2 w-full rounded-t-xl flex items-start justify-center pt-1.5 ring-grad relative overflow-hidden"
                 style={{ height: alturas[i], background: `linear-gradient(180deg, ${medallas[i]}2E, ${medallas[i]}08)`, borderTop: `2px solid ${medallas[i]}` }}>
                 <span className="text-3xl font-bold text-score" style={{ color: medallas[i] }}>{puesto}</span>
@@ -190,6 +197,7 @@ export default function RankingPage() {
                 <p className="text-[11px] text-[#8B8BA8] font-mono-num flex items-center gap-1">{p.victorias}V · {p.derrotas}D · <PersonajeChip juegoId={p.juego} nombre={p.main} /></p>
               </div>
               <Tendencia n={p.tendencia} />
+              <RangoChip rating={p.rating} />
               <span className="text-sm font-bold text-white font-mono-num w-12 text-right">{p.rating}</span>
             </button>
           )
@@ -206,12 +214,45 @@ export default function RankingPage() {
               <p className="text-sm font-bold text-white truncate">Tú <span className="text-[10px] text-[#B6FF3A] font-semibold uppercase tracking-wide">{tr('ranking.tuPosicion')}</span></p>
               <p className="text-[11px] text-[#8B8BA8] font-mono-num">{yo.victorias}V · {yo.derrotas}D</p>
             </div>
+            <RangoChip rating={yo.rating} />
             <span className="text-sm font-bold text-[#B6FF3A] font-mono-num">{yo.rating}</span>
           </div>
         </div>
       )}
 
       {sel && <MiniPerfil jugador={sel.j} puesto={sel.puesto} onClose={() => setSel(null)} />}
+
+      {/* Explicador del sistema competitivo (reunión 5-jul) */}
+      {comoPuntua && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setComoPuntua(false)} />
+          <div className="relative w-full max-w-md bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop max-h-[86vh] overflow-y-auto p-5">
+            <p className="text-lg font-bold text-white text-display">¿Cómo puntúa el rango?</p>
+            <p className="mt-1 text-[13px] text-[#B8B8CC]">Tu rango (E → S) sube ganando sets en torneos. Cada victoria da puntos según a quién ganes y dónde:</p>
+            <div className="mt-3 space-y-1.5 text-[13px]">
+              {[
+                ['⚔️', 'Ganar a alguien de tu rango', '+25 pts'],
+                ['🔥', 'Ganar a un rango superior', '+60 a +200'],
+                ['🧊', 'Ganar a un rango inferior', '+5 a +12'],
+                ['📉', 'Perder contra un rango inferior', 'resta más'],
+                ['🎯', 'Marcador ajustado', '3-2 puntúa distinto que 3-0'],
+                ['🏆', 'Profundidad del bracket', '×1,25 por ronda superada — top 64 de un major vale oro'],
+                ['⭐', 'Tier del torneo', 'los torneos Oro/Platino/Diamante reparten más'],
+                ['🆓', 'Torneos gratis', 'siempre puntúan menos que los de pago'],
+                ['⏳', 'Inactividad', 'sin torneos en meses, tu rango decae'],
+              ].map(([e, t, v]) => (
+                <div key={t as string} className="flex items-center gap-2.5 rounded-xl bg-white/[0.04] border border-white/8 px-3 py-2">
+                  <span>{e}</span>
+                  <span className="flex-1 text-white font-semibold">{t}</span>
+                  <span className="text-[11px] text-[#B6FF3A] font-bold font-mono-num text-right">{v}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] text-[#8B8BA8]">Los rangos van por temporadas y por juego. Rango alto = tier de regalo (Oro/Platino/Diamante) con acceso a torneos tier.</p>
+            <button onClick={() => setComoPuntua(false)} className="mt-4 w-full h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold">Entendido</button>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   )
