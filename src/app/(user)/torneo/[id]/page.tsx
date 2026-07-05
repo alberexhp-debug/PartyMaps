@@ -220,6 +220,15 @@ export default function TorneoDetallePage() {
             <span className="inline-flex items-center gap-0.5 text-[11px] text-[#E0BE63] font-semibold"><Star size={11} className="fill-[#E0BE63]" /> {org.rating}</span>
           </Link>
         )}
+        {/* Co-organizadores (colaboración entre TOs) */}
+        {t.coOrganizadores && t.coOrganizadores.length > 0 && (
+          <p className="mt-1.5 text-[12px] text-[#8B8BA8]">
+            junto a {t.coOrganizadores.map((cid, i) => {
+              const co = getOrganizador(cid)
+              return co ? <span key={cid}><Link href={`/organizador/${co.id}`} className="text-white font-semibold hover:text-[#B6FF3A]">{co.nombre}</Link>{i < t.coOrganizadores!.length - 1 ? ' × ' : ''}</span> : null
+            })}
+          </p>
+        )}
 
         {/* Vídeo/directo del torneo: si el TO pegó una URL, va incrustado aquí */}
         {t.videoUrl ? (

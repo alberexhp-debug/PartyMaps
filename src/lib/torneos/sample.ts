@@ -52,7 +52,8 @@ export type TorneoSample = {
   banner?: string          // URL del banner del torneo; si falta, se usa el keyart del juego
   comentarios?: string     // otros comentarios del TO (reglas extra, premios en producto…)
   premiosImgs?: string[]   // fotos de premios en producto
-  videoUrl?: string        // vídeo o directo del torneo (YouTube/Twitch) que pega el TO
+  videoUrl?: string
+  coOrganizadores?: string[]   // colaboración entre TOs (reunión 5-jul)        // vídeo o directo del torneo (YouTube/Twitch) que pega el TO
 }
 
 export const TORNEOS_SAMPLE: TorneoSample[] = [

@@ -71,6 +71,7 @@ export function CompetitiveCard() {
 
         {/* Progreso hacia el siguiente rango (sistema de puntos de la reunión) */}
         <div className="mt-3"><RangoProgreso rating={s.rating} /></div>
+        <p className="mt-1.5 text-[10px] text-[#8B8BA8]">⏳ Rango activo · sin torneos en 45 días tu rango empieza a decaer</p>
 
         <div className="mt-3.5 grid grid-cols-2 gap-2.5">
           <div className="rounded-xl bg-white/4 border border-white/8 px-3 py-2">

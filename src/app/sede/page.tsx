@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { TORNEOS_SAMPLE, LOCALES, ORGANIZADORES, JUEGOS, type Mesa, type MesaForma, type MesaTipo } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
+import { QrCode } from 'lucide-react'
 import { MapaMesas } from '@/components/todh/MapaMesas'
 import {
   ArrowLeft, Monitor, Wallet, Star, CalendarClock, Check, X, ChevronRight,
@@ -29,6 +30,8 @@ const SETUPS: Setup[] = [
 
 export default function SedePage() {
   const { t: tr } = useT()
+  const [scanner, setScanner] = useState(false)
+  const [escaneado, setEscaneado] = useState<string | null>(null)
   const router = useRouter()
   const local = LOCALES.gamba
   const torneos = TORNEOS_SAMPLE.filter(t => t.localId === local.id)
@@ -85,6 +88,7 @@ export default function SedePage() {
         <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
           <span className="text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold">{tr('sede.panel')}</span>
+          <button onClick={() => { setScanner(true); setEscaneado(null) }} className="ml-auto h-9 px-3 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-xs font-bold inline-flex items-center gap-1.5"><QrCode size={14} /> Escanear entradas</button>
         </div>
       </div>
 
@@ -117,6 +121,9 @@ export default function SedePage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white truncate flex items-center gap-1">{org.nombre} <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#4F8EF7] text-white text-[8px] items-center justify-center">✓</span> <span className="ml-1 px-1.5 h-5 inline-flex items-center rounded-md bg-[#B6FF3A]/15 text-[#B6FF3A] text-[9px] font-bold uppercase tracking-wide">Nueva</span></p>
                     <p className="text-[11px] text-[#8B8BA8] inline-flex items-center gap-1"><CalendarClock size={11} /> {s.fecha} · {s.franja} · {s.personas} pers · {j?.corto}</p>
+                    {(s.recursos?.length || s.repartoTO) && (
+                      <p className="text-[10px] text-[#7FB0FF] mt-0.5">{s.recursos?.length ? `Pide: ${s.recursos.join(', ')}` : ''}{s.repartoTO ? ` · propone TO ${s.repartoTO}% / local ${100 - s.repartoTO}%` : ''}</p>
+                    )}
                   </div>
                 </div>
                 <div className="mt-2.5 flex gap-2">
@@ -262,6 +269,33 @@ export default function SedePage() {
           {!dispoPublicada && <ChevronRight size={18} className="text-[#6B6B85]" />}
         </button>
       </div>
+      {/* Escáner de entradas del local (reunión 5-jul: el local también escanea) */}
+      {scanner && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm animate-fade-in" onClick={() => setScanner(false)} />
+          <div className="relative w-full max-w-sm bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop p-5 text-center">
+            <p className="text-lg font-bold text-white text-display">Escáner de entradas</p>
+            {escaneado ? (
+              <div className="mt-4 rounded-2xl border border-[#B6FF3A]/45 bg-[#B6FF3A]/10 p-4">
+                <p className="text-3xl">✅</p>
+                <p className="mt-1 text-[15px] font-bold text-[#B6FF3A]">Entrada válida</p>
+                <p className="text-[13px] text-white mt-0.5">{escaneado}</p>
+                <p className="text-[11px] text-[#8B8BA8] mt-1">Check-in registrado · el TO lo ve al momento</p>
+              </div>
+            ) : (
+              <div className="mt-4 mx-auto w-52 h-52 rounded-2xl border-2 border-dashed border-white/20 bg-black/40 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-x-6 h-0.5 bg-[#B6FF3A] animate-pulse" style={{ top: '50%' }} />
+                <p className="text-[11px] text-[#8B8BA8]">Apunta al QR de la entrada</p>
+              </div>
+            )}
+            <div className="mt-4 flex gap-2">
+              {!escaneado && <button onClick={() => setEscaneado('Kaze · Lima Smash Weekly #42 · Jugador')} className="flex-1 h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold">Simular escaneo</button>}
+              {escaneado && <button onClick={() => setEscaneado(null)} className="flex-1 h-11 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-bold">Siguiente entrada</button>}
+              <button onClick={() => setScanner(false)} className="h-11 px-4 rounded-xl bg-white/6 text-[#B8B8CC] text-sm font-semibold">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

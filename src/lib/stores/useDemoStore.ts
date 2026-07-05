@@ -42,6 +42,8 @@ export type SolicitudSede = {
   estado: 'pendiente' | 'aceptada' | 'rechazada' | 'contraoferta'
   // La sede puede responder con otra fecha/franja/precio; el TO acepta o rechaza.
   contraoferta?: { fecha: string; franja: string; precio: number }
+  recursos?: string[]          // qué pone el local (mesas, pantallas, consolas…)
+  repartoTO?: number           // % del reparto para el TO (el resto, local)
 }
 
 // Disputa de resultado: los reportes de los jugadores no coinciden → la resuelve

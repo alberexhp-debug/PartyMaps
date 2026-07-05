@@ -7,6 +7,7 @@ import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { GameKeyart, TorneoArt } from '@/components/todh/GameKeyart'
 import { BannerPicker } from '@/components/todh/BannerPicker'
+import { ORGANIZADORES } from '@/lib/torneos/sample'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe, Check, Eye, Plus, Search, X, Star, Map as MapIcon, ImagePlus } from 'lucide-react'
 
@@ -55,6 +56,7 @@ export default function CrearTorneoPage() {
   const [premiosImgs, setPremiosImgs] = useState<string[]>([])
   const [videoUrl, setVideoUrl] = useState('')
   const [banner, setBanner] = useState<string | undefined>(undefined)
+  const [coOrgs, setCoOrgs] = useState<string[]>([])
   const [nuevoJuego, setNuevoJuego] = useState(false)
   const [publicado, setPublicado] = useState<TorneoSample | null>(null)
   const crearTorneo = useDemoStore(s => s.crearTorneo)
@@ -85,6 +87,7 @@ export default function CrearTorneoPage() {
       premiosImgs: premiosImgs.length ? premiosImgs : undefined,
       videoUrl: videoUrl.trim() || undefined,
       banner,
+      coOrganizadores: coOrgs.length ? coOrgs : undefined,
     }
     crearTorneo(t)
     setPublicado(t)
@@ -187,6 +190,24 @@ export default function CrearTorneoPage() {
         {/* Imagen / banner del torneo */}
         <Section title={tr('ct.imagen')}>
           <BannerPicker juegoId={juego} value={banner} onChange={setBanner} />
+        </Section>
+
+        {/* Colaboración entre TOs (reunión 5-jul): co-organiza eventos multi-juego */}
+        <Section title="Co-organizadores (opcional)">
+          <p className="text-[12px] text-[#8B8BA8] mb-2">Invita a otros TOs y montad un evento multi-juego: cada uno trae su comunidad.</p>
+          <div className="flex flex-wrap gap-1.5">
+            {Object.values(ORGANIZADORES).filter(o => o.id !== 'lima').slice(0, 4).map(o => {
+              const on = coOrgs.includes(o.id)
+              return (
+                <button key={o.id} type="button" onClick={() => setCoOrgs(prev => on ? prev.filter(x => x !== o.id) : [...prev, o.id])}
+                  className={`inline-flex items-center gap-1.5 pl-1.5 pr-2.5 h-9 rounded-full border text-[12px] font-bold transition-all ${on ? 'bg-[#B6FF3A]/12 border-[#B6FF3A]/50 text-white' : 'bg-white/[0.04] border-white/10 text-[#B8B8CC]'}`}>
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full text-[#0A0A0F] text-[10px] font-black" style={{ background: o.color }}>{o.nombre[0]}</span>
+                  {o.nombre}{on ? ' ✓' : ''}
+                </button>
+              )
+            })}
+          </div>
+          {coOrgs.length > 0 && <p className="mt-2 text-[11px] text-[#B6FF3A] font-semibold">Se les enviará la invitación al publicar · el torneo saldrá con {coOrgs.length + 1} organizadores.</p>}
         </Section>
 
         {/* Cuándo y dónde */}

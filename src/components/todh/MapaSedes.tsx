@@ -130,13 +130,17 @@ function SedeSheet({ local, nTorneos, onClose }: { local: Local; nTorneos: numbe
   const [franja, setFranja] = useState(FRANJAS[1])
   const [personas, setPersonas] = useState(32)
   const [juego, setJuego] = useState(JUEGOS_LIST[0].id)
+  // Recursos que pides al local y reparto propuesto (reunión 5-jul: quien aporta, cobra)
+  const RECURSOS = ['Mesas y sillas', 'Pantallas/monitores', 'Consolas', 'Sonido']
+  const [recursos, setRecursos] = useState<string[]>(['Mesas y sillas'])
+  const [repartoTO, setRepartoTO] = useState(70)
   const mia = solicitudes.find(s => s.localId === local.id && s.estado !== 'rechazada')
 
   const enviar = () => {
     const fechaLabel = fecha
       ? new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
       : 'Fecha por concretar'
-    crearSolicitud({ localId: local.id, fecha: fechaLabel, franja, personas, juego }, local.nombre)
+    crearSolicitud({ localId: local.id, fecha: fechaLabel, franja, personas, juego, recursos, repartoTO }, local.nombre)
     setPidiendo(false)
   }
 
@@ -199,6 +203,24 @@ function SedeSheet({ local, nTorneos, onClose }: { local: Local; nTorneos: numbe
                     {j.corto}
                   </button>
                 ))}
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1">¿Qué pone el local?</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {RECURSOS.map(r => (
+                    <button key={r} onClick={() => setRecursos(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r])}
+                      className={`px-2.5 h-8 rounded-lg text-[11px] font-bold border transition-all ${recursos.includes(r) ? 'bg-[#4F8EF7]/15 text-[#7FB0FF] border-[#4F8EF7]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>{r}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold">
+                  <span className="text-[#8B8BA8]">Reparto de entradas propuesto</span>
+                  <span className="text-white font-mono-num normal-case">TO {repartoTO}% · Local {100 - repartoTO}%</span>
+                </div>
+                <input type="range" min={40} max={90} step={5} value={repartoTO} onChange={e => setRepartoTO(Number(e.target.value))}
+                  className="mt-1 w-full accent-[#B6FF3A]" aria-label="Reparto para el TO" />
+                <p className="text-[10px] text-[#6B6B85]">Cuantos más recursos pongas tú, más % te llevas. El local puede contraofertar.</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={enviar} className="flex-1 h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold">Enviar petición</button>
