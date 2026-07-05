@@ -16,6 +16,7 @@ import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 import { CompetitiveCard } from '@/components/todh/CompetitiveCard'
 import { ReferidosCard } from '@/components/todh/ReferidosCard'
 import { PerfilDualCard } from '@/components/todh/PerfilDualCard'
+import { TierSheet } from '@/components/todh/TierSheet'
 import { useT } from '@/lib/i18n'
 import { CountUp } from '@/components/ui/CountUp'
 
@@ -50,6 +51,8 @@ export default function PerfilPage() {
   const idioma = useDemoStore(s => s.idioma)
   const setIdioma = useDemoStore(s => s.setIdioma)
   const inscritos = useDemoStore(s => s.inscritos)
+  const tierUsuario = useDemoStore(s => s.tierUsuario)
+  const [tierSheet, setTierSheet] = useState(false)
   const seguidos = useDemoStore(s => s.seguidos)
   const avatarEmoji = useDemoStore(s => s.avatarEmoji)
   const setAvatarEmoji = useDemoStore(s => s.setAvatarEmoji)
@@ -253,6 +256,11 @@ export default function PerfilPage() {
           <OpcionPerfil icon={Bell} label={tr('perfil.notis')} onClick={() => router.push('/notificaciones')} />
           {!demo && <OpcionPerfil icon={ClipboardCheck} label="Valoraciones pendientes" badge={pendientesValorar > 0 ? pendientesValorar : undefined} onClick={() => router.push('/perfil/valoraciones-pendientes')} />}
           {!demo && <OpcionPerfil icon={Lightbulb} label="Mis sugerencias enviadas" onClick={() => router.push('/perfil/sugerencias')} />}
+          <button onClick={() => setTierSheet(true)} className="w-full flex items-center gap-3 px-4 py-4 text-left card-int">
+            <div className="w-9 h-9 rounded-xl bg-[#E0BE63]/12 border border-[#E0BE63]/30 flex items-center justify-center">👑</div>
+            <span className="flex-1 text-sm text-white font-medium">Tiers Tourneum</span>
+            <span className="text-xs font-bold" style={{ color: tierUsuario ? '#B6FF3A' : '#8B8BA8' }}>{tierUsuario ? `${tierUsuario} activo` : 'Desde 4,99€/mes ›'}</span>
+          </button>
           <div className="w-full flex items-center gap-3 px-4 py-4">
             <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center"><Globe2 size={16} className="text-[#A0A0B8]" /></div>
             <span className="flex-1 text-sm text-white font-medium text-left">{tr('perfil.idioma')}</span>
@@ -285,6 +293,7 @@ export default function PerfilPage() {
           <p className="text-center text-[10px] text-[#6B6B85] tracking-[0.18em] uppercase pb-2 pt-2">Tourneum · v0.1.0</p>
         </div>
       </div>
+      {tierSheet && <TierSheet onClose={() => setTierSheet(false)} />}
     </div>
   )
 }

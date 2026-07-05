@@ -100,6 +100,9 @@ interface DemoState {
   preregistro: { unido: boolean; pos: number; compartidos: number }    // lista de espera del lanzamiento
   reportes: ReporteTO[]                  // reportes de bracket/seeding del jugador al TO (reunión 5-jul)
   perfilTO: 'no' | 'pendiente' | 'aprobado'  // alta de TO self-service (perfil dual)
+  tierUsuario: null | 'Oro' | 'Platino' | 'Diamante'   // tier de pago (o regalo por rango)
+  bonosComprados: { id: string; localId: string; localNombre: string; titulo: string; precio: number }[]
+  chatsTorneo: Record<string, { autor: string; texto: string; hora: string }[]>
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string) => void
   desinscribir: (torneoId: string) => void
@@ -134,6 +137,9 @@ interface DemoState {
   crearReporte: (r: Omit<ReporteTO, 'id' | 'estado'>) => void
   resolverReporte: (id: string, accion: 'cambiado' | 'rebatido', respuesta?: string) => void
   solicitarTO: () => void
+  suscribirTier: (tier: 'Oro' | 'Platino' | 'Diamante') => void
+  comprarBono: (localId: string, localNombre: string, titulo: string, precio: number) => void
+  enviarChat: (torneoId: string, texto: string) => void
 }
 
 let nid = 0
@@ -175,6 +181,9 @@ export const useDemoStore = create<DemoState>()(
         { id: 'rep-seed', torneoId: 't1', torneoNombre: 'Lima Smash Weekly #42', tipo: 'seeding', motivo: 'Me toca otra vez contra el mismo jugador en ronda 1', mensaje: 'Tercera semana seguida contra Sora en R1, tenemos nivel parecido y nos cruzáis pronto.', estado: 'abierto' },
       ],
       perfilTO: 'no',
+      tierUsuario: null,
+      bonosComprados: [],
+      chatsTorneo: {},
 
       inscribir: (torneoId, nombreTorneo) => set((s) => {
         if (s.inscritos.includes(torneoId)) return s
@@ -385,6 +394,20 @@ export const useDemoStore = create<DemoState>()(
           notificaciones: [n, ...s.notificaciones],
         }
       }),
+      suscribirTier: (tier) => set((s) => {
+        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: `Tourneum ${tier} activado`, cuerpo: 'Ya puedes entrar en torneos de tu tier y lucir la insignia. Se renueva cada mes; cancela cuando quieras.', cuando: 'ahora', leida: false, href: '/perfil' }
+        return { tierUsuario: tier, notificaciones: [n, ...s.notificaciones] }
+      }),
+      comprarBono: (localId, localNombre, titulo, precio) => set((s) => {
+        const n: Notificacion = { id: nextId(), tipo: 'inscripcion', titulo: 'Bono comprado', cuerpo: `${titulo} en ${localNombre}. Enséñalo en la barra desde tu cartera.`, cuando: 'ahora', leida: false, href: '/entradas' }
+        return {
+          bonosComprados: [{ id: nextId(), localId, localNombre, titulo, precio }, ...s.bonosComprados],
+          notificaciones: [n, ...s.notificaciones],
+        }
+      }),
+      enviarChat: (torneoId, texto) => set((s) => ({
+        chatsTorneo: { ...s.chatsTorneo, [torneoId]: [...(s.chatsTorneo[torneoId] || []), { autor: 'Tú', texto, hora: 'ahora' }] },
+      })),
       solicitarTO: () => set((s) => {
         if (s.perfilTO !== 'no') return s
         const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: 'Solicitud de organizador enviada', cuerpo: 'Revisaremos tu experiencia y te haremos una breve entrevista. Te avisamos aquí.', cuando: 'ahora', leida: false, href: '/perfil' }

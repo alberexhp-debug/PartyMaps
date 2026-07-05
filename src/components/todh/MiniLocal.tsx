@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { TORNEOS_SAMPLE, JUEGOS, type Local } from '@/lib/torneos/sample'
-import { X, Star, Ruler, Monitor, Users, Wallet, CalendarClock, ChevronRight, Check } from 'lucide-react'
+import { X, Star, Ruler, Monitor, Users, Wallet, CalendarClock, ChevronRight, Check, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
 
 // Mini-ficha pública de la sede (modal), simétrica al MiniPerfil de jugador.
@@ -14,6 +14,14 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
   const creados = useDemoStore(s => s.creados)
   const cancelados = useDemoStore(s => s.cancelados)
   const [solicitado, setSolicitado] = useState(false)
+  const comprarBono = useDemoStore(s => s.comprarBono)
+  const [comprado, setComprado] = useState<string | null>(null)
+  // Tienda del local (reunión 5-jul): bonos y merch con comisión de la app
+  const productos = [
+    { titulo: 'Bono bebida + snack', precio: 4, emoji: '🥤' },
+    { titulo: 'Menú día de torneo', precio: 8, emoji: '🌭' },
+    { titulo: `Camiseta ${local.nombre}`, precio: 15, emoji: '👕' },
+  ]
   const torneos = [...creados, ...TORNEOS_SAMPLE]
     .filter(t => t.localId === local.id && !cancelados.includes(t.id))
     .slice(0, 3)
@@ -79,6 +87,27 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
               </div>
             </div>
           )}
+
+          {/* Tienda del local (bonos y merch — comisión Tourneum) */}
+          <div className="mt-4">
+            <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5"><ShoppingBag size={12} /> Tienda del local</p>
+            <div className="space-y-1.5">
+              {productos.map(pr => (
+                <div key={pr.titulo} className="flex items-center gap-2.5 card-premium px-3 py-2.5">
+                  <span className="text-lg">{pr.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-bold text-white truncate">{pr.titulo}</p>
+                    <p className="text-[10px] text-[#8B8BA8]">Canjéalo en barra desde tu cartera</p>
+                  </div>
+                  <button onClick={() => { comprarBono(local.id, local.nombre, pr.titulo, pr.precio); setComprado(pr.titulo) }}
+                    disabled={comprado === pr.titulo}
+                    className={`h-8 px-3 rounded-lg text-[12px] font-bold transition-all ${comprado === pr.titulo ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border border-[#B6FF3A]/40' : 'bg-white/8 border border-white/15 text-white hover:bg-white/12'}`}>
+                    {comprado === pr.titulo ? '✓ En cartera' : `${pr.precio}€`}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* CTA para TOs (demo) */}
           <button onClick={() => setSolicitado(true)} disabled={solicitado}

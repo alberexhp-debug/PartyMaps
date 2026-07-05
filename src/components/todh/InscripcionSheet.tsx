@@ -21,10 +21,13 @@ type Props = {
 // Hoja de checkout en una sola pantalla (mínima fricción). En demo simula el pago.
 export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, total, completo, precioVer, modoInicial, onClose, onConfirm, onConfirmVer }: Props) {
   const [fase, setFase] = useState<'resumen' | 'pagando' | 'ok'>('resumen')
+  const [codigoOpen, setCodigoOpen] = useState(false)
+  const [codigo, setCodigo] = useState('')
+  const [proAplicado, setProAplicado] = useState(false)
   const conVer = precioVer !== undefined && precioVer !== null && !!onConfirmVer
   const [modo, setModo] = useState<'jugar' | 'ver'>(modoInicial ?? (completo && conVer ? 'ver' : 'jugar'))
   const ver = conVer && modo === 'ver'
-  const gratis = ver ? precioVer === 0 : total === 0
+  const gratis = proAplicado || (ver ? precioVer === 0 : total === 0)
   const waitlist = completo && !ver
 
   function pagar() {
@@ -97,6 +100,28 @@ export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, 
                     </div>
                   </details>
                 )}
+              </div>
+            )}
+
+            {/* Código de invitación pro (reunión 5-jul: los top entran gratis) */}
+            {!ver && !waitlist && !proAplicado && (
+              <div className="mt-3">
+                {codigoOpen ? (
+                  <div className="flex gap-2 animate-slide-up-sm">
+                    <input value={codigo} onChange={e => setCodigo(e.target.value)} placeholder="PRO-XXXX"
+                      className="flex-1 h-10 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm uppercase tracking-wider focus:border-[#B6FF3A]/60 outline-none" />
+                    <button onClick={() => { if (codigo.trim().toUpperCase().startsWith('PRO')) setProAplicado(true) }}
+                      className="h-10 px-3.5 rounded-xl bg-white/8 border border-white/15 text-white text-xs font-bold">Aplicar</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setCodigoOpen(true)} className="text-[11px] text-[#8B8BA8] font-semibold hover:text-white transition-colors">¿Tienes código de invitación? ›</button>
+                )}
+              </div>
+            )}
+            {proAplicado && (
+              <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#E0BE63]/10 border border-[#E0BE63]/40 px-3.5 py-2.5">
+                <span className="text-base">⭐</span>
+                <span className="flex-1 text-[13px] font-bold text-[#E0BE63]">Invitación pro aplicada — entrada gratuita</span>
               </div>
             )}
 

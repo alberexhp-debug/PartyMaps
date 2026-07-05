@@ -12,6 +12,8 @@ import { FillBar, CountUp } from '@/components/ui/CountUp'
 import { InscripcionSheet } from '@/components/todh/InscripcionSheet'
 import { RangoChip } from '@/components/todh/RangoChip'
 import { rangoDe } from '@/lib/torneos/rangos'
+import { TierSheet, tieneAcceso } from '@/components/todh/TierSheet'
+import { ChatTorneoSheet } from '@/components/todh/ChatTorneo'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { MiniLocal } from '@/components/todh/MiniLocal'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
@@ -65,6 +67,9 @@ export default function TorneoDetallePage() {
   const esEspectador = useDemoStore(s => s.entradasEspectador.includes(id))
   const inscribirEspectador = useDemoStore(s => s.inscribirEspectador)
   const [modoSheet, setModoSheet] = useState<'jugar' | 'ver'>('jugar')
+  const [tierSheet, setTierSheet] = useState(false)
+  const [chatAbierto, setChatAbierto] = useState(false)
+  const tierUsuario = useDemoStore(s => s.tierUsuario)
 
   if (!t) {
     return (
@@ -132,8 +137,10 @@ export default function TorneoDetallePage() {
     <div className="w-full h-14 rounded-2xl bg-[#FF6B6B]/12 border border-[#FF6B6B]/40 text-[#FF8A8A] font-bold flex items-center justify-center gap-2">Torneo cancelado · reembolso 100%</div>
   ) : inscrito ? (
     <Link href="/entradas" className="w-full h-14 rounded-2xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] font-bold flex items-center justify-center gap-2"><Check size={18} /> Inscrito · ver en mi cartera</Link>
-  ) : t.vip ? (
-    <button className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2"><Lock size={16} /> Requiere tier {t.vip}</button>
+  ) : t.vip && !tieneAcceso(tierUsuario, t.vip) ? (
+    <button onClick={() => setTierSheet(true)} className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2 hover:bg-white/12 transition-colors">
+      <Lock size={16} /> Requiere tier {t.vip} · desbloquéalo
+    </button>
   ) : completo ? (
     <button onClick={() => abrirSheet('jugar')} className="w-full h-14 rounded-2xl bg-[#FF8A5C]/15 border border-[#FF8A5C]/40 text-[#FF8A5C] font-bold">Apuntarme a la lista de espera</button>
   ) : (
@@ -384,6 +391,7 @@ export default function TorneoDetallePage() {
             <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
             {ctaBtn}
             {ctaEspectador}
+            <button onClick={() => setChatAbierto(true)} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors">💬 Chat del torneo</button>
             <button onClick={compartir} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors"><Share2 size={15} /> {tr('torneo.compartir')}</button>
           </div>
         </aside>
@@ -396,6 +404,9 @@ export default function TorneoDetallePage() {
               {ctaEspectador}
         </div>
       </div>
+
+      {tierSheet && <TierSheet requerido={t.vip ?? undefined} onClose={() => setTierSheet(false)} />}
+      {chatAbierto && <ChatTorneoSheet torneoId={t.id} torneoNombre={t.nombre} onClose={() => setChatAbierto(false)} />}
 
       {sheet && (
         <InscripcionSheet

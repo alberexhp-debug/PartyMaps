@@ -24,6 +24,7 @@ export default function EntradasPage() {
   const [ticket, setTicket] = useState<{ t: TorneoSample; espectador?: boolean } | null>(null)
   const inscritos = useDemoStore(s => s.inscritos)
   const espectador = useDemoStore(s => s.entradasEspectador)
+  const bonos = useDemoStore(s => s.bonosComprados)
 
   const proximos: Insc[] = useMemo(() => {
     const ids = Array.from(new Set([...inscritos, ...DEFAULT_PROXIMOS]))
@@ -79,6 +80,25 @@ export default function EntradasPage() {
           </div>
         )}
       </div>
+
+      {/* Bonos de locales (tienda del local) */}
+      {bonos.length > 0 && tab === 'proximos' && (
+        <div className="relative px-4 pb-4">
+          <p className="eyebrow eyebrow-muted mb-2">Bonos de locales</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {bonos.map(b => (
+              <div key={b.id} className="card-premium px-3.5 py-3 flex items-center gap-3">
+                <span className="h-10 w-10 rounded-xl bg-[#E0BE63]/12 border border-[#E0BE63]/35 flex items-center justify-center text-lg">🎟️</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-bold text-white truncate">{b.titulo}</p>
+                  <p className="text-[11px] text-[#8B8BA8] truncate">{b.localNombre} · enséñalo en barra</p>
+                </div>
+                <span className="font-mono text-[11px] font-black tracking-widest text-[#E0BE63]">{b.id.slice(-4).toUpperCase()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {ticket && <TicketModal torneo={ticket.t} espectador={ticket.espectador} onClose={() => setTicket(null)} />}
       </div>
