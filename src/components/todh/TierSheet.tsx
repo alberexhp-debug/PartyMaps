@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { Check, Crown } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 // Tiers de usuario (reunión 5-jul): se pagan (4,99/7,99/9,99) o se regalan por
 // rango alto. Desbloquean torneos tier, perfil destacado y ofertas de locales.
@@ -18,6 +19,7 @@ export function tieneAcceso(tierUsuario: string | null, requerido: string): bool
 }
 
 export function TierSheet({ requerido, onClose }: { requerido?: string; onClose: () => void }) {
+  const { t: tr } = useT()
   const tierActual = useDemoStore(s => s.tierUsuario)
   const suscribir = useDemoStore(s => s.suscribirTier)
   const [ok, setOk] = useState<string | null>(null)
@@ -40,10 +42,10 @@ export function TierSheet({ requerido, onClose }: { requerido?: string; onClose:
           </div>
         ) : (
           <>
-            <p className="text-lg font-bold text-white text-display flex items-center gap-2"><Crown size={18} className="text-[#E0BE63]" /> Tiers Tourneum</p>
+            <p className="text-lg font-bold text-white text-display flex items-center gap-2"><Crown size={18} className="text-[#E0BE63]" /> {tr('tier.titulo')}</p>
             <p className="mt-1 text-[13px] text-[#B8B8CC]">
-              {requerido ? <>Este torneo pide <strong className="text-white">tier {requerido}</strong>. </> : null}
-              El tier se paga al mes <strong className="text-white">o te lo regalamos por rango</strong> — el mérito y el bolsillo abren la misma puerta.
+              {requerido ? <>{tr('tier.pide')} <strong className="text-white">tier {requerido}</strong>. </> : null}
+              {tr('tier.intro')}
             </p>
             <div className="mt-4 space-y-2">
               {TIERS_USUARIO.map(t => {
@@ -64,9 +66,9 @@ export function TierSheet({ requerido, onClose }: { requerido?: string; onClose:
                       <button onClick={() => elegir(t.id)} disabled={activo}
                         className="flex-1 h-10 rounded-xl font-bold text-[13px] disabled:opacity-40"
                         style={{ background: t.color, color: '#0A0A0F' }}>
-                        {activo ? 'Tu tier actual' : `Activar ${t.id}`}
+                        {activo ? tr('tier.actual') : `${tr('tier.activar')} ${t.id}`}
                       </button>
-                      <span className="text-[10px] text-[#8B8BA8] leading-tight w-24">Gratis si llegas a rango <strong style={{ color: t.color }}>{t.regaloRango}</strong></span>
+                      <span className="text-[10px] text-[#8B8BA8] leading-tight w-24">{tr('tier.gratisRango')} <strong style={{ color: t.color }}>{t.regaloRango}</strong></span>
                     </div>
                   </div>
                 )

@@ -123,12 +123,12 @@ export default function TorneoDetallePage() {
   const ctaEspectador = !cancelado && pVer !== null && !inscrito ? (
     esEspectador ? (
       <Link href="/entradas" className="mt-2 w-full h-10 rounded-xl bg-white/6 border border-white/12 text-[#B8B8CC] text-[13px] font-semibold flex items-center justify-center gap-1.5">
-        <Check size={14} className="text-[#B6FF3A]" /> Entrada de espectador en tu cartera
+        <Check size={14} className="text-[#B6FF3A]" /> {tr('esp.enCartera')}
       </Link>
     ) : (
       <button onClick={() => abrirSheet('ver')}
         className="mt-2 w-full h-10 rounded-xl bg-white/6 border border-white/12 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors">
-        👀 Solo quiero verlo · {pVer === 0 ? tr('torneo.gratis') : `${pVer}€`}
+        👀 {tr('esp.soloVerlo')} · {pVer === 0 ? tr('torneo.gratis') : `${pVer}€`}
       </button>
     )
   ) : null
@@ -139,7 +139,7 @@ export default function TorneoDetallePage() {
     <Link href="/entradas" className="w-full h-14 rounded-2xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] font-bold flex items-center justify-center gap-2"><Check size={18} /> Inscrito · ver en mi cartera</Link>
   ) : t.vip && !tieneAcceso(tierUsuario, t.vip) ? (
     <button onClick={() => setTierSheet(true)} className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2 hover:bg-white/12 transition-colors">
-      <Lock size={16} /> Requiere tier {t.vip} · desbloquéalo
+      <Lock size={16} /> {tr('tier.desbloquea')} {t.vip} · {tr('tier.desbloquealo')}
     </button>
   ) : completo ? (
     <button onClick={() => abrirSheet('jugar')} className="w-full h-14 rounded-2xl bg-[#FF8A5C]/15 border border-[#FF8A5C]/40 text-[#FF8A5C] font-bold">Apuntarme a la lista de espera</button>
@@ -400,7 +400,7 @@ export default function TorneoDetallePage() {
             <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
             {ctaBtn}
             {ctaEspectador}
-            <button onClick={() => setChatAbierto(true)} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors">💬 Chat del torneo</button>
+            <button onClick={() => setChatAbierto(true)} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors">💬 {tr('chat.titulo')}</button>
             <button onClick={compartir} className="w-full h-11 rounded-xl bg-white/6 border border-white/10 text-[#B8B8CC] text-sm font-semibold flex items-center justify-center gap-2 hover:text-white transition-colors"><Share2 size={15} /> {tr('torneo.compartir')}</button>
           </div>
         </aside>

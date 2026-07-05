@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { Flag, Check } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 // Botón rojo de Report (reunión 5-jul): el jugador reporta bracket o seeding
 // con motivos predefinidos; le llega al TO como "Revisar seeding" accionable.
@@ -21,12 +22,13 @@ const MOTIVOS: Record<'bracket' | 'seeding', string[]> = {
 }
 
 export function ReportButton({ torneoId, torneoNombre }: { torneoId: string; torneoNombre: string }) {
+  const { t: tr } = useT()
   const [open, setOpen] = useState(false)
   return (
     <>
       <button onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-[#FF6076]/12 border border-[#FF6076]/40 text-[#FF8A9A] text-xs font-bold hover:bg-[#FF6076]/20 transition-colors">
-        <Flag size={13} /> Reportar
+        <Flag size={13} /> {tr('rep.reportar')}
       </button>
       {open && <ReportSheet torneoId={torneoId} torneoNombre={torneoNombre} onClose={() => setOpen(false)} />}
     </>
@@ -34,6 +36,7 @@ export function ReportButton({ torneoId, torneoNombre }: { torneoId: string; tor
 }
 
 function ReportSheet({ torneoId, torneoNombre, onClose }: { torneoId: string; torneoNombre: string; onClose: () => void }) {
+  const { t: tr } = useT()
   const crearReporte = useDemoStore(s => s.crearReporte)
   const [tipo, setTipo] = useState<'seeding' | 'bracket'>('seeding')
   const [motivo, setMotivo] = useState<string | null>(null)
@@ -56,12 +59,12 @@ function ReportSheet({ torneoId, torneoNombre, onClose }: { torneoId: string; to
         {enviado ? (
           <div className="py-8 flex flex-col items-center text-center gap-3">
             <div className="h-14 w-14 rounded-full bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 flex items-center justify-center animate-pop"><Check size={26} className="text-[#B6FF3A]" /></div>
-            <p className="text-lg font-bold text-white text-display">Reporte enviado</p>
+            <p className="text-lg font-bold text-white text-display">{tr('rep.enviado')}</p>
             <p className="text-sm text-[#B8B8CC] max-w-xs">El organizador lo verá como aviso «Revisar {tipo}» y podrá ajustar el cuadro o responderte.</p>
           </div>
         ) : (
           <>
-            <p className="text-lg font-bold text-white text-display flex items-center gap-2"><Flag size={17} className="text-[#FF6076]" /> Reportar al organizador</p>
+            <p className="text-lg font-bold text-white text-display flex items-center gap-2"><Flag size={17} className="text-[#FF6076]" /> {tr('rep.titulo')}</p>
             <div className="mt-3 grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
               {(['seeding', 'bracket'] as const).map(t => (
                 <button key={t} onClick={() => { setTipo(t); setMotivo(null) }}
@@ -83,7 +86,7 @@ function ReportSheet({ torneoId, torneoNombre, onClose }: { torneoId: string; to
             <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} placeholder="Detalla el mensaje para el organizador (opcional)…" rows={2}
               className="mt-2 w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#FF6076]/60 outline-none resize-none" />
             <button onClick={enviar} disabled={!motivo}
-              className="mt-3 w-full h-12 rounded-xl bg-[#FF6076] text-white font-bold disabled:opacity-40">Enviar reporte</button>
+              className="mt-3 w-full h-12 rounded-xl bg-[#FF6076] text-white font-bold disabled:opacity-40">{tr('rep.enviar')}</button>
             <p className="mt-2 text-center text-[10px] text-[#6E6E85]">El organizador puede ajustar el cuadro o mantenerlo respondiéndote.</p>
           </>
         )}

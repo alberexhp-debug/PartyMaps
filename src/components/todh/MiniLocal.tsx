@@ -90,14 +90,14 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
 
           {/* Tienda del local (bonos y merch — comisión Tourneum) */}
           <div className="mt-4">
-            <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5"><ShoppingBag size={12} /> Tienda del local</p>
+            <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5"><ShoppingBag size={12} /> {tr('shop.titulo')}</p>
             <div className="space-y-1.5">
               {productos.map(pr => (
                 <div key={pr.titulo} className="flex items-center gap-2.5 card-premium px-3 py-2.5">
                   <span className="text-lg">{pr.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-bold text-white truncate">{pr.titulo}</p>
-                    <p className="text-[10px] text-[#8B8BA8]">Canjéalo en barra desde tu cartera</p>
+                    <p className="text-[10px] text-[#8B8BA8]">{tr('shop.canjea')}</p>
                   </div>
                   <button onClick={() => { comprarBono(local.id, local.nombre, pr.titulo, pr.precio); setComprado(pr.titulo) }}
                     disabled={comprado === pr.titulo}

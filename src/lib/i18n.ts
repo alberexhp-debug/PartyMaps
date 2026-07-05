@@ -286,6 +286,64 @@ const D = {
   'ml.solicitar': ['Solicitar reserva como TO', 'Request a booking as TO'],
   'ml.enviada': ['Solicitud enviada a la sede', 'Request sent to the venue'],
   'ml.resenas': ['reseñas', 'reviews'],
+  // Sistema competitivo (reunión 5-jul)
+  'rk.comoPuntua': ['¿Cómo puntúa?', 'How ranking works'],
+  'rk.titulo': ['¿Cómo puntúa el rango?', 'How does rank scoring work?'],
+  'rk.intro': ['Tu rango (E → S) sube ganando sets en torneos. Cada victoria da puntos según a quién ganes y dónde:', 'Your rank (E → S) climbs by winning sets in tournaments. Each win gives points based on who you beat and where:'],
+  'rk.mismo': ['Ganar a alguien de tu rango', 'Beating someone your rank'],
+  'rk.superior': ['Ganar a un rango superior', 'Beating a higher rank'],
+  'rk.inferior': ['Ganar a un rango inferior', 'Beating a lower rank'],
+  'rk.perder': ['Perder contra un rango inferior', 'Losing to a lower rank'],
+  'rk.perderV': ['resta más', 'costs more'],
+  'rk.marcador': ['Marcador ajustado', 'Adjusted score'],
+  'rk.marcadorV': ['3-2 puntúa distinto que 3-0', '3-2 scores differently than 3-0'],
+  'rk.profundidad': ['Profundidad del bracket', 'Bracket depth'],
+  'rk.profundidadV': ['×1,25 por ronda superada — top 64 de un major vale oro', '×1.25 per round — top 64 at a major is gold'],
+  'rk.tier': ['Tier del torneo', 'Tournament tier'],
+  'rk.tierV': ['los torneos Oro/Platino/Diamante reparten más', 'Gold/Platinum/Diamond events pay out more'],
+  'rk.gratis': ['Torneos gratis', 'Free tournaments'],
+  'rk.gratisV': ['siempre puntúan menos que los de pago', 'always score less than paid ones'],
+  'rk.decay': ['Inactividad', 'Inactivity'],
+  'rk.decayV': ['sin torneos en meses, tu rango decae', 'no events for months and your rank decays'],
+  'rk.pie': ['Los rangos van por temporadas y por juego. Rango alto = tier de regalo (Oro/Platino/Diamante) con acceso a torneos tier.', 'Ranks are per season and per game. High rank = free tier (Gold/Platinum/Diamond) with access to tier events.'],
+  'rk.ok': ['Entendido', 'Got it'],
+  'rk.decayHint': ['⏳ Rango activo · sin torneos en 45 días tu rango empieza a decaer', '⏳ Rank active · 45 days without events and your rank starts to decay'],
+  'rk.temporada': ['Temporada 2026-2', 'Season 2026-2'],
+  'rk.progreso': ['Progreso de rango', 'Rank progress'],
+
+  // Tiers
+  'tier.titulo': ['Tiers Tourneum', 'Tourneum Tiers'],
+  'tier.pide': ['Este torneo pide', 'This event requires'],
+  'tier.intro': ['El tier se paga al mes o te lo regalamos por rango — el mérito y el bolsillo abren la misma puerta.', 'Pay monthly or earn it by rank — merit and money open the same door.'],
+  'tier.activar': ['Activar', 'Activate'],
+  'tier.actual': ['Tu tier actual', 'Your current tier'],
+  'tier.gratisRango': ['Gratis si llegas a rango', 'Free at rank'],
+  'tier.desbloquea': ['Requiere tier', 'Requires tier'],
+  'tier.desbloquealo': ['desbloquéalo', 'unlock it'],
+
+  // Reportes
+  'rep.reportar': ['Reportar', 'Report'],
+  'rep.titulo': ['Reportar al organizador', 'Report to the organizer'],
+  'rep.enviar': ['Enviar reporte', 'Submit report'],
+  'rep.enviado': ['Reporte enviado', 'Report sent'],
+
+  // Chat / espectador / tienda
+  'chat.titulo': ['Chat del torneo', 'Tournament chat'],
+  'chat.escribe': ['Escribe al torneo…', 'Message the tournament…'],
+  'esp.soloVerlo': ['Solo quiero verlo', 'Just want to watch'],
+  'esp.enCartera': ['Entrada de espectador en tu cartera', 'Spectator ticket in your wallet'],
+  'shop.titulo': ['Tienda del local', 'Venue shop'],
+  'shop.canjea': ['Canjéalo en barra desde tu cartera', 'Redeem at the bar from your wallet'],
+  'shop.bonos': ['Bonos de locales', 'Venue vouchers'],
+
+  // Perfil dual
+  'dual.jugador': ['Jugador', 'Player'],
+  'dual.activo': ['Perfil activo', 'Active profile'],
+  'dual.organizas': ['¿Organizas?', 'Organizing?'],
+  'dual.hazte': ['Hazte TO gratis', 'Become a TO free'],
+  'dual.org': ['Organizador', 'Organizer'],
+  'dual.consola': ['Ir a la consola', 'Open console'],
+  'dual.revision': ['Solicitud en revisión…', 'Application under review…'],
 } as const
 
 export type ClaveI18n = keyof typeof D

@@ -4,11 +4,13 @@ import Link from 'next/link'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { JUEGOS_LIST } from '@/lib/torneos/sample'
 import { User, Megaphone, Check, Clock, ChevronRight } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 // Perfil dual (reunión 5-jul): como convertir una cuenta de Instagram en cuenta
 // de empresa — cualquier usuario puede hacerse TO desde su perfil. El TO siempre
 // conserva su perfil de jugador; la gestión vive en su propio panel.
 export function PerfilDualCard() {
+  const { t: tr } = useT()
   const estado = useDemoStore(s => s.perfilTO)
   const [alta, setAlta] = useState(false)
 
@@ -17,8 +19,8 @@ export function PerfilDualCard() {
       <div className="flex-1 rounded-xl bg-[#B6FF3A]/10 border border-[#B6FF3A]/35 px-3 py-2.5 flex items-center gap-2.5">
         <span className="h-8 w-8 rounded-lg bg-[#B6FF3A]/15 flex items-center justify-center"><User size={15} className="text-[#B6FF3A]" /></span>
         <div className="min-w-0">
-          <p className="text-[12px] font-bold text-white leading-tight">Jugador</p>
-          <p className="text-[10px] text-[#8B8BA8]">Perfil activo</p>
+          <p className="text-[12px] font-bold text-white leading-tight">{tr('dual.jugador')}</p>
+          <p className="text-[10px] text-[#8B8BA8]">{tr('dual.activo')}</p>
         </div>
       </div>
 
@@ -26,8 +28,8 @@ export function PerfilDualCard() {
         <Link href="/consola" className="flex-1 rounded-xl bg-white/[0.04] border border-white/10 px-3 py-2.5 flex items-center gap-2.5 hover:bg-white/[0.08] transition-colors">
           <span className="h-8 w-8 rounded-lg bg-white/8 flex items-center justify-center"><Megaphone size={15} className="text-[#B8B8CC]" /></span>
           <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-bold text-white leading-tight">Organizador</p>
-            <p className="text-[10px] text-[#B6FF3A] font-semibold">Ir a la consola</p>
+            <p className="text-[12px] font-bold text-white leading-tight">{tr('dual.org')}</p>
+            <p className="text-[10px] text-[#B6FF3A] font-semibold">{tr('dual.consola')}</p>
           </div>
           <ChevronRight size={14} className="text-[#6B6B85]" />
         </Link>
@@ -35,16 +37,16 @@ export function PerfilDualCard() {
         <div className="flex-1 rounded-xl bg-white/[0.04] border border-[#E0BE63]/35 px-3 py-2.5 flex items-center gap-2.5">
           <span className="h-8 w-8 rounded-lg bg-[#E0BE63]/12 flex items-center justify-center"><Clock size={15} className="text-[#E0BE63]" /></span>
           <div className="min-w-0">
-            <p className="text-[12px] font-bold text-white leading-tight">Organizador</p>
-            <p className="text-[10px] text-[#E0BE63] font-semibold">Solicitud en revisión…</p>
+            <p className="text-[12px] font-bold text-white leading-tight">{tr('dual.org')}</p>
+            <p className="text-[10px] text-[#E0BE63] font-semibold">{tr('dual.revision')}</p>
           </div>
         </div>
       ) : (
         <button onClick={() => setAlta(true)} className="flex-1 rounded-xl bg-white/[0.04] border border-dashed border-white/20 px-3 py-2.5 flex items-center gap-2.5 hover:bg-white/[0.08] transition-colors text-left">
           <span className="h-8 w-8 rounded-lg bg-white/8 flex items-center justify-center"><Megaphone size={15} className="text-[#8B8BA8]" /></span>
           <div className="min-w-0">
-            <p className="text-[12px] font-bold text-white leading-tight">¿Organizas?</p>
-            <p className="text-[10px] text-[#8B8BA8]">Hazte TO gratis</p>
+            <p className="text-[12px] font-bold text-white leading-tight">{tr('dual.organizas')}</p>
+            <p className="text-[10px] text-[#8B8BA8]">{tr('dual.hazte')}</p>
           </div>
         </button>
       )}

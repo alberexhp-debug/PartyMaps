@@ -1,5 +1,6 @@
 'use client'
 import { rangoDe } from '@/lib/torneos/rangos'
+import { useT } from '@/lib/i18n'
 
 // Placa de rango competitivo (E → S). Tamaños: sm (listas), md (fichas), lg (perfil).
 export function RangoChip({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' | 'lg' }) {
@@ -20,11 +21,12 @@ export function RangoChip({ rating, size = 'sm' }: { rating: number; size?: 'sm'
 
 // Barra de progreso hacia el siguiente rango (perfil propio)
 export function RangoProgreso({ rating }: { rating: number }) {
+  const { t: tr } = useT()
   const r = rangoDe(rating)
   return (
     <div>
       <div className="flex items-center justify-between text-[10px] font-semibold">
-        <span className="uppercase tracking-[0.14em] text-[#8B8BA8]">Progreso de rango</span>
+        <span className="uppercase tracking-[0.14em] text-[#8B8BA8]">{tr('rk.progreso')}</span>
         <span className="font-mono-num" style={{ color: r.color }}>{r.puntos}/{r.umbral} pts</span>
       </div>
       <div className="mt-1 h-1.5 rounded-full bg-white/8 overflow-hidden">

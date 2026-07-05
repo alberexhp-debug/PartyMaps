@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { X, Send } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 // Chat del torneo (reunión 5-jul): sala por torneo para inscritos y espectadores.
 // Abre antes del evento; complementa al canal del TO y al hilo por combate.
@@ -16,6 +17,7 @@ const SEMILLA: Record<string, { autor: string; texto: string; hora: string }[]> 
 }
 
 export function ChatTorneoSheet({ torneoId, torneoNombre, onClose }: { torneoId: string; torneoNombre: string; onClose: () => void }) {
+  const { t: tr } = useT()
   const mios = useDemoStore(s => s.chatsTorneo[torneoId])
   const enviar = useDemoStore(s => s.enviarChat)
   const [texto, setTexto] = useState('')
@@ -37,7 +39,7 @@ export function ChatTorneoSheet({ torneoId, torneoNombre, onClose }: { torneoId:
       <div className="relative w-full max-w-md bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop flex flex-col" style={{ height: 'min(72vh, 640px)' }}>
         <div className="px-4 pt-4 pb-3 border-b border-white/8 flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[15px] font-bold text-white truncate">💬 Chat del torneo</p>
+            <p className="text-[15px] font-bold text-white truncate">💬 {tr('chat.titulo')}</p>
             <p className="text-[11px] text-[#8B8BA8] truncate">{torneoNombre} · {58 + (mios?.length || 0)} dentro</p>
           </div>
           <button onClick={onClose} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC]"><X size={15} /></button>
@@ -60,7 +62,7 @@ export function ChatTorneoSheet({ torneoId, torneoNombre, onClose }: { torneoId:
         </div>
         <div className="p-3 border-t border-white/8 flex gap-2">
           <input value={texto} onChange={e => setTexto(e.target.value)} onKeyDown={e => e.key === 'Enter' && mandar()}
-            placeholder="Escribe al torneo…" className="flex-1 h-11 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-[#7B7B92] focus:border-[#B6FF3A]/60 outline-none" />
+            placeholder={tr('chat.escribe')} className="flex-1 h-11 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-[#7B7B92] focus:border-[#B6FF3A]/60 outline-none" />
           <button onClick={mandar} aria-label="Enviar" className="h-11 w-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] flex items-center justify-center"><Send size={16} /></button>
         </div>
       </div>

@@ -84,7 +84,7 @@ export default function EntradasPage() {
       {/* Bonos de locales (tienda del local) */}
       {bonos.length > 0 && tab === 'proximos' && (
         <div className="relative px-4 pb-4">
-          <p className="eyebrow eyebrow-muted mb-2">Bonos de locales</p>
+          <p className="eyebrow eyebrow-muted mb-2">{tr('shop.bonos')}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {bonos.map(b => (
               <div key={b.id} className="card-premium px-3.5 py-3 flex items-center gap-3">

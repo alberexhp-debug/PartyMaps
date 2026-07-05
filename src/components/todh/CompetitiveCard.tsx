@@ -8,6 +8,7 @@ import { CountUp } from '@/components/ui/CountUp'
 import { PersonajeIcon } from '@/components/todh/PersonajeChip'
 import { Pencil, X, Check } from 'lucide-react'
 import { RangoChip, RangoProgreso } from '@/components/todh/RangoChip'
+import { useT } from '@/lib/i18n'
 
 type Stat = { rating: number; tier: string; v: number; d: number; mejor: string; mains: string[]; pos: number; racha: string[] }
 const STATS: Record<string, Stat> = {
@@ -20,6 +21,7 @@ const STATS: Record<string, Stat> = {
 }
 
 export function CompetitiveCard() {
+  const { t: tr } = useT()
   const juego = useDemoStore(s => s.juegoPerfil)
   const setJuego = useDemoStore(s => s.setJuegoPerfil)
   const mainsGuardados = useDemoStore(st => st.mainsPerfil[juego])
@@ -39,7 +41,7 @@ export function CompetitiveCard() {
         <div className="flex items-center gap-1.5 mb-3 overflow-x-auto scrollbar-hide">
           <span className="text-[10px] uppercase tracking-[0.18em] text-white/70 font-bold mr-1 shrink-0">Identidad</span>
           <span className="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-black border border-[#E0BE63]/50 bg-[#E0BE63]/12 text-[#E0BE63]" title="Fundador de Tourneum">⚡ Fundador #12</span>
-          <span className="shrink-0 inline-flex items-center px-2 h-6 rounded-full text-[10px] font-bold bg-white/6 text-[#8B8BA8] border border-white/10" title="Los rangos se reinician cada temporada">Temporada 2026-2</span>
+          <span className="shrink-0 inline-flex items-center px-2 h-6 rounded-full text-[10px] font-bold bg-white/6 text-[#8B8BA8] border border-white/10" title="Los rangos se reinician cada temporada">{tr('rk.temporada')}</span>
           {Object.keys(JUEGOS).map(g => {
             const on = juego === g
             const jj = JUEGOS[g]
@@ -71,7 +73,7 @@ export function CompetitiveCard() {
 
         {/* Progreso hacia el siguiente rango (sistema de puntos de la reunión) */}
         <div className="mt-3"><RangoProgreso rating={s.rating} /></div>
-        <p className="mt-1.5 text-[10px] text-[#8B8BA8]">⏳ Rango activo · sin torneos en 45 días tu rango empieza a decaer</p>
+        <p className="mt-1.5 text-[10px] text-[#8B8BA8]">{tr('rk.decayHint')}</p>
 
         <div className="mt-3.5 grid grid-cols-2 gap-2.5">
           <div className="rounded-xl bg-white/4 border border-white/8 px-3 py-2">

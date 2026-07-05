@@ -92,7 +92,7 @@ export default function RankingPage() {
         <p className="eyebrow mb-2">{tr('ranking.eyebrow')}</p>
         <div className="flex items-end justify-between gap-3">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{tr('ranking.titulo')}</h1>
-          <button onClick={() => setComoPuntua(true)} className="mb-1 h-8 px-3 rounded-full bg-white/6 border border-white/12 text-[11px] font-bold text-[#B8B8CC] hover:text-white transition-colors shrink-0">¿Cómo puntúa?</button>
+          <button onClick={() => setComoPuntua(true)} className="mb-1 h-8 px-3 rounded-full bg-white/6 border border-white/12 text-[11px] font-bold text-[#B8B8CC] hover:text-white transition-colors shrink-0">{tr('rk.comoPuntua')}</button>
         </div>
       </div>
 
@@ -227,19 +227,19 @@ export default function RankingPage() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setComoPuntua(false)} />
           <div className="relative w-full max-w-md bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop max-h-[86vh] overflow-y-auto p-5">
-            <p className="text-lg font-bold text-white text-display">¿Cómo puntúa el rango?</p>
-            <p className="mt-1 text-[13px] text-[#B8B8CC]">Tu rango (E → S) sube ganando sets en torneos. Cada victoria da puntos según a quién ganes y dónde:</p>
+            <p className="text-lg font-bold text-white text-display">{tr('rk.titulo')}</p>
+            <p className="mt-1 text-[13px] text-[#B8B8CC]">{tr('rk.intro')}</p>
             <div className="mt-3 space-y-1.5 text-[13px]">
               {[
-                ['⚔️', 'Ganar a alguien de tu rango', '+25 pts'],
-                ['🔥', 'Ganar a un rango superior', '+60 a +200'],
-                ['🧊', 'Ganar a un rango inferior', '+5 a +12'],
-                ['📉', 'Perder contra un rango inferior', 'resta más'],
-                ['🎯', 'Marcador ajustado', '3-2 puntúa distinto que 3-0'],
-                ['🏆', 'Profundidad del bracket', '×1,25 por ronda superada — top 64 de un major vale oro'],
-                ['⭐', 'Tier del torneo', 'los torneos Oro/Platino/Diamante reparten más'],
-                ['🆓', 'Torneos gratis', 'siempre puntúan menos que los de pago'],
-                ['⏳', 'Inactividad', 'sin torneos en meses, tu rango decae'],
+                ['⚔️', tr('rk.mismo'), '+25 pts'],
+                ['🔥', tr('rk.superior'), '+60–200'],
+                ['🧊', tr('rk.inferior'), '+5–12'],
+                ['📉', tr('rk.perder'), tr('rk.perderV')],
+                ['🎯', tr('rk.marcador'), tr('rk.marcadorV')],
+                ['🏆', tr('rk.profundidad'), tr('rk.profundidadV')],
+                ['⭐', tr('rk.tier'), tr('rk.tierV')],
+                ['🆓', tr('rk.gratis'), tr('rk.gratisV')],
+                ['⏳', tr('rk.decay'), tr('rk.decayV')],
               ].map(([e, t, v]) => (
                 <div key={t as string} className="flex items-center gap-2.5 rounded-xl bg-white/[0.04] border border-white/8 px-3 py-2">
                   <span>{e}</span>
@@ -248,8 +248,8 @@ export default function RankingPage() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-[11px] text-[#8B8BA8]">Los rangos van por temporadas y por juego. Rango alto = tier de regalo (Oro/Platino/Diamante) con acceso a torneos tier.</p>
-            <button onClick={() => setComoPuntua(false)} className="mt-4 w-full h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold">Entendido</button>
+            <p className="mt-3 text-[11px] text-[#8B8BA8]">{tr('rk.pie')}</p>
+            <button onClick={() => setComoPuntua(false)} className="mt-4 w-full h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold">{tr('rk.ok')}</button>
           </div>
         </div>
       )}
