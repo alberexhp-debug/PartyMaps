@@ -43,6 +43,7 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-bold text-white text-display tracking-tight">{to.nombre}</h1>
           {to.verificado && <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#4F8EF7]"><Check size={12} className="text-white" strokeWidth={3} /></span>}
+          {to.fundador && <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-black border border-[#E0BE63]/50 bg-[#E0BE63]/12 text-[#E0BE63]">⚡ TO Fundador</span>}
           <span className="inline-flex items-center px-2 h-6 rounded-full text-[11px] font-bold border" style={{ color: TIER_COLOR[to.tier], borderColor: `${TIER_COLOR[to.tier]}55`, background: `${TIER_COLOR[to.tier]}1A` }}>{to.tier}</span>
         </div>
         <p className="text-sm text-[#8B8BA8]">{to.handle} · Organizador · {to.ciudad}</p>

@@ -9,7 +9,7 @@ import { GameKeyart } from '@/components/todh/GameKeyart'
 import { TicketModal } from '@/components/todh/TicketModal'
 import { QrCode, Calendar, MapPin, Trophy } from 'lucide-react'
 
-type Insc = { t: TorneoSample; estado: 'proximo' | 'jugado'; puesto?: string }
+type Insc = { t: TorneoSample; estado: 'proximo' | 'jugado'; puesto?: string; espectador?: boolean }
 const pick = (id: string) => TORNEOS_SAMPLE.find(x => x.id === id)!
 // Próximos por defecto (demo) + historial jugado
 const DEFAULT_PROXIMOS = ['t4']
@@ -21,13 +21,17 @@ const HISTORIAL: Insc[] = [
 export default function EntradasPage() {
   const { t: tr } = useT()
   const [tab, setTab] = useState<'proximos' | 'historial'>('proximos')
-  const [ticket, setTicket] = useState<TorneoSample | null>(null)
+  const [ticket, setTicket] = useState<{ t: TorneoSample; espectador?: boolean } | null>(null)
   const inscritos = useDemoStore(s => s.inscritos)
+  const espectador = useDemoStore(s => s.entradasEspectador)
 
   const proximos: Insc[] = useMemo(() => {
     const ids = Array.from(new Set([...inscritos, ...DEFAULT_PROXIMOS]))
-    return ids.map(id => getTorneo(id)).filter(Boolean).map(t => ({ t: t!, estado: 'proximo' as const }))
-  }, [inscritos])
+    const jugar = ids.map(id => getTorneo(id)).filter(Boolean).map(t => ({ t: t!, estado: 'proximo' as const }))
+    const ver = espectador.filter(id => !ids.includes(id)).map(id => getTorneo(id)).filter(Boolean)
+      .map(t => ({ t: t!, estado: 'proximo' as const, espectador: true }))
+    return [...jugar, ...ver]
+  }, [inscritos, espectador])
 
   const lista = tab === 'proximos' ? proximos : HISTORIAL
 
@@ -69,21 +73,21 @@ export default function EntradasPage() {
           <div key={tab} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {lista.map((i, idx) => (
               <div key={i.t.id + i.estado} className="stagger-item" style={{ ['--delay' as string]: `${idx * 60}ms` }}>
-                <TicketCard insc={i} onQr={() => setTicket(i.t)} />
+                <TicketCard insc={i} onQr={() => setTicket({ t: i.t, espectador: i.espectador })} />
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {ticket && <TicketModal torneo={ticket} onClose={() => setTicket(null)} />}
+      {ticket && <TicketModal torneo={ticket.t} espectador={ticket.espectador} onClose={() => setTicket(null)} />}
       </div>
     </div>
   )
 }
 
 function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
-  const { t, estado, puesto } = insc
+  const { t, estado, puesto, espectador } = insc
   const juego = JUEGOS[t.juego]
   return (
     <div className="ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch">
@@ -94,6 +98,7 @@ function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
             <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
             </span>
+            {espectador && <span className="px-1.5 h-5 inline-flex items-center rounded-md text-[9px] font-black uppercase tracking-wider bg-[#9B82FF]/15 text-[#9B82FF] border border-[#9B82FF]/40">Espectador</span>}
             {estado === 'jugado' && puesto && <span className="ml-auto text-[11px] font-bold text-[#E0BE63]">🏆 {puesto}</span>}
           </div>
           <p className="font-bold text-white text-display tracking-tight leading-snug truncate">{t.nombre}</p>

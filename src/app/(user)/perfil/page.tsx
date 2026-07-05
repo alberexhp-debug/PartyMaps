@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 import { CompetitiveCard } from '@/components/todh/CompetitiveCard'
+import { ReferidosCard } from '@/components/todh/ReferidosCard'
 import { useT } from '@/lib/i18n'
 import { CountUp } from '@/components/ui/CountUp'
 
@@ -169,6 +170,11 @@ export default function PerfilPage() {
         {/* Identidad competitiva */}
         <div className="stagger-item" style={{ ['--delay' as string]: '90ms' }}>
           <CompetitiveCard />
+        </div>
+
+        {/* Invita y gana (programa de referidos del lanzamiento) */}
+        <div className="px-4 mt-4">
+          <ReferidosCard />
         </div>
 
         {/* KPIs torneos */}

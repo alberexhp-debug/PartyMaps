@@ -168,10 +168,12 @@ export type Organizador = {
   tier: Tier
   juegos: string[]
   insignias: string[]
+  fundador?: boolean  // TO Fundador (programa de lanzamiento)
 }
 
 export const ORGANIZADORES: Record<string, Organizador> = {
   lima: {
+    fundador: true,
     id: 'lima', nombre: 'Lima Esports', handle: '@lima', color: '#E63E54', ciudad: 'Madrid',
     bio: 'Organizamos los mejores semanales y majors de Smash y FGC de Madrid desde 2019.',
     rating: 4.9, valoraciones: 342, torneosOrg: 128, seguidores: 4820, verificado: true,
@@ -245,6 +247,7 @@ export type Local = {
   aforo: number
   precioNoche: number      // tarifa orientativa para TOs (€/noche)
   mesas: Mesa[]            // plano de mesas definido por el local
+  fundador?: boolean  // Sede Fundadora (programa de lanzamiento)
 }
 
 const M = (n: number, x: number, y: number, forma: MesaForma, plazas: number, tipo: MesaTipo): Mesa =>
@@ -252,6 +255,7 @@ const M = (n: number, x: number, y: number, forma: MesaForma, plazas: number, ti
 
 export const LOCALES: Record<string, Local> = {
   gamba: {
+    fundador: true,
     id: 'gamba', nombre: 'Gamba Esports', ciudad: 'Madrid', zona: 'Malasaña', setups: 24, tiposSetup: ['Consola', 'PC', 'Setup stream'], rating: 4.9, valoraciones: 210, color: '#E63E54', lat: 40.4262, lng: -3.7038,
     m2: 340, aforo: 120, precioNoche: 60,
     // Las mesas 1-6 son los setups que ve el TO en modo directo.
@@ -503,3 +507,12 @@ export function standingsSuizoDe(juegoId: string, rondasJugadas = 4): { rondaAct
 
 // Clasificación final de muestra
 export const STANDINGS_SAMPLE = ['Kaze', 'Sora', 'Volt', 'Zen', 'Drako', 'Lux', 'Vega', 'Kira']
+
+
+// Entrada de espectador (plan de lanzamiento): solo torneos presenciales.
+// Gratis si el torneo es gratis; si no, ~35% de la inscripción (mín. 2€), sin comisión.
+export function precioEspectador(t: Pick<TorneoSample, 'online' | 'precio'>): number | null {
+  if (t.online) return null
+  if (t.precio === 0) return 0
+  return Math.max(2, Math.round(t.precio * 0.35))
+}

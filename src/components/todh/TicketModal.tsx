@@ -6,10 +6,10 @@ import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { X, Calendar, MapPin, Sun, Check, QrCode } from 'lucide-react'
 
 // Modal de entrada con QR (offline). En demo el QR codifica un id ficticio.
-export function TicketModal({ torneo, onClose }: { torneo: TorneoSample; onClose: () => void }) {
+export function TicketModal({ torneo, espectador, onClose }: { torneo: TorneoSample; espectador?: boolean; onClose: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const juego = JUEGOS[torneo.juego]
-  const code = `Tourneum-${torneo.id.toUpperCase()}-DEMO`
+  const code = `Tourneum-${torneo.id.toUpperCase()}${espectador ? '-VER' : ''}-DEMO`
   const hecho = useDemoStore(s => s.checkinsJugador.includes(torneo.id))
   const hacerCheckin = useDemoStore(s => s.hacerCheckin)
   const puedeCheckin = torneo.esHoy || torneo.checkInAbierto
@@ -31,7 +31,7 @@ export function TicketModal({ torneo, onClose }: { torneo: TorneoSample; onClose
           <div className="relative h-20" style={{ background: `linear-gradient(120deg, ${juego.color}, ${juego.color}99)` }}>
             <button onClick={onClose} aria-label="Cerrar" className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/25 flex items-center justify-center text-white"><X size={16} /></button>
             <div className="absolute bottom-2.5 left-5 right-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/85">{juego.nombre}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/85">{juego.nombre}{espectador ? ' · Espectador' : ''}</p>
               <p className="text-lg font-black text-white text-display leading-tight truncate">{torneo.nombre}</p>
             </div>
           </div>

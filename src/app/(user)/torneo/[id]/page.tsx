@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import {
   getTorneo, getOrganizador, getLocal, JUEGOS, rankingPorJuego,
+  precioEspectador,
 } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
@@ -57,6 +58,9 @@ export default function TorneoDetallePage() {
   const t = base ? { ...base, ...(override || {}) } : undefined
   const inscrito = useDemoStore(s => s.inscritos.includes(id))
   const inscribir = useDemoStore(s => s.inscribir)
+  const esEspectador = useDemoStore(s => s.entradasEspectador.includes(id))
+  const inscribirEspectador = useDemoStore(s => s.inscribirEspectador)
+  const [modoSheet, setModoSheet] = useState<'jugar' | 'ver'>('jugar')
 
   if (!t) {
     return (
@@ -76,6 +80,7 @@ export default function TorneoDetallePage() {
   const pct = Math.min(100, Math.round((inscritosVis / t.plazas) * 100))
   const com = comision(t.precio, t.inscritos)
   const totalJugador = t.precio + com.importe
+  const pVer = precioEspectador(t)
   const participantes = rankingPorJuego(t.juego).slice(0, 6)
 
   async function compartir() {
@@ -90,9 +95,30 @@ export default function TorneoDetallePage() {
     inscribir(t!.id, t!.nombre)
     setSheet(false)
   }
+  function confirmarEspectador() {
+    inscribirEspectador(t!.id, t!.nombre)
+    setSheet(false)
+  }
+  function abrirSheet(modo: 'jugar' | 'ver') {
+    setModoSheet(modo)
+    setSheet(true)
+  }
 
   // Botón de inscripción, reutilizado en la barra fija (móvil) y en la columna
   // lateral sticky (escritorio).
+  const ctaEspectador = !cancelado && pVer !== null && !inscrito ? (
+    esEspectador ? (
+      <Link href="/entradas" className="mt-2 w-full h-10 rounded-xl bg-white/6 border border-white/12 text-[#B8B8CC] text-[13px] font-semibold flex items-center justify-center gap-1.5">
+        <Check size={14} className="text-[#B6FF3A]" /> Entrada de espectador en tu cartera
+      </Link>
+    ) : (
+      <button onClick={() => abrirSheet('ver')}
+        className="mt-2 w-full h-10 rounded-xl bg-white/6 border border-white/12 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors">
+        👀 Solo quiero verlo · {pVer === 0 ? tr('torneo.gratis') : `${pVer}€`}
+      </button>
+    )
+  ) : null
+
   const ctaBtn = cancelado ? (
     <div className="w-full h-14 rounded-2xl bg-[#FF6B6B]/12 border border-[#FF6B6B]/40 text-[#FF8A8A] font-bold flex items-center justify-center gap-2">Torneo cancelado · reembolso 100%</div>
   ) : inscrito ? (
@@ -100,9 +126,9 @@ export default function TorneoDetallePage() {
   ) : t.vip ? (
     <button className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2"><Lock size={16} /> Requiere tier {t.vip}</button>
   ) : completo ? (
-    <button onClick={() => setSheet(true)} className="w-full h-14 rounded-2xl bg-[#FF8A5C]/15 border border-[#FF8A5C]/40 text-[#FF8A5C] font-bold">Apuntarme a la lista de espera</button>
+    <button onClick={() => abrirSheet('jugar')} className="w-full h-14 rounded-2xl bg-[#FF8A5C]/15 border border-[#FF8A5C]/40 text-[#FF8A5C] font-bold">Apuntarme a la lista de espera</button>
   ) : (
-    <button onClick={() => setSheet(true)} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform">
+    <button onClick={() => abrirSheet('jugar')} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform">
       {tr('torneo.inscribirme')} · {totalJugador === 0 ? tr('torneo.gratis') : `${totalJugador}€`}
     </button>
   )
@@ -338,11 +364,14 @@ export default function TorneoDetallePage() {
       <div className="lg:hidden fixed bottom-16 left-0 right-0 z-20 px-4 pb-3 pt-3 bg-gradient-to-t from-[#0D0F15] via-[#0D0F15] to-transparent">
         <div className="max-w-lg mx-auto">
           {ctaBtn}
+              {ctaEspectador}
+          {ctaEspectador}
         </div>
       </div>
 
       {sheet && (
         <InscripcionSheet
+          precioVer={pVer} modoInicial={modoSheet} onConfirmVer={confirmarEspectador}
           torneo={t} juego={juego} comisionPct={com.pct} comisionImporte={com.importe}
           total={totalJugador} completo={completo}
           onClose={() => setSheet(false)} onConfirm={confirmarInscripcion}

@@ -37,6 +37,7 @@ export function CompetitiveCard() {
       <div className="relative p-4">
         <div className="flex items-center gap-1.5 mb-3 overflow-x-auto scrollbar-hide">
           <span className="text-[10px] uppercase tracking-[0.18em] text-white/70 font-bold mr-1 shrink-0">Identidad</span>
+          <span className="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-black border border-[#E0BE63]/50 bg-[#E0BE63]/12 text-[#E0BE63]" title="Fundador de Tourneum">⚡ Fundador #12</span>
           {Object.keys(JUEGOS).map(g => {
             const on = juego === g
             const jj = JUEGOS[g]

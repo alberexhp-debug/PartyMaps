@@ -36,6 +36,7 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
 
           <div className="mt-3 flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-[11px] font-bold text-[#E0BE63] bg-[#E0BE63]/12 border border-[#E0BE63]/40"><Star size={11} className="fill-[#E0BE63]" /> {local.rating} · {local.valoraciones} {tr('ml.resenas')}</span>
+            {local.fundador && <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-[11px] font-black text-[#E0BE63] bg-[#E0BE63]/12 border border-[#E0BE63]/50">⚡ Sede Fundadora</span>}
             {local.tiposSetup.map(ts => (
               <span key={ts} className="px-2.5 h-7 inline-flex items-center rounded-full text-[11px] font-semibold bg-white/6 border border-white/10 text-[#D4D4E4]">{ts}</span>
             ))}

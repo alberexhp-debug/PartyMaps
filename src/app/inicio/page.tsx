@@ -50,6 +50,7 @@ export default function InicioPage() {
               Soy organizador
             </Link>
           </div>
+          <p className="mt-3 text-[13px] text-[#8B8BA8]">🚀 Lanzamos pronto en Madrid — <Link href="/preregistro" className="text-[#B6FF3A] font-semibold">preregístrate y sé fundador →</Link></p>
           <Link href="/sede" className="mt-3 inline-block text-sm text-[#8B8BA8] hover:text-white transition-colors">{t('inicio.tienesLocal')} <span className="text-[#B6FF3A] font-semibold">{t('inicio.abrePanelSede')}</span></Link>
         </div>
       </div>

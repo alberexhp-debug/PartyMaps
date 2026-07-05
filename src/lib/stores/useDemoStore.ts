@@ -84,6 +84,9 @@ interface DemoState {
   juegosFavoritos: string[]              // juegos elegidos en el onboarding (personalizan feed y ranking)
   onboardingVisto: boolean
   idioma: 'es' | 'en'                    // idioma de la interfaz (i18n fase 1)
+  entradasEspectador: string[]           // torneos con entrada de espectador comprada
+  referidos: { codigo: string; jugados: number; canjeados: number[] }  // programa invita-y-gana (niveles 1/3/5)
+  preregistro: { unido: boolean; pos: number; compartidos: number }    // lista de espera del lanzamiento
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string) => void
   desinscribir: (torneoId: string) => void
@@ -111,6 +114,10 @@ interface DemoState {
   setMainsPerfil: (juego: string, mains: string[]) => void
   setJuegosFavoritos: (ids: string[]) => void
   setIdioma: (i: 'es' | 'en') => void
+  inscribirEspectador: (id: string, nombre: string) => void
+  canjearReferido: (nivel: 1 | 3 | 5) => void
+  unirsePreregistro: () => void
+  compartirPreregistro: () => void
 }
 
 let nid = 0
@@ -145,6 +152,9 @@ export const useDemoStore = create<DemoState>()(
       juegosFavoritos: [],
       onboardingVisto: false,
       idioma: 'es',
+      entradasEspectador: [],
+      referidos: { codigo: 'ALBERT-3F7', jugados: 2, canjeados: [] },
+      preregistro: { unido: false, pos: 347, compartidos: 0 },
 
       inscribir: (torneoId, nombreTorneo) => set((s) => {
         if (s.inscritos.includes(torneoId)) return s
@@ -318,6 +328,24 @@ export const useDemoStore = create<DemoState>()(
       setMainsPerfil: (juego, mains) => set((s) => ({ mainsPerfil: { ...s.mainsPerfil, [juego]: mains } })),
       setJuegosFavoritos: (juegosFavoritos) => set({ juegosFavoritos, onboardingVisto: true }),
       setIdioma: (idioma) => set({ idioma }),
+      inscribirEspectador: (id, nombre) => set((s) => {
+        if (s.entradasEspectador.includes(id)) return s
+        const n: Notificacion = { id: nextId(), tipo: 'inscripcion', titulo: 'Entrada de espectador', cuerpo: `Ya tienes tu entrada para ver «${nombre}». Enséñala en la puerta.`, cuando: 'ahora', leida: false, href: '/entradas' }
+        return { entradasEspectador: [...s.entradasEspectador, id], notificaciones: [n, ...s.notificaciones] }
+      }),
+      canjearReferido: (nivel) => set((s) => {
+        if (s.referidos.canjeados.includes(nivel) || s.referidos.jugados < nivel) return s
+        const premio = nivel === 1 ? 'Entrada de espectador gratis' : nivel === 3 ? 'Inscripción estándar gratis' : 'Acceso a un torneo Oro este mes'
+        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: 'Recompensa canjeada', cuerpo: `${premio} — ya está aplicada en tu cuenta.`, cuando: 'ahora', leida: false, href: '/perfil' }
+        return {
+          referidos: { ...s.referidos, canjeados: [...s.referidos.canjeados, nivel] },
+          notificaciones: [n, ...s.notificaciones],
+        }
+      }),
+      unirsePreregistro: () => set((s) => s.preregistro.unido ? s : ({ preregistro: { ...s.preregistro, unido: true } })),
+      compartirPreregistro: () => set((s) => ({
+        preregistro: { ...s.preregistro, compartidos: s.preregistro.compartidos + 1, pos: Math.max(12, s.preregistro.pos - 47) },
+      })),
     }),
     {
       name: 'todh-demo',
