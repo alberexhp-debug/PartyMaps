@@ -1,15 +1,27 @@
 'use client'
 import { useEffect, useState } from 'react'
 import type { StartggDatos } from '@/lib/torneos/startgg'
-import { ExternalLink, RefreshCw, Trophy } from 'lucide-react'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { descargarCSV } from '@/lib/torneos/exportar'
+import { ExternalLink, RefreshCw, Trophy, Check, Download } from 'lucide-react'
 
 // Espejo en vivo de start.gg en la ficha del torneo: mientras el TO lleve su
 // bracket allí, aquí se ven inscritos, estado y top 8 sin salir de Tourneum
 // (y su sistema de puntos se conserva intacto). Solo lectura vía /api/startgg.
-export function StartggLive({ slug }: { slug: string }) {
+// Al terminar el torneo, los resultados se importan al ranking Tourneum (una vez).
+export function StartggLive({ slug, torneoId, torneoNombre }: { slug: string; torneoId: string; torneoNombre: string }) {
   const [datos, setDatos] = useState<StartggDatos | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
+  const puntuado = useDemoStore(s => s.puntuadosStartgg.includes(torneoId))
+  const puntuarStartgg = useDemoStore(s => s.puntuarStartgg)
+
+  // Ingesta automática: torneo terminado y aún sin puntuar → puntúa en Tourneum
+  useEffect(() => {
+    if (datos?.evento?.estado === 'finalizado' && datos.top8.length > 0 && !puntuado) {
+      puntuarStartgg(torneoId, torneoNombre)
+    }
+  }, [datos, puntuado, puntuarStartgg, torneoId, torneoNombre])
 
   useEffect(() => {
     let vivo = true
@@ -76,13 +88,26 @@ export function StartggLive({ slug }: { slug: string }) {
               </div>
             )}
 
-            <div className="mt-3 flex items-center justify-between">
+            {puntuado && (
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#B6FF3A]/10 border border-[#B6FF3A]/35 px-2.5 py-1.5 text-[11px] font-bold text-[#B6FF3A]">
+                <Check size={12} /> Resultados importados · ya puntúan en el ranking Tourneum
+              </p>
+            )}
+            <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
               <p className="text-[10px] text-[#8B8BA8] inline-flex items-center gap-1"><RefreshCw size={9} /> Se sincroniza cada 2 min · los puntos de start.gg no se tocan</p>
-              {!datos.demo && (
-                <a href={datos.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] font-bold text-[#6E9BFF] hover:text-white transition-colors">
-                  Ver en start.gg <ExternalLink size={11} />
-                </a>
-              )}
+              <span className="inline-flex items-center gap-2.5">
+                {datos.top8.length > 0 && (
+                  <button onClick={() => descargarCSV(`resultados-${datos.slug}`, [['puesto', 'jugador'], ...datos.top8.map(p => [String(p.puesto), p.nombre])])}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#B8B8CC] hover:text-white transition-colors">
+                    <Download size={11} /> CSV
+                  </button>
+                )}
+                {!datos.demo && (
+                  <a href={datos.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] font-bold text-[#6E9BFF] hover:text-white transition-colors">
+                    Ver en start.gg <ExternalLink size={11} />
+                  </a>
+                )}
+              </span>
             </div>
           </>
         )}

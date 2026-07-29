@@ -7,6 +7,8 @@ import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { GameKeyart, TorneoArt } from '@/components/todh/GameKeyart'
 import { BannerPicker } from '@/components/todh/BannerPicker'
+import { BracketDonde } from '@/components/todh/BracketDonde'
+import { parseStartggSlug } from '@/lib/torneos/startgg'
 import { ORGANIZADORES } from '@/lib/torneos/sample'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe, Check, Eye, Plus, Search, X, Star, Map as MapIcon, ImagePlus } from 'lucide-react'
@@ -55,6 +57,7 @@ export default function CrearTorneoPage() {
   const [comentarios, setComentarios] = useState('')
   const [premiosImgs, setPremiosImgs] = useState<string[]>([])
   const [videoUrl, setVideoUrl] = useState('')
+  const [startgg, setStartgg] = useState('')
   const [banner, setBanner] = useState<string | undefined>(undefined)
   const [coOrgs, setCoOrgs] = useState<string[]>([])
   const [nuevoJuego, setNuevoJuego] = useState(false)
@@ -88,6 +91,7 @@ export default function CrearTorneoPage() {
       videoUrl: videoUrl.trim() || undefined,
       banner,
       coOrganizadores: coOrgs.length ? coOrgs : undefined,
+      startgg: (() => { const s = parseStartggSlug(startgg); return s ? (s.evento ? `tournament/${s.torneo}/event/${s.evento}` : s.torneo) : undefined })(),
     }
     crearTorneo(t)
     setPublicado(t)
@@ -294,6 +298,11 @@ export default function CrearTorneoPage() {
           {precio > 0 && (
             <p className="text-[12px] text-[#B8B8CC]">Bote estimado a llenar: <span className="text-[#B6FF3A] font-bold">{Math.round(plazas * precio * 0.8)}€</span></p>
           )}
+        </Section>
+
+        {/* Dónde vive el bracket: motor propio (puntúa aquí) o espejo start.gg */}
+        <Section title="Bracket y puntuación">
+          <BracketDonde valor={startgg} onChange={setStartgg} />
         </Section>
 
         {/* Vídeo o directo del torneo */}

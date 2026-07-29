@@ -104,6 +104,7 @@ interface DemoState {
   referidos: { codigo: string; jugados: number; canjeados: number[] }  // programa invita-y-gana (niveles 1/3/5)
   preregistro: { unido: boolean; pos: number; compartidos: number }    // lista de espera del lanzamiento
   reportes: ReporteTO[]                  // reportes de bracket/seeding del jugador al TO (reunión 5-jul)
+  puntuadosStartgg: string[]             // torneos espejo cuyos resultados ya puntuaron en el ranking Tourneum
   perfilTO: 'no' | 'pendiente' | 'aprobado'  // alta de TO self-service (perfil dual)
   tierUsuario: null | 'Oro' | 'Platino' | 'Diamante'   // tier de pago (o regalo por rango)
   bonosComprados: { id: string; localId: string; localNombre: string; titulo: string; precio: number }[]
@@ -143,6 +144,7 @@ interface DemoState {
   unirsePreregistro: () => void
   compartirPreregistro: () => void
   crearReporte: (r: Omit<ReporteTO, 'id' | 'estado'>) => void
+  puntuarStartgg: (torneoId: string, nombreTorneo: string) => void
   resolverReporte: (id: string, accion: 'cambiado' | 'rebatido', respuesta?: string) => void
   solicitarTO: () => void
   aprobarTO: () => void
@@ -233,6 +235,7 @@ export const useDemoStore = create<DemoState>()(
       reportes: [
         { id: 'rep-seed', torneoId: 't1', torneoNombre: 'Lima Smash Weekly #42', tipo: 'seeding', motivo: 'Me toca otra vez contra el mismo jugador en ronda 1', mensaje: 'Tercera semana seguida contra Sora en R1, tenemos nivel parecido y nos cruzáis pronto.', estado: 'abierto' },
       ],
+      puntuadosStartgg: [],
       perfilTO: 'no',
       tierUsuario: null,
       bonosComprados: [],
@@ -450,6 +453,17 @@ export const useDemoStore = create<DemoState>()(
       compartirPreregistro: () => set((s) => ({
         preregistro: { ...s.preregistro, compartidos: s.preregistro.compartidos + 1, pos: Math.max(12, s.preregistro.pos - 47) },
       })),
+      // Ingesta del espejo: el torneo vinculado a start.gg ha terminado → sus
+      // resultados puntúan también en el ranking Tourneum (una sola vez).
+      puntuarStartgg: (torneoId, nombreTorneo) => set((s) => {
+        if (s.puntuadosStartgg.includes(torneoId)) return s
+        const n: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: '🏆 Resultados importados de start.gg',
+          cuerpo: `«${nombreTorneo}» ha terminado. Sus resultados ya puntúan en el ranking Tourneum; los puntos de start.gg no se tocan.`,
+          cuando: 'ahora', leida: false, href: '/ranking',
+        }
+        return { puntuadosStartgg: [...s.puntuadosStartgg, torneoId], notificaciones: [n, ...s.notificaciones] }
+      }),
       crearReporte: (r) => set((s) => {
         const rep: ReporteTO = { ...r, id: nextId(), estado: 'abierto' }
         const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: `Revisar ${r.tipo}`, cuerpo: `Reporte en «${r.torneoNombre}»: ${r.motivo}`, cuando: 'ahora', leida: false, href: `/gestionar/${r.torneoId}` }

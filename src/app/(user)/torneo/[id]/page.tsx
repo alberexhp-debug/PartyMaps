@@ -420,7 +420,7 @@ export default function TorneoDetallePage() {
         )}
 
         {/* Espejo start.gg: si el TO lleva el bracket allí, aquí se ve en vivo */}
-        {t.startgg && <StartggLive slug={t.startgg} />}
+        {t.startgg && <StartggLive slug={t.startgg} torneoId={t.id} torneoNombre={t.nombre} />}
 
         {/* Bracket / clasificación */}
         <Link href={`/torneo/${t.id}/bracket`} className="mt-5 flex items-center justify-between card-premium card-int p-4">

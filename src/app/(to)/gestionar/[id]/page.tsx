@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { getTorneo, JUEGOS, rankingPorJuego, FORMATOS_SUGERIDOS, esperaDe, type Jugador } from '@/lib/torneos/sample'
 import { parseStartggSlug } from '@/lib/torneos/startgg'
+import { BracketDonde } from '@/components/todh/BracketDonde'
+import { descargarCSV } from '@/lib/torneos/exportar'
 import { construirRondas, nombreRonda, boDeRonda, paraGanar } from '@/lib/torneos/bracket'
 import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
@@ -417,7 +419,7 @@ export default function GestionarTorneoPage() {
             ) : (
               <div>
                 {campeon ? (
-                  <Podio rondas={rondas} campeon={campeon} juegoColor={juego.color} onPublicar={() => {
+                  <Podio rondas={rondas} campeon={campeon} juegoColor={juego.color} nombreTorneo={t.nombre} onPublicar={() => {
                     pushNoti({
                       tipo: 'sistema', titulo: 'Resultados publicados',
                       cuerpo: `Clasificación final de «${t!.nombre}» disponible. ¡Gracias por competir!`,
@@ -550,10 +552,8 @@ export default function GestionarTorneoPage() {
                 <p className="mt-1.5 text-[11px] text-[#8B8BA8]">Se incrusta en la ficha pública y en la pantalla del directo.</p>
               </div>
               <div>
-                <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">Espejo start.gg (opcional)</label>
-                <input value={f.startgg} onChange={e => setF({ startgg: e.target.value })} disabled={cancelado} placeholder="https://start.gg/tournament/tu-torneo (o «demo»)"
-                  className="w-full h-12 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none disabled:opacity-50" />
-                <p className="mt-1.5 text-[11px] text-[#8B8BA8]">Si tu bracket vive en start.gg, la ficha pública enseñará sus inscritos, estado y top 8 en vivo. Sus puntos no se tocan.</p>
+                <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">¿Dónde vive el bracket?</label>
+                <BracketDonde valor={f.startgg} onChange={v => setF({ startgg: v })} disabled={cancelado} />
               </div>
               <button onClick={guardar} disabled={cancelado}
                 className="w-full h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold flex items-center justify-center gap-2 disabled:opacity-40">
@@ -590,7 +590,7 @@ export default function GestionarTorneoPage() {
 
 // Podio al cerrar la final: campeón + subcampeón + semifinalistas (3º-4º), con
 // publicación de resultados a los jugadores.
-function Podio({ rondas, campeon, juegoColor, onPublicar }: { rondas: MatchB[][]; campeon: Jugador; juegoColor: string; onPublicar: () => void }) {
+function Podio({ rondas, campeon, juegoColor, nombreTorneo, onPublicar }: { rondas: MatchB[][]; campeon: Jugador; juegoColor: string; nombreTorneo: string; onPublicar: () => void }) {
   const { t: tr } = useT()
   const [publicado, setPublicado] = useState(false)
   const final = rondas[rondas.length - 1]?.[0]
@@ -600,6 +600,14 @@ function Podio({ rondas, campeon, juegoColor, onPublicar }: { rondas: MatchB[][]
     .filter(m => m.ganador && m.a && m.b)
     .map(m => (m.ganador === 'a' ? m.b : m.a))
     .filter((p): p is Jugador => !!p)
+  // Export para el PR local: cuando el bracket vive en Tourneum, este CSV es
+  // lo que el panel de ranking comunitario necesita para contar el torneo.
+  const exportar = () => descargarCSV(`resultados-${nombreTorneo}`, [
+    ['puesto', 'jugador'],
+    ['1', campeon.nombre],
+    ...(subcampeon ? [['2', subcampeon.nombre]] : []),
+    ...terceros.map(p => ['3', p.nombre]),
+  ])
 
   return (
     <div className="rounded-2xl border border-[#E0BE63]/50 bg-[#E0BE63]/[0.08] p-4 mb-4">
@@ -627,10 +635,16 @@ function Podio({ rondas, campeon, juegoColor, onPublicar }: { rondas: MatchB[][]
           </div>
         ))}
       </div>
-      <button onClick={() => { if (!publicado) { onPublicar(); setPublicado(true) } }} disabled={publicado}
-        className={`mt-3 w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors ${publicado ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border border-[#B6FF3A]/40' : 'bg-[#E0BE63] text-[#0A0A0F]'}`}>
-        {publicado ? <><Check size={15} /> Resultados publicados</> : <><Megaphone size={15} /> {tr('ges.publicarResultados')}</>}
-      </button>
+      <div className="mt-3 flex gap-2">
+        <button onClick={() => { if (!publicado) { onPublicar(); setPublicado(true) } }} disabled={publicado}
+          className={`flex-1 h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors ${publicado ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border border-[#B6FF3A]/40' : 'bg-[#E0BE63] text-[#0A0A0F]'}`}>
+          {publicado ? <><Check size={15} /> Resultados publicados</> : <><Megaphone size={15} /> {tr('ges.publicarResultados')}</>}
+        </button>
+        <button onClick={exportar} title="Exportar resultados (CSV) para tu Power Ranking local"
+          className="h-11 px-3.5 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-bold inline-flex items-center gap-1.5">
+          ⬇ CSV
+        </button>
+      </div>
     </div>
   )
 }
