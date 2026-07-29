@@ -102,11 +102,13 @@ export default function TorneoDetallePage() {
   const com = comision(t.precio, t.inscritos)
   const totalJugador = t.precio + com.importe
   const pVer = precioEspectador(t)
-  const participantes = rankingPorJuego(t.juego).slice(0, 6)
+  // Solo tantos participantes como inscritos reales (un torneo recién creado
+  // con 0 inscritos no puede enseñar gente ni presumir de tier)
+  const participantes = rankingPorJuego(t.juego).slice(0, Math.min(6, ocupadas))
   // Tier dinámico del torneo (reunión 5-jul): lo fijan sus inscritos top
   const grupos = participantes.map(p => rangoDe(p.rating).grupo)
-  const tierTorneo = grupos.filter(g => g === 'S' || g === 'A').length >= 3 ? 'Platino'
-    : grupos.filter(g => g === 'S' || g === 'A' || g === 'B').length >= 3 ? 'Oro' : null
+  const tierTorneo = participantes.length >= 3 && grupos.filter(g => g === 'S' || g === 'A').length >= 3 ? 'Platino'
+    : participantes.length >= 3 && grupos.filter(g => g === 'S' || g === 'A' || g === 'B').length >= 3 ? 'Oro' : null
   const TIER_TORNEO_COLOR: Record<string, string> = { Oro: '#E0BE63', Platino: '#67E8F9' }
 
   async function compartir() {
@@ -348,36 +350,45 @@ export default function TorneoDetallePage() {
           </div>
         )}
 
-        {/* Participantes */}
+        {/* Participantes (solo si hay inscritos de verdad) */}
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
             <p className="eyebrow eyebrow-muted">{tr('torneo.participantes')}</p>
-            <button onClick={() => setVerParts(true)} className="text-xs text-[#B6FF3A] font-semibold">{tr('torneo.verTodos')}</button>
+            {participantes.length > 0 && <button onClick={() => setVerParts(true)} className="text-xs text-[#B6FF3A] font-semibold">{tr('torneo.verTodos')}</button>}
           </div>
-          <button onClick={() => setVerParts(true)} className="flex items-center">
-            {participantes.map((p, i) => {
-              const cols = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
-              return (
-                <span key={p.id} className="inline-flex items-center justify-center rounded-full text-[#0A0A0F] font-black border-2 border-[#10131B]"
-                  style={{ width: 38, height: 38, marginLeft: i ? -10 : 0, background: cols[i % cols.length], zIndex: 10 - i }}>
-                  {p.nombre[0]}
-                </span>
-              )
-            })}
-            {t.inscritos > 6 && <span className="ml-3 text-sm text-[#B8B8CC] font-medium">+{t.inscritos - 6} más</span>}
-          </button>
-          <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-            {participantes.slice(0, 4).map(p => (
-              <span key={p.id} className="inline-flex items-center gap-1.5 pl-1.5 pr-2 h-7 rounded-full bg-white/[0.05] border border-white/10">
-                <RangoChip rating={p.rating} />
-                <span className="text-[11px] font-bold text-[#D4D4E4]">{p.nombre}</span>
-              </span>
-            ))}
-          </div>
-          {tierTorneo && (
-            <p className="mt-2 text-[11px] font-semibold" style={{ color: TIER_TORNEO_COLOR[tierTorneo] }}>
-              ★ Los inscritos de rango alto elevan este torneo a tier {tierTorneo}: reparte más puntos y destaca en el mapa.
-            </p>
+          {participantes.length === 0 ? (
+            <div className="card-premium p-4 flex items-center gap-3">
+              <Users size={18} className="text-[#8B8BA8] shrink-0" />
+              <p className="text-sm text-[#8B8BA8]">Aún no hay inscritos. {cancelado ? '' : '¡Sé el primero y estrena el bracket!'}</p>
+            </div>
+          ) : (
+            <>
+              <button onClick={() => setVerParts(true)} className="flex items-center">
+                {participantes.map((p, i) => {
+                  const cols = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
+                  return (
+                    <span key={p.id} className="inline-flex items-center justify-center rounded-full text-[#0A0A0F] font-black border-2 border-[#10131B]"
+                      style={{ width: 38, height: 38, marginLeft: i ? -10 : 0, background: cols[i % cols.length], zIndex: 10 - i }}>
+                      {p.nombre[0]}
+                    </span>
+                  )
+                })}
+                {ocupadas > 6 && <span className="ml-3 text-sm text-[#B8B8CC] font-medium">+{ocupadas - 6} más</span>}
+              </button>
+              <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                {participantes.slice(0, 4).map(p => (
+                  <span key={p.id} className="inline-flex items-center gap-1.5 pl-1.5 pr-2 h-7 rounded-full bg-white/[0.05] border border-white/10">
+                    <RangoChip rating={p.rating} />
+                    <span className="text-[11px] font-bold text-[#D4D4E4]">{p.nombre}</span>
+                  </span>
+                ))}
+              </div>
+              {tierTorneo && (
+                <p className="mt-2 text-[11px] font-semibold" style={{ color: TIER_TORNEO_COLOR[tierTorneo] }}>
+                  ★ Los inscritos de rango alto elevan este torneo a tier {tierTorneo}: reparte más puntos y destaca en el mapa.
+                </p>
+              )}
+            </>
           )}
         </div>
 
@@ -467,7 +478,7 @@ export default function TorneoDetallePage() {
               <button onClick={() => setVerParts(false)} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC] mt-1"><X size={16} /></button>
             </div>
             <div className="px-4 pt-3 space-y-1.5">
-              {rankingPorJuego(t.juego).map((p, i) => (
+              {rankingPorJuego(t.juego).slice(0, Math.max(1, Math.min(16, ocupadas))).map((p, i) => (
                 <button key={p.id} onClick={() => { setSelJugador(p); setVerParts(false) }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 hover:bg-white/[0.07] transition-colors text-left">
                   <span className="w-7 text-center text-xs font-bold text-[#8B8BA8] font-mono-num">#{i + 1}</span>

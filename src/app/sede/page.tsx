@@ -246,6 +246,17 @@ export default function SedePage() {
           ))}
         </div>
 
+        {/* Herencia de TO (reunión 5-jul, P0): todo local puede organizar sus
+            propios torneos — funciones completas de organizador + las suyas. */}
+        <Link href="/crear-torneo" className="mt-3 flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/30 bg-[#B6FF3A]/[0.06] px-4 py-3.5 card-int">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#B6FF3A]/15 text-[#B6FF3A] shrink-0"><Trophy size={18} /></span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-white">Organiza tus propios torneos</p>
+            <p className="text-xs text-[#8B8BA8]">Tu sede hereda todas las funciones de organizador: crea, gestiona y cobra torneos en tu local sin depender de un TO externo.</p>
+          </div>
+          <ChevronRight size={16} className="text-[#B6FF3A]" />
+        </Link>
+
         {/* Lista de confianza */}
         <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('sede.tosConfianza')}</p>
         <div className="card-premium p-3.5 space-y-2.5">

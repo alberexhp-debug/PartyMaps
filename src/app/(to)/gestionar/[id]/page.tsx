@@ -36,6 +36,8 @@ export default function GestionarTorneoPage() {
   const setGestion = useDemoStore(s => s.setGestion)
   const promovidos = useDemoStore(s => s.promovidosEspera[id] ?? 0)
   const usuarioEnEspera = useDemoStore(s => s.listaEspera.includes(id))
+  const usuarioInscrito = useDemoStore(s => s.inscritos.includes(id))
+  const checkinUsuario = useDemoStore(s => s.checkinsJugador.includes(id))
   const liberarPlazas = useDemoStore(s => s.liberarPlazas)
   const base = getTorneo(id) || creado
   const t = base ? { ...base, ...(override || {}) } : undefined
@@ -66,7 +68,8 @@ export default function GestionarTorneoPage() {
   const cola = t ? esperaDe(t) : []
   const entraron = cola.slice(0, promovidos)          // entraron desde la cola
   const colaPendiente = cola.slice(promovidos)        // siguen esperando (FIFO)
-  const nOcupadas = inscritos.length + entraron.length
+  // El usuario de la app cuenta como un inscrito más: el TO lo ve en su lista
+  const nOcupadas = inscritos.length + entraron.length + (usuarioInscrito ? 1 : 0)
 
   const bracketSeeds = useMemo(() => {
     if (!base) return [] as Jugador[]
@@ -319,7 +322,21 @@ export default function GestionarTorneoPage() {
                   <span className="h-9 px-3 rounded-lg text-xs font-bold flex items-center bg-white/8 text-[#B8B8CC]">Check-in en puerta</span>
                 </div>
               ))}
-              {filtrados.length === 0 && entraron.length === 0 && <p className="text-center text-sm text-[#8B8BA8] py-8">Sin jugadores con ese nombre.</p>}
+              {/* El usuario de la app, si está inscrito (su check-in llega por QR) */}
+              {usuarioInscrito && (
+                <div className="flex items-center gap-3 card-premium p-2.5 border border-[#FF8A5C]/25">
+                  <span className="w-7 text-center text-xs font-bold text-[#8B8BA8] font-mono-num">#{inscritos.length + entraron.length + 1}</span>
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#FF8A5C]/15 text-[#FF8A5C] font-black shrink-0">T</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">Tú <span className="text-[11px] text-[#8B8BA8] font-semibold">(jugador de la demo)</span></p>
+                    <p className="text-[11px] text-[#8B8BA8]">Inscrito desde la app</p>
+                  </div>
+                  <span className={`h-9 px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 ${checkinUsuario ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'bg-white/8 text-[#B8B8CC]'}`}>
+                    <Check size={14} /> {checkinUsuario ? 'Check-in (QR)' : 'QR en puerta'}
+                  </span>
+                </div>
+              )}
+              {filtrados.length === 0 && entraron.length === 0 && !usuarioInscrito && <p className="text-center text-sm text-[#8B8BA8] py-8">Sin jugadores con ese nombre.</p>}
             </div>
 
             {/* Lista de espera: FIFO — si alguien se da de baja, el 1º entra solo */}
