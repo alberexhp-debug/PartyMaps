@@ -3,6 +3,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { getTorneo, JUEGOS, rankingPorJuego, FORMATOS_SUGERIDOS, esperaDe, type Jugador } from '@/lib/torneos/sample'
+import { parseStartggSlug } from '@/lib/torneos/startgg'
 import { construirRondas, nombreRonda, boDeRonda, paraGanar } from '@/lib/torneos/bracket'
 import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
@@ -45,7 +46,7 @@ export default function GestionarTorneoPage() {
   const [tab, setTab] = useState<'inscritos' | 'bracket' | 'ajustes'>('inscritos')
   const [q, setQ] = useState('')
   const [sel, setSel] = useState<Jugador | null>(null)
-  const [form, setForm] = useState<{ nombre: string; plazas: number; precio: number; formato: string; fechaLabel: string; videoUrl: string; banner?: string } | null>(null)
+  const [form, setForm] = useState<{ nombre: string; plazas: number; precio: number; formato: string; fechaLabel: string; videoUrl: string; banner?: string; startgg: string } | null>(null)
   const [guardado, setGuardado] = useState(false)
 
   // Estado de gestión persistido en el store demo: sobrevive a la navegación y
@@ -164,10 +165,15 @@ export default function GestionarTorneoPage() {
     for (const k of Object.keys(p)) if (rondaDe(k) > ri) delete p[k]
     setGestion(id, { winners: w, puntos: p })
   }
-  const f = form ?? { nombre: t.nombre, plazas: t.plazas, precio: t.precio, formato: t.formato as string, fechaLabel: t.fechaLabel, videoUrl: t.videoUrl ?? '', banner: t.banner }
+  const f = form ?? { nombre: t.nombre, plazas: t.plazas, precio: t.precio, formato: t.formato as string, fechaLabel: t.fechaLabel, videoUrl: t.videoUrl ?? '', banner: t.banner, startgg: t.startgg ?? '' }
   const setF = (patch: Partial<typeof f>) => { setForm({ ...f, ...patch }); setGuardado(false) }
   const guardar = () => {
-    editarTorneo(t.id, { nombre: f.nombre.trim() || t.nombre, plazas: f.plazas, precio: f.precio, formato: f.formato.trim() || t.formato, fechaLabel: f.fechaLabel, videoUrl: f.videoUrl.trim() || undefined, banner: f.banner })
+    // El vínculo start.gg se guarda en forma canónica (tournament/<slug>[/event/<evento>])
+    const sgg = parseStartggSlug(f.startgg)
+    editarTorneo(t.id, {
+      nombre: f.nombre.trim() || t.nombre, plazas: f.plazas, precio: f.precio, formato: f.formato.trim() || t.formato, fechaLabel: f.fechaLabel, videoUrl: f.videoUrl.trim() || undefined, banner: f.banner,
+      startgg: sgg ? (sgg.evento ? `tournament/${sgg.torneo}/event/${sgg.evento}` : sgg.torneo) : undefined,
+    })
     setGuardado(true)
     pushNoti({
       tipo: 'sistema', titulo: 'Torneo actualizado',
@@ -542,6 +548,12 @@ export default function GestionarTorneoPage() {
                 <input value={f.videoUrl} onChange={e => setF({ videoUrl: e.target.value })} disabled={cancelado} type="url" placeholder="https://youtube.com/watch?v=… o https://twitch.tv/tucanal"
                   className="w-full h-12 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none disabled:opacity-50" />
                 <p className="mt-1.5 text-[11px] text-[#8B8BA8]">Se incrusta en la ficha pública y en la pantalla del directo.</p>
+              </div>
+              <div>
+                <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">Espejo start.gg (opcional)</label>
+                <input value={f.startgg} onChange={e => setF({ startgg: e.target.value })} disabled={cancelado} placeholder="https://start.gg/tournament/tu-torneo (o «demo»)"
+                  className="w-full h-12 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none disabled:opacity-50" />
+                <p className="mt-1.5 text-[11px] text-[#8B8BA8]">Si tu bracket vive en start.gg, la ficha pública enseñará sus inscritos, estado y top 8 en vivo. Sus puntos no se tocan.</p>
               </div>
               <button onClick={guardar} disabled={cancelado}
                 className="w-full h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold flex items-center justify-center gap-2 disabled:opacity-40">

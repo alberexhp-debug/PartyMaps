@@ -55,6 +55,7 @@ export type TorneoSample = {
   videoUrl?: string            // vídeo o directo del torneo (YouTube/Twitch) que pega el TO
   coOrganizadores?: string[]   // colaboración entre TOs (reunión 5-jul)
   enEspera?: number            // personas en lista de espera (solo torneos llenos)
+  startgg?: string             // slug del torneo en start.gg (espejo de datos en vivo)
 }
 
 export const TORNEOS_SAMPLE: TorneoSample[] = [

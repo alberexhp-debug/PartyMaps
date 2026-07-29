@@ -18,6 +18,7 @@ import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { MiniLocal } from '@/components/todh/MiniLocal'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { VideoEmbed } from '@/components/todh/VideoEmbed'
+import { StartggLive } from '@/components/todh/StartggLive'
 import { useT } from '@/lib/i18n'
 import type { Jugador } from '@/lib/torneos/sample'
 import {
@@ -417,6 +418,9 @@ export default function TorneoDetallePage() {
             </button>
           </div>
         )}
+
+        {/* Espejo start.gg: si el TO lleva el bracket allí, aquí se ve en vivo */}
+        {t.startgg && <StartggLive slug={t.startgg} />}
 
         {/* Bracket / clasificación */}
         <Link href={`/torneo/${t.id}/bracket`} className="mt-5 flex items-center justify-between card-premium card-int p-4">
