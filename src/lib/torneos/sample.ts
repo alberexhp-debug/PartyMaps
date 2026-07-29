@@ -52,8 +52,9 @@ export type TorneoSample = {
   banner?: string          // URL del banner del torneo; si falta, se usa el keyart del juego
   comentarios?: string     // otros comentarios del TO (reglas extra, premios en producto…)
   premiosImgs?: string[]   // fotos de premios en producto
-  videoUrl?: string
-  coOrganizadores?: string[]   // colaboración entre TOs (reunión 5-jul)        // vídeo o directo del torneo (YouTube/Twitch) que pega el TO
+  videoUrl?: string            // vídeo o directo del torneo (YouTube/Twitch) que pega el TO
+  coOrganizadores?: string[]   // colaboración entre TOs (reunión 5-jul)
+  enEspera?: number            // personas en lista de espera (solo torneos llenos)
 }
 
 export const TORNEOS_SAMPLE: TorneoSample[] = [
@@ -112,7 +113,7 @@ export const TORNEOS_SAMPLE: TorneoSample[] = [
   {
     id: 't8', nombre: 'Magic Commander League', juego: 'magic', formato: 'Round robin',
     fechaLabel: 'Mié 25 jun · 18:00', local: 'La Tienda del Dragón', localId: 'dragon', ciudad: 'Madrid',
-    distanciaKm: 2.6, inscritos: 16, plazas: 16, precio: 7, bote: 0, enDirecto: false,
+    distanciaKm: 2.6, inscritos: 16, plazas: 16, precio: 7, bote: 0, enDirecto: false, enEspera: 5,
     vip: 'Oro', organizadorId: 'dragon-to', popularidad: 70, bestOf: 'Partidas de 4',
     descripcion: 'Liga Commander en formato round robin. Mesas de 4, ambiente relajado y premios en producto.',
   },
@@ -126,7 +127,7 @@ export const TORNEOS_SAMPLE: TorneoSample[] = [
   {
     id: 't10', nombre: 'TFT Friday Showdown', juego: 'tft', formato: 'Pools → Top cut',
     fechaLabel: 'Hoy · 21:00', esHoy: true, online: true, local: 'Online', ciudad: 'Online',
-    distanciaKm: 0, inscritos: 64, plazas: 64, precio: 3, bote: 150, enDirecto: false,
+    distanciaKm: 0, inscritos: 64, plazas: 64, precio: 3, bote: 150, enDirecto: false, enEspera: 7,
     vip: null, organizadorId: 'lima', popularidad: 79, bestOf: 'Lobbies de 8',
     descripcion: 'Showdown online de los viernes. Código de sala por el chat del combate.',
   },
@@ -149,6 +150,16 @@ export const TORNEOS_SAMPLE: TorneoSample[] = [
 
 export function getTorneo(id: string): TorneoSample | undefined {
   return TORNEOS_SAMPLE.find(t => t.id === id)
+}
+
+// Cola de la lista de espera (nombres deterministas, distintos de los inscritos).
+// Orden FIFO: el primero de la lista es el primero en entrar si se libera plaza.
+const ESPERA_POOL = ['Ghost', 'Nova', 'Blitz', 'Echo', 'Yuki', 'Prisma', 'Turbo', 'Salt', 'Wasp', 'Momo']
+export function esperaDe(t: Pick<TorneoSample, 'juego' | 'enEspera'>): string[] {
+  const n = Math.min(t.enEspera ?? 0, ESPERA_POOL.length)
+  if (n <= 0) return []
+  const off = t.juego.charCodeAt(0) % 3
+  return Array.from({ length: n }, (_, i) => ESPERA_POOL[(i + off) % ESPERA_POOL.length])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

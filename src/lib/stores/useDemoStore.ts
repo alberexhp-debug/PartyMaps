@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { JUEGOS, type TorneoSample, type Juego, type Mesa } from '@/lib/torneos/sample'
+import { JUEGOS, getTorneo, esperaDe, type TorneoSample, type Juego, type Mesa } from '@/lib/torneos/sample'
 
 // Store de DEMO (modo sin backend): mantiene en memoria + localStorage el estado
 // interactivo de la sesión para que inscribirse / seguir / crear torneo / leer
@@ -25,10 +25,11 @@ export type GestionTorneo = {
   winners: Record<string, 'a' | 'b'>
   puntos: Record<string, { a: number; b: number }>
   bo: BoConfig
+  bajas: string[]         // inscritos dados de baja por el TO (liberan plaza)
 }
 const GESTION_VACIA: GestionTorneo = {
   checkin: [], cerrado: false, generado: false, seeds: [], winners: {},
-  puntos: {}, bo: { base: 3, top: 5, desde: 'semis' },
+  puntos: {}, bo: { base: 3, top: 5, desde: 'semis' }, bajas: [],
 }
 // Solicitud de un TO a una sede para organizar un evento allí (demo: TO = Lima).
 // La sede la ve en su panel y al aceptar/rechazar el TO recibe la respuesta.
@@ -80,6 +81,8 @@ export type Notificacion = {
 
 interface DemoState {
   inscritos: string[]                 // ids de torneos inscritos
+  listaEspera: string[]               // ids de torneos donde el usuario está en la cola de espera
+  promovidosEspera: Record<string, number>  // por torneo: cuántos de la cola ya entraron (FIFO)
   seguidos: string[]                  // ids de organizadores seguidos
   creados: TorneoSample[]             // torneos creados por el TO en demo
   juegosCustom: Record<string, Juego> // juegos añadidos por el TO (no contemplados en la app)
@@ -107,7 +110,10 @@ interface DemoState {
   chatsTorneo: Record<string, { autor: string; texto: string; hora: string }[]>
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string) => void
-  desinscribir: (torneoId: string) => void
+  desinscribir: (torneoId: string, nombreTorneo: string) => void
+  apuntarEspera: (torneoId: string, nombreTorneo: string, puesto: number) => void
+  salirEspera: (torneoId: string) => void
+  liberarPlazas: (torneoId: string, nombreTorneo: string, n: number) => void
   estaInscrito: (torneoId: string) => boolean
   alternarSeguir: (orgId: string, nombreOrg: string) => void
   sigue: (orgId: string) => boolean
@@ -139,6 +145,8 @@ interface DemoState {
   crearReporte: (r: Omit<ReporteTO, 'id' | 'estado'>) => void
   resolverReporte: (id: string, accion: 'cambiado' | 'rebatido', respuesta?: string) => void
   solicitarTO: () => void
+  aprobarTO: () => void
+  rechazarTO: () => void
   suscribirTier: (tier: 'Oro' | 'Platino' | 'Diamante') => void
   comprarBono: (localId: string, localNombre: string, titulo: string, precio: number) => void
   enviarChat: (torneoId: string, texto: string) => void
@@ -154,10 +162,51 @@ const NOTIS_INICIALES: Notificacion[] = [
   { id: 'seed4', tipo: 'sistema', titulo: 'Bienvenido a Tourneum', cuerpo: 'Descubre torneos cerca de ti y compite por subir en el ranking.', cuando: 'ayer', leida: true },
 ]
 
+// Promoción FIFO de la lista de espera al liberarse (o ampliarse) n plazas:
+// entran primero los de la cola de muestra pendientes y, si aún queda hueco y el
+// usuario está en la cola, entra él (con aviso + cobro simulado). Devuelve el
+// parcial de estado a mezclar en el set() del llamador.
+function promocionEspera(s: DemoState, torneoId: string, nombreTorneo: string, n: number): Partial<DemoState> {
+  const base = getTorneo(torneoId) || s.creados.find(c => c.id === torneoId)
+  if (!base || n <= 0) return {}
+  const cola = esperaDe({ ...base, ...(s.editados[torneoId] || {}) })
+  const ya = s.promovidosEspera[torneoId] ?? 0
+  const entran = cola.slice(ya, ya + n)
+  const usuarioEntra = entran.length < n && s.listaEspera.includes(torneoId)
+  if (entran.length === 0 && !usuarioEntra) return {}
+
+  const notis: Notificacion[] = []
+  if (usuarioEntra) {
+    notis.push({
+      id: nextId(), tipo: 'inscripcion', titulo: '🎟️ ¡Entras! Plaza liberada',
+      cuerpo: `Se ha liberado una plaza en «${nombreTorneo}» y eras el primero de la lista de espera. Pago procesado: tu entrada ya está en la cartera.`,
+      cuando: 'ahora', leida: false, href: '/entradas',
+    })
+  }
+  if (entran.length > 0) {
+    const listado = entran.length === 1 ? entran[0] : `${entran.slice(0, -1).join(', ')} y ${entran[entran.length - 1]}`
+    notis.push({
+      id: nextId(), tipo: 'sistema', titulo: 'Lista de espera · plaza cubierta',
+      cuerpo: `${listado} ${entran.length === 1 ? 'entra' : 'entran'} en «${nombreTorneo}» desde la lista de espera.`,
+      cuando: 'ahora', leida: false, href: `/torneo/${torneoId}`,
+    })
+  }
+  return {
+    promovidosEspera: { ...s.promovidosEspera, [torneoId]: ya + entran.length },
+    ...(usuarioEntra ? {
+      listaEspera: s.listaEspera.filter(id => id !== torneoId),
+      inscritos: [...s.inscritos, torneoId],
+    } : {}),
+    notificaciones: [...notis, ...s.notificaciones],
+  }
+}
+
 export const useDemoStore = create<DemoState>()(
   persist(
     (set, get) => ({
       inscritos: [],
+      listaEspera: [],
+      promovidosEspera: {},
       seguidos: [],
       creados: [],
       juegosCustom: {},
@@ -196,7 +245,28 @@ export const useDemoStore = create<DemoState>()(
         }
         return { inscritos: [...s.inscritos, torneoId], notificaciones: [noti, ...s.notificaciones] }
       }),
-      desinscribir: (torneoId) => set((s) => ({ inscritos: s.inscritos.filter(id => id !== torneoId) })),
+      // Cancelar inscripción: libera la plaza y, si hay cola, el primero entra.
+      desinscribir: (torneoId, nombreTorneo) => set((s) => {
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: 'Inscripción cancelada',
+          cuerpo: `Has cancelado tu plaza en «${nombreTorneo}». Reembolso emitido según la política del torneo.`,
+          cuando: 'ahora', leida: false,
+        }
+        const tras: DemoState = { ...s, inscritos: s.inscritos.filter(id => id !== torneoId), notificaciones: [noti, ...s.notificaciones] }
+        return { inscritos: tras.inscritos, notificaciones: tras.notificaciones, ...promocionEspera(tras, torneoId, nombreTorneo, 1) }
+      }),
+      apuntarEspera: (torneoId, nombreTorneo, puesto) => set((s) => {
+        if (s.listaEspera.includes(torneoId) || s.inscritos.includes(torneoId)) return s
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'inscripcion', titulo: `En lista de espera · puesto ${puesto}`,
+          cuerpo: `«${nombreTorneo}» está completo. Si se libera una plaza entra el primero de la cola; te avisaremos y cobraremos solo si entras.`,
+          cuando: 'ahora', leida: false, href: '/entradas',
+        }
+        return { listaEspera: [...s.listaEspera, torneoId], notificaciones: [noti, ...s.notificaciones] }
+      }),
+      salirEspera: (torneoId) => set((s) => ({ listaEspera: s.listaEspera.filter(id => id !== torneoId) })),
+      // El TO libera n plazas (baja de un jugador o ampliación de aforo).
+      liberarPlazas: (torneoId, nombreTorneo, n) => set((s) => promocionEspera(s, torneoId, nombreTorneo, n)),
       estaInscrito: (torneoId) => get().inscritos.includes(torneoId),
 
       alternarSeguir: (orgId, nombreOrg) => set((s) => {
@@ -414,6 +484,18 @@ export const useDemoStore = create<DemoState>()(
         if (s.perfilTO !== 'no') return s
         const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: 'Solicitud de organizador enviada', cuerpo: 'Revisaremos tu experiencia y te haremos una breve entrevista. Te avisamos aquí.', cuando: 'ahora', leida: false, href: '/perfil' }
         return { perfilTO: 'pendiente', notificaciones: [n, ...s.notificaciones] }
+      }),
+      // Resolución desde el panel admin (control de accesos): cierra el ciclo
+      // solicitud → revisión → perfil dual activo.
+      aprobarTO: () => set((s) => {
+        if (s.perfilTO === 'aprobado') return s
+        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: '🎉 Ya eres organizador', cuerpo: 'Tu solicitud está aprobada. Tienes la consola de TO en tu perfil; tu cuenta de jugador no cambia.', cuando: 'ahora', leida: false, href: '/consola' }
+        return { perfilTO: 'aprobado', notificaciones: [n, ...s.notificaciones] }
+      }),
+      rechazarTO: () => set((s) => {
+        if (s.perfilTO !== 'pendiente') return s
+        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: 'Solicitud de organizador rechazada', cuerpo: 'De momento no podemos aprobarla. Puedes volver a solicitarlo con más experiencia u otros torneos de referencia.', cuando: 'ahora', leida: false, href: '/perfil' }
+        return { perfilTO: 'no', notificaciones: [n, ...s.notificaciones] }
       }),
     }),
     {

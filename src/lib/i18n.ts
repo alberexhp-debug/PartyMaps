@@ -344,6 +344,27 @@ const D = {
   'dual.org': ['Organizador', 'Organizer'],
   'dual.consola': ['Ir a la consola', 'Open console'],
   'dual.revision': ['Solicitud en revisión…', 'Application under review…'],
+
+  // Lista de espera
+  'espera.enLista': ['En lista de espera', 'On the waitlist'],
+  'espera.puesto': ['puesto', 'spot'],
+  'espera.salir': ['Salir de la lista', 'Leave the waitlist'],
+  'espera.enCola': ['en lista de espera', 'on the waitlist'],
+  'espera.aviso': ['Si se libera una plaza entra el primero de la cola. Te avisamos y cobramos solo si entras.', 'If a seat opens the first in line gets in. We notify and charge you only if you get in.'],
+  'espera.cancelarInsc': ['Cancelar inscripción', 'Cancel registration'],
+
+  // Puerta del panel de TO
+  'gate.eyebrow': ['Panel de organizador', 'Organizer panel'],
+  'gate.titulo': ['Esta zona es para organizadores', 'This area is for organizers'],
+  'gate.texto': ['Tu cuenta es de jugador. Activa el perfil de organizador para crear y gestionar torneos: conservas tu perfil de jugador y añadimos la consola de TO.', 'Your account is a player account. Activate the organizer profile to create and manage tournaments: you keep your player profile and we add the TO console.'],
+  'gate.solicitar': ['Solicitar perfil de organizador', 'Request organizer profile'],
+  'gate.pendiente': ['Solicitud en revisión', 'Application under review'],
+  'gate.pendienteTexto': ['El equipo Tourneum revisa tu experiencia y te contactará para una breve entrevista.', 'The Tourneum team is reviewing your experience and will contact you for a short interview.'],
+  'gate.volver': ['Volver a la app', 'Back to the app'],
+
+  // Plano del local
+  'ml.plano': ['Plano del local', 'Venue floor plan'],
+  'ml.planoPie': ['Así están repartidas las mesas y setups de esta sede.', 'This is how tables and setups are laid out at this venue.'],
 } as const
 
 export type ClaveI18n = keyof typeof D

@@ -34,13 +34,14 @@ export function PerfilDualCard() {
           <ChevronRight size={14} className="text-[#6B6B85]" />
         </Link>
       ) : estado === 'pendiente' ? (
-        <div className="flex-1 rounded-xl bg-white/[0.04] border border-[#E0BE63]/35 px-3 py-2.5 flex items-center gap-2.5">
+        <Link href="/admin-demo" title="Demo: la aprueba el equipo desde el panel admin"
+          className="flex-1 rounded-xl bg-white/[0.04] border border-[#E0BE63]/35 px-3 py-2.5 flex items-center gap-2.5 hover:bg-white/[0.08] transition-colors">
           <span className="h-8 w-8 rounded-lg bg-[#E0BE63]/12 flex items-center justify-center"><Clock size={15} className="text-[#E0BE63]" /></span>
           <div className="min-w-0">
             <p className="text-[12px] font-bold text-white leading-tight">{tr('dual.org')}</p>
             <p className="text-[10px] text-[#E0BE63] font-semibold">{tr('dual.revision')}</p>
           </div>
-        </div>
+        </Link>
       ) : (
         <button onClick={() => setAlta(true)} className="flex-1 rounded-xl bg-white/[0.04] border border-dashed border-white/20 px-3 py-2.5 flex items-center gap-2.5 hover:bg-white/[0.08] transition-colors text-left">
           <span className="h-8 w-8 rounded-lg bg-white/8 flex items-center justify-center"><Megaphone size={15} className="text-[#8B8BA8]" /></span>
@@ -56,7 +57,8 @@ export function PerfilDualCard() {
   )
 }
 
-function AltaTOSheet({ onClose }: { onClose: () => void }) {
+// Exportada: también la usa la puerta del panel de TO (grupo de rutas `(to)`).
+export function AltaTOSheet({ onClose }: { onClose: () => void }) {
   const solicitar = useDemoStore(s => s.solicitarTO)
   const [exp, setExp] = useState('')
   const [juegos, setJuegos] = useState<string[]>([])

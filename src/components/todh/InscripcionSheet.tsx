@@ -11,6 +11,7 @@ type Props = {
   comisionImporte: number
   total: number
   completo: boolean
+  puestoEspera?: number       // puesto que ocuparías en la lista de espera (torneo lleno)
   precioVer?: number | null   // entrada de espectador (null = torneo online, sin espectador)
   modoInicial?: 'jugar' | 'ver'
   onClose: () => void
@@ -19,7 +20,7 @@ type Props = {
 }
 
 // Hoja de checkout en una sola pantalla (mínima fricción). En demo simula el pago.
-export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, total, completo, precioVer, modoInicial, onClose, onConfirm, onConfirmVer }: Props) {
+export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, total, completo, puestoEspera, precioVer, modoInicial, onClose, onConfirm, onConfirmVer }: Props) {
   const [fase, setFase] = useState<'resumen' | 'pagando' | 'ok'>('resumen')
   const [codigoOpen, setCodigoOpen] = useState(false)
   const [codigo, setCodigo] = useState('')
@@ -52,7 +53,7 @@ export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, 
           <div className="px-5 py-10 flex flex-col items-center text-center gap-3">
             <div className="h-16 w-16 rounded-full bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 flex items-center justify-center animate-pop"><Check size={32} className="text-[#B6FF3A]" /></div>
             <p className="text-xl font-bold text-white text-display">{ver ? '¡Nos vemos allí!' : waitlist ? '¡En lista de espera!' : '¡Estás dentro!'}</p>
-            <p className="text-sm text-[#B8B8CC] max-w-xs">{ver ? 'Tu entrada de espectador con QR ya está en tu cartera.' : waitlist ? 'Te avisaremos si se libera una plaza.' : 'Tu entrada con QR ya está en tu cartera.'}</p>
+            <p className="text-sm text-[#B8B8CC] max-w-xs">{ver ? 'Tu entrada de espectador con QR ya está en tu cartera.' : waitlist ? `Vas el ${puestoEspera ?? 1}º de la cola. Si se libera una plaza entra el primero: te avisaremos y cobraremos solo entonces.` : 'Tu entrada con QR ya está en tu cartera.'}</p>
           </div>
         ) : (
           <div className="px-5">
@@ -137,7 +138,7 @@ export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, 
             {/* Nota */}
             <div className="mt-4 flex items-start gap-2 text-[12px] text-[#8B8BA8]">
               {waitlist
-                ? <><Clock size={14} className="text-[#FF8A5C] shrink-0 mt-0.5" /> Sin pago ahora. Si entras, te cobramos y confirmamos.</>
+                ? <><Clock size={14} className="text-[#FF8A5C] shrink-0 mt-0.5" /> Torneo completo. Serías el <span className="text-[#FF8A5C] font-bold">{puestoEspera ?? 1}º</span> de la cola: sin pago ahora; si se libera plaza entra el primero, y solo entonces te cobramos y confirmamos.</>
                 : <><ShieldCheck size={14} className="text-[#B6FF3A] shrink-0 mt-0.5" /> Reembolso del 100% si el torneo se cancela. Pago seguro vía Stripe.</>}
             </div>
 

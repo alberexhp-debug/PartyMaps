@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import {
   getTorneo, getOrganizador, getLocal, JUEGOS, rankingPorJuego,
-  precioEspectador,
+  precioEspectador, esperaDe,
 } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
@@ -64,6 +64,12 @@ export default function TorneoDetallePage() {
   const t = base ? { ...base, ...(override || {}) } : undefined
   const inscrito = useDemoStore(s => s.inscritos.includes(id))
   const inscribir = useDemoStore(s => s.inscribir)
+  const enEspera = useDemoStore(s => s.listaEspera.includes(id))
+  const promovidos = useDemoStore(s => s.promovidosEspera[id] ?? 0)
+  const bajas = useDemoStore(s => s.gestion[id]?.bajas?.length ?? 0)
+  const apuntarEspera = useDemoStore(s => s.apuntarEspera)
+  const salirEspera = useDemoStore(s => s.salirEspera)
+  const desinscribir = useDemoStore(s => s.desinscribir)
   const esEspectador = useDemoStore(s => s.entradasEspectador.includes(id))
   const inscribirEspectador = useDemoStore(s => s.inscribirEspectador)
   const [modoSheet, setModoSheet] = useState<'jugar' | 'ver'>('jugar')
@@ -84,8 +90,14 @@ export default function TorneoDetallePage() {
   const juego = JUEGOS[t.juego]
   const org = t.organizadorId ? getOrganizador(t.organizadorId) : undefined
   const local = t.localId ? getLocal(t.localId) : undefined
-  const completo = t.inscritos >= t.plazas
-  const inscritosVis = t.inscritos + (inscrito ? 1 : 0)
+  // Plazas ocupadas reales: inscritos de muestra − bajas del TO + promovidos de
+  // la cola. El usuario suma aparte (inscritosVis).
+  const ocupadas = t.inscritos - bajas + promovidos
+  const completo = ocupadas >= t.plazas
+  const inscritosVis = ocupadas + (inscrito ? 1 : 0)
+  // Cola de espera pendiente (muestra) + el usuario si está apuntado
+  const colaPendiente = Math.max(0, esperaDe(t).length - promovidos) + (enEspera ? 1 : 0)
+  const puestoEspera = Math.max(0, esperaDe(t).length - promovidos) + 1
   const pct = Math.min(100, Math.round((inscritosVis / t.plazas) * 100))
   const com = comision(t.precio, t.inscritos)
   const totalJugador = t.precio + com.importe
@@ -105,8 +117,11 @@ export default function TorneoDetallePage() {
     } catch { /* cancelado */ }
   }
 
+  // Torneo lleno → a la cola de espera (no a inscritos): la incoherencia que
+  // había era que "lista de espera" te daba plaza y QR como a un inscrito.
   function confirmarInscripcion() {
-    inscribir(t!.id, t!.nombre)
+    if (completo) apuntarEspera(t!.id, t!.nombre, puestoEspera)
+    else inscribir(t!.id, t!.nombre)
     setSheet(false)
   }
   function confirmarEspectador() {
@@ -136,13 +151,25 @@ export default function TorneoDetallePage() {
   const ctaBtn = cancelado ? (
     <div className="w-full h-14 rounded-2xl bg-[#FF6B6B]/12 border border-[#FF6B6B]/40 text-[#FF8A8A] font-bold flex items-center justify-center gap-2">Torneo cancelado · reembolso 100%</div>
   ) : inscrito ? (
-    <Link href="/entradas" className="w-full h-14 rounded-2xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] font-bold flex items-center justify-center gap-2"><Check size={18} /> Inscrito · ver en mi cartera</Link>
+    <div>
+      <Link href="/entradas" className="w-full h-14 rounded-2xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] font-bold flex items-center justify-center gap-2"><Check size={18} /> Inscrito · ver en mi cartera</Link>
+      <button onClick={() => { if (window.confirm(`¿Cancelar tu inscripción en "${t!.nombre}"? Tu plaza pasará al primero de la lista de espera.`)) desinscribir(t!.id, t!.nombre) }}
+        className="mt-1.5 w-full text-center text-[11px] text-[#8B8BA8] font-semibold hover:text-[#FF8A8A] transition-colors">{tr('espera.cancelarInsc')}</button>
+    </div>
+  ) : enEspera ? (
+    <div className="w-full rounded-2xl bg-[#FF8A5C]/10 border border-[#FF8A5C]/40 p-3.5">
+      <p className="text-[#FF8A5C] font-bold text-sm flex items-center gap-1.5">⏳ {tr('espera.enLista')} · {tr('espera.puesto')} {puestoEspera}</p>
+      <p className="mt-1 text-[11px] text-[#B8B8CC] leading-relaxed">{tr('espera.aviso')}</p>
+      <button onClick={() => salirEspera(t!.id)} className="mt-2 text-[11px] text-[#8B8BA8] font-semibold hover:text-white transition-colors">{tr('espera.salir')}</button>
+    </div>
   ) : t.vip && !tieneAcceso(tierUsuario, t.vip) ? (
     <button onClick={() => setTierSheet(true)} className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2 hover:bg-white/12 transition-colors">
       <Lock size={16} /> {tr('tier.desbloquea')} {t.vip} · {tr('tier.desbloquealo')}
     </button>
   ) : completo ? (
-    <button onClick={() => abrirSheet('jugar')} className="w-full h-14 rounded-2xl bg-[#FF8A5C]/15 border border-[#FF8A5C]/40 text-[#FF8A5C] font-bold">Apuntarme a la lista de espera</button>
+    <button onClick={() => abrirSheet('jugar')} className="w-full h-14 rounded-2xl bg-[#FF8A5C]/15 border border-[#FF8A5C]/40 text-[#FF8A5C] font-bold">
+      Apuntarme a la lista de espera{colaPendiente > 0 ? ` · ${colaPendiente} en cola` : ''}
+    </button>
   ) : (
     <button onClick={() => abrirSheet('jugar')} className="w-full h-14 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] shadow-[0_10px_30px_-8px_rgba(182,255,58,0.5)] active:scale-[0.99] transition-transform">
       {tr('torneo.inscribirme')} · {totalJugador === 0 ? tr('torneo.gratis') : `${totalJugador}€`}
@@ -278,6 +305,9 @@ export default function TorneoDetallePage() {
             <span className={completo && !inscrito ? 'text-[#FF8A5C] font-semibold text-sm' : 'text-[#B6FF3A] font-semibold text-sm'}>{completo && !inscrito ? 'Completo' : plazasLibresLabel(t.plazas - inscritosVis)}</span>
           </div>
           <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} trackClassName="h-2 w-full rounded-full bg-white/8 overflow-hidden" />
+          {colaPendiente > 0 && (
+            <p className="mt-2 text-[11px] text-[#FF8A5C] font-semibold">⏳ +{colaPendiente} {tr('espera.enCola')}{enEspera ? ` · tú vas el ${puestoEspera}º` : ''}</p>
+          )}
         </div>
 
         {/* Premios */}
@@ -421,7 +451,7 @@ export default function TorneoDetallePage() {
         <InscripcionSheet
           precioVer={pVer} modoInicial={modoSheet} onConfirmVer={confirmarEspectador}
           torneo={t} juego={juego} comisionPct={com.pct} comisionImporte={com.importe}
-          total={totalJugador} completo={completo}
+          total={totalJugador} completo={completo} puestoEspera={puestoEspera}
           onClose={() => setSheet(false)} onConfirm={confirmarInscripcion}
         />
       )}

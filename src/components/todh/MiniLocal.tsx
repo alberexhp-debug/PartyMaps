@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
+import { MapaMesas } from '@/components/todh/MapaMesas'
 import { TORNEOS_SAMPLE, JUEGOS, type Local } from '@/lib/torneos/sample'
 import { X, Star, Ruler, Monitor, Users, Wallet, CalendarClock, ChevronRight, Check, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
@@ -13,6 +14,8 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
   const { t: tr } = useT()
   const creados = useDemoStore(s => s.creados)
   const cancelados = useDemoStore(s => s.cancelados)
+  // Plano real de la sede: si la sede lo editó en su panel, manda su versión
+  const mesas = useDemoStore(s => s.mesasSede[local.id]) ?? local.mesas
   const [solicitado, setSolicitado] = useState(false)
   const comprarBono = useDemoStore(s => s.comprarBono)
   const [comprado, setComprado] = useState<string | null>(null)
@@ -63,9 +66,16 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#B6FF3A]/15 text-[#B6FF3A]"><Wallet size={16} /></span>
               <div>
                 <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">{tr('ml.paraTOs')}</p>
-                <p className="text-sm font-bold text-white">{tr('ml.desde')} <span className="text-[#B6FF3A] font-mono-num">{local.precioNoche}€</span>/{tr('ml.noche')} · {local.mesas.length} mesas</p>
+                <p className="text-sm font-bold text-white">{tr('ml.desde')} <span className="text-[#B6FF3A] font-mono-num">{local.precioNoche}€</span>/{tr('ml.noche')} · {mesas.length} mesas</p>
               </div>
             </div>
+          </div>
+
+          {/* Plano de mesas de la sede (lo ven jugadores y TOs) */}
+          <div className="mt-4">
+            <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider mb-2">{tr('ml.plano')} · {mesas.length} mesas</p>
+            <MapaMesas mesas={mesas} />
+            <p className="mt-1.5 text-[10px] text-[#8B8BA8]">{tr('ml.planoPie')}</p>
           </div>
 
           {/* Torneos activos en esta sede */}

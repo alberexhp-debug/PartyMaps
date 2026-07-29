@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { JUEGOS, TORNEOS_SAMPLE, getTorneo, type TorneoSample } from '@/lib/torneos/sample'
+import { JUEGOS, TORNEOS_SAMPLE, getTorneo, esperaDe, type TorneoSample } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
@@ -25,6 +25,15 @@ export default function EntradasPage() {
   const inscritos = useDemoStore(s => s.inscritos)
   const espectador = useDemoStore(s => s.entradasEspectador)
   const bonos = useDemoStore(s => s.bonosComprados)
+  const listaEspera = useDemoStore(s => s.listaEspera)
+  const promovidosEspera = useDemoStore(s => s.promovidosEspera)
+  const salirEspera = useDemoStore(s => s.salirEspera)
+
+  // Torneos donde el usuario espera plaza, con su puesto en la cola
+  const enEspera = useMemo(() =>
+    listaEspera.map(id => getTorneo(id)).filter((t): t is TorneoSample => !!t)
+      .map(t => ({ t, puesto: Math.max(0, esperaDe(t).length - (promovidosEspera[t.id] ?? 0)) + 1 })),
+    [listaEspera, promovidosEspera])
 
   const proximos: Insc[] = useMemo(() => {
     const ids = Array.from(new Set([...inscritos, ...DEFAULT_PROXIMOS]))
@@ -80,6 +89,31 @@ export default function EntradasPage() {
           </div>
         )}
       </div>
+
+      {/* Lista de espera: aún sin plaza — si alguien cancela, entra el primero */}
+      {enEspera.length > 0 && tab === 'proximos' && (
+        <div className="relative px-4 pb-4">
+          <p className="eyebrow eyebrow-muted mb-2">⏳ {tr('espera.enLista')} · {enEspera.length}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {enEspera.map(({ t, puesto }) => (
+              <div key={t.id} className="card-premium px-3.5 py-3 flex items-center gap-3 border border-[#FF8A5C]/25">
+                <Link href={`/torneo/${t.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                  <GameKeyart juegoId={t.juego} label={false} className="w-10 h-10 rounded-xl shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-bold text-white truncate">{t.nombre}</p>
+                    <p className="text-[11px] text-[#8B8BA8]">{t.fechaLabel} · <span className="text-[#FF8A5C] font-bold">{tr('espera.puesto')} {puesto}</span></p>
+                  </div>
+                </Link>
+                <button onClick={() => salirEspera(t.id)}
+                  className="h-8 px-3 rounded-lg bg-white/6 border border-white/12 text-[11px] font-bold text-[#B8B8CC] hover:text-white transition-colors whitespace-nowrap">
+                  {tr('espera.salir')}
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] text-[#8B8BA8]">{tr('espera.aviso')}</p>
+        </div>
+      )}
 
       {/* Bonos de locales (tienda del local) */}
       {bonos.length > 0 && tab === 'proximos' && (

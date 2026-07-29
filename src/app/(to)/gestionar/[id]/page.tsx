@@ -2,7 +2,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
-import { getTorneo, JUEGOS, rankingPorJuego, FORMATOS_SUGERIDOS, type Jugador } from '@/lib/torneos/sample'
+import { getTorneo, JUEGOS, rankingPorJuego, FORMATOS_SUGERIDOS, esperaDe, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, nombreRonda, boDeRonda, paraGanar } from '@/lib/torneos/bracket'
 import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
@@ -13,7 +13,7 @@ import { BannerPicker } from '@/components/todh/BannerPicker'
 import { Flag } from 'lucide-react'
 import {
   ArrowLeft, Search, Check, Users, ListTree, Radio, Lock, UserCheck,
-  Trophy, Share2, Zap, CircleDot, Ban, RotateCcw, Megaphone,
+  Trophy, Share2, Zap, CircleDot, Ban, RotateCcw, Megaphone, X,
 } from 'lucide-react'
 import type { MatchB } from '@/lib/torneos/bracket'
 
@@ -34,6 +34,9 @@ export default function GestionarTorneoPage() {
   const pushNoti = useDemoStore(s => s.pushNoti)
   const gestion = useDemoStore(s => s.gestion[id])
   const setGestion = useDemoStore(s => s.setGestion)
+  const promovidos = useDemoStore(s => s.promovidosEspera[id] ?? 0)
+  const usuarioEnEspera = useDemoStore(s => s.listaEspera.includes(id))
+  const liberarPlazas = useDemoStore(s => s.liberarPlazas)
   const base = getTorneo(id) || creado
   const t = base ? { ...base, ...(override || {}) } : undefined
 
@@ -52,11 +55,18 @@ export default function GestionarTorneoPage() {
   const bo = gestion?.bo ?? { base: 3, top: 5, desde: 'semis' as BoDesde }
   const checkin = useMemo(() => new Set(gestion?.checkin ?? []), [gestion?.checkin])
 
+  const bajas = useMemo(() => new Set(gestion?.bajas ?? []), [gestion?.bajas])
   const inscritos = useMemo(() => {
     if (!base) return [] as Jugador[]
     const n = Math.min((override?.inscritos ?? base.inscritos) || 16, (override?.plazas ?? base.plazas), 16)
-    return rankingPorJuego(base.juego).slice(0, n)
-  }, [base, override?.inscritos, override?.plazas])
+    return rankingPorJuego(base.juego).slice(0, n).filter(p => !bajas.has(p.id))
+  }, [base, override?.inscritos, override?.plazas, bajas])
+
+  // Cola de espera del torneo: los ya promovidos ocupan plaza; el resto espera.
+  const cola = t ? esperaDe(t) : []
+  const entraron = cola.slice(0, promovidos)          // entraron desde la cola
+  const colaPendiente = cola.slice(promovidos)        // siguen esperando (FIFO)
+  const nOcupadas = inscritos.length + entraron.length
 
   const bracketSeeds = useMemo(() => {
     if (!base) return [] as Jugador[]
@@ -86,6 +96,13 @@ export default function GestionarTorneoPage() {
   const seedOf = (pid: string) => inscritos.findIndex(p => p.id === pid) + 1
   const toggle = (pid: string) => setGestion(id, { checkin: checkin.has(pid) ? [...checkin].filter(x => x !== pid) : [...checkin, pid] })
   const checkAll = () => setGestion(id, { checkin: inscritos.map(p => p.id) })
+  // Baja de un inscrito: libera su plaza y el primero de la cola entra solo.
+  const darDeBaja = (p: Jugador) => {
+    if (typeof window !== 'undefined' && !window.confirm(`¿Dar de baja a ${p.nombre}? Su plaza pasa al primero de la lista de espera.`)) return
+    setGestion(id, { bajas: [...(gestion?.bajas ?? []), p.id], checkin: [...checkin].filter(x => x !== p.id) })
+    pushNoti({ tipo: 'sistema', titulo: `Baja de ${p.nombre}`, cuerpo: `${p.nombre} deja libre su plaza en «${t!.nombre}».` })
+    liberarPlazas(id, t!.nombre, 1)
+  }
   const seeded = [...inscritos].filter(p => checkin.has(p.id))
   // Avisos TO→jugador: en demo van a la bandeja local (/notificaciones); con
   // backend serán push/email a cada inscrito.
@@ -175,7 +192,7 @@ export default function GestionarTorneoPage() {
         )}
         {/* KPIs */}
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-          <Kpi icon={<Users size={15} className="text-[#9B82FF]" />} value={`${inscritos.length}/${t.plazas}`} label={tr('ges.tabInscritos')} />
+          <Kpi icon={<Users size={15} className="text-[#9B82FF]" />} value={`${nOcupadas}/${t.plazas}`} label={tr('ges.tabInscritos')} />
           <Kpi icon={<UserCheck size={15} className="text-[#B6FF3A]" />} value={`${nCheck}`} label={tr('ges.conCheckin')} />
           <Kpi icon={<Trophy size={15} className="text-[#E0BE63]" />} value={t.bote ? `${t.bote}€` : '—'} label={tr('ges.bote')} />
           <Kpi icon={<CircleDot size={15} className="text-[#4F8EF7]" />} value={t.formato.split(' ')[0]} label={tr('ges.formato')} />
@@ -222,7 +239,7 @@ export default function GestionarTorneoPage() {
           {(['inscritos', 'bracket', 'ajustes'] as const).map(tb => (
             <button key={tb} onClick={() => setTab(tb)}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all ${tab === tb ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'text-[#A0A0B8] hover:text-white'}`}>
-              {tb === 'inscritos' ? `${tr('ges.tabInscritos')} · ${inscritos.length}` : tb === 'bracket' ? tr('ges.tabBracket') : tr('ges.tabAjustes')}
+              {tb === 'inscritos' ? `${tr('ges.tabInscritos')} · ${nOcupadas}` : tb === 'bracket' ? tr('ges.tabBracket') : tr('ges.tabAjustes')}
             </button>
           ))}
         </div>
@@ -239,10 +256,14 @@ export default function GestionarTorneoPage() {
               <button onClick={checkAll} className="h-11 px-3.5 rounded-xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] text-sm font-bold whitespace-nowrap flex items-center gap-1.5">
                 <UserCheck size={15} /> {tr('ges.checkinMasivo')}
               </button>
-          {t.inscritos >= t.plazas && (
-            <button onClick={() => { editarTorneo(t.id, { plazas: t.plazas + 16 }); }}
+          {(t.inscritos - bajas.size + promovidos >= t.plazas || colaPendiente.length > 0 || usuarioEnEspera) && (
+            <button onClick={() => {
+              editarTorneo(t.id, { plazas: t.plazas + 16 })
+              // Al abrir hueco, la cola entra sola por orden (FIFO)
+              liberarPlazas(t.id, t.nombre, 16)
+            }}
               className="h-11 px-3.5 rounded-xl bg-[#E0BE63]/12 border border-[#E0BE63]/45 text-[#E0BE63] text-[13px] font-bold inline-flex items-center gap-1.5">
-              + Ampliar 16 plazas (lista de espera)
+              + Ampliar 16 plazas
             </button>
           )}
             </div>
@@ -263,11 +284,52 @@ export default function GestionarTorneoPage() {
                       className={`h-9 px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${ok ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'bg-white/8 text-[#B8B8CC] hover:bg-white/12'}`}>
                       <Check size={14} /> {ok ? 'Check-in' : 'Pendiente'}
                     </button>
+                    <button onClick={() => darDeBaja(p)} aria-label={`Dar de baja a ${p.nombre}`} title="Dar de baja · su plaza pasa al primero de la lista de espera"
+                      className="h-9 w-9 rounded-lg bg-white/6 text-[#8B8BA8] hover:bg-[#FF6B6B]/15 hover:text-[#FF8A8A] flex items-center justify-center transition-colors shrink-0">
+                      <X size={14} />
+                    </button>
                   </div>
                 )
               })}
-              {filtrados.length === 0 && <p className="text-center text-sm text-[#8B8BA8] py-8">Sin jugadores con ese nombre.</p>}
+              {/* Entraron desde la lista de espera (promoción FIFO) */}
+              {entraron.map((nombre, i) => (
+                <div key={`cola-${nombre}-${i}`} className="flex items-center gap-3 card-premium p-2.5 border border-[#B6FF3A]/25">
+                  <span className="w-7 text-center text-xs font-bold text-[#8B8BA8] font-mono-num">#{inscritos.length + i + 1}</span>
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/10 text-white font-black shrink-0">{nombre[0]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{nombre}</p>
+                    <p className="text-[11px] text-[#B6FF3A] font-semibold">↑ Entró desde la lista de espera</p>
+                  </div>
+                  <span className="h-9 px-3 rounded-lg text-xs font-bold flex items-center bg-white/8 text-[#B8B8CC]">Check-in en puerta</span>
+                </div>
+              ))}
+              {filtrados.length === 0 && entraron.length === 0 && <p className="text-center text-sm text-[#8B8BA8] py-8">Sin jugadores con ese nombre.</p>}
             </div>
+
+            {/* Lista de espera: FIFO — si alguien se da de baja, el 1º entra solo */}
+            {(colaPendiente.length > 0 || usuarioEnEspera) && (
+              <div className="mt-5">
+                <p className="eyebrow eyebrow-muted mb-2">⏳ Lista de espera · {colaPendiente.length + (usuarioEnEspera ? 1 : 0)}</p>
+                <div className="space-y-1.5">
+                  {colaPendiente.map((nombre, i) => (
+                    <div key={`esp-${nombre}-${i}`} className="flex items-center gap-3 card-premium p-2.5 opacity-80">
+                      <span className="w-7 text-center text-xs font-bold text-[#FF8A5C] font-mono-num">{i + 1}º</span>
+                      <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/8 text-[#B8B8CC] font-black shrink-0">{nombre[0]}</span>
+                      <p className="flex-1 text-sm font-bold text-white truncate">{nombre}</p>
+                      {i === 0 && <span className="text-[10px] font-bold uppercase tracking-wide text-[#FF8A5C]">Siguiente en entrar</span>}
+                    </div>
+                  ))}
+                  {usuarioEnEspera && (
+                    <div className="flex items-center gap-3 card-premium p-2.5 border border-[#FF8A5C]/30">
+                      <span className="w-7 text-center text-xs font-bold text-[#FF8A5C] font-mono-num">{colaPendiente.length + 1}º</span>
+                      <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#FF8A5C]/15 text-[#FF8A5C] font-black shrink-0">T</span>
+                      <p className="flex-1 text-sm font-bold text-white truncate">Tú <span className="text-[11px] text-[#8B8BA8] font-semibold">(jugador de la demo)</span></p>
+                    </div>
+                  )}
+                </div>
+                <p className="mt-2 text-[11px] text-[#8B8BA8]">Si un inscrito se da de baja, el primero de la cola entra automáticamente (aviso + cobro al entrar). También puedes ampliar plazas.</p>
+              </div>
+            )}
           </div>
         )}
 
