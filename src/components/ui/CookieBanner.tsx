@@ -63,9 +63,9 @@ export function CookieBanner() {
   if (!mostrar) return null
 
   return (
-    {/* z-40: SIEMPRE por debajo de los modales (z-50). Con z-50 quedaba ENCIMA
-        del onboarding tapando sus botones: la primera visita se quedaba sin
-        clics posibles (pantalla "secuestrada"). */}
+    // z-40: SIEMPRE por debajo de los modales (z-50). Con z-50 quedaba ENCIMA
+    // del onboarding tapando sus botones: la primera visita se quedaba sin
+    // clics posibles (pantalla "secuestrada").
     <div className="fixed inset-x-0 bottom-0 z-40 p-3 sm:p-4 animate-slide-up safe-bottom pointer-events-none">
       <div className="relative max-w-2xl mx-auto glass-strong rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.7)] pointer-events-auto">
         <button
