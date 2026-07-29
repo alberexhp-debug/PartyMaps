@@ -14,6 +14,12 @@ import { Globe, MapPin, Crown, ChevronUp, ChevronDown, Minus, Store, Wifi, Troph
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
+// Ranking REAL vía start.gg: juegos con escena española activa allí. Para el
+// resto se mantiene la muestra de la demo.
+const JUEGOS_STARTGG = new Set(['smash', 'sf6', 'tekken'])
+type JugadorReal = { nombre: string; puntos: number; torneos: number; mejor: number }
+type RankingRealData = { nTorneos: number; jugadores: JugadorReal[] }
+
 function avatarColor(name: string) {
   const c = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
   let h = 0
@@ -60,6 +66,20 @@ export default function RankingPage() {
   const [sel, setSel] = useState<{ j: Jugador; puesto: number } | null>(null)
   const [comoPuntua, setComoPuntua] = useState(false)
   const esTourneum = tipo === 'tourneum'
+
+  // Datos reales de start.gg (España, últimos 120 días), cacheados por juego.
+  // Si la API no responde o hay pocos jugadores, se queda la muestra.
+  const [real, setReal] = useState<Record<string, RankingRealData | null>>({})
+  useEffect(() => {
+    if (!JUEGOS_STARTGG.has(juego) || real[juego] !== undefined) return
+    let vivo = true
+    fetch(`/api/startgg/ranking?juego=${juego}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (vivo) setReal(p => ({ ...p, [juego]: d && (d.jugadores?.length ?? 0) >= 6 ? d : null })) })
+      .catch(() => { if (vivo) setReal(p => ({ ...p, [juego]: null })) })
+    return () => { vivo = false }
+  }, [juego, real])
+  const datosReales = tipo === 'presencial' && ambito === 'pais' ? (real[juego] ?? null) : null
 
   const lista = useMemo(() => {
     const base = rankingPorJuego(juego)
@@ -167,6 +187,10 @@ export default function RankingPage() {
         </div>
       </div>
 
+      {datosReales ? (
+        <BloqueRankingReal key={`real-${juego}`} datos={datosReales} />
+      ) : (
+      <>
       {/* Podio */}
       <div key={`${tipo}-${juego}-${ambito}`} className="relative px-4 mt-5 flex items-end justify-center gap-3 max-w-2xl lg:max-w-4xl mx-auto">
         {podio.map((p, i) => {
@@ -233,6 +257,8 @@ export default function RankingPage() {
           </div>
         </div>
       )}
+      </>
+      )}
 
       {sel && <MiniPerfil jugador={sel.j} puesto={sel.puesto} onClose={() => setSel(null)} />}
 
@@ -269,5 +295,76 @@ export default function RankingPage() {
       )}
       </div>
     </div>
+  )
+}
+
+// Ranking REAL: agregado de los standings de los torneos de España en start.gg
+// (últimos 120 días). Mismo lenguaje visual que la demo; puntúa por tamaño de
+// torneo y puesto. «Tú» aún no apareces: se estrena con tu primer Tourneum.
+function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
+  const top3 = datos.jugadores.slice(0, 3)
+  const resto = datos.jugadores.slice(3)
+  const podio = [top3[1], top3[0], top3[2]].filter(Boolean)
+  const orden = [2, 1, 3]
+  const alturas = [88, 116, 70]
+  const medallas = ['#C0C7D1', '#E0BE63', '#CD7F45']
+
+  return (
+    <>
+      {/* Fuente de los datos, sin letra pequeña */}
+      <div className="relative px-4 mt-4 max-w-2xl lg:max-w-4xl mx-auto">
+        <div className="flex items-center gap-2 rounded-xl border border-[#6E9BFF]/30 bg-[#6E9BFF]/[0.07] px-3 py-2">
+          <span className="dot-live" />
+          <p className="flex-1 text-[11px] font-semibold text-[#B8C8E8]">Resultados reales · start.gg España · <span className="font-mono-num">{datos.nTorneos}</span> torneos en 120 días</p>
+        </div>
+      </div>
+
+      {/* Podio real */}
+      <div className="relative px-4 mt-5 flex items-end justify-center gap-3 max-w-2xl lg:max-w-4xl mx-auto">
+        {podio.map((p, i) => {
+          const first = i === 1
+          return (
+            <div key={p.nombre} className="flex flex-col items-center stagger-item" style={{ width: 96, ['--delay' as string]: `${i * 80}ms` }}>
+              <div className="relative">
+                {first && <div className="absolute -inset-2.5 rounded-full blur-xl opacity-50 bg-[#E0BE63]" />}
+                <div className="relative rounded-full p-[2.5px]" style={{ background: first ? 'linear-gradient(135deg, #E0BE63, #6E9BFF)' : `${medallas[i]}55` }}>
+                  <Avatar name={p.nombre} size={first ? 66 : 50} />
+                </div>
+                {first && <Crown size={22} className="absolute -top-4 left-1/2 -translate-x-1/2 text-[#E0BE63]" fill="#E0BE63" />}
+              </div>
+              <p className="mt-2 text-sm font-bold text-white truncate max-w-full">{p.nombre}</p>
+              <p className="text-[15px] font-bold text-score" style={{ color: first ? '#E0BE63' : '#B6FF3A' }}><CountUp value={p.puntos} duration={1000} /> <span className="text-[10px] text-[#8B8BA8]">pts</span></p>
+              <p className="text-[10px] text-[#8B8BA8] font-mono-num">{p.torneos} torneos</p>
+              <div className="mt-2 w-full rounded-t-xl flex items-start justify-center pt-1.5 ring-grad relative overflow-hidden"
+                style={{ height: alturas[i], background: `linear-gradient(180deg, ${medallas[i]}2E, ${medallas[i]}08)`, borderTop: `2px solid ${medallas[i]}` }}>
+                <span className="text-3xl font-bold text-score" style={{ color: medallas[i] }}>{orden[i]}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Tabla real */}
+      <div className="relative px-4 mt-4 space-y-1.5 pb-8 max-w-2xl lg:max-w-4xl mx-auto">
+        {resto.map((p, i) => (
+          <div key={p.nombre} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
+            <span className="w-6 text-center text-sm font-bold text-[#8B8BA8] font-mono-num">{i + 4}</span>
+            <Avatar name={p.nombre} size={38} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">{p.nombre}</p>
+              <p className="text-[11px] text-[#8B8BA8] font-mono-num">{p.torneos} {p.torneos === 1 ? 'torneo' : 'torneos'} · mejor: {p.mejor}º</p>
+            </div>
+            <span className="text-sm font-bold text-white font-mono-num">{p.puntos} <span className="text-[10px] text-[#8B8BA8] font-semibold">pts</span></span>
+          </div>
+        ))}
+
+        {/* Tu hueco en el ranking real */}
+        <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-[#B6FF3A]/8 border border-dashed border-[#B6FF3A]/35">
+          <span className="w-6 text-center text-sm font-bold text-[#B6FF3A]">?</span>
+          <Avatar name="Tú" size={38} ring="#B6FF3A" />
+          <p className="flex-1 text-[12px] text-[#B8B8CC]">Tu puesto se estrena con tu <span className="text-white font-semibold">primer torneo Tourneum</span> — estos puntos salen de los torneos reales de España.</p>
+        </div>
+      </div>
+    </>
   )
 }
