@@ -365,6 +365,11 @@ const D = {
   // Plano del local
   'ml.plano': ['Plano del local', 'Venue floor plan'],
   'ml.planoPie': ['Así están repartidas las mesas y setups de esta sede.', 'This is how tables and setups are laid out at this venue.'],
+  'ml.pedirFecha': ['Pedir fecha (mapa de sedes)', 'Request a date (venues map)'],
+  'ml.hazteTO': ['¿Organizas torneos? Activa tu perfil de TO', 'Run tournaments? Activate your TO profile'],
+
+  // Tickets
+  'tk.cancelado': ['Cancelado', 'Cancelled'],
 } as const
 
 export type ClaveI18n = keyof typeof D

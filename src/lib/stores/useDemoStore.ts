@@ -204,7 +204,9 @@ function promocionEspera(s: DemoState, torneoId: string, nombreTorneo: string, n
 export const useDemoStore = create<DemoState>()(
   persist(
     (set, get) => ({
-      inscritos: [],
+      // t4 viene inscrito de serie: la cartera y la ficha lo cuentan igual
+      // (antes la cartera lo sembraba por su cuenta y la ficha no lo sabía).
+      inscritos: ['t4'],
       listaEspera: [],
       promovidosEspera: {},
       seguidos: [],
@@ -306,7 +308,8 @@ export const useDemoStore = create<DemoState>()(
           id: nextId(), tipo: 'sistema', titulo: 'Torneo cancelado',
           cuerpo: `Has cancelado "${nombre}". Se reembolsa el 100% a los inscritos.`, cuando: 'ahora', leida: false,
         }
-        return { cancelados: [...s.cancelados, id], notificaciones: [noti, ...s.notificaciones] }
+        // La cola de espera del torneo cancelado se disuelve (no hay plaza que esperar)
+        return { cancelados: [...s.cancelados, id], listaEspera: s.listaEspera.filter(x => x !== id), notificaciones: [noti, ...s.notificaciones] }
       }),
 
       setGestion: (id, patch) => set((s) => ({

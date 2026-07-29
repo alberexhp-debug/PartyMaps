@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { AnimatedValue } from '@/components/ui/CountUp'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { TORNEOS_SAMPLE, LOCALES, ORGANIZADORES, JUEGOS, type Mesa, type MesaForma, type MesaTipo } from '@/lib/torneos/sample'
+import { LOCALES, ORGANIZADORES, JUEGOS, type Mesa, type MesaForma, type MesaTipo } from '@/lib/torneos/sample'
+import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { QrCode } from 'lucide-react'
@@ -34,7 +35,10 @@ export default function SedePage() {
   const [escaneado, setEscaneado] = useState<string | null>(null)
   const router = useRouter()
   const local = LOCALES.gamba
-  const torneos = TORNEOS_SAMPLE.filter(t => t.localId === local.id)
+  const creados = useDemoStore(s => s.creados)
+  const editados = useDemoStore(s => s.editados)
+  const cancelados = useDemoStore(s => s.cancelados)
+  const torneos = torneosEfectivos(creados, editados, cancelados).filter(t => t.localId === local.id)
   const ingresos = torneos.reduce((a, t) => a + Math.round(t.inscritos * t.precio * 0.3), 0)
   const [solicitudes, setSolicitudes] = useState([
     { id: 's1', org: 'arcade-to', fecha: 'Vie 27 jun · 20-23h', personas: 32, juego: 'tekken' },

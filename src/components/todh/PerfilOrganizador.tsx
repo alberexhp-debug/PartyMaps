@@ -1,7 +1,8 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { TORNEOS_SAMPLE, JUEGOS, getOrganizador, ORGANIZADORES } from '@/lib/torneos/sample'
+import { JUEGOS, getOrganizador, ORGANIZADORES } from '@/lib/torneos/sample'
+import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Star, Users, Trophy, Check, Calendar, Award, ChevronRight } from 'lucide-react'
@@ -17,7 +18,9 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
   const siguiendo = useDemoStore(s => s.seguidos.includes(to.id))
   const alternarSeguir = useDemoStore(s => s.alternarSeguir)
   const creados = useDemoStore(s => s.creados)
-  const sus = [...creados, ...TORNEOS_SAMPLE].filter(t => t.organizadorId === to.id).slice(0, 6)
+  const editados = useDemoStore(s => s.editados)
+  const cancelados = useDemoStore(s => s.cancelados)
+  const sus = torneosEfectivos(creados, editados, cancelados).filter(t => t.organizadorId === to.id).slice(0, 6)
 
   return (
     <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-4xl mx-auto">

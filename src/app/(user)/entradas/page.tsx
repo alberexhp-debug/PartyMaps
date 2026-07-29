@@ -3,16 +3,17 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { JUEGOS, TORNEOS_SAMPLE, getTorneo, esperaDe, type TorneoSample } from '@/lib/torneos/sample'
+import { conEdiciones } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { TicketModal } from '@/components/todh/TicketModal'
 import { QrCode, Calendar, MapPin, Trophy } from 'lucide-react'
 
-type Insc = { t: TorneoSample; estado: 'proximo' | 'jugado'; puesto?: string; espectador?: boolean }
+type Insc = { t: TorneoSample; estado: 'proximo' | 'jugado'; puesto?: string; espectador?: boolean; cancelado?: boolean }
 const pick = (id: string) => TORNEOS_SAMPLE.find(x => x.id === id)!
-// Próximos por defecto (demo) + historial jugado
-const DEFAULT_PROXIMOS = ['t4']
+// Historial jugado (muestra). Los próximos salen SIEMPRE del store (inscritos),
+// que ya viene sembrado con t4: cartera y ficha cuentan lo mismo.
 const HISTORIAL: Insc[] = [
   { t: pick('t8'), estado: 'jugado', puesto: 'Top 4' },
   { t: pick('t5'), estado: 'jugado', puesto: '9º' },
@@ -27,21 +28,33 @@ export default function EntradasPage() {
   const bonos = useDemoStore(s => s.bonosComprados)
   const listaEspera = useDemoStore(s => s.listaEspera)
   const promovidosEspera = useDemoStore(s => s.promovidosEspera)
+  const editados = useDemoStore(s => s.editados)
+  const cancelados = useDemoStore(s => s.cancelados)
+  const creados = useDemoStore(s => s.creados)
   const salirEspera = useDemoStore(s => s.salirEspera)
+
+  const porId = (id: string) => {
+    const base = getTorneo(id) || creados.find(c => c.id === id)
+    return base ? conEdiciones(base, editados) : undefined
+  }
 
   // Torneos donde el usuario espera plaza, con su puesto en la cola
   const enEspera = useMemo(() =>
-    listaEspera.map(id => getTorneo(id)).filter((t): t is TorneoSample => !!t)
+    listaEspera.filter(id => !cancelados.includes(id))
+      .map(porId).filter((t): t is TorneoSample => !!t)
       .map(t => ({ t, puesto: Math.max(0, esperaDe(t).length - (promovidosEspera[t.id] ?? 0)) + 1 })),
-    [listaEspera, promovidosEspera])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [listaEspera, promovidosEspera, editados, cancelados, creados])
 
+  // La entrada de un torneo cancelado no desaparece: queda marcada (reembolso)
   const proximos: Insc[] = useMemo(() => {
-    const ids = Array.from(new Set([...inscritos, ...DEFAULT_PROXIMOS]))
-    const jugar = ids.map(id => getTorneo(id)).filter(Boolean).map(t => ({ t: t!, estado: 'proximo' as const }))
-    const ver = espectador.filter(id => !ids.includes(id)).map(id => getTorneo(id)).filter(Boolean)
-      .map(t => ({ t: t!, estado: 'proximo' as const, espectador: true }))
+    const jugar = inscritos.map(porId).filter(Boolean)
+      .map(t => ({ t: t!, estado: 'proximo' as const, cancelado: cancelados.includes(t!.id) }))
+    const ver = espectador.filter(id => !inscritos.includes(id)).map(porId).filter(Boolean)
+      .map(t => ({ t: t!, estado: 'proximo' as const, espectador: true, cancelado: cancelados.includes(t!.id) }))
     return [...jugar, ...ver]
-  }, [inscritos, espectador])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inscritos, espectador, editados, cancelados, creados])
 
   const lista = tab === 'proximos' ? proximos : HISTORIAL
 
@@ -141,10 +154,11 @@ export default function EntradasPage() {
 }
 
 function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
-  const { t, estado, puesto, espectador } = insc
+  const { t: tr } = useT()
+  const { t, estado, puesto, espectador, cancelado } = insc
   const juego = JUEGOS[t.juego]
   return (
-    <div className="ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch">
+    <div className={`ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch ${cancelado ? 'opacity-75' : ''}`}>
       <Link href={`/torneo/${t.id}`} className="flex items-stretch flex-1 min-w-0 card-int">
         <GameKeyart juegoId={t.juego} className="w-[72px] shrink-0" />
         <div className="flex-1 p-4 min-w-0">
@@ -153,6 +167,7 @@ function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
             </span>
             {espectador && <span className="px-1.5 h-5 inline-flex items-center rounded-md text-[9px] font-black uppercase tracking-wider bg-[#9B82FF]/15 text-[#9B82FF] border border-[#9B82FF]/40">Espectador</span>}
+            {cancelado && <span className="px-1.5 h-5 inline-flex items-center rounded-md text-[9px] font-black uppercase tracking-wider bg-[#FF6B6B]/15 text-[#FF8A8A] border border-[#FF6B6B]/40">{tr('tk.cancelado')}</span>}
             {estado === 'jugado' && puesto && <span className="ml-auto text-[11px] font-bold text-[#E0BE63]">🏆 {puesto}</span>}
           </div>
           <p className="font-bold text-white text-display tracking-tight leading-snug truncate">{t.nombre}</p>
@@ -162,9 +177,11 @@ function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
           </div>
         </div>
       </Link>
-      <button onClick={onQr} aria-label="Ver entrada QR"
-        className="flex flex-col items-center justify-center px-4 border-l border-dashed border-white/12 shrink-0 hover:bg-white/5 transition-colors">
-        {estado === 'proximo' ? (
+      <button onClick={cancelado ? undefined : onQr} aria-label={cancelado ? 'Entrada cancelada' : 'Ver entrada QR'} disabled={cancelado}
+        className="flex flex-col items-center justify-center px-4 border-l border-dashed border-white/12 shrink-0 enabled:hover:bg-white/5 transition-colors">
+        {cancelado ? (
+          <span className="text-[10px] text-[#FF8A8A] font-semibold uppercase tracking-wider text-center leading-tight">Reembolsado</span>
+        ) : estado === 'proximo' ? (
           <>
             <QrCode size={30} className="text-white" />
             <span className="text-[9px] text-[#B6FF3A] font-bold uppercase tracking-wider mt-1">Entrada</span>

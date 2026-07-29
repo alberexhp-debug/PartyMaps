@@ -3,8 +3,9 @@ import Link from 'next/link'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { MapaMesas } from '@/components/todh/MapaMesas'
-import { TORNEOS_SAMPLE, JUEGOS, type Local } from '@/lib/torneos/sample'
-import { X, Star, Ruler, Monitor, Users, Wallet, CalendarClock, ChevronRight, Check, ShoppingBag } from 'lucide-react'
+import { JUEGOS, type Local } from '@/lib/torneos/sample'
+import { torneosEfectivos } from '@/lib/torneos/efectivos'
+import { X, Star, Ruler, Monitor, Users, Wallet, CalendarClock, ChevronRight, ShoppingBag, Megaphone } from 'lucide-react'
 import { useState } from 'react'
 
 // Mini-ficha pública de la sede (modal), simétrica al MiniPerfil de jugador.
@@ -13,10 +14,12 @@ import { useState } from 'react'
 export function MiniLocal({ local, onClose }: { local: Local; onClose: () => void }) {
   const { t: tr } = useT()
   const creados = useDemoStore(s => s.creados)
+  const editados = useDemoStore(s => s.editados)
   const cancelados = useDemoStore(s => s.cancelados)
   // Plano real de la sede: si la sede lo editó en su panel, manda su versión
   const mesas = useDemoStore(s => s.mesasSede[local.id]) ?? local.mesas
-  const [solicitado, setSolicitado] = useState(false)
+  // El CTA de pedir fecha es cosa de organizadores: el jugador ve otra cosa
+  const perfilTO = useDemoStore(s => s.perfilTO)
   const comprarBono = useDemoStore(s => s.comprarBono)
   const [comprado, setComprado] = useState<string | null>(null)
   // Tienda del local (reunión 5-jul): bonos y merch con comisión de la app
@@ -25,8 +28,8 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
     { titulo: 'Menú día de torneo', precio: 8, emoji: '🌭' },
     { titulo: `Camiseta ${local.nombre}`, precio: 15, emoji: '👕' },
   ]
-  const torneos = [...creados, ...TORNEOS_SAMPLE]
-    .filter(t => t.localId === local.id && !cancelados.includes(t.id))
+  const torneos = torneosEfectivos(creados, editados, cancelados)
+    .filter(t => t.localId === local.id)
     .slice(0, 3)
 
   return (
@@ -119,11 +122,17 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
             </div>
           </div>
 
-          {/* CTA para TOs (demo) */}
-          <button onClick={() => setSolicitado(true)} disabled={solicitado}
-            className={`mt-4 w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors ${solicitado ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border border-[#B6FF3A]/40' : 'bg-[#B6FF3A] text-[#0A0A0F]'}`}>
-            {solicitado ? <><Check size={16} /> {tr('ml.enviada')}</> : <><CalendarClock size={16} /> {tr('ml.solicitar')}</>}
-          </button>
+          {/* Pedir fecha es acción de organizador: el flujo real (negociación con
+              la sede) vive en el mapa de sedes del TO. El jugador ve cómo serlo. */}
+          {perfilTO === 'aprobado' ? (
+            <Link href="/sedes" className="mt-4 w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 bg-[#B6FF3A] text-[#0A0A0F]">
+              <CalendarClock size={16} /> {tr('ml.pedirFecha')}
+            </Link>
+          ) : (
+            <Link href="/perfil" className="mt-4 w-full h-11 rounded-xl font-semibold text-[13px] flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-[#B8B8CC] hover:text-white transition-colors">
+              <Megaphone size={14} /> {tr('ml.hazteTO')}
+            </Link>
+          )}
         </div>
       </div>
     </div>

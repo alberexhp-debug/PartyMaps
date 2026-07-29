@@ -2,7 +2,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { TORNEOS_SAMPLE, LOCALES, JUEGOS, JUEGOS_LIST, type Local } from '@/lib/torneos/sample'
+import { LOCALES, JUEGOS, JUEGOS_LIST, type Local } from '@/lib/torneos/sample'
+import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { MiniLocal } from '@/components/todh/MiniLocal'
 import { X, Star, Ruler, Monitor, Users, Wallet, Check, CalendarClock, Eye, Clock } from 'lucide-react'
@@ -20,15 +21,17 @@ export default function MapaSedes() {
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const creados = useDemoStore(s => s.creados)
+  const editados = useDemoStore(s => s.editados)
+  const cancelados = useDemoStore(s => s.cancelados)
   const [filtro, setFiltro] = useState<Filtro>('todas')
   const [sel, setSel] = useState<string | null>(null)
 
   // Nº de torneos activos por local (para diferenciar sedes con/sin torneos)
   const torneosPorLocal = useMemo(() => {
     const m: Record<string, number> = {}
-    for (const t of [...creados, ...TORNEOS_SAMPLE]) if (t.localId && !t.online) m[t.localId] = (m[t.localId] ?? 0) + 1
+    for (const t of torneosEfectivos(creados, editados, cancelados)) if (t.localId && !t.online) m[t.localId] = (m[t.localId] ?? 0) + 1
     return m
-  }, [creados])
+  }, [creados, editados, cancelados])
 
   const locales = useMemo(() => Object.values(LOCALES).filter(l => {
     const n = torneosPorLocal[l.id] ?? 0

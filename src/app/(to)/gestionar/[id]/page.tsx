@@ -90,6 +90,22 @@ export default function GestionarTorneoPage() {
     )
   }
 
+  // Propiedad: solo el organizador del torneo puede gestionarlo (demo: Lima).
+  // Sin esto, cualquier TO podía editar o cancelar torneos ajenos por URL.
+  if (!creado && t.organizadorId !== 'lima') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-6 text-center">
+        <Lock size={36} className="text-[#8B8BA8]" />
+        <p className="text-lg font-bold text-white">Este torneo no es tuyo</p>
+        <p className="text-sm text-[#A0A0B8] max-w-xs">«{t.nombre}» lo organiza otra cuenta. Solo su organizador puede gestionarlo.</p>
+        <div className="flex gap-2 mt-1">
+          <Link href={`/torneo/${t.id}`} className="px-4 h-10 inline-flex items-center rounded-xl bg-white/8 border border-white/15 text-white text-sm font-semibold">Ver ficha pública</Link>
+          <Link href="/consola" className="px-4 h-10 inline-flex items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">Mis torneos</Link>
+        </div>
+      </div>
+    )
+  }
+
   const juego = JUEGOS[t.juego]
   const filtrados = inscritos.filter(p => p.nombre.toLowerCase().includes(q.trim().toLowerCase()))
   const nCheck = checkin.size

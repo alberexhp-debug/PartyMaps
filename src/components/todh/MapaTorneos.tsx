@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { TORNEOS_SAMPLE, LOCALES, JUEGOS, getLocal, type TorneoSample, type Local } from '@/lib/torneos/sample'
+import { LOCALES, JUEGOS, getLocal, type TorneoSample, type Local } from '@/lib/torneos/sample'
+import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { TorneoArt } from '@/components/todh/GameKeyart'
 import { MiniLocal } from '@/components/todh/MiniLocal'
@@ -19,19 +20,21 @@ export default function MapaTorneos() {
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const creados = useDemoStore(s => s.creados)
+  const editados = useDemoStore(s => s.editados)
+  const cancelados = useDemoStore(s => s.cancelados)
   const [juego, setJuego] = useState<string | null>(null)
   const [selLocal, setSelLocal] = useState<string | null>(null)
 
   // Torneos presenciales agrupados por local
   const porLocal = useMemo(() => {
-    const filtrados = [...creados, ...TORNEOS_SAMPLE].filter(t => t.localId && !t.online && (!juego || t.juego === juego))
+    const filtrados = torneosEfectivos(creados, editados, cancelados).filter(t => t.localId && !t.online && (!juego || t.juego === juego))
     const grupos = new Map<string, TorneoSample[]>()
     for (const t of filtrados) {
       if (!LOCALES[t.localId!]) continue
       grupos.set(t.localId!, [...(grupos.get(t.localId!) ?? []), t])
     }
     return grupos
-  }, [creados, juego])
+  }, [creados, editados, cancelados, juego])
   const nTorneos = useMemo(() => [...porLocal.values()].reduce((a, ts) => a + ts.length, 0), [porLocal])
 
 

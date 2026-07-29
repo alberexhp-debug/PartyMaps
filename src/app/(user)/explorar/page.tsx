@@ -2,7 +2,8 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { JUEGOS, TORNEOS_SAMPLE, type TorneoSample } from '@/lib/torneos/sample'
+import { JUEGOS, type TorneoSample } from '@/lib/torneos/sample'
+import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { OnboardingJuegos } from '@/components/todh/OnboardingJuegos'
 import { useT } from '@/lib/i18n'
@@ -34,13 +35,16 @@ export default function ExplorarPage() {
   const [soloLibres, setSoloLibres] = useState(false)
   const [soloAbiertos, setSoloAbiertos] = useState(false)
   const creados = useDemoStore(s => s.creados)
+  const editados = useDemoStore(s => s.editados)
+  const cancelados = useDemoStore(s => s.cancelados)
   const seguidos = useDemoStore(s => s.seguidos)
   const favoritos = useDemoStore(s => s.juegosFavoritos)
   const { t, idioma } = useT()
   const noLeidas = useDemoStore(s => s.notificaciones.filter(n => !n.leida).length)
 
+  const efectivos = useMemo(() => torneosEfectivos(creados, editados, cancelados), [creados, editados, cancelados])
   const resultados = useMemo(() => {
-    let r = [...creados, ...TORNEOS_SAMPLE]
+    let r = [...efectivos]
     const q = busca.trim().toLowerCase()
     if (q) r = r.filter(t => t.nombre.toLowerCase().includes(q) || JUEGOS[t.juego].nombre.toLowerCase().includes(q))
     if (juego) r = r.filter(t => t.juego === juego)
@@ -56,7 +60,7 @@ export default function ExplorarPage() {
       default: r.sort((a, b) => (b.enDirecto ? 1 : 0) - (a.enDirecto ? 1 : 0) || b.popularidad - a.popularidad)
     }
     return r
-  }, [busca, juego, soloHoy, soloGratis, formatos, precioMax, soloLibres, soloAbiertos, orden, creados])
+  }, [busca, juego, soloHoy, soloGratis, formatos, precioMax, soloLibres, soloAbiertos, orden, efectivos])
 
   const numFiltros = (juego ? 1 : 0) + (soloHoy ? 1 : 0) + (soloGratis ? 1 : 0) + formatos.size + (precioMax != null ? 1 : 0) + (soloLibres ? 1 : 0) + (soloAbiertos ? 1 : 0)
   const limpiar = () => { setJuego(null); setSoloHoy(false); setSoloGratis(false); setFormatos(new Set()); setPrecioMax(null); setSoloLibres(false); setSoloAbiertos(false) }
@@ -110,14 +114,14 @@ export default function ExplorarPage() {
       </div>
 
       {/* En directo ahora */}
-      {TORNEOS_SAMPLE.some(t => t.enDirecto) && (
+      {efectivos.some(t => t.enDirecto) && (
         <div className="relative mt-1">
           <div className="flex items-center gap-2 px-5 mb-2">
             <span className="dot-live" />
             <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-white">{t('explorar.endirecto')}</p>
           </div>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1.5">
-            {TORNEOS_SAMPLE.filter(t => t.enDirecto).map((t, i) => {
+            {efectivos.filter(t => t.enDirecto).map((t, i) => {
               const jj = JUEGOS[t.juego]
               return (
                 <Link key={t.id} href={`/torneo/${t.id}/directo`}
@@ -336,8 +340,11 @@ function ToggleRow({ label, on, onClick }: { label: string; on: boolean; onClick
 function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
   const { t: tCard } = useT()
   const juego = JUEGOS[t.juego]
-  const completo = t.inscritos >= t.plazas
-  const pct = Math.min(100, Math.round((t.inscritos / t.plazas) * 100))
+  // Mismo cómputo de plazas que la ficha: bajas del TO y promociones de la cola
+  const ajuste = useDemoStore(s => (s.promovidosEspera[t.id] ?? 0) - (s.gestion[t.id]?.bajas?.length ?? 0))
+  const ocupadas = Math.max(0, t.inscritos + ajuste)
+  const completo = ocupadas >= t.plazas
+  const pct = Math.min(100, Math.round((ocupadas / t.plazas) * 100))
   return (
     <Link href={`/torneo/${t.id}`} className="block group stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 10) * 45}ms` }}>
       <div className="ring-grad card-premium card-int relative overflow-hidden rounded-2xl flex items-stretch">
@@ -367,7 +374,7 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
           <div className="mt-2.5 flex items-end justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between text-[10px] mb-1">
-                <span className="inline-flex items-center gap-1 text-[#8B8BA8]"><Users size={10} /> <span className="font-mono-num text-[#B8B8CC]">{t.inscritos}/{t.plazas}</span></span>
+                <span className="inline-flex items-center gap-1 text-[#8B8BA8]"><Users size={10} /> <span className="font-mono-num text-[#B8B8CC]">{ocupadas}/{t.plazas}</span></span>
                 <span className={cn('font-semibold', completo ? 'text-[#FF8A5C]' : 'text-[#B6FF3A]')}>{completo ? tCard('card.listaEspera') : tCard('card.abierta')}</span>
               </div>
               <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} />

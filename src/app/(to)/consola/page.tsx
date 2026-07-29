@@ -2,7 +2,8 @@
 import Link from 'next/link'
 import { AnimatedValue } from '@/components/ui/CountUp'
 import { useRouter } from 'next/navigation'
-import { TORNEOS_SAMPLE, ORGANIZADORES, JUEGOS, LOCALES } from '@/lib/torneos/sample'
+import { ORGANIZADORES, JUEGOS, LOCALES } from '@/lib/torneos/sample'
+import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
@@ -16,11 +17,17 @@ export default function ConsolaTOPage() {
   const router = useRouter()
   const org = ORGANIZADORES.lima
   const creados = useDemoStore(s => s.creados)
+  const editados = useDemoStore(s => s.editados)
+  const cancelados = useDemoStore(s => s.cancelados)
+  const disputas = useDemoStore(s => s.disputas)
   const solicitudesSede = useDemoStore(s => s.solicitudesSede)
-  const misTorneos = [...creados, ...TORNEOS_SAMPLE.filter(t => t.organizadorId === org.id)]
-  const proximo = misTorneos[0]
-  const totalInscritos = misTorneos.reduce((a, t) => a + t.inscritos, 0)
-  const ingresos = misTorneos.reduce((a, t) => a + t.inscritos * t.precio, 0)
+  // El TO ve también sus cancelados (marcados); las métricas solo cuentan los vivos
+  const misTorneos = torneosEfectivos(creados, editados, cancelados, { conCancelados: true })
+    .filter(t => t.organizadorId === org.id || creados.some(c => c.id === t.id))
+  const vivos = misTorneos.filter(t => !cancelados.includes(t.id))
+  const proximo = vivos[0]
+  const totalInscritos = vivos.reduce((a, t) => a + t.inscritos, 0)
+  const ingresos = vivos.reduce((a, t) => a + t.inscritos * t.precio, 0)
 
   return (
     <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-5xl mx-auto lg:mx-0">
@@ -42,15 +49,17 @@ export default function ConsolaTOPage() {
           <p className="text-xs text-[#8B8BA8] inline-flex items-center gap-1 mt-0.5"><Star size={11} className="text-[#E0BE63]" /> {org.rating} · {org.tier} · {org.seguidores.toLocaleString('es')} seguidores</p>
         </div>
 
-        {/* Aviso accionable */}
-        <Link href="/modo-directo" className="mt-4 flex items-center gap-3 rounded-2xl border border-[#FF6076]/40 bg-[#FF6076]/10 px-4 py-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF6076]/20 text-[#FF6076] shrink-0"><AlertTriangle size={18} /></span>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white">1 disputa por resolver</p>
-            <p className="text-xs text-[#FFB3BD]">En «{proximo?.nombre}» · entra al modo directo</p>
-          </div>
-          <ChevronRight size={18} className="text-[#FF6076]" />
-        </Link>
+        {/* Aviso accionable: disputas reales pendientes en el modo directo */}
+        {disputas.length > 0 && (
+          <Link href="/modo-directo" className="mt-4 flex items-center gap-3 rounded-2xl border border-[#FF6076]/40 bg-[#FF6076]/10 px-4 py-3">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF6076]/20 text-[#FF6076] shrink-0"><AlertTriangle size={18} /></span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white">{disputas.length === 1 ? '1 disputa por resolver' : `${disputas.length} disputas por resolver`}</p>
+              <p className="text-xs text-[#FFB3BD]">Entra al modo directo para resolverlas</p>
+            </div>
+            <ChevronRight size={18} className="text-[#FF6076]" />
+          </Link>
+        )}
 
         {/* Estado de mis solicitudes a sedes */}
         {solicitudesSede.some(s => s.estado === 'pendiente' || s.estado === 'contraoferta') && (
@@ -123,7 +132,9 @@ export default function ConsolaTOPage() {
                 <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
                 <p className="text-[11px] text-[#8B8BA8] font-mono-num">{t.local} · {t.inscritos}/{t.plazas}</p>
               </div>
-              {t.enDirecto ? <span className="badge-live shrink-0">Live</span> : <span className="text-[11px] text-[#B6FF3A] font-semibold shrink-0">{tr('to.abierto')}</span>}
+              {cancelados.includes(t.id)
+                ? <span className="text-[11px] text-[#FF8A8A] font-semibold shrink-0">Cancelado</span>
+                : t.enDirecto ? <span className="badge-live shrink-0">Live</span> : <span className="text-[11px] text-[#B6FF3A] font-semibold shrink-0">{tr('to.abierto')}</span>}
             </Link>
           )})}
           {/* Reservas de sede confirmadas (aún sin torneo publicado) */}

@@ -3,8 +3,9 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  TORNEOS_SAMPLE, ORGANIZADORES, LOCALES, JUEGOS, JUEGOS_LIST, rankingPorJuego, type Jugador,
+  ORGANIZADORES, LOCALES, JUEGOS, JUEGOS_LIST, rankingPorJuego, type Jugador,
 } from '@/lib/torneos/sample'
+import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { GameKeyart } from '@/components/todh/GameKeyart'
@@ -19,13 +20,16 @@ export default function BuscarPage() {
   const { t: tr } = useT()
   const router = useRouter()
   const creados = useDemoStore(s => s.creados)
+  const editados = useDemoStore(s => s.editados)
+  const cancelados = useDemoStore(s => s.cancelados)
+  const efectivos = useMemo(() => torneosEfectivos(creados, editados, cancelados), [creados, editados, cancelados])
   const [q, setQ] = useState('')
   const [jugador, setJugador] = useState<Jugador | null>(null)
   const query = q.trim().toLowerCase()
 
   const res = useMemo(() => {
     if (!query) return null
-    const torneos = [...creados, ...TORNEOS_SAMPLE].filter(t =>
+    const torneos = efectivos.filter(t =>
       t.nombre.toLowerCase().includes(query) || JUEGOS[t.juego]?.nombre.toLowerCase().includes(query)).slice(0, 6)
     const orgs = Object.values(ORGANIZADORES).filter(o =>
       o.nombre.toLowerCase().includes(query) || o.handle.toLowerCase().includes(query)).slice(0, 4)
@@ -37,7 +41,7 @@ export default function BuscarPage() {
       if (seen.has(p.nombre)) return false; seen.add(p.nombre); return true
     }).slice(0, 6)
     return { torneos, orgs, locales, jugadores }
-  }, [query, creados])
+  }, [query, efectivos])
 
   const total = res ? res.torneos.length + res.orgs.length + res.locales.length + res.jugadores.length : 0
 
@@ -67,7 +71,7 @@ export default function BuscarPage() {
             {/* Descubrimiento antes de escribir: tendencias y TOs top */}
             <p className="eyebrow eyebrow-muted mt-7 mb-2.5">{tr('buscar.tendencia')}</p>
             <div className="space-y-1.5">
-              {[...TORNEOS_SAMPLE].sort((a, b) => b.popularidad - a.popularidad).slice(0, 4).map((t, i) => (
+              {[...efectivos].sort((a, b) => b.popularidad - a.popularidad).slice(0, 4).map((t, i) => (
                 <Link key={t.id} href={`/torneo/${t.id}`} className="flex items-center gap-3 card-premium card-int p-2.5 stagger-item" style={{ ['--delay' as string]: `${i * 45}ms` }}>
                   <span className="w-5 text-center text-sm font-black text-[#B6FF3A] font-mono-num">{i + 1}</span>
                   <GameKeyart juegoId={t.juego} label={false} className="w-11 h-11 rounded-xl shrink-0" />
