@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { JUEGOS, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
+import { JUEGOS, rankingPorJuego, usuarioStatDe, type Jugador } from '@/lib/torneos/sample'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
@@ -72,14 +72,25 @@ export default function RankingPage() {
     return ambito === 'mundial' ? conTipo.map(j => ({ ...j, rating: j.rating + 120 })) : conTipo
   }, [tipo, juego, ambito])
 
-  const top3 = lista.slice(0, 3)
-  const resto = lista.slice(3)
+  // «Tú» en el ranking: mismas stats que el perfil (fuente única en sample.ts),
+  // con los mismos ajustes de rating que la tabla y el puesto CALCULADO. La fila
+  // se inserta en la lista para que no haya dos jugadores con el mismo puesto.
+  // En el ranking Tourneum no apareces: solo puntúan los torneos del circuito.
+  const statYo = usuarioStatDe(juego)
+  const yo: Jugador | null = esTourneum ? null : {
+    id: 'yo', nombre: 'Tú', handle: '@tu', pais: 'ES', bandera: '🇪🇸', juego,
+    rating: statYo.rating + (tipo === 'online' ? 85 : 0) + (ambito === 'mundial' ? 120 : 0),
+    tier: statYo.rating >= 2300 ? 'Platino' : statYo.rating >= 2050 ? 'Diamante' : 'Oro',
+    victorias: statYo.v, derrotas: statYo.d, torneosJugados: 27,
+    mejorPuesto: statYo.mejor, main: statYo.mains[0], tendencia: 1,
+  }
+  const miPuesto = yo ? lista.filter(p => p.rating > yo.rating).length + 1 : 0
+  const filas = yo ? [...lista.slice(0, miPuesto - 1), yo, ...lista.slice(miPuesto - 1)] : lista
+  const top3 = filas.slice(0, 3)
+  const resto = filas.slice(3)
   const podio = [top3[1], top3[0], top3[2]].filter(Boolean)
   const alturas = [88, 116, 70]
   const medallas = ['#C0C7D1', '#E0BE63', '#CD7F45']
-  // "Tu posición" (demo): posición fija a media tabla
-  const miPuesto = 9
-  const yo = lista[miPuesto - 1]
 
   return (
     // El halo de fondo va a TODO el ancho (fuera del contenedor centrado) para
@@ -187,10 +198,13 @@ export default function RankingPage() {
       <div key={`t-${tipo}-${juego}-${ambito}`} className="relative px-4 mt-4 space-y-1.5 pb-28 max-w-2xl lg:max-w-4xl mx-auto">
         {resto.map((p, i) => {
           const puesto = i + 4
+          const soyYo = p.id === 'yo'
           return (
             <button key={p.id} onClick={() => setSel({ j: p, puesto })}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 hover:bg-white/[0.07] transition-colors text-left stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
-              <span className="w-6 text-center text-sm font-bold text-[#8B8BA8] font-mono-num">{puesto}</span>
+              className={cn('w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl border transition-colors text-left stagger-item',
+                soyYo ? 'bg-[#B6FF3A]/10 border-[#B6FF3A]/40' : 'bg-white/4 border-white/8 hover:bg-white/[0.07]')}
+              style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
+              <span className={cn('w-6 text-center text-sm font-bold font-mono-num', soyYo ? 'text-[#B6FF3A]' : 'text-[#8B8BA8]')}>{puesto}</span>
               <Avatar name={p.nombre} size={38} ring={TIER_COLOR[p.tier]} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{p.nombre} <span className="text-xs">{p.bandera}</span></p>

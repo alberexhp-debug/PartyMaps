@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { JUEGOS } from '@/lib/torneos/sample'
+import { JUEGOS, usuarioStatDe, puestoUsuario } from '@/lib/torneos/sample'
 import { PERSONAJES } from '@/lib/torneos/personajes'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from './GameKeyart'
@@ -10,25 +10,17 @@ import { Pencil, X, Check } from 'lucide-react'
 import { RangoChip, RangoProgreso } from '@/components/todh/RangoChip'
 import { useT } from '@/lib/i18n'
 
-type Stat = { rating: number; tier: string; v: number; d: number; mejor: string; mains: string[]; pos: number; racha: string[] }
-const STATS: Record<string, Stat> = {
-  smash:   { rating: 2210, tier: 'Oro III',     v: 94,  d: 55, mejor: 'Top 4', mains: ['Pikachu', 'Fox'], pos: 5,  racha: ['V', 'V', 'D', 'V', 'V'] },
-  magic:   { rating: 1980, tier: 'Plata I',     v: 41,  d: 33, mejor: 'Top 8', mains: ['Aggro'],           pos: 22, racha: ['D', 'V', 'V', 'D', 'V'] },
-  pokemon: { rating: 2050, tier: 'Oro I',       v: 58,  d: 30, mejor: 'Top 8', mains: ['Charizard ex'],    pos: 14, racha: ['V', 'V', 'V', 'D', 'V'] },
-  tft:     { rating: 2340, tier: 'Diamante II', v: 120, d: 60, mejor: '1º',    mains: ['Reroll'],           pos: 3,  racha: ['V', 'V', 'V', 'V', 'D'] },
-  tekken:  { rating: 1890, tier: 'Plata II',    v: 33,  d: 29, mejor: 'Top 16', mains: ['King'],            pos: 31, racha: ['D', 'V', 'D', 'V', 'V'] },
-  sf6:     { rating: 2120, tier: 'Oro II',      v: 70,  d: 41, mejor: 'Top 8', mains: ['Cammy', 'Juri'],    pos: 9,  racha: ['V', 'D', 'V', 'V', 'V'] },
-}
-
 export function CompetitiveCard() {
   const { t: tr } = useT()
   const juego = useDemoStore(s => s.juegoPerfil)
   const setJuego = useDemoStore(s => s.setJuegoPerfil)
   const mainsGuardados = useDemoStore(st => st.mainsPerfil[juego])
   const [picker, setPicker] = useState(false)
-  const s = STATS[juego] || STATS.smash
+  // Stats desde la fuente única (sample.ts): las mismas que ve el ranking
+  const s = usuarioStatDe(juego)
+  const pos = puestoUsuario(juego)
   const j = JUEGOS[juego]
-  const wr = Math.round((s.v / (s.v + s.d)) * 100)
+  const wr = s.v + s.d > 0 ? Math.round((s.v / (s.v + s.d)) * 100) : 0
   const mains = mainsGuardados ?? s.mains
   const pool = PERSONAJES[juego]
 
@@ -65,9 +57,8 @@ export function CompetitiveCard() {
           <div className="text-right">
             <div className="flex items-center gap-1.5 justify-end">
               <RangoChip rating={s.rating} size="md" />
-              <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-xs font-bold bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40">{s.tier}</span>
             </div>
-            <p className="text-xs text-[#8B8BA8] mt-1.5 font-mono-num">#{s.pos} · {wr}% WR</p>
+            <p className="text-xs text-[#8B8BA8] mt-1.5 font-mono-num">#{pos} · {wr}% WR</p>
           </div>
         </div>
 

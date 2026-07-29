@@ -406,6 +406,28 @@ export function rankingPorJuego(juegoId: string): Jugador[] {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Identidad competitiva del USUARIO de la demo (por juego). FUENTE ÚNICA: la
+// leen el perfil (CompetitiveCard) y el ranking (fila «Tú»). El puesto NO se
+// escribe a mano: se calcula contra rankingPorJuego para que nunca contradiga
+// la tabla (antes el perfil decía #5·2210 y el ranking #9·2003 clonando a otro).
+// ─────────────────────────────────────────────────────────────────────────────
+export type StatUsuario = { rating: number; v: number; d: number; mejor: string; mains: string[]; racha: string[] }
+export const USUARIO_STATS: Record<string, StatUsuario> = {
+  smash:   { rating: 2210, v: 94,  d: 55, mejor: 'Top 4',  mains: ['Pikachu', 'Fox'], racha: ['V', 'V', 'D', 'V', 'V'] },
+  magic:   { rating: 1980, v: 41,  d: 33, mejor: 'Top 8',  mains: ['Aggro'],          racha: ['D', 'V', 'V', 'D', 'V'] },
+  pokemon: { rating: 2050, v: 58,  d: 30, mejor: 'Top 8',  mains: ['Charizard ex'],   racha: ['V', 'V', 'V', 'D', 'V'] },
+  tft:     { rating: 2340, v: 120, d: 60, mejor: '1º',     mains: ['Reroll'],         racha: ['V', 'V', 'V', 'V', 'D'] },
+  tekken:  { rating: 1890, v: 33,  d: 29, mejor: 'Top 16', mains: ['King'],           racha: ['D', 'V', 'D', 'V', 'V'] },
+  sf6:     { rating: 2120, v: 70,  d: 41, mejor: 'Top 8',  mains: ['Cammy', 'Juri'],  racha: ['V', 'D', 'V', 'V', 'V'] },
+}
+export function usuarioStatDe(juegoId: string): StatUsuario {
+  return USUARIO_STATS[juegoId] ?? { rating: 1500, v: 0, d: 0, mejor: '—', mains: [], racha: [] }
+}
+export function puestoUsuario(juegoId: string): number {
+  return rankingPorJuego(juegoId).filter(p => p.rating > usuarioStatDe(juegoId).rating).length + 1
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Bracket (generado a partir de un torneo)
 // ─────────────────────────────────────────────────────────────────────────────
 export type MatchSample = {
