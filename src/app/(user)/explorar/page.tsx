@@ -267,8 +267,11 @@ export default function ExplorarPage() {
           </div>
         )}
 
-        {/* Próximos torneos REALES de España (start.gg) — la comunidad ya existe */}
-        {sectioned && <SeccionStartgg juego={favoritos.find(f => JUEGOS_SGG.has(f)) ?? 'smash'} />}
+        {/* Próximos torneos REALES de España (start.gg) — la comunidad ya existe.
+            Sin filtros: el juego favorito; filtrando un juego con escena: ese. */}
+        {(sectioned || (juego && JUEGOS_SGG.has(juego))) && (
+          <SeccionStartgg juego={juego && JUEGOS_SGG.has(juego) ? juego : (favoritos.find(f => JUEGOS_SGG.has(f)) ?? 'smash')} />
+        )}
       </div>
 
       {/* Hoja de filtros */}

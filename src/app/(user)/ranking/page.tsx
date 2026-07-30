@@ -265,6 +265,7 @@ export default function RankingPage() {
               ))}
             </div>
             <p className="mt-3 text-[11px] text-[#8B8BA8]">{tr('rk.pie')}</p>
+            <p className="mt-2 rounded-xl bg-[#6E9BFF]/10 border border-[#6E9BFF]/30 px-3 py-2 text-[11px] text-[#B8C8E8]"><span className="font-bold text-white">Hoy</span>: España y Mundial se calculan agregando resultados reales de start.gg (tamaño del torneo × puesto). El sistema completo de puntos de arriba se estrena con los torneos Tourneum.</p>
             <button onClick={() => setComoPuntua(false)} className="mt-4 w-full h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold">{tr('rk.ok')}</button>
           </div>
         </div>
@@ -288,9 +289,21 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
   const tag = useDemoStore(s => s.tagStartgg)
   const vincular = useDemoStore(s => s.vincularStartgg)
   const [tagInput, setTagInput] = useState('')
+  const [selReal, setSelReal] = useState<{ p: JugadorReal; puesto: number } | null>(null)
+  const [compartido, setCompartido] = useState(false)
   const esYo = (nombre: string) => !!tag && nombre.toLowerCase() === tag.toLowerCase()
   const miIdx = tag ? datos.jugadores.findIndex(p => esYo(p.nombre)) : -1
   const miFila = miIdx >= 0 ? datos.jugadores[miIdx] : null
+
+  // Lo que la comunidad comparte: tu puesto, con retador incluido
+  const compartirPuesto = async () => {
+    if (!miFila) return
+    const texto = `🏆 Voy #${miIdx + 1} de ${datos.ambito === 'es' ? 'España' : 'el mundo'} con ${miFila.puntos} pts (${miFila.torneos} ${miFila.torneos === 1 ? 'torneo' : 'torneos'}). ¿Me alcanzas? party-maps-hojy.vercel.app/ranking`
+    try {
+      if (navigator.share) await navigator.share({ text: texto })
+      else { await navigator.clipboard.writeText(texto); setCompartido(true); setTimeout(() => setCompartido(false), 1800) }
+    } catch { /* cancelado */ }
+  }
 
   return (
     <>
@@ -307,7 +320,7 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
         {podio.map((p, i) => {
           const first = i === 1
           return (
-            <div key={p.nombre} className="flex flex-col items-center stagger-item" style={{ width: 96, ['--delay' as string]: `${i * 80}ms` }}>
+            <button key={p.nombre} onClick={() => setSelReal({ p, puesto: orden[i] })} className="flex flex-col items-center stagger-item" style={{ width: 96, ['--delay' as string]: `${i * 80}ms` }}>
               <div className="relative">
                 {first && <div className="absolute -inset-2.5 rounded-full blur-xl opacity-50 bg-[#E0BE63]" />}
                 <div className="relative rounded-full p-[2.5px]" style={{ background: first ? 'linear-gradient(135deg, #E0BE63, #6E9BFF)' : `${medallas[i]}55` }}>
@@ -323,7 +336,7 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
                 style={{ height: alturas[i], background: `linear-gradient(180deg, ${medallas[i]}2E, ${medallas[i]}08)`, borderTop: `2px solid ${medallas[i]}` }}>
                 <span className="text-3xl font-bold text-score" style={{ color: medallas[i] }}>{orden[i]}</span>
               </div>
-            </div>
+            </button>
           )
         })}
       </div>
@@ -333,7 +346,8 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
         {resto.map((p, i) => {
           const yo = esYo(p.nombre)
           return (
-            <div key={p.nombre} className={cn('w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl border stagger-item', yo ? 'bg-[#B6FF3A]/10 border-[#B6FF3A]/40' : 'bg-white/4 border-white/8')} style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
+            <button key={p.nombre} onClick={() => setSelReal({ p, puesto: i + 4 })}
+              className={cn('w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl border stagger-item text-left transition-colors', yo ? 'bg-[#B6FF3A]/10 border-[#B6FF3A]/40' : 'bg-white/4 border-white/8 hover:bg-white/[0.07]')} style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
               <span className={cn('w-6 text-center text-sm font-bold font-mono-num', yo ? 'text-[#B6FF3A]' : 'text-[#8B8BA8]')}>{i + 4}</span>
               <Avatar name={p.nombre} size={38} ring={yo ? '#B6FF3A' : undefined} />
               <div className="flex-1 min-w-0">
@@ -342,7 +356,7 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
               </div>
               <RangoChip rating={p.rating} />
               <span className="text-sm font-bold text-white font-mono-num w-12 text-right">{p.puntos} <span className="text-[10px] text-[#8B8BA8] font-semibold">pts</span></span>
-            </div>
+            </button>
           )
         })}
 
@@ -352,7 +366,12 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
             <span className="w-6 text-center text-sm font-bold text-[#B6FF3A] font-mono-num">{miIdx + 1}</span>
             <Avatar name={miFila.nombre} size={38} ring="#B6FF3A" />
             <p className="flex-1 text-[12px] text-[#B8B8CC]"><span className="text-white font-bold">Ese eres tú</span> · {miFila.puntos} pts reales con {miFila.torneos} {miFila.torneos === 1 ? 'torneo' : 'torneos'}. Al llegar el backend, este historial siembra tu rating.</p>
-            <button onClick={() => vincular(null)} className="text-[10px] text-[#8B8BA8] font-semibold hover:text-white shrink-0">Desvincular</button>
+            <span className="flex flex-col items-end gap-1 shrink-0">
+              <button onClick={compartirPuesto} className="h-8 px-3 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[11px] font-bold">
+                {compartido ? '¡Copiado!' : 'Compartir 🔥'}
+              </button>
+              <button onClick={() => vincular(null)} className="text-[10px] text-[#8B8BA8] font-semibold hover:text-white">Desvincular</button>
+            </span>
           </div>
         ) : tag ? (
           <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/10">
@@ -371,6 +390,33 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
           </div>
         )}
       </div>
+
+      {/* Mini-perfil del jugador REAL: sus números agregados de start.gg */}
+      {selReal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-sm animate-fade-in" onClick={() => setSelReal(null)} />
+          <div className="relative w-full max-w-sm bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop p-5">
+            <div className="flex items-center gap-3">
+              <Avatar name={selReal.p.nombre} size={54} ring={esYo(selReal.p.nombre) ? '#B6FF3A' : undefined} />
+              <div className="flex-1 min-w-0">
+                <p className="text-lg font-bold text-white text-display truncate">{selReal.p.nombre}{esYo(selReal.p.nombre) && <span className="ml-1.5 text-[11px] font-black uppercase text-[#B6FF3A]">tú</span>}</p>
+                <p className="text-[11px] text-[#8B8BA8]">#{selReal.puesto} · {datos.ambito === 'es' ? 'España' : 'Mundial'} · resultados reales de start.gg</p>
+              </div>
+              <RangoChip rating={selReal.p.rating} size="md" />
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {[[String(selReal.p.puntos), 'Puntos'], [String(selReal.p.torneos), selReal.p.torneos === 1 ? 'Torneo' : 'Torneos'], [`${selReal.p.mejor}º`, 'Mejor puesto']].map(([v, l]) => (
+                <div key={l} className="card-premium px-2 py-3 text-center">
+                  <p className="text-xl font-bold text-white font-mono-num leading-none">{v}</p>
+                  <p className="mt-1.5 text-[10px] uppercase tracking-wider text-[#8B8BA8] font-semibold">{l}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] text-[#8B8BA8]">Agregado de {datos.nTorneos} torneos ({datos.dias} días). Su perfil completo llegará cuando juegue en Tourneum.</p>
+            <button onClick={() => setSelReal(null)} className="mt-4 w-full h-11 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-bold">Cerrar</button>
+          </div>
+        </div>
+      )}
     </>
   )
 }

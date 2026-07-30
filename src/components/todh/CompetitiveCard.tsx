@@ -1,6 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { JUEGOS, usuarioStatDe, puestoUsuario } from '@/lib/torneos/sample'
+import { JUEGOS_CON_STARTGG } from '@/lib/torneos/startgg'
 import { PERSONAJES } from '@/lib/torneos/personajes'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from './GameKeyart'
@@ -21,6 +22,25 @@ export function CompetitiveCard() {
   const pos = puestoUsuario(juego)
   const j = JUEGOS[juego]
   const wr = s.v + s.d > 0 ? Math.round((s.v / (s.v + s.d)) * 100) : 0
+
+  // Con el tag de start.gg vinculado, el perfil enseña tu resultado REAL en el
+  // ranking de este juego (la demo sigue siendo la identidad de escaparate)
+  const tag = useDemoStore(st => st.tagStartgg)
+  const [realYo, setRealYo] = useState<{ puesto: number; puntos: number; torneos: number; ambito: string } | null>(null)
+  useEffect(() => {
+    setRealYo(null)
+    if (!tag || !JUEGOS_CON_STARTGG.has(juego)) return
+    let vivo = true
+    fetch(`/api/startgg/ranking?juego=${juego}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        if (!vivo || !d?.jugadores) return
+        const idx = d.jugadores.findIndex((p: { nombre: string }) => p.nombre.toLowerCase() === tag.toLowerCase())
+        if (idx >= 0) setRealYo({ puesto: idx + 1, puntos: d.jugadores[idx].puntos, torneos: d.jugadores[idx].torneos, ambito: d.ambito })
+      })
+      .catch(() => {})
+    return () => { vivo = false }
+  }, [tag, juego])
   const mains = mainsGuardados ?? s.mains
   const pool = PERSONAJES[juego]
 
@@ -65,6 +85,14 @@ export function CompetitiveCard() {
         {/* Progreso hacia el siguiente rango (sistema de puntos de la reunión) */}
         <div className="mt-3"><RangoProgreso rating={s.rating} /></div>
         <p className="mt-1.5 text-[10px] text-[#8B8BA8]">{tr('rk.decayHint')}</p>
+
+        {/* Tu resultado REAL (tag start.gg vinculado y con top 16 reciente) */}
+        {realYo && (
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#6E9BFF]/10 border border-[#6E9BFF]/30 px-3 py-2">
+            <span className="dot-live" />
+            <p className="flex-1 text-[11px] font-semibold text-[#B8C8E8]">start.gg real: <span className="text-white font-bold">#{realYo.puesto} de {realYo.ambito === 'es' ? 'España' : 'el mundo'}</span> · {realYo.puntos} pts · {realYo.torneos} {realYo.torneos === 1 ? 'torneo' : 'torneos'}</p>
+          </div>
+        )}
 
         <div className="mt-3.5 grid grid-cols-2 gap-2.5">
           <div className="rounded-xl bg-white/4 border border-white/8 px-3 py-2">
