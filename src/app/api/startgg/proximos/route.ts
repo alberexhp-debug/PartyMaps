@@ -10,7 +10,7 @@ const VIDEOGAME_IDS: Record<string, number> = { smash: 1386, sf6: 43868, tekken:
 
 const QUERY = `query P($ids: [ID!]) {
   tournaments(query: { perPage: 10, sortBy: "startAt asc", filter: { upcoming: true, countryCode: "ES", videogameIds: $ids } }) {
-    nodes { name slug city venueName startAt numAttendees }
+    nodes { name slug city venueName startAt numAttendees lat lng }
   }
 }`
 
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
   if (!res.ok) return NextResponse.json({ error: 'startgg-caido' }, { status: 502 })
 
   const json = await res.json()
-  const nodos: { name: string; slug: string; city: string | null; venueName: string | null; startAt: number | null; numAttendees: number | null }[] =
+  const nodos: { name: string; slug: string; city: string | null; venueName: string | null; startAt: number | null; numAttendees: number | null; lat: number | null; lng: number | null }[] =
     json?.data?.tournaments?.nodes ?? []
 
   const torneos = nodos.map(t => ({
@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
     sede: t.venueName ?? '',
     fecha: t.startAt ? t.startAt * 1000 : null,
     asistentes: t.numAttendees ?? 0,
+    lat: t.lat, lng: t.lng,   // coordenadas reales de la sede (pines del mapa)
   }))
   return NextResponse.json({ juego, torneos })
 }

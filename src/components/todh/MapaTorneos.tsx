@@ -6,6 +6,13 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { LOCALES, JUEGOS, getLocal, type TorneoSample, type Local } from '@/lib/torneos/sample'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+
+// Torneos REALES de España (start.gg) pintados en el mapa con sus coordenadas.
+const JUEGOS_SGG = ['smash', 'sf6', 'tekken'] as const
+type TorneoReal = {
+  juego: string; nombre: string; url: string; ciudad: string; sede: string
+  fecha: number | null; asistentes: number; lat: number; lng: number
+}
 import { TorneoArt } from '@/components/todh/GameKeyart'
 import { MiniLocal } from '@/components/todh/MiniLocal'
 import { Calendar, Users, X, Star, ChevronRight } from 'lucide-react'
@@ -24,6 +31,23 @@ export default function MapaTorneos() {
   const cancelados = useDemoStore(s => s.cancelados)
   const [juego, setJuego] = useState<string | null>(null)
   const [selLocal, setSelLocal] = useState<string | null>(null)
+  const [reales, setReales] = useState<TorneoReal[]>([])
+  const [selReal, setSelReal] = useState<TorneoReal | null>(null)
+
+  // Próximos reales de España (start.gg) con coordenadas, los 3 juegos a la vez
+  useEffect(() => {
+    let vivo = true
+    Promise.all(JUEGOS_SGG.map(j =>
+      fetch(`/api/startgg/proximos?juego=${j}`)
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => (d?.torneos ?? []).map((t: Omit<TorneoReal, 'juego'>) => ({ ...t, juego: j })))
+        .catch(() => [])
+    )).then(listas => {
+      if (vivo) setReales(listas.flat().filter((t: TorneoReal) => t.lat != null && t.lng != null))
+    })
+    return () => { vivo = false }
+  }, [])
+  const realesVisibles = useMemo(() => (juego ? reales.filter(r => r.juego === juego) : reales), [reales, juego])
 
   // Torneos presenciales agrupados por local
   const porLocal = useMemo(() => {
@@ -109,12 +133,54 @@ export default function MapaTorneos() {
     }
   }, [porLocal, selLocal])
 
+  // Pines de torneos REALES (start.gg): punto pequeño con aro discontinuo azul
+  const markersRealesRef = useRef<mapboxgl.Marker[]>([])
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    markersRealesRef.current.forEach(m => m.remove())
+    markersRealesRef.current = []
+    for (const t of realesVisibles) {
+      const color = JUEGOS[t.juego]?.color ?? '#6E9BFF'
+      const el = document.createElement('button')
+      el.setAttribute('aria-label', `${t.nombre} (start.gg)`)
+      el.style.cssText = 'width:26px;height:26px;cursor:pointer;background:none;border:none;padding:0;'
+      const dot = document.createElement('span')
+      dot.style.cssText = `position:absolute;inset:0;border-radius:50%;background:radial-gradient(120% 120% at 32% 24%, #1B2540 0%, #0D1220 75%);border:2px dashed #6E9BFF;box-shadow:0 4px 12px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;transition:transform .15s;`
+      const inner = document.createElement('span')
+      inner.style.cssText = `width:8px;height:8px;border-radius:50%;background:${color};`
+      dot.appendChild(inner)
+      el.appendChild(dot)
+      el.onmouseenter = () => { dot.style.transform = 'scale(1.25)' }
+      el.onmouseleave = () => { dot.style.transform = 'scale(1)' }
+      el.onclick = (e) => {
+        e.stopPropagation()
+        setSelLocal(null)
+        setSelReal(t)
+        map.flyTo({ center: [t.lng, t.lat], zoom: Math.max(map.getZoom(), 10), offset: [0, -120] })
+      }
+      const m = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([t.lng, t.lat]).addTo(map)
+      markersRealesRef.current.push(m)
+    }
+  }, [realesVisibles])
+
+  // Encuadre España: enseña de golpe toda la escena real + los locales demo
+  const verEspana = () => {
+    const map = mapRef.current
+    if (!map || !realesVisibles.length) return
+    setSelLocal(null); setSelReal(null)
+    const b = new mapboxgl.LngLatBounds()
+    realesVisibles.forEach(t => b.extend([t.lng, t.lat]))
+    Object.values(LOCALES).forEach(l => b.extend([l.lng, l.lat]))
+    map.fitBounds(b, { padding: { top: 140, bottom: 80, left: 40, right: 40 }, maxZoom: 7 })
+  }
+
   const localSel = selLocal ? getLocal(selLocal) : null
   const torneosSel = selLocal ? porLocal.get(selLocal) ?? [] : []
 
   return (
     <div className="relative w-full overflow-hidden h-[calc(100dvh-4rem)] lg:h-full">
-      <div ref={containerRef} className="absolute inset-0 h-full w-full" onClick={() => setSelLocal(null)} />
+      <div ref={containerRef} className="absolute inset-0 h-full w-full" onClick={() => { setSelLocal(null); setSelReal(null) }} />
 
       {/* Cabecera */}
       <div className="absolute top-0 left-0 right-0 z-10 px-4 pt-5 safe-top pointer-events-none">
@@ -123,6 +189,12 @@ export default function MapaTorneos() {
             <p className="text-[10px] uppercase tracking-[0.18em] text-[#B6FF3A] font-bold">Mapa de torneos</p>
             <p className="text-sm font-bold text-white"><span className="font-mono-num">{nTorneos}</span> en <span className="font-mono-num">{porLocal.size}</span> locales</p>
           </div>
+          {realesVisibles.length > 0 && (
+            <button onClick={verEspana} className="glass-strong rounded-2xl px-3.5 py-2 text-left hover:bg-white/10 transition-colors">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#6E9BFF] font-bold flex items-center gap-1.5"><span className="dot-live" /> start.gg</p>
+              <p className="text-sm font-bold text-white"><span className="font-mono-num">{realesVisibles.length}</span> reales · ver España</p>
+            </button>
+          )}
         </div>
         {/* Chips de juego */}
         <div className="mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pointer-events-auto pb-1">
@@ -143,6 +215,36 @@ export default function MapaTorneos() {
 
       {/* Hoja inferior: el local seleccionado y sus torneos */}
       {localSel && <LocalSheet local={localSel} torneos={torneosSel} onClose={() => setSelLocal(null)} />}
+      {selReal && !localSel && <RealSheet t={selReal} onClose={() => setSelReal(null)} />}
+    </div>
+  )
+}
+
+// Hoja de un torneo REAL de start.gg: info esencial + enlace fuera. Es la
+// comunidad a captar — todavía no usa Tourneum y se dice tal cual.
+function RealSheet({ t, onClose }: { t: TorneoReal; onClose: () => void }) {
+  const j = JUEGOS[t.juego]
+  return (
+    <div className="absolute bottom-4 left-3 right-3 z-20 animate-slide-up-sm lg:max-w-md">
+      <div className="ring-grad card-premium relative overflow-hidden rounded-2xl shadow-2xl border border-[#6E9BFF]/30">
+        <button onClick={onClose} aria-label="Cerrar" className="absolute top-2.5 right-2.5 z-10 h-7 w-7 rounded-full bg-black/40 flex items-center justify-center text-white"><X size={14} /></button>
+        <div className="p-3.5">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${j?.color ?? '#6E9BFF'}1F`, color: j?.color ?? '#6E9BFF', border: `1px solid ${j?.color ?? '#6E9BFF'}44` }}>{j?.corto ?? t.juego}</span>
+            <span className="px-2 h-6 inline-flex items-center rounded-full text-[10px] font-black uppercase tracking-wide bg-[#6E9BFF]/12 text-[#6E9BFF] border border-[#6E9BFF]/40">start.gg</span>
+          </div>
+          <p className="text-[15px] font-bold text-white leading-snug">{t.nombre}</p>
+          <p className="mt-1 text-[12px] text-[#8B8BA8]">
+            {t.fecha ? new Date(t.fecha).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Fecha por anunciar'}
+            {' · '}{t.ciudad || 'España'}{t.sede ? ` · ${t.sede}` : ''} · <span className="font-mono-num text-[#B8B8CC]">{t.asistentes}</span> apuntados
+          </p>
+          <a href={t.url} target="_blank" rel="noopener noreferrer"
+            className="mt-3 w-full h-11 rounded-xl bg-[#6E9BFF] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-1.5">
+            Ver en start.gg ↗
+          </a>
+          <p className="mt-2 text-[10px] text-[#8B8BA8] text-center">Este torneo aún no usa Tourneum — es la escena real de España.</p>
+        </div>
+      </div>
     </div>
   )
 }
