@@ -308,6 +308,13 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
   const orden = [2, 1, 3]
   const alturas = [88, 116, 70]
   const medallas = ['#C0C7D1', '#E0BE63', '#CD7F45']
+  // Tag vinculado: si estás en la lista real, la app te reconoce («ese soy yo»)
+  const tag = useDemoStore(s => s.tagStartgg)
+  const vincular = useDemoStore(s => s.vincularStartgg)
+  const [tagInput, setTagInput] = useState('')
+  const esYo = (nombre: string) => !!tag && nombre.toLowerCase() === tag.toLowerCase()
+  const miIdx = tag ? datos.jugadores.findIndex(p => esYo(p.nombre)) : -1
+  const miFila = miIdx >= 0 ? datos.jugadores[miIdx] : null
 
   return (
     <>
@@ -332,7 +339,7 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
                 </div>
                 {first && <Crown size={22} className="absolute -top-4 left-1/2 -translate-x-1/2 text-[#E0BE63]" fill="#E0BE63" />}
               </div>
-              <p className="mt-2 text-sm font-bold text-white truncate max-w-full">{p.nombre}</p>
+              <p className="mt-2 text-sm font-bold text-white truncate max-w-full">{p.nombre}{esYo(p.nombre) && <span className="ml-1 text-[10px] font-black uppercase text-[#B6FF3A]">· tú</span>}</p>
               <p className="text-[15px] font-bold text-score" style={{ color: first ? '#E0BE63' : '#B6FF3A' }}><CountUp value={p.puntos} duration={1000} /> <span className="text-[10px] text-[#8B8BA8]">pts</span></p>
               <p className="text-[10px] text-[#8B8BA8] font-mono-num">{p.torneos} torneos</p>
               <div className="mt-2 w-full rounded-t-xl flex items-start justify-center pt-1.5 ring-grad relative overflow-hidden"
@@ -346,24 +353,45 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
 
       {/* Tabla real */}
       <div className="relative px-4 mt-4 space-y-1.5 pb-8 max-w-2xl lg:max-w-4xl mx-auto">
-        {resto.map((p, i) => (
-          <div key={p.nombre} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
-            <span className="w-6 text-center text-sm font-bold text-[#8B8BA8] font-mono-num">{i + 4}</span>
-            <Avatar name={p.nombre} size={38} />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">{p.nombre}</p>
-              <p className="text-[11px] text-[#8B8BA8] font-mono-num">{p.torneos} {p.torneos === 1 ? 'torneo' : 'torneos'} · mejor: {p.mejor}º</p>
+        {resto.map((p, i) => {
+          const yo = esYo(p.nombre)
+          return (
+            <div key={p.nombre} className={cn('w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl border stagger-item', yo ? 'bg-[#B6FF3A]/10 border-[#B6FF3A]/40' : 'bg-white/4 border-white/8')} style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
+              <span className={cn('w-6 text-center text-sm font-bold font-mono-num', yo ? 'text-[#B6FF3A]' : 'text-[#8B8BA8]')}>{i + 4}</span>
+              <Avatar name={p.nombre} size={38} ring={yo ? '#B6FF3A' : undefined} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white truncate">{p.nombre}{yo && <span className="ml-1.5 text-[10px] font-black uppercase text-[#B6FF3A]">tú</span>}</p>
+                <p className="text-[11px] text-[#8B8BA8] font-mono-num">{p.torneos} {p.torneos === 1 ? 'torneo' : 'torneos'} · mejor: {p.mejor}º</p>
+              </div>
+              <span className="text-sm font-bold text-white font-mono-num">{p.puntos} <span className="text-[10px] text-[#8B8BA8] font-semibold">pts</span></span>
             </div>
-            <span className="text-sm font-bold text-white font-mono-num">{p.puntos} <span className="text-[10px] text-[#8B8BA8] font-semibold">pts</span></span>
-          </div>
-        ))}
+          )
+        })}
 
-        {/* Tu hueco en el ranking real */}
-        <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-[#B6FF3A]/8 border border-dashed border-[#B6FF3A]/35">
-          <span className="w-6 text-center text-sm font-bold text-[#B6FF3A]">?</span>
-          <Avatar name="Tú" size={38} ring="#B6FF3A" />
-          <p className="flex-1 text-[12px] text-[#B8B8CC]">Tu puesto se estrena con tu <span className="text-white font-semibold">primer torneo Tourneum</span> — estos puntos salen de los torneos reales de España.</p>
-        </div>
+        {/* Tu identidad en el ranking real: vincula tu tag de start.gg */}
+        {miFila ? (
+          <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-[#B6FF3A]/10 border border-[#B6FF3A]/40">
+            <span className="w-6 text-center text-sm font-bold text-[#B6FF3A] font-mono-num">{miIdx + 1}</span>
+            <Avatar name={miFila.nombre} size={38} ring="#B6FF3A" />
+            <p className="flex-1 text-[12px] text-[#B8B8CC]"><span className="text-white font-bold">Ese eres tú</span> · {miFila.puntos} pts reales con {miFila.torneos} {miFila.torneos === 1 ? 'torneo' : 'torneos'}. Al llegar el backend, este historial siembra tu rating.</p>
+            <button onClick={() => vincular(null)} className="text-[10px] text-[#8B8BA8] font-semibold hover:text-white shrink-0">Desvincular</button>
+          </div>
+        ) : tag ? (
+          <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/10">
+            <Avatar name={tag} size={38} ring="#8B8BA8" />
+            <p className="flex-1 text-[12px] text-[#B8B8CC]">Vinculado como <span className="text-white font-bold">{tag}</span> — sin top 8 en España estos 120 días. Tu puesto se estrena con tu próximo torneo.</p>
+            <button onClick={() => vincular(null)} className="text-[10px] text-[#8B8BA8] font-semibold hover:text-white shrink-0">Desvincular</button>
+          </div>
+        ) : (
+          <div className="mt-3 rounded-2xl bg-[#B6FF3A]/8 border border-dashed border-[#B6FF3A]/35 px-3 py-2.5">
+            <p className="text-[12px] text-[#B8B8CC] mb-2">¿Estás en esta lista? <span className="text-white font-semibold">Vincula tu tag de start.gg</span> y la app te reconoce.</p>
+            <form className="flex gap-2" onSubmit={e => { e.preventDefault(); if (tagInput.trim()) { vincular(tagInput.trim()); setTagInput('') } }}>
+              <input value={tagInput} onChange={e => setTagInput(e.target.value)} placeholder="Tu tag (ej. Sisqui)"
+                className="flex-1 h-10 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none" />
+              <button type="submit" disabled={!tagInput.trim()} className="h-10 px-4 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold disabled:opacity-40">Vincular</button>
+            </form>
+          </div>
+        )}
       </div>
     </>
   )

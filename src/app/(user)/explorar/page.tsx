@@ -1,5 +1,5 @@
 'use client'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { JUEGOS, type TorneoSample } from '@/lib/torneos/sample'
@@ -266,6 +266,9 @@ export default function ExplorarPage() {
             {resultados.map((t, i) => <CardTorneo key={t.id} t={t} i={i} />)}
           </div>
         )}
+
+        {/* Próximos torneos REALES de España (start.gg) — la comunidad ya existe */}
+        {sectioned && <SeccionStartgg juego={favoritos.find(f => JUEGOS_SGG.has(f)) ?? 'smash'} />}
       </div>
 
       {/* Hoja de filtros */}
@@ -387,5 +390,58 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
         </div>
       </div>
     </Link>
+  )
+}
+
+// Próximos torneos REALES en España vía start.gg: mientras el catálogo propio
+// coge densidad, Explorar enseña que la escena ya está viva. Solo lectura.
+const JUEGOS_SGG = new Set(['smash', 'sf6', 'tekken'])
+type ProximoSgg = { nombre: string; url: string; ciudad: string; sede: string; fecha: number | null; asistentes: number }
+
+function SeccionStartgg({ juego }: { juego: string }) {
+  const [torneos, setTorneos] = useState<ProximoSgg[] | null>(null)
+  useEffect(() => {
+    let vivo = true
+    fetch(`/api/startgg/proximos?juego=${juego}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (vivo) setTorneos(d?.torneos?.length ? d.torneos : null) })
+      .catch(() => { if (vivo) setTorneos(null) })
+    return () => { vivo = false }
+  }, [juego])
+  if (!torneos) return null
+  const j = JUEGOS[juego]
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-baseline justify-between pt-1">
+        <div>
+          <p className="text-base font-bold text-white text-display tracking-tight flex items-center gap-2"><span className="dot-live" /> También en España · {j?.corto}</p>
+          <p className="text-[11px] text-[#8B8BA8]">La comunidad real, en vivo desde start.gg</p>
+        </div>
+        <span className="text-[11px] font-mono-num text-[#6B6B85]">{torneos.length}</span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {torneos.map(t => (
+          <a key={t.url} href={t.url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-3 card-premium card-int px-3.5 py-3">
+            <span className="w-12 shrink-0 text-center">
+              <span className="block text-[11px] font-black uppercase leading-tight text-white">
+                {t.fecha ? new Date(t.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '—'}
+              </span>
+              <span className="block text-[10px] text-[#8B8BA8] font-mono-num">
+                {t.fecha ? new Date(t.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : ''}
+              </span>
+            </span>
+            <span className="w-1 self-stretch rounded-full" style={{ background: j?.color ?? '#6E9BFF' }} />
+            <span className="flex-1 min-w-0">
+              <span className="block text-[13px] font-bold text-white truncate">{t.nombre}</span>
+              <span className="block text-[11px] text-[#8B8BA8] truncate">{t.ciudad || 'España'}{t.sede ? ` · ${t.sede}` : ''} · <span className="font-mono-num">{t.asistentes}</span> apuntados</span>
+            </span>
+            <span className="shrink-0 text-[10px] font-bold text-[#6E9BFF] uppercase tracking-wide">start.gg ↗</span>
+          </a>
+        ))}
+      </div>
+      <p className="text-[11px] text-[#8B8BA8]">Estos torneos aún no usan Tourneum: son la comunidad a la que vamos. Los datos llegan de start.gg.</p>
+    </section>
   )
 }

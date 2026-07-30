@@ -105,6 +105,7 @@ interface DemoState {
   preregistro: { unido: boolean; pos: number; compartidos: number }    // lista de espera del lanzamiento
   reportes: ReporteTO[]                  // reportes de bracket/seeding del jugador al TO (reunión 5-jul)
   puntuadosStartgg: string[]             // torneos espejo cuyos resultados ya puntuaron en el ranking Tourneum
+  tagStartgg: string | null              // tag del jugador en start.gg (identidad en el ranking real)
   perfilTO: 'no' | 'pendiente' | 'aprobado'  // alta de TO self-service (perfil dual)
   tierUsuario: null | 'Oro' | 'Platino' | 'Diamante'   // tier de pago (o regalo por rango)
   bonosComprados: { id: string; localId: string; localNombre: string; titulo: string; precio: number }[]
@@ -145,6 +146,7 @@ interface DemoState {
   compartirPreregistro: () => void
   crearReporte: (r: Omit<ReporteTO, 'id' | 'estado'>) => void
   puntuarStartgg: (torneoId: string, nombreTorneo: string) => void
+  vincularStartgg: (tag: string | null) => void
   resolverReporte: (id: string, accion: 'cambiado' | 'rebatido', respuesta?: string) => void
   solicitarTO: () => void
   aprobarTO: () => void
@@ -236,6 +238,7 @@ export const useDemoStore = create<DemoState>()(
         { id: 'rep-seed', torneoId: 't1', torneoNombre: 'Lima Smash Weekly #42', tipo: 'seeding', motivo: 'Me toca otra vez contra el mismo jugador en ronda 1', mensaje: 'Tercera semana seguida contra Sora en R1, tenemos nivel parecido y nos cruzáis pronto.', estado: 'abierto' },
       ],
       puntuadosStartgg: [],
+      tagStartgg: null,
       perfilTO: 'no',
       tierUsuario: null,
       bonosComprados: [],
@@ -463,6 +466,16 @@ export const useDemoStore = create<DemoState>()(
           cuando: 'ahora', leida: false, href: '/ranking',
         }
         return { puntuadosStartgg: [...s.puntuadosStartgg, torneoId], notificaciones: [n, ...s.notificaciones] }
+      }),
+      // Identidad start.gg: al vincular tu tag, el ranking real te reconoce
+      vincularStartgg: (tag) => set((s) => {
+        if (!tag) return { tagStartgg: null }
+        const n: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: `Tag vinculado: ${tag}`,
+          cuerpo: 'Tus resultados reales de start.gg ya te identifican en el ranking. Al llegar el backend, tu historial sembrará tu rating inicial.',
+          cuando: 'ahora', leida: false, href: '/ranking',
+        }
+        return { tagStartgg: tag, notificaciones: [n, ...s.notificaciones] }
       }),
       crearReporte: (r) => set((s) => {
         const rep: ReporteTO = { ...r, id: nextId(), estado: 'abierto' }
