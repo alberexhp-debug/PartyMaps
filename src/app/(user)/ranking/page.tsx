@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { JUEGOS, rankingPorJuego, usuarioStatDe, type Jugador } from '@/lib/torneos/sample'
+import { JUEGOS, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
 import { JUEGOS_CON_STARTGG } from '@/lib/torneos/startgg'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
@@ -11,7 +11,7 @@ import { rangoDe, puntosPorVictoria, multiplicadorProfundidad } from '@/lib/torn
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { CountUp } from '@/components/ui/CountUp'
 import { cn } from '@/lib/utils'
-import { Globe, MapPin, Crown, ChevronUp, ChevronDown, Minus, Store, Wifi, Trophy, CalendarClock } from 'lucide-react'
+import { Globe, MapPin, Crown, ChevronUp, ChevronDown, Minus, Trophy, CalendarClock } from 'lucide-react'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
@@ -43,72 +43,54 @@ function Tendencia({ n }: { n: number }) {
   return <span className="inline-flex items-center gap-0.5 text-[#FF6B6B] text-[11px] font-bold"><ChevronDown size={13} />{Math.abs(n)}</span>
 }
 
-// Tres rankings: PRESENCIAL (torneos en locales), ONLINE y TOURNEUM (el circuito
-// oficial de la app: se disputa 2 veces al año, sin ámbito país/global).
-type TipoRanking = 'presencial' | 'online' | 'tourneum'
-const TIPOS: { id: TipoRanking; label: string; icon: typeof Store }[] = [
-  { id: 'presencial', label: 'Presencial', icon: Store },
-  { id: 'online', label: 'Online', icon: Wifi },
-  { id: 'tourneum', label: 'Tourneum', icon: Trophy },
+// Rankings como start.gg de verdad: ESPAÑA (countryCode ES), MUNDIAL (global)
+// —ambos agregados de resultados reales— y el CIRCUITO TOURNEUM (la competición
+// propia de la app, 2 splits al año; demo hasta que ruede el backend).
+type Vista = 'es' | 'global' | 'tourneum'
+const VISTAS: { id: Vista; icon: typeof Trophy }[] = [
+  { id: 'es', icon: MapPin },
+  { id: 'global', icon: Globe },
+  { id: 'tourneum', icon: Trophy },
 ]
+// Solo juegos con resultados reales en start.gg (Magic/CoD no viven allí y
+// quedan fuera del ranking hasta que haya fuente oficial de puntuaciones).
+const JUEGOS_RANKING = ['smash', 'tekken', 'sf6', 'pokemon', 'tft', 'valorant', 'lol']
 
 export default function RankingPage() {
   const favoritos = useDemoStore(s => s.juegosFavoritos)
   const { t: tr } = useT()
-  const [tipo, setTipo] = useState<TipoRanking>('presencial')
+  const [vista, setVista] = useState<Vista>('es')
   const [juego, setJuego] = useState('smash')
   const [juegoTocado, setJuegoTocado] = useState(false)
-  // Abre por tu juego principal (tras hidratar el store persistido), salvo que
-  // el usuario ya haya elegido otro chip a mano.
+  // Abre por tu juego principal (si tiene ranking real), salvo elección manual
   useEffect(() => {
-    if (!juegoTocado && favoritos[0] && JUEGOS[favoritos[0]]) setJuego(favoritos[0])
+    if (!juegoTocado && favoritos[0] && JUEGOS_RANKING.includes(favoritos[0])) setJuego(favoritos[0])
   }, [favoritos, juegoTocado])
-  const [ambito, setAmbito] = useState<'pais' | 'mundial'>('pais')
   const [sel, setSel] = useState<{ j: Jugador; puesto: number } | null>(null)
   const [comoPuntua, setComoPuntua] = useState(false)
-  const esTourneum = tipo === 'tourneum'
+  const esTourneum = vista === 'tourneum'
 
-  // Datos reales de start.gg (España, últimos 120 días), cacheados por juego.
-  // Si la API no responde o hay pocos jugadores, se queda la muestra.
+  // Datos reales cacheados por juego+ámbito. undefined = cargando · null = error/vacío
   const [real, setReal] = useState<Record<string, RankingRealData | null>>({})
+  const claveReal = `${juego}:${vista}`
   useEffect(() => {
-    if (!JUEGOS_CON_STARTGG.has(juego) || real[juego] !== undefined) return
+    if (esTourneum || real[claveReal] !== undefined) return
     let vivo = true
-    fetch(`/api/startgg/ranking?juego=${juego}`)
+    fetch(`/api/startgg/ranking?juego=${juego}&ambito=${vista}`)
       .then(r => (r.ok ? r.json() : null))
-      .then(d => { if (vivo) setReal(p => ({ ...p, [juego]: d && (d.jugadores?.length ?? 0) >= 6 ? d : null })) })
-      .catch(() => { if (vivo) setReal(p => ({ ...p, [juego]: null })) })
+      .then(d => { if (vivo) setReal(p => ({ ...p, [claveReal]: d && (d.jugadores?.length ?? 0) >= 4 ? d : null })) })
+      .catch(() => { if (vivo) setReal(p => ({ ...p, [claveReal]: null })) })
     return () => { vivo = false }
-  }, [juego, real])
-  const datosReales = tipo === 'presencial' && ambito === 'pais' ? (real[juego] ?? null) : null
+  }, [claveReal, juego, vista, esTourneum, real])
+  const cargandoReal = !esTourneum && real[claveReal] === undefined
+  const datosReales = esTourneum ? null : (real[claveReal] ?? null)
 
-  const lista = useMemo(() => {
-    const base = rankingPorJuego(juego)
-    if (tipo === 'tourneum') {
-      // Solo quienes jugaron los torneos oficiales del split (demo: top 10)
-      return base.slice(0, 10).map(j => ({ ...j, rating: Math.max(0, Math.round((j.rating - 1600) * 1.4)) }))
-    }
-    const conTipo = tipo === 'online' ? base.map(j => ({ ...j, rating: j.rating + 85 })) : base
-    // Mundial: ratings ligeramente superiores para diferenciar el ámbito
-    return ambito === 'mundial' ? conTipo.map(j => ({ ...j, rating: j.rating + 120 })) : conTipo
-  }, [tipo, juego, ambito])
-
-  // «Tú» en el ranking: mismas stats que el perfil (fuente única en sample.ts),
-  // con los mismos ajustes de rating que la tabla y el puesto CALCULADO. La fila
-  // se inserta en la lista para que no haya dos jugadores con el mismo puesto.
-  // En el ranking Tourneum no apareces: solo puntúan los torneos del circuito.
-  const statYo = usuarioStatDe(juego)
-  const yo: Jugador | null = esTourneum ? null : {
-    id: 'yo', nombre: 'Tú', handle: '@tu', pais: 'ES', bandera: '🇪🇸', juego,
-    rating: statYo.rating + (tipo === 'online' ? 85 : 0) + (ambito === 'mundial' ? 120 : 0),
-    tier: statYo.rating >= 2300 ? 'Platino' : statYo.rating >= 2050 ? 'Diamante' : 'Oro',
-    victorias: statYo.v, derrotas: statYo.d, torneosJugados: 27,
-    mejorPuesto: statYo.mejor, main: statYo.mains[0], tendencia: 1,
-  }
-  const miPuesto = yo ? lista.filter(p => p.rating > yo.rating).length + 1 : 0
-  const filas = yo ? [...lista.slice(0, miPuesto - 1), yo, ...lista.slice(miPuesto - 1)] : lista
-  const top3 = filas.slice(0, 3)
-  const resto = filas.slice(3)
+  // Circuito Tourneum (demo): solo quienes juegan los oficiales del split
+  const listaTourneum = useMemo(() =>
+    rankingPorJuego(juego).slice(0, 10).map(j => ({ ...j, rating: Math.max(0, Math.round((j.rating - 1600) * 1.4)) })),
+    [juego])
+  const top3 = listaTourneum.slice(0, 3)
+  const resto = listaTourneum.slice(3)
   const podio = [top3[1], top3[0], top3[2]].filter(Boolean)
   const alturas = [88, 116, 70]
   const medallas = ['#C0C7D1', '#E0BE63', '#CD7F45']
@@ -128,14 +110,14 @@ export default function RankingPage() {
         </div>
       </div>
 
-      {/* Tipo de ranking */}
+      {/* Ámbito, como en start.gg: país, global o el circuito propio */}
       <div className="relative px-4 mt-3">
         <div className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1 max-w-md">
-          {TIPOS.map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => setTipo(id)}
+          {VISTAS.map(({ id, icon: Icon }) => (
+            <button key={id} onClick={() => setVista(id)}
               className={cn('flex h-9 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold transition-all',
-                tipo === id ? (id === 'tourneum' ? 'bg-[#E0BE63]/20 text-[#E0BE63] shadow-sm' : 'bg-white/12 text-white shadow-sm') : 'text-[#8B8BA8] hover:text-white')}>
-              <Icon size={14} /> {id === 'presencial' ? tr('ranking.presencial') : id === 'online' ? tr('ranking.online') : 'Tourneum'}
+                vista === id ? (id === 'tourneum' ? 'bg-[#E0BE63]/20 text-[#E0BE63] shadow-sm' : 'bg-white/12 text-white shadow-sm') : 'text-[#8B8BA8] hover:text-white')}>
+              <Icon size={14} /> {id === 'es' ? tr('ranking.espana') : id === 'global' ? tr('ranking.mundial') : 'Circuito'}
             </button>
           ))}
         </div>
@@ -155,25 +137,10 @@ export default function RankingPage() {
         </div>
       )}
 
-      {/* País / Mundial (solo presencial y online) */}
-      {!esTourneum && (
-      <div className="relative px-4 mt-3">
-        <div className="grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1 max-w-xs">
-          {([['pais', tr('ranking.espana'), MapPin], ['mundial', tr('ranking.mundial'), Globe]] as const).map(([k, label, Icon]) => (
-            <button key={k} onClick={() => setAmbito(k)}
-              className={cn('flex h-9 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold transition-all',
-                ambito === k ? 'bg-white/12 text-white shadow-sm' : 'text-[#8B8BA8] hover:text-white')}>
-              <Icon size={14} /> {label}
-            </button>
-          ))}
-        </div>
-      </div>
-      )}
-
-      {/* Chips de juego */}
+      {/* Chips de juego: solo los que tienen resultados reales en start.gg */}
       <div className="relative px-4 mt-3">
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
-          {Object.values(JUEGOS).map(j => {
+          {JUEGOS_RANKING.map(id => JUEGOS[id]).filter(Boolean).map(j => {
             const activo = juego === j.id
             return (
               <button key={j.id} onClick={() => { setJuegoTocado(true); setJuego(j.id) }}
@@ -188,12 +155,37 @@ export default function RankingPage() {
         </div>
       </div>
 
-      {datosReales ? (
-        <BloqueRankingReal key={`real-${juego}`} datos={datosReales} />
+      {!esTourneum ? (
+        cargandoReal ? (
+          <div className="relative px-4 mt-6 max-w-2xl lg:max-w-4xl mx-auto">
+            <div className="card-premium p-5 flex items-center gap-3 text-sm text-[#8B8BA8]">
+              <span className="h-4 w-4 border-2 border-white/20 border-t-[#6E9BFF] rounded-full animate-spin" />
+              Leyendo resultados reales de start.gg…
+            </div>
+          </div>
+        ) : datosReales ? (
+          <BloqueRankingReal key={`real-${claveReal}`} datos={datosReales} />
+        ) : (
+          <div className="relative px-4 mt-6 max-w-2xl lg:max-w-4xl mx-auto">
+            <div className="card-premium p-6 text-center">
+              <p className="text-sm font-bold text-white">Aún no hay tabla {vista === 'es' ? 'de España' : 'mundial'} para {JUEGOS[juego]?.corto ?? juego}</p>
+              <p className="mt-1 text-[12px] text-[#8B8BA8]">
+                {vista === 'es'
+                  ? 'La escena española de este juego todavía publica pocos resultados en start.gg.'
+                  : 'start.gg no devuelve suficientes resultados recientes de este juego.'}
+              </p>
+              {vista === 'es' && (
+                <button onClick={() => setVista('global')} className="mt-3 h-10 px-4 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-bold">
+                  Ver ranking mundial
+                </button>
+              )}
+            </div>
+          </div>
+        )
       ) : (
       <>
-      {/* Podio */}
-      <div key={`${tipo}-${juego}-${ambito}`} className="relative px-4 mt-5 flex items-end justify-center gap-3 max-w-2xl lg:max-w-4xl mx-auto">
+      {/* Podio del circuito (demo hasta que ruede el backend) */}
+      <div key={`tourneum-${juego}`} className="relative px-4 mt-5 flex items-end justify-center gap-3 max-w-2xl lg:max-w-4xl mx-auto">
         {podio.map((p, i) => {
           const first = i === 1
           const jColor = JUEGOS[juego].color
@@ -219,17 +211,15 @@ export default function RankingPage() {
         })}
       </div>
 
-      {/* Tabla */}
-      <div key={`t-${tipo}-${juego}-${ambito}`} className="relative px-4 mt-4 space-y-1.5 pb-28 max-w-2xl lg:max-w-4xl mx-auto">
+      {/* Tabla del circuito */}
+      <div key={`t-tourneum-${juego}`} className="relative px-4 mt-4 space-y-1.5 pb-28 max-w-2xl lg:max-w-4xl mx-auto">
         {resto.map((p, i) => {
           const puesto = i + 4
-          const soyYo = p.id === 'yo'
           return (
             <button key={p.id} onClick={() => setSel({ j: p, puesto })}
-              className={cn('w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl border transition-colors text-left stagger-item',
-                soyYo ? 'bg-[#B6FF3A]/10 border-[#B6FF3A]/40' : 'bg-white/4 border-white/8 hover:bg-white/[0.07]')}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl border transition-colors text-left stagger-item bg-white/4 border-white/8 hover:bg-white/[0.07]"
               style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
-              <span className={cn('w-6 text-center text-sm font-bold font-mono-num', soyYo ? 'text-[#B6FF3A]' : 'text-[#8B8BA8]')}>{puesto}</span>
+              <span className="w-6 text-center text-sm font-bold font-mono-num text-[#8B8BA8]">{puesto}</span>
               <Avatar name={p.nombre} size={38} ring={TIER_COLOR[p.tier]} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{p.nombre} <span className="text-xs">{p.bandera}</span></p>
@@ -243,21 +233,6 @@ export default function RankingPage() {
         })}
       </div>
 
-      {/* Tu posición (fija abajo) */}
-      {yo && (
-        <div className="fixed bottom-16 lg:bottom-4 left-0 right-0 lg:left-[244px] z-20 px-3 pb-2">
-          <div className="max-w-lg mx-auto flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-[#B6FF3A]/12 border border-[#B6FF3A]/40 backdrop-blur-md shadow-lg">
-            <span className="w-6 text-center text-sm font-bold text-[#B6FF3A] font-mono-num">{miPuesto}</span>
-            <Avatar name="Tú" size={36} ring="#B6FF3A" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">Tú <span className="text-[10px] text-[#B6FF3A] font-semibold uppercase tracking-wide">{tr('ranking.tuPosicion')}</span></p>
-              <p className="text-[11px] text-[#8B8BA8] font-mono-num">{yo.victorias}V · {yo.derrotas}D</p>
-            </div>
-            <RangoChip rating={yo.rating} />
-            <span className="text-sm font-bold text-[#B6FF3A] font-mono-num">{yo.rating}</span>
-          </div>
-        </div>
-      )}
       </>
       )}
 

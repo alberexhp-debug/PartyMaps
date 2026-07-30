@@ -11,11 +11,15 @@ import { STARTGG_VIDEOGAMES } from '@/lib/torneos/startgg'
 
 const GQL = 'https://api.start.gg/gql/alpha'
 
-// events filtrados por videogame: sin esto, torneos multi-evento disparaban el
-// límite de complejidad de la API (1000 objetos) y la respuesta venía con
-// `errors` y sin datos (tekken/tft parecían vacíos).
-const QUERY = (conPais: boolean) => `query R($after: Timestamp!, $ids: [ID!]) {
-  tournaments(query: { perPage: 20, filter: { past: true, ${conPais ? 'countryCode: "ES",' : ''} videogameIds: $ids, afterDate: $after } }) {
+// Notas duras aprendidas de la API:
+// - events(filter:{videogameId}) es OBLIGATORIO: sin él, torneos multi-evento
+//   disparan el límite de 1000 objetos y la respuesta trae `errors` sin datos.
+// - sortBy también: la consulta global sin orden explícito tarda >30 s y muere.
+// - No hay orden por tamaño ni filtro de aforo mínimo; para un Mundial digno
+//   se usa isFeatured (majors) y, si el juego no tiene destacados, recientes.
+type Alcance = { pais?: boolean; featured?: boolean; dias: number; perPage: number }
+const QUERY = (a: Alcance) => `query R($after: Timestamp!, $ids: [ID!]) {
+  tournaments(query: { perPage: ${a.perPage}, sortBy: "endAt desc", filter: { past: true, ${a.pais ? 'countryCode: "ES",' : ''} ${a.featured ? 'isFeatured: true,' : ''} videogameIds: $ids, afterDate: $after } }) {
     nodes {
       name
       events(filter: { videogameId: $ids }) {
@@ -46,12 +50,12 @@ type NodoTorneo = {
   events: { videogame: { id: number } | null; numEntrants: number | null; standings: { nodes: { placement: number; entrant: { name: string } | null }[] | null } | null }[] | null
 }
 
-async function agrega(token: string, vid: number, conPais: boolean) {
-  const after = Math.floor(Date.now() / 1000) - 180 * 86400
+async function agrega(token: string, vid: number, alcance: Alcance) {
+  const after = Math.floor(Date.now() / 1000) - alcance.dias * 86400
   const res = await fetch(GQL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ query: QUERY(conPais), variables: { after, ids: [vid] } }),
+    body: JSON.stringify({ query: QUERY(alcance), variables: { after, ids: [vid] } }),
     next: { revalidate: 3600 },
   })
   if (!res.ok) return null
@@ -93,14 +97,30 @@ export async function GET(req: NextRequest) {
   const token = process.env.STARTGG_TOKEN
   if (!token) return NextResponse.json({ error: 'sin-token' }, { status: 503 })
 
-  // España primero; Global si la escena local no da para una tabla digna
-  // (mínimo 8 jugadores y 4 torneos) y fuera hay más chicha
-  let ambito: 'es' | 'global' = 'es'
-  let r = await agrega(token, vid, true)
-  const esDigno = !!r && r.acum.size >= 8 && r.nTorneos >= 4
-  if (!esDigno) {
-    const g = await agrega(token, vid, false)
-    if (g && g.acum.size > (r?.acum.size ?? 0)) { r = g; ambito = 'global' }
+  // Ámbito explícito (?ambito=es|global), como en start.gg.
+  // - España: toda la escena de los últimos 180 días.
+  // - Mundial: majors destacados (isFeatured) de 90 días; si el juego no tiene
+  //   destacados (TFT/Valorant/LoL/Pokémon), los recientes de 30 días.
+  const pedido = req.nextUrl.searchParams.get('ambito')
+  const ambito: 'es' | 'global' = pedido === 'global' ? 'global' : 'es'
+  let dias = 180
+  let r: Awaited<ReturnType<typeof agrega>> = null
+  if (ambito === 'es') {
+    r = await agrega(token, vid, { pais: true, dias: 180, perPage: 20 })
+  } else {
+    dias = 90
+    r = await agrega(token, vid, { featured: true, dias: 90, perPage: 16 })
+    if (!r || r.nTorneos < 4) {
+      // Juegos sin majors destacados (TFT, Valorant, LoL…): recientes con
+      // ventana ancha, que su volumen en start.gg es bajo
+      const b = await agrega(token, vid, { dias: 120, perPage: 20 })
+      if (b && b.acum.size > (r?.acum.size ?? 0)) { r = b; dias = 120 }
+    }
+    if (!r || r.nTorneos < 2) {
+      // Último peldaño (escenas mínimas): un año entero
+      const c = await agrega(token, vid, { dias: 365, perPage: 20 })
+      if (c && c.acum.size > (r?.acum.size ?? 0)) { r = c; dias = 365 }
+    }
   }
   if (!r) return NextResponse.json({ error: 'startgg-caido' }, { status: 502 })
 
@@ -114,5 +134,5 @@ export async function GET(req: NextRequest) {
   const max = orden[0]?.puntos || 1
   const jugadores = orden.map(p => ({ ...p, rating: 1500 + Math.round(900 * Math.pow(p.puntos / max, 0.7)) }))
 
-  return NextResponse.json({ juego, ambito, nTorneos: r.nTorneos, dias: 180, actualizado: Date.now(), jugadores })
+  return NextResponse.json({ juego, ambito, nTorneos: r.nTorneos, dias, actualizado: Date.now(), jugadores })
 }
