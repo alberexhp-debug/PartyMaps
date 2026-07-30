@@ -40,6 +40,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        {/* Purga de sesiones ZOMBI de Supabase (Rumbo): el proyecto ya no existe
+            y cualquier cookie/token guardado provocaba reintentos de refresh
+            contra un host muerto en cada página («la app va super lenta»).
+            Corre ANTES de cualquier bundle para que ningún cliente Supabase
+            arranque con esa sesión. Quitar cuando exista el Supabase nuevo. */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            document.cookie.split(';').forEach(function (c) {
+              var n = c.split('=')[0]; if (n) n = n.trim();
+              if (n && n.indexOf('sb-') === 0) document.cookie = n + '=; Max-Age=0; path=/';
+            });
+            Object.keys(localStorage).forEach(function (k) {
+              if (k.indexOf('sb-') === 0) localStorage.removeItem(k);
+            });
+          } catch (e) {}
+        ` }} />
         <Providers>{children}</Providers>
         {/* SW sin registrar durante el pivote Tourneum: evita caché vieja de Tourneum
             (el /sw.js es ahora un kill-switch que purga y se desregistra). */}

@@ -37,8 +37,19 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Se ejecuta en todo salvo estáticos, imágenes y el service worker.
+  // SOLO las zonas legadas con sesión Supabase (Rumbo). La demo TODH entera va
+  // sin login: pasarla por aquí hacía que cada petición validara el token
+  // contra un proyecto Supabase que YA NO EXISTE — para quien conservara
+  // cookies de sesión viejas, cada página esperaba los reintentos del refresh
+  // («la app va super lenta en mis dispositivos, con cualquier red»).
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|icon-|manifest.json|sw.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/rrpp/:path*',
+    '/local-panel/:path*',
+    '/admin/:path*',
+    '/gestor/:path*',
+    '/login',
+    '/registro',
+    '/completar-perfil',
+    '/recuperar-clave',
   ],
 }

@@ -1,6 +1,6 @@
 'use client'
 import { useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
+// (sin cliente Supabase: proyecto retirado — ver nota de abajo)
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import type { Usuario } from '@/types'
 
@@ -26,27 +26,13 @@ const INVITADO = {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setUsuario } = useAuthStore()
 
+  // El proyecto Supabase de Rumbo YA NO EXISTE: llamar a getSession() aquí
+  // hacía que los navegadores con sesión guardada pelearan con reintentos
+  // contra un host muerto en cada carga. La demo navega SIEMPRE como Invitado
+  // y no toca Supabase. Al montar el backend nuevo, restaurar el flujo de
+  // sesión (getSession + onAuthStateChange + fetchUsuario) de git.
   useEffect(() => {
-    const fetchUsuario = async (authId: string) => {
-      const { data } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('auth_id', authId)
-        .single()
-      setUsuario(data ?? INVITADO)
-    }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) fetchUsuario(session.user.id)
-      else setUsuario(INVITADO)
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) fetchUsuario(session.user.id)
-      else setUsuario(INVITADO)
-    })
-
-    return () => subscription.unsubscribe()
+    setUsuario(INVITADO)
   }, [setUsuario])
 
   return <>{children}</>
