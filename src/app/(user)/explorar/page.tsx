@@ -414,6 +414,25 @@ function SeccionStartgg({ juego }: { juego: string }) {
   if (!torneos) return null
   const j = JUEGOS[juego]
 
+  // Agenda como piensa un jugador: Hoy / Mañana / día de la semana
+  const etiquetaDia = (ms: number | null) => {
+    if (!ms) return 'Próximamente'
+    const d = new Date(ms)
+    const hoy = new Date()
+    const dif = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() - new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime()) / 86400000)
+    if (dif <= 0) return 'Hoy'
+    if (dif === 1) return 'Mañana'
+    const label = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })
+    return label[0].toUpperCase() + label.slice(1)
+  }
+  const grupos: { dia: string; items: ProximoSgg[] }[] = []
+  for (const t of torneos) {
+    const dia = etiquetaDia(t.fecha)
+    const g = grupos.find(x => x.dia === dia)
+    if (g) g.items.push(t)
+    else grupos.push({ dia, items: [t] })
+  }
+
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between pt-1">
@@ -423,8 +442,11 @@ function SeccionStartgg({ juego }: { juego: string }) {
         </div>
         <span className="text-[11px] font-mono-num text-[#6B6B85]">{torneos.length}</span>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {torneos.map(t => (
+      {grupos.map(g => (
+      <div key={g.dia}>
+        <p className="mb-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-[#B6FF3A]">{g.dia} <span className="text-[#6B6B85] font-mono-num normal-case tracking-normal">· {g.items.length}</span></p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {g.items.map(t => (
           <a key={t.url} href={t.url} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-3 card-premium card-int px-3.5 py-3">
             <span className="w-12 shrink-0 text-center">
@@ -443,7 +465,9 @@ function SeccionStartgg({ juego }: { juego: string }) {
             <span className="shrink-0 text-[10px] font-bold text-[#6E9BFF] uppercase tracking-wide">start.gg ↗</span>
           </a>
         ))}
+        </div>
       </div>
+      ))}
       <p className="text-[11px] text-[#8B8BA8]">Estos torneos aún no usan Tourneum: son la comunidad a la que vamos. Los datos llegan de start.gg.</p>
     </section>
   )

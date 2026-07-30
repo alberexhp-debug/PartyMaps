@@ -57,8 +57,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           } catch (e) {}
         ` }} />
         <Providers>{children}</Providers>
-        {/* SW sin registrar durante el pivote Tourneum: evita caché vieja de Tourneum
-            (el /sw.js es ahora un kill-switch que purga y se desregistra). */}
+        {/* SW v2 mínimo (sin caché): hace la app instalable y prepara las push.
+            El kill-switch anterior ya curó a los navegadores con el SW de Rumbo. */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}) });
+          }
+        ` }} />
       </body>
     </html>
   )

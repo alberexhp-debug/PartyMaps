@@ -291,6 +291,13 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
   const [tagInput, setTagInput] = useState('')
   const [selReal, setSelReal] = useState<{ p: JugadorReal; puesto: number } | null>(null)
   const [compartido, setCompartido] = useState(false)
+  // Cara a cara: elige un jugador desde su mini-perfil y toca al rival
+  const [vsBase, setVsBase] = useState<JugadorReal | null>(null)
+  const [vsPair, setVsPair] = useState<{ a: JugadorReal; b: JugadorReal } | null>(null)
+  const tocarJugador = (p: JugadorReal, puesto: number) => {
+    if (vsBase && vsBase.nombre !== p.nombre) { setVsPair({ a: vsBase, b: p }); setVsBase(null) }
+    else setSelReal({ p, puesto })
+  }
   const esYo = (nombre: string) => !!tag && nombre.toLowerCase() === tag.toLowerCase()
   const miIdx = tag ? datos.jugadores.findIndex(p => esYo(p.nombre)) : -1
   const miFila = miIdx >= 0 ? datos.jugadores[miIdx] : null
@@ -313,6 +320,13 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
           <span className="dot-live" />
           <p className="flex-1 text-[11px] font-semibold text-[#B8C8E8]">Resultados reales · start.gg {datos.ambito === 'es' ? 'España' : 'Global'} · <span className="font-mono-num">{datos.nTorneos}</span> torneos en {datos.dias} días</p>
         </div>
+        {vsBase && (
+          <div className="mt-2 flex items-center gap-2 rounded-xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/10 px-3 py-2 animate-slide-up-sm">
+            <span>⚔️</span>
+            <p className="flex-1 text-[11px] font-bold text-white">Comparando a {vsBase.nombre} — toca a su rival</p>
+            <button onClick={() => setVsBase(null)} className="text-[10px] text-[#8B8BA8] font-semibold hover:text-white">Cancelar</button>
+          </div>
+        )}
       </div>
 
       {/* Podio real */}
@@ -320,7 +334,7 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
         {podio.map((p, i) => {
           const first = i === 1
           return (
-            <button key={p.nombre} onClick={() => setSelReal({ p, puesto: orden[i] })} className="flex flex-col items-center stagger-item" style={{ width: 96, ['--delay' as string]: `${i * 80}ms` }}>
+            <button key={p.nombre} onClick={() => tocarJugador(p, orden[i])} className="flex flex-col items-center stagger-item" style={{ width: 96, ['--delay' as string]: `${i * 80}ms` }}>
               <div className="relative">
                 {first && <div className="absolute -inset-2.5 rounded-full blur-xl opacity-50 bg-[#E0BE63]" />}
                 <div className="relative rounded-full p-[2.5px]" style={{ background: first ? 'linear-gradient(135deg, #E0BE63, #6E9BFF)' : `${medallas[i]}55` }}>
@@ -346,7 +360,7 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
         {resto.map((p, i) => {
           const yo = esYo(p.nombre)
           return (
-            <button key={p.nombre} onClick={() => setSelReal({ p, puesto: i + 4 })}
+            <button key={p.nombre} onClick={() => tocarJugador(p, i + 4)}
               className={cn('w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl border stagger-item text-left transition-colors', yo ? 'bg-[#B6FF3A]/10 border-[#B6FF3A]/40' : 'bg-white/4 border-white/8 hover:bg-white/[0.07]')} style={{ ['--delay' as string]: `${Math.min(i, 12) * 40}ms` }}>
               <span className={cn('w-6 text-center text-sm font-bold font-mono-num', yo ? 'text-[#B6FF3A]' : 'text-[#8B8BA8]')}>{i + 4}</span>
               <Avatar name={p.nombre} size={38} ring={yo ? '#B6FF3A' : undefined} />
@@ -413,10 +427,63 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
               ))}
             </div>
             <p className="mt-3 text-[11px] text-[#8B8BA8]">Agregado de {datos.nTorneos} torneos ({datos.dias} días). Su perfil completo llegará cuando juegue en Tourneum.</p>
-            <button onClick={() => setSelReal(null)} className="mt-4 w-full h-11 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-bold">Cerrar</button>
+            <div className="mt-4 flex gap-2">
+              <button onClick={() => { setVsBase(selReal.p); setSelReal(null) }}
+                className="flex-1 h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold">⚔️ Comparar con…</button>
+              <button onClick={() => setSelReal(null)} className="h-11 px-4 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-bold">Cerrar</button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Cara a cara: dos jugadores reales, métrica a métrica */}
+      {vsPair && (() => {
+        const { a, b } = vsPair
+        const puestoDe = (x: JugadorReal) => datos.jugadores.findIndex(p => p.nombre === x.nombre) + 1
+        const metricas: { label: string; va: number; vb: number; menorGana?: boolean; fmt?: (n: number) => string }[] = [
+          { label: 'Puntos', va: a.puntos, vb: b.puntos },
+          { label: 'Torneos', va: a.torneos, vb: b.torneos },
+          { label: 'Mejor puesto', va: a.mejor, vb: b.mejor, menorGana: true, fmt: n => `${n}º` },
+        ]
+        const ganadas = metricas.filter(m => (m.menorGana ? m.va < m.vb : m.va > m.vb)).length
+        const perdidas = metricas.filter(m => (m.menorGana ? m.va > m.vb : m.va < m.vb)).length
+        const veredicto = ganadas > perdidas ? `${a.nombre} domina ${ganadas}-${perdidas}` : perdidas > ganadas ? `${b.nombre} domina ${perdidas}-${ganadas}` : 'Empate técnico — que lo decida el bracket'
+        return (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+            <div className="absolute inset-0 bg-black/65 backdrop-blur-sm animate-fade-in" onClick={() => setVsPair(null)} />
+            <div className="relative w-full max-w-sm bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop p-5">
+              <p className="text-center text-[11px] uppercase tracking-[0.16em] text-[#8B8BA8] font-bold mb-3">⚔️ Cara a cara · {datos.ambito === 'es' ? 'España' : 'Mundial'}</p>
+              <div className="flex items-center justify-between gap-3">
+                {[a, b].map(x => (
+                  <div key={x.nombre} className="flex-1 flex flex-col items-center min-w-0">
+                    <Avatar name={x.nombre} size={52} ring={esYo(x.nombre) ? '#B6FF3A' : undefined} />
+                    <p className="mt-1.5 text-sm font-bold text-white truncate max-w-full">{x.nombre}</p>
+                    <p className="text-[10px] text-[#8B8BA8] font-mono-num">#{puestoDe(x)}</p>
+                    <div className="mt-1"><RangoChip rating={x.rating} /></div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 space-y-1.5">
+                {metricas.map(m => {
+                  const gA = m.menorGana ? m.va < m.vb : m.va > m.vb
+                  const gB = m.menorGana ? m.vb < m.va : m.vb > m.va
+                  const f = m.fmt ?? ((n: number) => String(n))
+                  return (
+                    <div key={m.label} className="flex items-center gap-2 rounded-xl bg-white/4 border border-white/8 px-3 py-2">
+                      <span className={cn('w-14 text-left text-sm font-bold font-mono-num', gA ? 'text-[#B6FF3A]' : 'text-white')}>{f(m.va)}</span>
+                      <span className="flex-1 text-center text-[10px] uppercase tracking-wider text-[#8B8BA8] font-semibold">{m.label}</span>
+                      <span className={cn('w-14 text-right text-sm font-bold font-mono-num', gB ? 'text-[#B6FF3A]' : 'text-white')}>{f(m.vb)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <p className="mt-3 text-center text-[12px] font-bold text-[#E0BE63]">{veredicto}</p>
+              <p className="mt-1 text-center text-[10px] text-[#8B8BA8]">Con resultados reales de start.gg ({datos.dias} días). El H2H set a set llegará con los torneos Tourneum.</p>
+              <button onClick={() => setVsPair(null)} className="mt-4 w-full h-11 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-bold">Cerrar</button>
+            </div>
+          </div>
+        )
+      })()}
     </>
   )
 }

@@ -47,6 +47,9 @@ export default function GestionarTorneoPage() {
 
   const [tab, setTab] = useState<'inscritos' | 'bracket' | 'ajustes'>('inscritos')
   const [q, setQ] = useState('')
+  const [avisoOpen, setAvisoOpen] = useState(false)
+  const [avisoTexto, setAvisoTexto] = useState('')
+  const [avisoEnviado, setAvisoEnviado] = useState(false)
   const [sel, setSel] = useState<Jugador | null>(null)
   const [form, setForm] = useState<{ nombre: string; plazas: number; precio: number; formato: string; fechaLabel: string; videoUrl: string; banner?: string; startgg: string } | null>(null)
   const [guardado, setGuardado] = useState(false)
@@ -295,6 +298,33 @@ export default function GestionarTorneoPage() {
           )}
             </div>
             <p className="mt-2.5 text-[11px] text-[#8B8BA8]"><span className="font-mono-num text-[#B6FF3A]">{nCheck}</span> de <span className="font-mono-num">{inscritos.length}</span> con check-in · seeding por ranking</p>
+
+            {/* Avisar a todos los inscritos (cambio de hora, sala, normas…) */}
+            <div className="mt-2.5">
+              {avisoOpen ? (
+                <div className="card-premium p-3 space-y-2 animate-slide-up-sm">
+                  <textarea value={avisoTexto} onChange={e => setAvisoTexto(e.target.value)} rows={2} autoFocus
+                    placeholder="Ej. Empezamos 30 min tarde por el aforo. Check-in hasta las 18:15."
+                    className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none resize-none" />
+                  <div className="flex gap-2">
+                    <button onClick={() => {
+                      if (!avisoTexto.trim()) return
+                      pushNoti({ tipo: 'sistema', titulo: `📣 Aviso de «${t!.nombre}»`, cuerpo: avisoTexto.trim(), href: `/torneo/${t!.id}` })
+                      setAvisoTexto(''); setAvisoOpen(false); setAvisoEnviado(true); setTimeout(() => setAvisoEnviado(false), 2500)
+                    }} disabled={!avisoTexto.trim()}
+                      className="flex-1 h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold disabled:opacity-40">
+                      Enviar a {nOcupadas} inscritos
+                    </button>
+                    <button onClick={() => setAvisoOpen(false)} className="h-10 px-3.5 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-semibold">Cancelar</button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setAvisoOpen(true)}
+                  className={`h-10 px-3.5 rounded-xl text-[13px] font-bold inline-flex items-center gap-1.5 transition-colors ${avisoEnviado ? 'bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A]' : 'bg-white/6 border border-white/12 text-white hover:bg-white/10'}`}>
+                  <Megaphone size={14} /> {avisoEnviado ? 'Aviso enviado ✓' : 'Avisar a los inscritos'}
+                </button>
+              )}
+            </div>
 
             <div className="mt-2 space-y-1.5">
               {filtrados.map((p, i) => {

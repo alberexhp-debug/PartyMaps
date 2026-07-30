@@ -1,24 +1,20 @@
-/* Service worker — modo PIVOTE TODH.
+/* Service worker de TOURNEUM · v2 (mínimo a conciencia).
  *
- * El SW anterior cacheaba el shell de Rumbo (cache-first sobre `/`), así que tras
- * el pivote el navegador seguía sirviendo el HTML viejo y pedía chunks JS de
- * hashes que ya no existen → la app no hidrataba y se quedaba en el splash
- * ("pantalla de carga infinita de Rumbo").
+ * Historia: el SW de Rumbo cacheaba el shell (cache-first) y tras el pivote
+ * servía HTML viejo con chunks muertos → pantalla de carga infinita. Le siguió
+ * un kill-switch que purgaba y se desregistraba.
  *
- * Esto es un "kill-switch": purga TODA la caché y se desregistra. Cualquier
- * navegador que tuviera el SW viejo de Rumbo se auto-cura en cuanto fetcha este
- * fichero. No cachea nada (todo va a red). Reintroduciremos un SW/PWA propio de
- * TODH más adelante, cuando el MVP esté estable.
+ * Este v2 existe SOLO para que la app sea instalable (añadir a inicio) y para
+ * las push del futuro. NO tiene handler de fetch: cero caché, todo va a red.
+ * Si algún día se añade caché, que sea con versionado y expiración explícitos.
  */
 self.addEventListener('install', () => self.skipWaiting())
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
+    // Higiene: fuera cualquier caché heredada de versiones anteriores
     const keys = await caches.keys()
     await Promise.all(keys.map((k) => caches.delete(k)))
     await self.clients.claim()
-    await self.registration.unregister()
   })())
 })
-
-/* Sin handler de 'fetch': el SW no intercepta nada; todo se sirve de red. */
