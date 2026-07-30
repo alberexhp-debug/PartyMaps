@@ -20,6 +20,16 @@ export type StartggDatos = {
   top8: { puesto: number; nombre: string }[]
 }
 
+// Juegos del catálogo con presencia real en start.gg (id de videogame allí).
+// smash/sf6/tekken tienen escena en España; tft/pokemon/valorant/lol solo
+// global (el ranking cae a Global si España no da para una tabla). Magic y
+// CoD no viven en start.gg → se quedan con la muestra de la demo.
+export const STARTGG_VIDEOGAMES: Record<string, number> = {
+  smash: 1386, sf6: 43868, tekken: 49783,
+  tft: 33594, pokemon: 49385, valorant: 34223, lol: 10,
+}
+export const JUEGOS_CON_STARTGG = new Set(Object.keys(STARTGG_VIDEOGAMES))
+
 // Acepta la URL completa (con o sin /event/...), "tournament/<slug>" o el slug pelado.
 export function parseStartggSlug(input: string): { torneo: string; evento?: string } | null {
   const s = input.trim()

@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { JUEGOS, rankingPorJuego, usuarioStatDe, type Jugador } from '@/lib/torneos/sample'
+import { JUEGOS_CON_STARTGG } from '@/lib/torneos/startgg'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
@@ -14,11 +15,11 @@ import { Globe, MapPin, Crown, ChevronUp, ChevronDown, Minus, Store, Wifi, Troph
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
-// Ranking REAL vía start.gg: juegos con escena española activa allí. Para el
-// resto se mantiene la muestra de la demo.
-const JUEGOS_STARTGG = new Set(['smash', 'sf6', 'tekken'])
-type JugadorReal = { nombre: string; puntos: number; torneos: number; mejor: number }
-type RankingRealData = { nTorneos: number; jugadores: JugadorReal[] }
+// Ranking REAL vía start.gg: todos los juegos con presencia allí (España
+// primero; cae a Global si la escena local no da para tabla). Magic y CoD no
+// viven en start.gg y mantienen la muestra de la demo.
+type JugadorReal = { nombre: string; puntos: number; torneos: number; mejor: number; rating: number }
+type RankingRealData = { ambito: 'es' | 'global'; nTorneos: number; dias: number; jugadores: JugadorReal[] }
 
 function avatarColor(name: string) {
   const c = ['#E63E54', '#F4912B', '#4F8EF7', '#9B5DE5', '#2EC4B6', '#B6FF3A']
@@ -71,7 +72,7 @@ export default function RankingPage() {
   // Si la API no responde o hay pocos jugadores, se queda la muestra.
   const [real, setReal] = useState<Record<string, RankingRealData | null>>({})
   useEffect(() => {
-    if (!JUEGOS_STARTGG.has(juego) || real[juego] !== undefined) return
+    if (!JUEGOS_CON_STARTGG.has(juego) || real[juego] !== undefined) return
     let vivo = true
     fetch(`/api/startgg/ranking?juego=${juego}`)
       .then(r => (r.ok ? r.json() : null))
@@ -322,7 +323,7 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
       <div className="relative px-4 mt-4 max-w-2xl lg:max-w-4xl mx-auto">
         <div className="flex items-center gap-2 rounded-xl border border-[#6E9BFF]/30 bg-[#6E9BFF]/[0.07] px-3 py-2">
           <span className="dot-live" />
-          <p className="flex-1 text-[11px] font-semibold text-[#B8C8E8]">Resultados reales · start.gg España · <span className="font-mono-num">{datos.nTorneos}</span> torneos en 120 días</p>
+          <p className="flex-1 text-[11px] font-semibold text-[#B8C8E8]">Resultados reales · start.gg {datos.ambito === 'es' ? 'España' : 'Global'} · <span className="font-mono-num">{datos.nTorneos}</span> torneos en {datos.dias} días</p>
         </div>
       </div>
 
@@ -341,7 +342,8 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
               </div>
               <p className="mt-2 text-sm font-bold text-white truncate max-w-full">{p.nombre}{esYo(p.nombre) && <span className="ml-1 text-[10px] font-black uppercase text-[#B6FF3A]">· tú</span>}</p>
               <p className="text-[15px] font-bold text-score" style={{ color: first ? '#E0BE63' : '#B6FF3A' }}><CountUp value={p.puntos} duration={1000} /> <span className="text-[10px] text-[#8B8BA8]">pts</span></p>
-              <p className="text-[10px] text-[#8B8BA8] font-mono-num">{p.torneos} torneos</p>
+              <div className="mt-0.5 flex justify-center"><RangoChip rating={p.rating} /></div>
+              <p className="mt-0.5 text-[10px] text-[#8B8BA8] font-mono-num">{p.torneos} torneos</p>
               <div className="mt-2 w-full rounded-t-xl flex items-start justify-center pt-1.5 ring-grad relative overflow-hidden"
                 style={{ height: alturas[i], background: `linear-gradient(180deg, ${medallas[i]}2E, ${medallas[i]}08)`, borderTop: `2px solid ${medallas[i]}` }}>
                 <span className="text-3xl font-bold text-score" style={{ color: medallas[i] }}>{orden[i]}</span>
@@ -363,7 +365,8 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
                 <p className="text-sm font-bold text-white truncate">{p.nombre}{yo && <span className="ml-1.5 text-[10px] font-black uppercase text-[#B6FF3A]">tú</span>}</p>
                 <p className="text-[11px] text-[#8B8BA8] font-mono-num">{p.torneos} {p.torneos === 1 ? 'torneo' : 'torneos'} · mejor: {p.mejor}º</p>
               </div>
-              <span className="text-sm font-bold text-white font-mono-num">{p.puntos} <span className="text-[10px] text-[#8B8BA8] font-semibold">pts</span></span>
+              <RangoChip rating={p.rating} />
+              <span className="text-sm font-bold text-white font-mono-num w-12 text-right">{p.puntos} <span className="text-[10px] text-[#8B8BA8] font-semibold">pts</span></span>
             </div>
           )
         })}
@@ -379,7 +382,7 @@ function BloqueRankingReal({ datos }: { datos: RankingRealData }) {
         ) : tag ? (
           <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/10">
             <Avatar name={tag} size={38} ring="#8B8BA8" />
-            <p className="flex-1 text-[12px] text-[#B8B8CC]">Vinculado como <span className="text-white font-bold">{tag}</span> — sin top 8 en España estos 120 días. Tu puesto se estrena con tu próximo torneo.</p>
+            <p className="flex-1 text-[12px] text-[#B8B8CC]">Vinculado como <span className="text-white font-bold">{tag}</span> — sin top 16 en {datos.ambito === 'es' ? 'España' : 'la escena global'} estos {datos.dias} días. Tu puesto se estrena con tu próximo torneo.</p>
             <button onClick={() => vincular(null)} className="text-[10px] text-[#8B8BA8] font-semibold hover:text-white shrink-0">Desvincular</button>
           </div>
         ) : (
