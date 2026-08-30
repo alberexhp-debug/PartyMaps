@@ -1,6 +1,6 @@
 /**
  * Ilustraciones SVG abstractas para empty states. Más personalidad que un
- * icono lucide genérico. Todas usan la paleta Tourneum y se animan.
+ * icono lucide genérico. Todas usan la paleta Torneum y se animan.
  */
 
 interface IllustrationProps {

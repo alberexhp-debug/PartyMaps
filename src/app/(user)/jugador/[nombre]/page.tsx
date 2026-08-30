@@ -2,13 +2,15 @@
 import { Suspense, useMemo, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { JUEGOS, JUEGOS_LIST, TORNEOS_SAMPLE, rankingPorJuego, type Jugador } from '@/lib/torneos/sample'
+import { JUEGOS, JUEGOS_LIST, TORNEOS_SAMPLE, rankingPorJuego, plantillaDe, type Jugador } from '@/lib/torneos/sample'
 import { GameKeyart } from '@/components/todh/GameKeyart'
+import { GameIcon } from '@/components/todh/GameIcon'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { CountUp } from '@/components/ui/CountUp'
 import { RangoChip } from '@/components/todh/RangoChip'
+import { ScoutingPanel } from '@/components/todh/ScoutingSheet'
 import { useT } from '@/lib/i18n'
-import { ArrowLeft, Star, Swords, TrendingUp, Trophy, UserPlus, Check, Calendar, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Star, Swords, TrendingUp, Trophy, UserPlus, Check, Calendar, ChevronRight, Medal, Search } from 'lucide-react'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
@@ -70,12 +72,12 @@ function JugadorContent() {
   const puesto = rankingPorJuego(jugador.juego).findIndex(p => p.id === jugador.id) + 1
   // Historial de muestra: torneos recientes de su juego con puestos deterministas
   const historial = TORNEOS_SAMPLE.filter(t => t.juego === jugador.juego).slice(0, 4).map((t, i) => ({
-    t, puesto: ['🥇 1º', 'Top 4', '🥈 2º', 'Top 8'][(i + jugador.nombre.length) % 4],
+    t, puesto: ['1º', 'Top 4', '2º', 'Top 8'][(i + jugador.nombre.length) % 4],
   }))
   const racha = ['V', 'V', 'D', 'V', 'V', 'V', 'D', 'V'].slice(0, 8 - (jugador.nombre.length % 3))
 
   return (
-    <div className="relative min-h-screen pb-12 max-w-xl lg:max-w-4xl mx-auto">
+    <div className="relative min-h-screen pb-12 max-w-xl mx-auto lg:max-w-none lg:mx-0">
       {/* Banner con keyart del juego */}
       <div className="relative h-36 lg:h-44 overflow-hidden lg:rounded-b-3xl">
         <GameKeyart juegoId={jugador.juego} label={false} className="absolute inset-0" />
@@ -100,7 +102,7 @@ function JugadorContent() {
           <span className="inline-flex items-center px-2 h-6 rounded-full text-[11px] font-bold border" style={{ color: tierColor, borderColor: `${tierColor}55`, background: `${tierColor}1A` }}>{jugador.tier}</span>
           {jugador.online && <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-bold bg-[#2ED47A]/12 text-[#2ED47A] border border-[#2ED47A]/35"><span className="w-1.5 h-1.5 rounded-full bg-[#2ED47A]" /> {tr('mp.enLinea')}</span>}
         </div>
-        <p className="text-sm text-[#8B8BA8]">{jugador.handle} · #{puesto} de {juego.corto} en España</p>
+        <p className="text-sm text-[#8B8BA8]">{jugador.handle} · #{puesto} {tr('logros.de')} <GameIcon juegoId={jugador.juego} size={13} /> {juego.corto} {tr('jg.enEspana')}</p>
 
         {/* Escritorio: identidad izquierda + historial derecha */}
         <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
@@ -110,11 +112,11 @@ function JugadorContent() {
           <GameKeyart juegoId={jugador.juego} label={false} className="absolute inset-x-0 top-0 h-full opacity-15" />
           <div className="relative flex items-end justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-[#8B8BA8] font-bold">Rating {juego.corto}</p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[#8B8BA8] font-bold"><GameIcon juegoId={jugador.juego} size={12} /> Rating {juego.corto}</p>
               <p className="text-[46px] font-bold text-score leading-none mt-1" style={{ color: juego.color }}><CountUp value={jugador.rating} duration={1000} /></p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] uppercase tracking-[0.12em] text-[#8B8BA8] font-bold">{tr('mp.main')}</p>
+              <p className="text-[10px] uppercase tracking-[0.12em] text-[#8B8BA8] font-bold">{plantillaDe(jugador.juego).labelMain}</p>
               <div className="mt-1"><PersonajeChip juegoId={jugador.juego} nombre={jugador.main} size="md" /></div>
             </div>
           </div>
@@ -124,7 +126,13 @@ function JugadorContent() {
         <div className="mt-3 grid grid-cols-3 gap-2">
           <Stat icon={<Swords size={14} className="text-[#B6FF3A]" />} label={tr('mp.record')} value={`${jugador.victorias}-${jugador.derrotas}`} />
           <Stat icon={<TrendingUp size={14} className="text-[#4F8EF7]" />} label={tr('mp.winrate')} value={`${winrate}%`} />
-          <Stat icon={<Star size={14} className="text-[#E0BE63]" />} label={tr('mp.mejorPuesto')} value={jugador.mejorPuesto.replace('🥇 ', '').replace('🥈 ', '')} />
+          <Stat icon={<Star size={14} className="text-[#E0BE63]" />} label={tr('mp.mejorPuesto')} value={
+            <span className="inline-flex items-center gap-1">
+              {jugador.mejorPuesto.startsWith('🥇') && <Medal size={12} className="text-[#E0BE63]" aria-hidden="true" />}
+              {jugador.mejorPuesto.startsWith('🥈') && <Medal size={12} className="text-[#B8C4D4]" aria-hidden="true" />}
+              {jugador.mejorPuesto.replace('🥇 ', '').replace('🥈 ', '')}
+            </span>
+          } />
         </div>
 
         {/* Racha */}
@@ -150,19 +158,30 @@ function JugadorContent() {
                 <p className="text-sm font-semibold text-white truncate">{t.nombre}</p>
                 <p className="text-[11px] text-[#8B8BA8] inline-flex items-center gap-1"><Calendar size={10} /> {t.fechaLabel}</p>
               </div>
-              <span className="text-sm font-bold text-[#E0BE63] shrink-0">{pu}</span>
+              <span className="text-sm font-bold text-[#E0BE63] shrink-0 inline-flex items-center gap-1">
+                {pu === '1º' && <Medal size={13} className="text-[#E0BE63]" aria-hidden="true" />}
+                {pu === '2º' && <Medal size={13} className="text-[#B8C4D4]" aria-hidden="true" />}
+                {pu}
+              </span>
               <ChevronRight size={14} className="text-[#6B6B85] shrink-0" />
             </Link>
           ))}
         </div>
         </div>
         </div>
+
+        {/* Scouting v1: bloque «Estudiar» del perfil público. El historial ya
+            está arriba (sinHistorial); los muros por tier los pone el panel. */}
+        <div className="mt-6">
+          <p className="eyebrow eyebrow-muted mb-2 flex items-center gap-1.5"><Search size={12} className="text-[#67E8F9]" /> {tr('sc.titulo')}</p>
+          <ScoutingPanel nombre={jugador.nombre} juego={jugador.juego} sinHistorial />
+        </div>
       </div>
     </div>
   )
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div className="card-premium px-2 py-3 flex flex-col items-center gap-1">
       {icon}

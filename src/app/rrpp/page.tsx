@@ -91,8 +91,8 @@ function SinInvitacion() {
       <ShieldOff className="w-12 h-12 text-amber-400 mb-4" />
       <h1 className="text-display text-3xl mb-2">No tienes acceso al modo RRPP</h1>
       <p className="text-secondary text-sm max-w-md mb-6">
-        Para ser RRPP en Tourneum debes ser invitado por un local que quiera trabajar contigo
-        o dado de alta por el equipo de Tourneum. No es un perfil que puedas activar por tu cuenta —
+        Para ser RRPP en Torneum debes ser invitado por un local que quiera trabajar contigo
+        o dado de alta por el equipo de Torneum. No es un perfil que puedas activar por tu cuenta —
         así controlamos quién promociona y la calidad de la red.
       </p>
       <div className="space-y-2 text-sm">
@@ -172,7 +172,7 @@ function CompletarPerfil({ rrpp, onListo }: { rrpp: RRPP; onListo: () => void })
           <input type="checkbox" checked={aceptaEdad}
             onChange={e => setAceptaEdad(e.target.checked)} className="mt-1" />
           <span>Confirmo que soy mayor de 18 años y que cualquier obligación fiscal por
-            comisiones cobradas es mía, no de Tourneum.</span>
+            comisiones cobradas es mía, no de Torneum.</span>
         </label>
         {error && <p className="text-rose-300 text-sm">{error}</p>}
         <button onClick={enviar} disabled={!nombrePublico || !aceptaEdad || enviando}
@@ -401,7 +401,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
             </button>
           </div>
           <p className="text-[#8B8BA8] text-xs mt-2">
-            Dáselo a la gente: al registrarse en Tourneum con tu código, contamos sus entradas y consumiciones a tu nombre durante 24h.
+            Dáselo a la gente: al registrarse en Torneum con tu código, contamos sus entradas y consumiciones a tu nombre durante 24h.
           </p>
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2">
             <LinkIcon className="w-4 h-4 shrink-0 text-[#A0A0B8]" />
@@ -525,7 +525,7 @@ function Dashboard({ rrpp, venues, liqs, onRecargar }: {
         </SectionCard>
 
         <footer className="text-center text-[#6B6B85] text-xs pt-4 border-t border-white/5">
-          Tourneum no procesa el pago entre tú y el local. Las cifras de arriba son
+          Torneum no procesa el pago entre tú y el local. Las cifras de arriba son
           lo que el local te debe según las ventas atribuidas. El pago lo gestionáis vosotros.
         </footer>
       </div>

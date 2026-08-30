@@ -250,7 +250,7 @@ export default function TaquillaPage() {
             className="w-full btn-primary inline-flex items-center justify-center gap-2 h-12 text-base">
             <Check size={18} /> {vendiendo ? 'Generando…' : 'Cobrar y generar entrada'}
           </button>
-          <p className="text-center text-[11px] text-[#6B6B85]">El dinero lo cobras tú en mano. Sin comisión de Tourneum en taquilla.</p>
+          <p className="text-center text-[11px] text-[#6B6B85]">El dinero lo cobras tú en mano. Sin comisión de Torneum en taquilla.</p>
         </div>
       </SectionCard>
     </div>

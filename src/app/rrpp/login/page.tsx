@@ -100,7 +100,7 @@ export default function RRPPLoginPage() {
       {paso === 'cred' && (
         <div className="relative mt-8 text-center">
           <p className="text-sm text-[#A0A0B8]">
-            ¿Aún no eres RRPP en Tourneum?{' '}
+            ¿Aún no eres RRPP en Torneum?{' '}
             <Link href="/login" className="font-semibold text-[#B6FF3A]">Entra como usuario</Link>
           </p>
         </div>

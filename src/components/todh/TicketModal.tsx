@@ -4,12 +4,15 @@ import type { TorneoSample } from '@/lib/torneos/sample'
 import { JUEGOS } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { X, Calendar, MapPin, Sun, Check, QrCode } from 'lucide-react'
+import { GameIcon } from '@/components/todh/GameIcon'
+import { useT } from '@/lib/i18n'
 
 // Modal de entrada con QR (offline). En demo el QR codifica un id ficticio.
 export function TicketModal({ torneo, espectador, onClose }: { torneo: TorneoSample; espectador?: boolean; onClose: () => void }) {
+  const { t: tr } = useT()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const juego = JUEGOS[torneo.juego]
-  const code = `Tourneum-${torneo.id.toUpperCase()}${espectador ? '-VER' : ''}-DEMO`
+  const code = `Torneum-${torneo.id.toUpperCase()}${espectador ? '-VER' : ''}-DEMO`
   const hecho = useDemoStore(s => s.checkinsJugador.includes(torneo.id))
   const hacerCheckin = useDemoStore(s => s.hacerCheckin)
   const puedeCheckin = torneo.esHoy || torneo.checkInAbierto
@@ -31,7 +34,7 @@ export function TicketModal({ torneo, espectador, onClose }: { torneo: TorneoSam
           <div className="relative h-20" style={{ background: `linear-gradient(120deg, ${juego.color}, ${juego.color}99)` }}>
             <button onClick={onClose} aria-label="Cerrar" className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/25 flex items-center justify-center text-white"><X size={16} /></button>
             <div className="absolute bottom-2.5 left-5 right-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/85">{juego.nombre}{espectador ? ' · Espectador' : ''}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/85"><GameIcon juegoId={torneo.juego} size={12} color="#FFFFFF" /> {juego.nombre}{espectador ? ' · Espectador' : ''}</p>
               <p className="text-lg font-black text-white text-display leading-tight truncate">{torneo.nombre}</p>
             </div>
           </div>
@@ -49,7 +52,7 @@ export function TicketModal({ torneo, espectador, onClose }: { torneo: TorneoSam
           <div className="px-5 pb-6 flex flex-col items-center">
             <canvas ref={canvasRef} className="rounded-xl" />
             <p className="mt-3 font-mono-num text-[13px] font-bold text-[#0A0A0F] tracking-wider">{code}</p>
-            <p className="mt-1 text-[11px] text-[#777] text-center">Muestra este QR en el check-in. Funciona sin conexión.</p>
+            <p className="mt-1 text-[11px] text-[#777] text-center">{tr('tk.muestraQR')}</p>
             <div className="mt-3 flex items-center gap-1.5 text-[10px] text-[#999]"><Sun size={11} /> Sube el brillo para escanear mejor</div>
             {/* Check-in del jugador (cuando el torneo lo tiene abierto) */}
             {puedeCheckin && (
@@ -60,7 +63,7 @@ export function TicketModal({ torneo, espectador, onClose }: { torneo: TorneoSam
               ) : (
                 <button onClick={() => hacerCheckin(torneo.id, torneo.nombre)}
                   className="mt-4 w-full h-11 rounded-xl bg-[#0A0A0F] text-white text-sm font-bold flex items-center justify-center gap-2 active:scale-[0.99] transition-transform">
-                  <QrCode size={16} /> Ya estoy aquí · hacer check-in
+                  <QrCode size={16} /> {tr('tk.yaEstoy')}
                 </button>
               )
             )}

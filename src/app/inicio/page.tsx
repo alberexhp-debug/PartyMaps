@@ -1,14 +1,14 @@
 'use client'
 import Link from 'next/link'
 import { TORNEOS_SAMPLE, JUEGOS } from '@/lib/torneos/sample'
-import { useT } from '@/lib/i18n'
+import { useT, type ClaveI18n } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { ArrowRight, Trophy, MapPin, Calendar } from 'lucide-react'
 
-const PASOS = [
-  { Ic: MapPin, t: 'Descubre', d: 'Torneos de tu juego cerca de ti, en el mapa o el feed.' },
-  { Ic: Calendar, t: 'Inscríbete', d: 'Apúntate y paga desde la app. Check-in con QR.' },
-  { Ic: Trophy, t: 'Compite', d: 'Bracket en vivo, reporta tu resultado y sube en el ranking.' },
+const PASOS: { Ic: typeof MapPin; tK: ClaveI18n; dK: ClaveI18n }[] = [
+  { Ic: MapPin, tK: 'inicio.paso1t', dK: 'inicio.paso1d' },
+  { Ic: Calendar, tK: 'inicio.paso2t', dK: 'inicio.paso2d' },
+  { Ic: Trophy, tK: 'inicio.paso3t', dK: 'inicio.paso3d' },
 ]
 
 export default function InicioPage() {
@@ -27,7 +27,7 @@ export default function InicioPage() {
         <div className="relative px-6 pt-16 pb-10 safe-top max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2.5 mb-9">
             <span className="w-10 h-10 rounded-xl bg-[#B6FF3A] flex items-center justify-center text-[#0A0A0F] text-base font-black text-display">T</span>
-            <span className="text-xl font-black text-display uppercase tracking-[0.22em] text-white">Tourneum</span>
+            <span className="text-xl font-black text-display uppercase tracking-[0.22em] text-white">Torneum</span>
           </div>
 
           {live > 0 && (
@@ -43,15 +43,14 @@ export default function InicioPage() {
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/explorar" className="h-14 px-8 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] glow-lime active:scale-[0.98] transition-transform">
-              Explorar torneos <ArrowRight size={18} />
+            <Link href="/login" className="h-14 px-8 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-[15px] glow-lime active:scale-[0.98] transition-transform">
+              {t('inicio.iniciarSesion')} <ArrowRight size={18} />
             </Link>
-            <Link href="/consola" className="h-14 px-8 inline-flex items-center justify-center gap-2 rounded-2xl glass-strong text-white font-bold text-[15px] hover:bg-white/10 transition-colors">
-              Soy organizador
+            <Link href="/preregistro" className="h-14 px-8 inline-flex items-center justify-center gap-2 rounded-2xl glass-strong text-white font-bold text-[15px] hover:bg-white/10 transition-colors">
+              {t('inicio.preregistrate')}
             </Link>
           </div>
-          <p className="mt-3 text-[13px] text-[#8B8BA8]">🚀 Lanzamos pronto en Madrid — <Link href="/preregistro" className="text-[#B6FF3A] font-semibold">preregístrate y sé fundador →</Link></p>
-          <Link href="/sede" className="mt-3 inline-block text-sm text-[#8B8BA8] hover:text-white transition-colors">{t('inicio.tienesLocal')} <span className="text-[#B6FF3A] font-semibold">{t('inicio.abrePanelSede')}</span></Link>
+          <p className="mt-3 text-[13px] text-[#8B8BA8]">{t('inicio.lanzamos')} <Link href="/preregistro" className="text-[#B6FF3A] font-semibold">{t('inicio.seFundador')}</Link></p>
         </div>
       </div>
 
@@ -67,13 +66,13 @@ export default function InicioPage() {
           ))}
         </div>
 
-      {/* Circuito oficial Tourneum */}
+      {/* Circuito oficial Torneum */}
       <div className="px-5 mt-8 max-w-2xl mx-auto">
         <Link href="/circuito" className="flex items-center gap-3 rounded-2xl border border-[#E0BE63]/35 bg-[#E0BE63]/[0.07] px-4 py-3.5 hover:bg-[#E0BE63]/[0.12] transition-colors">
           <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#E0BE63]/15 text-[#E0BE63] shrink-0 text-xl">🏆</span>
           <span className="flex-1 min-w-0">
-            <span className="block text-sm font-bold text-white">Circuito oficial Tourneum · Split 2 · 2026</span>
-            <span className="block text-[11px] text-[#D8C48A]">2 veces al año · clasifícate jugando los oficiales · próximo: 13 dic</span>
+            <span className="block text-sm font-bold text-white">{t('inicio.circuito')}</span>
+            <span className="block text-[11px] text-[#D8C48A]">{t('inicio.circuitoSub')}</span>
           </span>
           <span className="text-[#E0BE63]">›</span>
         </Link>
@@ -84,12 +83,12 @@ export default function InicioPage() {
       <div className="relative px-6 max-w-2xl mx-auto mt-14">
         <h2 className="text-2xl font-bold text-white text-display text-center mb-6">{t('inicio.comoFunciona')}</h2>
         <div className="space-y-3">
-          {PASOS.map(({ Ic, t, d }, i) => (
+          {PASOS.map(({ Ic, tK, dK }, i) => (
             <div key={i} className="flex items-center gap-4 card-premium p-4">
               <span className="w-11 h-11 rounded-xl bg-[#B6FF3A]/15 text-[#B6FF3A] flex items-center justify-center shrink-0"><Ic size={20} /></span>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-white">{t}</p>
-                <p className="text-sm text-[#A0A0B8]">{d}</p>
+                <p className="font-bold text-white">{t(tK)}</p>
+                <p className="text-sm text-[#A0A0B8]">{t(dK)}</p>
               </div>
               <span className="text-3xl font-black text-white/[0.08] font-mono-num">{i + 1}</span>
             </div>
@@ -101,21 +100,17 @@ export default function InicioPage() {
       <div className="relative px-6 max-w-2xl mx-auto mt-14 mb-14 text-center">
         <div className="card-premium ring-grad p-8 relative overflow-hidden">
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full blur-3xl opacity-20" style={{ background: '#B6FF3A' }} />
-          <h2 className="relative text-2xl font-bold text-white text-display">¿Listo para competir?</h2>
-          <p className="relative text-[#B8B8CC] mt-2">Entra y encuentra tu próximo torneo.</p>
-          <Link href="/explorar" className="relative mt-6 h-14 px-8 inline-flex items-center gap-2 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold glow-lime active:scale-[0.98] transition-transform">
-            Explorar torneos <ArrowRight size={18} />
+          <h2 className="relative text-2xl font-bold text-white text-display">{t('inicio.listo')}</h2>
+          <p className="relative text-[#B8B8CC] mt-2">{t('inicio.entraEncuentra')}</p>
+          <Link href="/login" className="relative mt-6 h-14 px-8 inline-flex items-center gap-2 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold glow-lime active:scale-[0.98] transition-transform">
+            {t('inicio.iniciarSesion')} <ArrowRight size={18} />
           </Link>
         </div>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-[#6B6B85]">
-          <span className="uppercase tracking-[0.18em]">Paneles demo:</span>
-          <Link href="/consola" className="hover:text-[#B6FF3A]">Organizador</Link>
-          <span>·</span>
-          <Link href="/sede" className="hover:text-[#B6FF3A]">Local</Link>
-          <span>·</span>
-          <Link href="/admin-demo" className="hover:text-[#B6FF3A]">Admin</Link>
+          <span className="uppercase tracking-[0.18em]">{t('inicio.unaCuenta')}</span>
+          <span>{t('inicio.roles')}</span>
         </div>
-        <p className="text-[10px] text-[#6B6B85] uppercase tracking-[0.2em] mt-4">© Tourneum · Que gane el mejor</p>
+        <p className="text-[10px] text-[#6B6B85] uppercase tracking-[0.2em] mt-4">{t('inicio.copyright')}</p>
       </div>
     </div>
   )

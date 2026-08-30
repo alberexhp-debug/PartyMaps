@@ -9,6 +9,7 @@ import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { GameKeyart } from '@/components/todh/GameKeyart'
+import { GameIcon } from '@/components/todh/GameIcon'
 import { useT } from '@/lib/i18n'
 import { ArrowLeft, Search, Trophy, Store, MapPin, Star, Verified } from 'lucide-react'
 
@@ -48,7 +49,7 @@ export default function BuscarPage() {
   return (
     <div className="relative min-h-screen pb-10">
       <div className="px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
-      <div className="flex items-center gap-2 max-w-2xl lg:max-w-3xl mx-auto">
+      <div className="flex items-center gap-2 max-w-2xl mx-auto lg:max-w-none lg:mx-0">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="flex-1 relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B8BA8]" />
@@ -58,7 +59,7 @@ export default function BuscarPage() {
       </div>
       </div>
 
-      <div className="px-4 pt-4 max-w-2xl lg:max-w-3xl mx-auto">
+      <div className="px-4 pt-4 max-w-2xl mx-auto lg:max-w-none lg:mx-0">
         {!query ? (
           <div>
             <p className="eyebrow eyebrow-muted mb-2.5">{tr('buscar.sugeridas')}</p>
@@ -77,7 +78,7 @@ export default function BuscarPage() {
                   <GameKeyart juegoId={t.juego} label={false} className="w-11 h-11 rounded-xl shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
-                    <p className="text-[11px] text-[#8B8BA8]">{JUEGOS[t.juego]?.corto} · {t.fechaLabel} · <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></p>
+                    <p className="text-[11px] text-[#8B8BA8]"><GameIcon juegoId={t.juego} size={12} /> {JUEGOS[t.juego]?.corto} · {t.fechaLabel} · <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></p>
                   </div>
                   {t.enDirecto && <span className="badge-live shrink-0">Live</span>}
                 </Link>
@@ -112,7 +113,7 @@ export default function BuscarPage() {
                     <GameKeyart juegoId={t.juego} label={false} className="w-12 h-12 rounded-xl shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
-                      <p className="text-[11px] text-[#8B8BA8]">{JUEGOS[t.juego]?.corto} · {t.fechaLabel}</p>
+                      <p className="text-[11px] text-[#8B8BA8]"><GameIcon juegoId={t.juego} size={12} /> {JUEGOS[t.juego]?.corto} · {t.fechaLabel}</p>
                     </div>
                   </Link>
                 ))}
@@ -151,7 +152,7 @@ export default function BuscarPage() {
                     <span className="inline-flex items-center justify-center w-11 h-11 rounded-full text-[#0A0A0F] font-black shrink-0" style={{ background: JUEGOS[p.juego]?.color }}>{p.nombre[0]}</span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-bold text-white truncate">{p.nombre} {p.bandera}</p>
-                      <p className="text-[11px] text-[#8B8BA8] font-mono-num">{JUEGOS[p.juego]?.corto} · {p.rating} · {p.tier}</p>
+                      <p className="text-[11px] text-[#8B8BA8] font-mono-num"><GameIcon juegoId={p.juego} size={12} /> {JUEGOS[p.juego]?.corto} · {p.rating} · {p.tier}</p>
                     </div>
                   </button>
                 ))}

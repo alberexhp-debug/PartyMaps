@@ -1,7 +1,7 @@
 // Verifica el login del panel de local contra el deploy REAL (navegador → Vercel → Supabase).
 import { chromium } from 'playwright'
 
-const BASE = process.argv[2] || 'https://party-maps-hojy.vercel.app'
+const BASE = process.argv[2] || 'https://torneum.vercel.app'
 const EMAIL = process.argv[3] || 'dueno@testlocal.com'
 const PASS = process.argv[4] || 'PM_Dueno2025!'
 

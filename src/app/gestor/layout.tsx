@@ -1,6 +1,7 @@
-import { PanelEnObras } from '@/components/ui/PanelEnObras'
+import { redirect } from 'next/navigation'
 
-// Panel LEGADO de Rumbo, tapado hasta el backend Tourneum (ver PanelEnObras).
+// Panel LEGADO de Rumbo, capado entero (decisión Albert 30-08): todo el árbol
+// /gestor/** redirige a /inicio. El código de dentro NO se borra (reversible).
 export default function Layout(_props: { children: React.ReactNode }) {
-  return <PanelEnObras nombre="Panel del gestor" demoHref="/sede" demoLabel="Panel de sede (demo)" />
+  redirect('/inicio')
 }

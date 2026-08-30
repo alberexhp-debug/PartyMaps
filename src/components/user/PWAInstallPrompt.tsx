@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Download, Share, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useT } from '@/lib/i18n'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -12,6 +13,7 @@ const STORAGE_KEY = 'fv2_pwa_install_dismissed'
 const DISMISS_DAYS = 7
 
 export function PWAInstallPrompt() {
+  const { t: tr } = useT()
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showIOSInstructions, setShowIOSInstructions] = useState(false)
   const [showAndroidPrompt, setShowAndroidPrompt] = useState(false)
@@ -77,16 +79,16 @@ export function PWAInstallPrompt() {
               <Download size={20} className="text-[#B6FF3A]" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-white text-sm">Instala Tourneum</p>
+              <p className="font-semibold text-white text-sm">{tr('pwa.instala')}</p>
               <p className="text-xs text-[#A0A0B8] mt-0.5">
-                Acceso rápido desde tu pantalla de inicio y notificaciones.
+                {tr('pwa.instalaSub')}
               </p>
               <div className="flex gap-2 mt-3">
                 <Button size="sm" onClick={instalarAndroid}>
-                  <Download size={13} /> Instalar
+                  <Download size={13} /> {tr('pwa.instalar')}
                 </Button>
                 <button onClick={dismiss} className="text-xs text-[#6B6B85] px-3">
-                  Ahora no
+                  {tr('pwa.ahoraNo')}
                 </button>
               </div>
             </div>
@@ -108,16 +110,16 @@ export function PWAInstallPrompt() {
               <Share size={20} className="text-[#4F8EF7]" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-white text-sm">Añade Tourneum a tu pantalla</p>
+              <p className="font-semibold text-white text-sm">{tr('pwa.anade')}</p>
               <p className="text-xs text-[#A0A0B8] mt-1 leading-relaxed">
-                Pulsa <Share size={11} className="inline mb-0.5" /> abajo en Safari y luego{' '}
+                {tr('pwa.pulsaA')} <Share size={11} className="inline mb-0.5" /> {tr('pwa.pulsaB')}{' '}
                 <span className="inline-flex items-center gap-1">
-                  <Plus size={11} className="inline" /> &laquo;Añadir a inicio&raquo;
+                  <Plus size={11} className="inline" /> {tr('pwa.anadirInicio')}
                 </span>.
-                Las notificaciones solo funcionan instalada.
+                {' '}{tr('pwa.soloInstalada')}
               </p>
               <button onClick={dismiss} className="text-xs text-[#B6FF3A] mt-3">
-                Entendido
+                {tr('pwa.entendido')}
               </button>
             </div>
             <button onClick={dismiss} aria-label="Cerrar" className="text-[#6B6B85] -mt-1">

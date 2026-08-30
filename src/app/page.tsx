@@ -1,19 +1,20 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/lib/stores/useAuthStore'
+import { useSesionStore, rutaInicial } from '@/lib/stores/useSesionStore'
 import { PageLoader } from '@/components/ui/Spinner'
 
+// Raíz: con sesión, cada rol a su panel; sin sesión, a la portada pública.
 export default function RootPage() {
   const router = useRouter()
-  const { isAuthenticated, isLoading } = useAuthStore()
+  const sesion = useSesionStore(s => s.sesion)
+  const [hidratado, setHidratado] = useState(false)
+  useEffect(() => setHidratado(true), [])
 
   useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) router.replace('/explorar')
-      else router.replace('/explorar') // modo demo: sin login, todos a Explorar
-    }
-  }, [isAuthenticated, isLoading, router])
+    if (!hidratado) return
+    router.replace(sesion ? rutaInicial(sesion) : '/inicio')
+  }, [hidratado, sesion, router])
 
   return <PageLoader />
 }

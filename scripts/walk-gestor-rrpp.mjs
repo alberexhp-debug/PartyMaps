@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { readFileSync, mkdirSync } from 'node:fs'
 
 const env = Object.fromEntries(readFileSync(new URL('../.env.local', import.meta.url), 'utf8').split('\n').filter(l => l && !l.startsWith('#')).map(l => { const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1)] }))
-const BASE = process.env.BASE || 'https://party-maps-hojy.vercel.app'
+const BASE = process.env.BASE || 'https://torneum.vercel.app'
 const svc = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
 mkdirSync('e2e-shots', { recursive: true })
 const log = (...a) => console.log(...a)

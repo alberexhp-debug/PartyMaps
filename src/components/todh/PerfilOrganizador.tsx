@@ -1,20 +1,25 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { JUEGOS, getOrganizador, ORGANIZADORES } from '@/lib/torneos/sample'
+import { JUEGOS, organizadorEfectivo } from '@/lib/torneos/sample'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Star, Users, Trophy, Check, Calendar, Award, ChevronRight } from 'lucide-react'
 import { TorneoArt } from '@/components/todh/GameKeyart'
+import { GameIcon } from '@/components/todh/GameIcon'
+import { useT } from '@/lib/i18n'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 
 // Perfil público del organizador. `backButton=false` cuando se incrusta en el
 // panel del TO (Mi página pública), donde el rail ya da la navegación.
 export function PerfilOrganizador({ id, backButton = true }: { id: string; backButton?: boolean }) {
+  const { t: tr } = useT()
   const router = useRouter()
-  const to = getOrganizador(id) || ORGANIZADORES.lima
+  // Identidad por cuenta: resuelve organizadores de muestra, sedes que
+  // organizan y cuentas recién aprobadas (antes cualquier id caía en «lima»).
+  const to = organizadorEfectivo(id)
   const siguiendo = useDemoStore(s => s.seguidos.includes(to.id))
   const alternarSeguir = useDemoStore(s => s.alternarSeguir)
   const creados = useDemoStore(s => s.creados)
@@ -23,8 +28,8 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
   const sus = torneosEfectivos(creados, editados, cancelados).filter(t => t.organizadorId === to.id).slice(0, 6)
 
   return (
-    <div className="relative min-h-screen pb-10 max-w-xl lg:max-w-4xl mx-auto">
-      <div className="relative h-36 overflow-hidden">
+    <div className="relative min-h-screen pb-10 max-w-xl mx-auto lg:max-w-none lg:mx-0">
+      <div className="relative h-36 overflow-hidden lg:rounded-3xl">
         <div className="absolute inset-0" style={{ background: `radial-gradient(125% 130% at 0% 0%, ${to.color} 0%, ${to.color}55 30%, transparent 70%), #0D0F15` }} />
         <div className="absolute inset-0 opacity-[0.14] mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, #fff .6px, transparent 1.2px), radial-gradient(circle at 75% 65%, #fff .5px, transparent 1px)', backgroundSize: '9px 9px, 13px 13px' }} />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 45%, #0D0F15)' }} />
@@ -45,7 +50,7 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
           ) : (
             // Incrustado en el panel del TO: es TU página — no puedes seguirte
             <span className="ml-auto mb-1 h-10 px-4 rounded-xl text-[12px] font-semibold bg-white/5 border border-white/10 text-[#8B8BA8] inline-flex items-center">
-              👁 Así te ven los jugadores
+              {tr('po.asiTeVen')}
             </span>
           )}
         </div>
@@ -71,7 +76,7 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
             const j = JUEGOS[g]
             return (
               <span key={g} className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold" style={{ background: `${j.color}1F`, color: j.color, border: `1px solid ${j.color}44` }}>
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: j.color }} /> {j.corto}
+                <GameIcon juegoId={g} size={13} /> {j.corto}
               </span>
             )
           })}
@@ -86,9 +91,9 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
           </div>
         )}
 
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">Próximos torneos</p>
+        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('explorar.eyebrow')}</p>
         <div className="space-y-2.5">
-          {sus.length === 0 && <p className="text-sm text-[#8B8BA8]">Sin torneos próximos publicados.</p>}
+          {sus.length === 0 && <p className="text-sm text-[#8B8BA8]">{tr('po.sinProximos')}</p>}
           {sus.map(t => {
             const j = JUEGOS[t.juego]
             return (
@@ -96,7 +101,7 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
                 <TorneoArt t={t} className="w-[64px] shrink-0" />
                 <div className="flex-1 min-w-0 px-3 py-2.5">
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[9px] font-bold" style={{ background: `${j?.color}1F`, color: j?.color, border: `1px solid ${j?.color}44` }}>{j?.corto}</span>
+                    <span className="inline-flex items-center gap-1 px-1.5 h-5 rounded-full text-[9px] font-bold" style={{ background: `${j?.color}1F`, color: j?.color, border: `1px solid ${j?.color}44` }}><GameIcon juegoId={t.juego} size={10} /> {j?.corto}</span>
                     {t.enDirecto && <span className="badge-live">Live</span>}
                   </div>
                   <p className="mt-0.5 text-sm font-bold text-white truncate">{t.nombre}</p>

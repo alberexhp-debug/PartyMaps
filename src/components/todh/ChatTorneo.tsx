@@ -12,7 +12,7 @@ const SEMILLA: Record<string, { autor: string; texto: string; hora: string }[]> 
     { autor: 'Kaze', texto: '¿Alguien para unos amistosos antes de empezar?', hora: '12:31' },
     { autor: 'Nyx', texto: 'Yo me apunto, llego 17:00 🔥', hora: '12:33' },
     { autor: 'Volt', texto: '¿Hay sitio para dejar mochilas?', hora: '13:02' },
-    { autor: 'Lima Esports · TO', texto: 'Sí, taquillas junto a la barra. Recordad: reportad desde la app al acabar cada set.', hora: '13:05' },
+    { autor: 'Lima Esports · TO', texto: 'Sí, taquillas junto a la entrada. Recordad: reportad desde la app al acabar cada set.', hora: '13:05' },
   ],
 }
 
@@ -20,9 +20,14 @@ export function ChatTorneoSheet({ torneoId, torneoNombre, onClose }: { torneoId:
   const { t: tr } = useT()
   const mios = useDemoStore(s => s.chatsTorneo[torneoId])
   const enviar = useDemoStore(s => s.enviarChat)
+  // Moderación del admin aplicada al chat del jugador: los autores silenciados
+  // desaparecen de la sala y, si te silencian a ti («Tú»), no puedes escribir.
+  // El ?? va fuera del selector (dentro crearía un array nuevo por render)
+  const silenciados = useDemoStore(s => s.moderacionChat[torneoId]?.silenciados) ?? []
+  const silenciadoYo = silenciados.includes('Tú')
   const [texto, setTexto] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
-  const mensajes = [...SEMILLA.default, ...(mios || [])]
+  const mensajes = [...SEMILLA.default, ...(mios || [])].filter(m => !silenciados.includes(m.autor))
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [mensajes.length])
 
@@ -60,11 +65,17 @@ export function ChatTorneoSheet({ torneoId, torneoNombre, onClose }: { torneoId:
           })}
           <div ref={endRef} />
         </div>
-        <div className="p-3 border-t border-white/8 flex gap-2">
-          <input value={texto} onChange={e => setTexto(e.target.value)} onKeyDown={e => e.key === 'Enter' && mandar()}
-            placeholder={tr('chat.escribe')} className="flex-1 h-11 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-[#7B7B92] focus:border-[#B6FF3A]/60 outline-none" />
-          <button onClick={mandar} aria-label="Enviar" className="h-11 w-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] flex items-center justify-center"><Send size={16} /></button>
-        </div>
+        {silenciadoYo ? (
+          <div className="p-3 border-t border-white/8">
+            <p className="h-11 rounded-xl bg-[#FF8A5C]/10 border border-[#FF8A5C]/30 text-[#FF8A5C] text-[12px] font-semibold flex items-center justify-center px-3 text-center">{tr('chat.silenciado')}</p>
+          </div>
+        ) : (
+          <div className="p-3 border-t border-white/8 flex gap-2">
+            <input value={texto} onChange={e => setTexto(e.target.value)} onKeyDown={e => e.key === 'Enter' && mandar()}
+              placeholder={tr('chat.escribe')} className="flex-1 h-11 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-[#7B7B92] focus:border-[#B6FF3A]/60 outline-none" />
+            <button onClick={mandar} aria-label="Enviar" className="h-11 w-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] flex items-center justify-center"><Send size={16} /></button>
+          </div>
+        )}
       </div>
     </div>
   )

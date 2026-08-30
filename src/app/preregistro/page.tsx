@@ -19,8 +19,8 @@ export default function PreregistroPage() {
   const compartirLink = async () => {
     compartir()
     try {
-      const url = 'https://tourneum.app/preregistro?r=ALBERT-3F7'
-      if (navigator.share) await navigator.share({ title: 'Tourneum — sé fundador', url })
+      const url = 'https://torneum.app/preregistro?r=ALBERT-3F7'
+      if (navigator.share) await navigator.share({ title: 'Torneum — sé fundador', url })
       else { await navigator.clipboard.writeText(url); setCopiado(true); setTimeout(() => setCopiado(false), 1800) }
     } catch { /* cancelado */ }
   }
@@ -35,7 +35,7 @@ export default function PreregistroPage() {
           <Link href="/inicio" className="h-10 w-10 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center"><ArrowLeft size={18} /></Link>
           <div className="flex items-center gap-2">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#B6FF3A] text-[#0A0A0F] font-black text-display">T</span>
-            <span className="font-black tracking-[0.18em] text-sm">TOURNEUM</span>
+            <span className="font-black tracking-[0.18em] text-sm">TORNEUM</span>
           </div>
           <span className="w-10" />
         </div>
@@ -75,7 +75,7 @@ export default function PreregistroPage() {
         <div className="mt-3 space-y-2">
           {[
             { icon: Zap, titulo: 'Insignia Fundador', desc: 'Numerada y permanente en tu perfil. Solo para la lista de espera.' },
-            { icon: Ticket, titulo: '0% de comisión en tus 3 primeras inscripciones', desc: 'Estrenas la app sin comisión Tourneum.' },
+            { icon: Ticket, titulo: '0% de comisión en tus 3 primeras inscripciones', desc: 'Estrenas la app sin comisión Torneum.' },
             { icon: Trophy, titulo: 'Sorteo del GP de racing de lanzamiento', desc: 'Plazas para el evento inaugural entre los 500 primeros.' },
           ].map(({ icon: Icon, titulo, desc }) => (
             <div key={titulo} className="flex items-start gap-3 card-premium p-3.5">

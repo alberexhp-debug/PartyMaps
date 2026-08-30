@@ -45,7 +45,7 @@ export default function GestorDashboardPage() {
         <div className="relative overflow-hidden rounded-b-[2rem] px-5 sm:px-7 pt-9 pb-7 border-b border-white/[0.06]"
           style={{ background: 'radial-gradient(130% 110% at 50% -10%, rgba(124,92,255,0.22), rgba(79,142,247,0.10) 45%, rgba(7,7,13,0) 78%)' }}>
           <div className="pointer-events-none absolute -top-24 -right-10 w-64 h-64 rounded-full bg-[#7C5CFF]/25 blur-[80px]" />
-          <p className="eyebrow eyebrow-violet mb-1">TourneumGestor · tu cartera</p>
+          <p className="eyebrow eyebrow-violet mb-1">TorneumGestor · tu cartera</p>
           <h1 className="text-display text-2xl md:text-3xl font-bold leading-tight">Hola, {gestor?.nombre?.split(' ')[0] || 'Gestor'}</h1>
           <div className="relative mt-7 flex items-end justify-between gap-3">
             <div>

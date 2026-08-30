@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null) as { filtros?: FiltroSegmento[]; segmento_nombre?: string } | null
   const contactables = aplicarSegmento(await obtenerClientesCRM(db, t.local_id), body?.filtros ?? []).filter(c => c.contactable && c.telefono)
-  const nombreLista = `Tourneum · ${body?.segmento_nombre ?? 'Segmento'}`
+  const nombreLista = `Torneum · ${body?.segmento_nombre ?? 'Segmento'}`
 
   const res = await brevoSyncLista(apiKey, nombreLista, contactables.map(c => ({ tel: c.telefono!, nombre: c.nombre })))
   if (!res.ok) return NextResponse.json({ error: res.error || 'No se pudo sincronizar con Brevo' }, { status: 502 })

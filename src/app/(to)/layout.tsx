@@ -1,31 +1,42 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { TOSideNav } from '@/components/todh/TOSideNav'
+import { UserSideNav } from '@/components/user/UserSideNav'
+import { UserBottomNav } from '@/components/user/UserBottomNav'
 import { AltaTOSheet } from '@/components/todh/PerfilDualCard'
-import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
+import { RequireSesion } from '@/components/todh/RequireSesion'
 import { useT } from '@/lib/i18n'
 import { Megaphone, Clock, ArrowLeft, ShieldCheck } from 'lucide-react'
 
-// Shell del PANEL DEL TO con puerta de rol: aquí solo entran cuentas con el
-// perfil de organizador aprobado. Un jugador ve la puerta (solicitar → el admin
-// aprueba → perfil dual activo); así los dos mundos no se mezclan.
+// Shell del PANEL DEL TO con puerta doble: primero la sesión (solo JUGADOR —
+// las sedes son solo sedes, sin perfil de organizador) y después la capa de
+// TO — la trae de serie la cuenta to@ o se consigue con solicitud aprobada.
 export default function TOLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <RequireSesion rol="jugador">
+      <PuertaTO>{children}</PuertaTO>
+    </RequireSesion>
+  )
+}
+
+function PuertaTO({ children }: { children: React.ReactNode }) {
   const perfilTO = useDemoStore(s => s.perfilTO)
-  // Espera a la rehidratación del store persistido para no parpadear la puerta
-  // a un TO ya aprobado (el servidor no conoce localStorage).
-  const [hidratado, setHidratado] = useState(false)
-  useEffect(() => setHidratado(true), [])
-  if (!hidratado) return <div className="min-h-screen" />
+  const esTO = useEsTO()
 
-  if (perfilTO !== 'aprobado') return <GateTO estado={perfilTO} />
+  if (!esTO) return <GateTO estado={perfilTO === 'pendiente' ? 'pendiente' : 'no'} />
 
+  // Mismo rail que la app de jugador: con perfil de TO el menú lateral se
+  // expande en dos secciones (Jugador / Organizador) — un solo panel para todo.
+  // En móvil/tablet la misma barra inferior que el resto de la app (el TO no
+  // pierde la navegación al entrar en su zona); el main deja hueco para ella.
   return (
     <div className="min-h-screen lg:pl-[244px]">
-      <TOSideNav />
-      <main className="w-full lg:pt-5 lg:px-8 relative">
+      <UserSideNav />
+      <main className="w-full pb-20 lg:pb-8 lg:pt-5 lg:px-8 relative">
         {children}
       </main>
+      <UserBottomNav />
     </div>
   )
 }
@@ -47,9 +58,8 @@ function GateTO({ estado }: { estado: 'no' | 'pendiente' }) {
             <h1 className="mt-1 text-2xl font-bold text-white text-display">{tr('gate.pendiente')}</h1>
             <p className="mt-2 text-sm text-[#B8B8CC] leading-relaxed">{tr('gate.pendienteTexto')}</p>
             <div className="mt-5 rounded-2xl border border-[#E0BE63]/30 bg-[#E0BE63]/[0.06] p-3.5 text-left">
-              <p className="text-[12px] text-[#E0BE63] font-bold flex items-center gap-1.5"><ShieldCheck size={13} /> Demo</p>
-              <p className="mt-1 text-[12px] text-[#B8B8CC]">La aprobación la hace el equipo desde el panel de administración.</p>
-              <Link href="/admin-demo" className="mt-2 inline-flex h-9 px-3.5 items-center rounded-xl bg-[#E0BE63] text-[#0A0A0F] text-xs font-bold">Abrir panel admin y aprobarla ›</Link>
+              <p className="text-[12px] text-[#E0BE63] font-bold flex items-center gap-1.5"><ShieldCheck size={13} /> {tr('gate.enRevision')}</p>
+              <p className="mt-1 text-[12px] text-[#B8B8CC]">{tr('gate.revisionTexto')}</p>
             </div>
           </>
         ) : (

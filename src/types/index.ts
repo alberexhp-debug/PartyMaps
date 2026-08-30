@@ -475,7 +475,7 @@ export interface Administrador {
   ultimo_acceso?: string
 }
 
-/** TourneumGestor: comercial de Tourneum que da de alta locales y RRPP. Login propio. */
+/** TorneumGestor: comercial de Torneum que da de alta locales y RRPP. Login propio. */
 export interface Gestor {
   id: string
   auth_id?: string
@@ -569,7 +569,7 @@ export interface ResultadoEscaneoQR {
 // =============================================
 
 /**
- * Contacto = CRM de Tourneum. Identidad de 3 niveles:
+ * Contacto = CRM de Torneum. Identidad de 3 niveles:
  *   - visitor  → anónimo, no aparece aquí
  *   - lead     → contacto con email o teléfono, sin cuenta (user_id NULL)
  *   - usuario  → contacto promocionado, user_id rellenado
@@ -602,7 +602,7 @@ export interface Contacto {
 }
 
 /**
- * RRPP = rol opcional sobre un usuario Tourneum. Cualquier usuario
+ * RRPP = rol opcional sobre un usuario Torneum. Cualquier usuario
  * activa el modo y obtiene panel multi-venue + página pública /r/[slug]
  * + followers. La identidad y carta de perfil son los del usuario.
  */
@@ -786,7 +786,7 @@ export interface RRPPSeguidor {
 }
 
 /**
- * Liquidación mensual por par RRPP↔venue. Tourneum NO toca dinero —
+ * Liquidación mensual por par RRPP↔venue. Torneum NO toca dinero —
  * solo refleja qué le debe el venue al RRPP. El venue marca como pagado,
  * el RRPP confirma. A 14 días sin confirmar, tácitamente confirmado.
  */

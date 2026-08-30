@@ -1,9 +1,16 @@
 import { UserBottomNav } from '@/components/user/UserBottomNav'
 import { UserSideNav } from '@/components/user/UserSideNav'
 import { PWAInstallPrompt } from '@/components/user/PWAInstallPrompt'
+import { AvisoMiMesa } from '@/components/todh/AvisoMiMesa'
+import { AvisoInactividad } from '@/components/todh/AvisoInactividad'
+import { RequireSesion } from '@/components/todh/RequireSesion'
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
+  // La app pública admite también a la SEDE (rol local): así puede ver las
+  // fichas de torneo y el bracket de lo que aloja, el mapa y Explorar. Su menú
+  // cambia (Mi sede en vez de entradas/perfil); ver UserSideNav/UserBottomNav.
   return (
+    <RequireSesion rol={['jugador', 'local']}>
     <div className="flex flex-col min-h-screen lg:pl-[244px]">
       {/* Rail lateral fijo en escritorio; barra inferior en móvil/tablet. */}
       <UserSideNav />
@@ -14,7 +21,12 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
         {children}
       </main>
       <PWAInstallPrompt />
+      {/* «Ver mi mesa» flotante: sigue al jugador por toda la app cuando su torneo está en directo */}
+      <AvisoMiMesa />
+      {/* Vigía de inactividad: deja el aviso de pérdida de puntos en el buzón */}
+      <AvisoInactividad />
       <UserBottomNav />
     </div>
+    </RequireSesion>
   )
 }

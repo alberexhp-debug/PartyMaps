@@ -1,6 +1,6 @@
 {
-  "name": "Tourneum",
-  "short_name": "Tourneum",
+  "name": "Torneum",
+  "short_name": "Torneum",
   "description": "Organiza y descubre torneos presenciales de videojuegos y cartas",
   "start_url": "/",
   "display": "standalone",

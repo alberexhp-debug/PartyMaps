@@ -3,7 +3,7 @@
 // 2) /explorar renderiza, el chip "Abiertos ahora" filtra sin romper.
 // 3) Una ficha de local renderiza (línea de estado / bloque horario no rompen).
 import { chromium } from 'playwright'
-const BASE = process.env.BASE || 'https://party-maps-hojy.vercel.app'
+const BASE = process.env.BASE || 'https://torneum.vercel.app'
 const ok = m => console.log('  ✅', m), bad = m => { console.log('  ❌', m); process.exitCode = 1 }
 
 const browser = await chromium.launch()

@@ -19,6 +19,6 @@ export async function POST() {
   await svc.from('rrpp_totp').upsert({ rrpp_id: ctx.rrpp.id, secret }, { onConflict: 'rrpp_id' })
 
   const label = ctx.rrpp.username || ctx.rrpp.slug || 'rrpp'
-  const otpauth = generateURI({ strategy: 'totp', issuer: 'Tourneum · RRPP', label, secret })
+  const otpauth = generateURI({ strategy: 'totp', issuer: 'Torneum · RRPP', label, secret })
   return NextResponse.json({ otpauth, secret })
 }

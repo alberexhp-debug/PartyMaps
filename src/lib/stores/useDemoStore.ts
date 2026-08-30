@@ -1,21 +1,26 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { JUEGOS, getTorneo, esperaDe, type TorneoSample, type Juego, type Mesa } from '@/lib/torneos/sample'
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware'
+import { JUEGOS, LOCALES, getTorneo, esperaDe, plantillaDe, type TorneoSample, type Juego, type Mesa, type MesaTipo } from '@/lib/torneos/sample'
+import { puedeCancelarConDevolucion } from '@/lib/torneos/cancelacion'
+import { CREW_USUARIO, TAG_RE, MAX_CREWS_POR_JUEGO, type Crew } from '@/lib/torneos/crews'
+import { generarTagUsuario } from '@/lib/torneos/tags'
+import type { BoDesde } from '@/lib/torneos/bracket'
+import { useSesionStore, claveDemo, claveDemoActual, type Sesion } from '@/lib/stores/useSesionStore'
 
 // Store de DEMO (modo sin backend): mantiene en memoria + localStorage el estado
 // interactivo de la sesión para que inscribirse / seguir / crear torneo / leer
 // notificaciones persista mientras se navega. Cuando exista el backend real esto
 // se reemplaza por queries a Supabase. NO es la fuente de verdad de producción.
 
-export type NotiTipo = 'combate' | 'disputa' | 'lleno' | 'nuevo-torneo' | 'sistema' | 'inscripcion'
+export type NotiTipo = 'combate' | 'disputa' | 'lleno' | 'nuevo-torneo' | 'sistema' | 'inscripcion' | 'inactividad'
 
 // Estado de gestión del TO por torneo (check-in, bracket congelado, resultados).
 // Los seeds son ids de jugador del ranking de muestra; el bracket se reconstruye
 // determinísticamente con construirRondas(seeds, winners).
 // Sets: cada combate se juega a Bo1/Bo3/Bo5. `bo.base` aplica al principio del
-// cuadro y `bo.top` desde la ronda elegida (como en Smash: Bo3 y Bo5 en top 8,
-// o LoL: Bo1 y Bo3 en finales). `puntos` guarda los juegos ganados por lado.
-export type BoDesde = 'final' | 'semis' | 'top8'
+// cuadro y `bo.top` desde la ronda elegida (como en Smash: Bo3 y Bo5 en top 8).
+// El tipo vive en bracket.ts; 'final' es legado y se lee como 'semis'.
+export type { BoDesde } from '@/lib/torneos/bracket'
 export type BoConfig = { base: number; top: number; desde: BoDesde }
 export type GestionTorneo = {
   checkin: string[]
@@ -31,11 +36,12 @@ const GESTION_VACIA: GestionTorneo = {
   checkin: [], cerrado: false, generado: false, seeds: [], winners: {},
   puntos: {}, bo: { base: 3, top: 5, desde: 'semis' }, bajas: [],
 }
-// Solicitud de un TO a una sede para organizar un evento allí (demo: TO = Lima).
+// Solicitud de un TO a una sede para organizar un evento allí.
 // La sede la ve en su panel y al aceptar/rechazar el TO recibe la respuesta.
 export type SolicitudSede = {
   id: string
   localId: string
+  orgId?: string       // organizador que la envía (identidad por cuenta)
   fecha: string        // 'Sáb 12 jul'
   franja: string       // 'Tarde (16-21h)'
   personas: number
@@ -45,6 +51,79 @@ export type SolicitudSede = {
   contraoferta?: { fecha: string; franja: string; precio: number }
   recursos?: string[]          // qué pone el local (mesas, pantallas, consolas…)
   repartoTO?: number           // % del reparto para el TO (el resto, local)
+}
+
+// Disponibilidad recurrente que publica la sede: días de la semana (0=Lun…6=Dom),
+// franja horaria, setups y precio. La ven los TOs en la ficha del local y alimenta
+// el calendario del panel de sede. `excepciones` bloquea días sueltos ('YYYY-MM-DD')
+// aunque caigan en un día disponible del patrón semanal.
+export type DispoSede = {
+  dias: number[]
+  desdeH: number       // hora de inicio (0-23)
+  hastaH: number       // hora de fin (1-24)
+  setups: number
+  precioNoche: number
+  publicada: boolean
+  excepciones?: string[]
+  // Mesas que la sede ofrece a los TOs, por tipo. El plano solo aporta el valor
+  // inicial: la sede pone libremente lo que tenga (sin tope).
+  mesasDispo?: Partial<Record<MesaTipo, number>>
+  material?: string[]  // extras de equipamiento (ids de MATERIAL_SEDE en DispoSede.tsx)
+  // Juegos que la sede marca como jugables (sin definir = los que sugieren sus
+  // mesas según la plantilla de cada juego). La sede puede activar/quitar a mano.
+  juegosSel?: string[]
+  aforoMax?: number    // máximo de personas por evento (sin definir = aforo del local)
+  notas?: string       // nota corta para los TOs (parking, comida, normas de la casa…)
+}
+
+// Expediente de alta de una sede: lo rellena el local en /alta-local y lo
+// resuelve el admin en Verificación. Sin datos fiscales no se aprueba.
+export type ExpedienteSede = {
+  id: string; nombre: string; zona: string; representante: string; email: string
+  telefono: string; cif: string; direccion: string; aforo: number; setups: number
+  docs: string[]; estado: 'pendiente' | 'aprobada' | 'rechazada'
+}
+
+// Expediente de un TO candidato (alta con entrevista, además del perfil dual).
+export type ExpedienteTO = {
+  id: string; nombre: string; representante: string; email: string; telefono: string
+  experiencia: string; juegos: string[]; enlaces: string
+  estado: 'pendiente' | 'aprobado' | 'rechazado'
+}
+
+// Juego propuesto por un organizador: no entra al catálogo hasta que el admin
+// lo revisa y lo da de alta (con su plantilla) en el panel de Juegos.
+export type PropuestaJuego = { id: string; nombre: string; color: string; emoji: string; to: string }
+
+// Grupo de chat entre amigos (capa social): miembros por nombre de jugador y
+// mensajes persistidos. `propio` = lo creaste tú (puedes disolverlo).
+// `crewId` (F6): el grupo es el chat OFICIAL de una crew — crear la crew lo
+// abre solo, y por él llegan los avisos de inscripción por equipos. Un mensaje
+// con `torneoId`+`crewId` es una convocatoria: se pinta como tarjeta clicable
+// con el estado del cupo y lleva a la ficha con ?crew=.
+export type MensajeGrupo = { autor: string; texto: string; hora: string; torneoId?: string; crewId?: string }
+export type GrupoChat = {
+  id: string
+  nombre: string
+  emoji: string
+  miembros: string[]
+  mensajes: MensajeGrupo[]
+  propio?: boolean
+  crewId?: string
+}
+
+// Re-export del modelo de crew (definido en lib/torneos/crews.ts).
+export type { Crew } from '@/lib/torneos/crews'
+// Cupo de inscripción por equipos de un torneo: qué crew va y quién ha pagado
+// ya su plaza (nombres del pool o CREW_USUARIO). Las plazas del cupo son el
+// tamGrupo de la plantilla del juego.
+export type CupoCrew = { crewId: string; inscritos: string[] }
+
+// Ficha administrativa de una sede (contacto, fiscal, tarifa, suspensión): el
+// admin la edita y persiste como override sobre los datos de muestra del local.
+export type FichaSedeAdmin = {
+  contacto: string; email: string; telefono: string; cif: string; direccion: string
+  precioNoche: number; suspendida: boolean
 }
 
 // Disputa de resultado: los reportes de los jugadores no coinciden → la resuelve
@@ -69,6 +148,19 @@ export type Disputa = {
   mid?: string
 }
 
+// ── Doble reporte de resultados (Fase 5) ──
+// Cada jugador reporta desde su móvil el marcador del combate (en orden A/B del
+// match) y sus propios personajes (≤2, solo en juegos que los llevan). Si los
+// MARCADORES coinciden hay consenso y el resultado se escribe en el bracket sin
+// pasar por el TO; si no, se abre la disputa de siempre (la resuelve el modo
+// directo). Los personajes NUNCA disputan: cada jugador es la fuente del suyo.
+export type ReporteJugador = {
+  marcador: [number, number]   // [sets de A, sets de B], gane quien gane
+  personajes?: string[]        // los del REPORTANTE (≤2)
+  deUsuario?: boolean          // el reporte lo envía el usuario demo → alimenta su perfil
+}
+export type ReportesCombate = { A?: ReporteJugador; B?: ReporteJugador }
+
 export type Notificacion = {
   id: string
   tipo: NotiTipo
@@ -77,12 +169,19 @@ export type Notificacion = {
   cuando: string
   leida: boolean
   href?: string
+  // i18n (F9): si existen, la vista traduce por clave al idioma activo con
+  // sustitución de {params}; titulo/cuerpo quedan como fallback legacy (ES)
+  // para notis ya persistidas en localStorage.
+  tituloKey?: string
+  cuerpoKey?: string
+  params?: Record<string, string | number>
 }
 
 interface DemoState {
   inscritos: string[]                 // ids de torneos inscritos
   listaEspera: string[]               // ids de torneos donde el usuario está en la cola de espera
-  promovidosEspera: Record<string, number>  // por torneo: cuántos de la cola ya entraron (FIFO)
+  entradosEspera: Record<string, string[]>  // por torneo: nombres de la cola que ya entraron (en orden de entrada)
+  plazasPendientes: Record<string, number>  // por torneo: plazas liberadas por cancelaciones, pendientes de que el TO decida (F7)
   seguidos: string[]                  // ids de organizadores seguidos
   creados: TorneoSample[]             // torneos creados por el TO en demo
   juegosCustom: Record<string, Juego> // juegos añadidos por el TO (no contemplados en la app)
@@ -91,128 +190,259 @@ interface DemoState {
   gestion: Record<string, GestionTorneo>   // estado de gestión del TO por torneo
   mesasSede: Record<string, Mesa[]>        // plano de mesas editado por cada sede (override del de muestra)
   solicitudesSede: SolicitudSede[]         // peticiones del TO a sedes (organizar evento allí)
+  dispoSedes: Record<string, DispoSede>    // disponibilidad publicada por cada sede
   disputas: Disputa[]                      // disputas de resultado pendientes de resolver por el TO
+  reportesMatch: Record<string, Record<string, ReportesCombate>>  // doble reporte por torneo → combate (lados A/B)
+  personajesPorMatch: Record<string, Record<string, { A: string[]; B: string[] }>>  // personajes declarados por combate
+  personajesJugados: Record<string, Record<string, number>>  // perfil demo: juego → personaje → veces jugado
   checkinsJugador: string[]                // torneos donde el jugador ya hizo check-in (QR)
   notificaciones: Notificacion[]
+  descartadas: string[]                    // ids de notificaciones quitadas (swipe/X); persisten fuera de la vista
   juegoPerfil: string                 // juego activo en el perfil
   avatarEmoji: string | null          // avatar elegido en el perfil (demo)
+  // ── Paquete Chat (30-08): identidad editable del perfil ──
+  fotoPerfil: string | null           // foto propia (dataURL comprimido ≤512px/≤200KB); sustituye al emoji/inicial
+  bannerPerfil: string | null         // fondo de la cabecera del perfil (CSS background de preset o dataURL subido)
+  bioPerfil: string                   // bio corta (≤160)
+  userTag: string | null              // tag de usuario #XABCD (tags.ts): se genera al primer uso y persiste
+  tagRegenerado: boolean              // regenerarTag solo se puede usar UNA vez
   mainsPerfil: Record<string, string[]>  // mains elegidos por juego (iconos de personaje)
   juegosFavoritos: string[]              // juegos elegidos en el onboarding (personalizan feed y ranking)
   onboardingVisto: boolean
-  idioma: 'es' | 'en'                    // idioma de la interfaz (i18n fase 1)
+  idioma: 'es' | 'en' | 'ja'             // idioma de la interfaz (i18n fase 9: 3 idiomas)
   entradasEspectador: string[]           // torneos con entrada de espectador comprada
   referidos: { codigo: string; jugados: number; canjeados: number[] }  // programa invita-y-gana (niveles 1/3/5)
   preregistro: { unido: boolean; pos: number; compartidos: number }    // lista de espera del lanzamiento
   reportes: ReporteTO[]                  // reportes de bracket/seeding del jugador al TO (reunión 5-jul)
-  puntuadosStartgg: string[]             // torneos espejo cuyos resultados ya puntuaron en el ranking Tourneum
-  tagStartgg: string | null              // tag del jugador en start.gg (identidad en el ranking real)
-  perfilTO: 'no' | 'pendiente' | 'aprobado'  // alta de TO self-service (perfil dual)
+  paisJugador: string                    // país donde compites (elegido al registrarte; ver puntos.ts)
+  juegosOcultos: string[]                // juegos desactivados por el admin (no salen en Explorar/mapa/ranking/alta)
+  perfilTO: 'no' | 'pendiente' | 'aprobado'  // rol de organizador (alta self-service)
   tierUsuario: null | 'Oro' | 'Platino' | 'Diamante'   // tier de pago (o regalo por rango)
-  bonosComprados: { id: string; localId: string; localNombre: string; titulo: string; precio: number }[]
   chatsTorneo: Record<string, { autor: string; texto: string; hora: string }[]>
+  expedientesSede: ExpedienteSede[]        // altas de sede: /alta-local → las resuelve el admin
+  expedientesTO: ExpedienteTO[]            // TOs candidatos con expediente (los resuelve el admin)
+  propuestasJuego: PropuestaJuego[]        // juegos propuestos por TOs, pendientes de revisión
+  valoracionesSedes: Record<string, number>   // estrellas del TO a la sede, por solicitud aceptada
+  valoracionesTO: Record<string, number>      // estrellas del jugador al TO, por torneo con resultados
+  tosConfianza: Record<string, string[]>      // TOs de confianza de cada sede (reserva directa)
+  fichasSede: Record<string, Partial<FichaSedeAdmin>>  // overrides del admin sobre cada sede
+  amigos: string[]                         // amigos agregados (nombres del pool de jugadores)
+  solicitudesAmistad: string[]             // solicitudes de amistad recibidas, pendientes
+  gruposChat: GrupoChat[]                  // grupos de chat con amigos (persisten mensajes)
+  crews: Crew[]                            // crews (F6): en orden de creación — la 1ª coincidencia representa al jugador
+  crewTorneo: Record<string, CupoCrew>     // por torneo: inscripción por equipos abierta (crew + quién pagó ya)
+  usuariosSuspendidos: string[]            // ids de cuentas suspendidas por el admin
+  betaCerrada: boolean                     // acceso por invitación (admin)
+  codigosBeta: string[]                    // códigos de invitación generados
+  moderacionChat: Record<string, { silenciados: string[]; borrados: number[] }>  // por torneo
+  // Preparación de sala ANTES del directo (decisión 30-08): marcas del TO por
+  // torneo y nº de mesa — 'caido' (arranca caída), 'fuera' (quitada del torneo)
+  // o 'dentro' (mesa del plano añadida al torneo fuera de los setups base).
+  // El modo directo las fusiona al montar, antes y al empezar el directo.
+  prepMesas: Record<string, Record<number, 'caido' | 'fuera' | 'dentro'>>
   // acciones
-  inscribir: (torneoId: string, nombreTorneo: string) => void
+  inscribir: (torneoId: string, nombreTorneo: string, crewId?: string) => void
   desinscribir: (torneoId: string, nombreTorneo: string) => void
   apuntarEspera: (torneoId: string, nombreTorneo: string, puesto: number) => void
   salirEspera: (torneoId: string) => void
   liberarPlazas: (torneoId: string, nombreTorneo: string, n: number) => void
-  estaInscrito: (torneoId: string) => boolean
+  promoverDeEspera: (torneoId: string, nombreTorneo: string, quien?: string) => void
+  descartarPlazasPendientes: (torneoId: string) => void
   alternarSeguir: (orgId: string, nombreOrg: string) => void
-  sigue: (orgId: string) => boolean
   crearTorneo: (t: TorneoSample) => void
   crearJuego: (j: Juego) => void
   editarTorneo: (id: string, patch: Partial<TorneoSample>) => void
   cancelarTorneo: (id: string, nombre: string) => void
   setGestion: (id: string, patch: Partial<GestionTorneo>) => void
   setMesasSede: (localId: string, mesas: Mesa[]) => void
+  prepararMesa: (torneoId: string, n: number, estado: 'caido' | 'fuera' | 'dentro' | null) => void
+  setDispoSede: (localId: string, dispo: DispoSede) => void
   crearSolicitudSede: (s: Omit<SolicitudSede, 'id' | 'estado'>, nombreLocal: string) => void
   resolverSolicitudSede: (id: string, estado: 'aceptada' | 'rechazada', nombreLocal: string) => void
   contraofertarSede: (id: string, datos: { fecha: string; franja: string; precio: number }, nombreLocal: string) => void
   crearDisputa: (d: Omit<Disputa, 'id'>, nombreTorneo: string) => void
+  reportarResultado: (args: {
+    torneoId: string; matchId: string; lado: 'A' | 'B'; reporte: ReporteJugador
+    ctx: { nombreTorneo: string; mesa: number; a: string; b: string; juego: string }
+  }) => void
   hacerCheckin: (torneoId: string, nombreTorneo: string) => void
-  resolverDisputa: (id: string, lado: 'a' | 'b') => void
+  resolverDisputa: (id: string, lado: 'a' | 'b', marcador?: { a: number; b: number }) => void
   responderContraoferta: (id: string, acepta: boolean, nombreLocal: string) => void
   pushNoti: (n: Omit<Notificacion, 'id' | 'leida' | 'cuando'> & { cuando?: string }) => void
   marcarLeidas: () => void
   noLeidas: () => number
+  descartarNoti: (id: string) => void
+  descartarTodasNotis: () => void
+  avisarInactividad: (titulo: string, cuerpo: string, extra?: Pick<Notificacion, 'tituloKey' | 'cuerpoKey' | 'params'>) => void
   setJuegoPerfil: (j: string) => void
   setAvatarEmoji: (e: string | null) => void
+  setFotoPerfil: (dataUrl: string | null) => void
+  setBannerPerfil: (banner: string | null) => void
+  setBioPerfil: (bio: string) => void
+  asegurarUserTag: () => void
+  regenerarTag: () => void
   setMainsPerfil: (juego: string, mains: string[]) => void
   setJuegosFavoritos: (ids: string[]) => void
-  setIdioma: (i: 'es' | 'en') => void
+  setIdioma: (i: 'es' | 'en' | 'ja') => void
   inscribirEspectador: (id: string, nombre: string) => void
   canjearReferido: (nivel: 1 | 3 | 5) => void
   unirsePreregistro: () => void
   compartirPreregistro: () => void
   crearReporte: (r: Omit<ReporteTO, 'id' | 'estado'>) => void
-  puntuarStartgg: (torneoId: string, nombreTorneo: string) => void
-  vincularStartgg: (tag: string | null) => void
+  setPaisJugador: (pais: string) => void
+  alternarJuegoOculto: (juegoId: string) => void
   resolverReporte: (id: string, accion: 'cambiado' | 'rebatido', respuesta?: string) => void
   solicitarTO: () => void
   aprobarTO: () => void
   rechazarTO: () => void
   suscribirTier: (tier: 'Oro' | 'Platino' | 'Diamante') => void
-  comprarBono: (localId: string, localNombre: string, titulo: string, precio: number) => void
   enviarChat: (torneoId: string, texto: string) => void
+  crearExpedienteSede: (e: Omit<ExpedienteSede, 'id' | 'estado'>) => void
+  resolverExpedienteSede: (id: string, aprueba: boolean) => void
+  resolverExpedienteTO: (id: string, aprueba: boolean) => void
+  proponerJuego: (p: Omit<PropuestaJuego, 'id'>) => void
+  retirarPropuestaJuego: (id: string) => void
+  rechazarPropuestaJuego: (id: string) => void
+  valorarSede: (solicitudId: string, nombreLocal: string, estrellas: number) => void
+  valorarOrganizador: (torneoId: string, nombreOrg: string, estrellas: number) => void
+  agregarTOConfianza: (localId: string, orgId: string, nombreOrg: string, nombreLocal: string) => void
+  quitarTOConfianza: (localId: string, orgId: string) => void
+  patchFichaSede: (localId: string, patch: Partial<FichaSedeAdmin>) => void
+  alternarUsuarioSuspendido: (id: string) => void
+  setBetaCerrada: (v: boolean) => void
+  agregarCodigoBeta: (codigo: string) => void
+  alternarSilenciado: (torneoId: string, autor: string) => void
+  alternarBorrado: (torneoId: string, idx: number) => void
+  agregarAmigo: (nombre: string) => void
+  quitarAmigo: (nombre: string) => void
+  responderAmistad: (nombre: string, acepta: boolean) => void
+  crearGrupoChat: (nombre: string, emoji: string, miembros: string[]) => void
+  enviarChatGrupo: (grupoId: string, texto: string) => void
+  salirGrupoChat: (grupoId: string) => void
+  crearCrew: (c: { nombre: string; tag: string; juego: string; emoji?: string; color?: string; miembros: string[] }) => void
+  salirCrew: (crewId: string) => void
+  editarCrew: (crewId: string, patch: { nombre?: string; descripcion?: string; banner?: string | null }) => void
+  agregarMiembroCrew: (crewId: string, nombre: string) => void
+  quitarMiembroCrew: (crewId: string, nombre: string) => void
+  alternarAdminCrew: (crewId: string, nombre: string) => void
+  abrirInscripcionCrew: (torneoId: string, nombreTorneo: string, crewId: string) => void
+  confirmarPlazaCrew: (torneoId: string, quien: string) => void
 }
 
 let nid = 0
 const nextId = () => `n${Date.now().toString(36)}${nid++}`
 
-const NOTIS_INICIALES: Notificacion[] = [
-  { id: 'seed1', tipo: 'combate', titulo: 'Te toca · Mesa 3', cuerpo: 'Cuartos vs Sora. Abre el plano para ver tu mesa.', cuando: 'hace 2 min', leida: false, href: '/torneo/t1/mesa?n=3&vs=Cuartos%20vs%20Sora' },
-  { id: 'seed2', tipo: 'nuevo-torneo', titulo: 'Lima Esports publicó un torneo', cuerpo: 'Smash Arena Madrid — Major · Sáb 5 jul. ¡Plazas abiertas!', cuando: 'hace 1 h', leida: false, href: '/torneo/t11' },
-  { id: 'seed3', tipo: 'lleno', titulo: 'Torneo casi lleno', cuerpo: 'Tekken 8 Arena Night está al 97%. Inscríbete antes de que se agote.', cuando: 'hace 3 h', leida: true, href: '/torneo/t5' },
-  { id: 'seed4', tipo: 'sistema', titulo: 'Bienvenido a Tourneum', cuerpo: 'Descubre torneos cerca de ti y compite por subir en el ranking.', cuando: 'ayer', leida: true },
-]
-
-// Promoción FIFO de la lista de espera al liberarse (o ampliarse) n plazas:
-// entran primero los de la cola de muestra pendientes y, si aún queda hueco y el
-// usuario está en la cola, entra él (con aviso + cobro simulado). Devuelve el
-// parcial de estado a mezclar en el set() del llamador.
-function promocionEspera(s: DemoState, torneoId: string, nombreTorneo: string, n: number): Partial<DemoState> {
-  const base = getTorneo(torneoId) || s.creados.find(c => c.id === torneoId)
-  if (!base || n <= 0) return {}
-  const cola = esperaDe({ ...base, ...(s.editados[torneoId] || {}) })
-  const ya = s.promovidosEspera[torneoId] ?? 0
-  const entran = cola.slice(ya, ya + n)
-  const usuarioEntra = entran.length < n && s.listaEspera.includes(torneoId)
-  if (entran.length === 0 && !usuarioEntra) return {}
-
-  const notis: Notificacion[] = []
-  if (usuarioEntra) {
-    notis.push({
-      id: nextId(), tipo: 'inscripcion', titulo: '🎟️ ¡Entras! Plaza liberada',
-      cuerpo: `Se ha liberado una plaza en «${nombreTorneo}» y eras el primero de la lista de espera. Pago procesado: tu entrada ya está en la cartera.`,
-      cuando: 'ahora', leida: false, href: '/entradas',
-    })
-  }
-  if (entran.length > 0) {
-    const listado = entran.length === 1 ? entran[0] : `${entran.slice(0, -1).join(', ')} y ${entran[entran.length - 1]}`
-    notis.push({
-      id: nextId(), tipo: 'sistema', titulo: 'Lista de espera · plaza cubierta',
-      cuerpo: `${listado} ${entran.length === 1 ? 'entra' : 'entran'} en «${nombreTorneo}» desde la lista de espera.`,
-      cuando: 'ahora', leida: false, href: `/torneo/${torneoId}`,
-    })
-  }
+// Escribir un resultado en la gestión del torneo (winners + puntos del combate):
+// la ÚNICA vía por la que un marcador entra al bracket. La usan el consenso del
+// doble reporte y la resolución de disputas del TO (misma lógica, sin duplicar).
+function gestionConResultado(
+  s: DemoState, torneoId: string, mid: string,
+  puntos: { a: number; b: number }, lado?: 'a' | 'b',
+): Pick<DemoState, 'gestion'> {
+  const ganador: 'a' | 'b' = lado ?? (puntos.a > puntos.b ? 'a' : 'b')
   return {
-    promovidosEspera: { ...s.promovidosEspera, [torneoId]: ya + entran.length },
-    ...(usuarioEntra ? {
-      listaEspera: s.listaEspera.filter(id => id !== torneoId),
-      inscritos: [...s.inscritos, torneoId],
-    } : {}),
-    notificaciones: [...notis, ...s.notificaciones],
+    gestion: {
+      ...s.gestion,
+      [torneoId]: {
+        ...GESTION_VACIA, ...s.gestion[torneoId],
+        winners: { ...(s.gestion[torneoId]?.winners ?? {}), [mid]: ganador },
+        puntos: { ...(s.gestion[torneoId]?.puntos ?? {}), [mid]: puntos },
+      },
+    },
   }
 }
 
-export const useDemoStore = create<DemoState>()(
-  persist(
-    (set, get) => ({
-      // t4 viene inscrito de serie: la cartera y la ficha lo cuentan igual
-      // (antes la cartera lo sembraba por su cuenta y la ficha no lo sabía).
-      inscritos: ['t4'],
+// La noti de bienvenida vive aparte: es la ÚNICA que estrena una cuenta nueva.
+const NOTI_BIENVENIDA: Notificacion = { id: 'seed4', tipo: 'sistema', titulo: 'Bienvenido a Torneum', cuerpo: 'Descubre torneos cerca de ti y compite por subir en el ranking.', tituloKey: 'ntfs.s4t', cuerpoKey: 'ntfs.s4c', cuando: 'ayer', leida: true }
+
+const NOTIS_INICIALES: Notificacion[] = [
+  { id: 'seed1', tipo: 'combate', titulo: 'Te toca · Mesa 3', cuerpo: 'Cuartos vs Sora. Abre el plano para ver tu mesa.', tituloKey: 'ntfs.s1t', cuerpoKey: 'ntfs.s1c', params: { rival: 'Sora' }, cuando: 'hace 2 min', leida: false, href: '/torneo/t1/mesa?n=3&vs=Cuartos%20vs%20Sora' },
+  { id: 'seed2', tipo: 'nuevo-torneo', titulo: 'Lima Esports publicó un torneo', cuerpo: 'Smash Arena Madrid — Major · Sáb 5 jul. ¡Plazas abiertas!', tituloKey: 'ntfs.s2t', cuerpoKey: 'ntfs.s2c', params: { to: 'Lima Esports', torneo: 'Smash Arena Madrid — Major', fecha: 'Sáb 5 jul' }, cuando: 'hace 1 h', leida: false, href: '/torneo/t11' },
+  { id: 'seed3', tipo: 'lleno', titulo: 'Torneo casi lleno', cuerpo: 'Tekken 8 Arena Night está al 97%. Inscríbete antes de que se agote.', tituloKey: 'ntfs.s3t', cuerpoKey: 'ntfs.s3c', params: { torneo: 'Tekken 8 Arena Night' }, cuando: 'hace 3 h', leida: true, href: '/torneo/t5' },
+  NOTI_BIENVENIDA,
+]
+
+// Identificador del jugador de la demo dentro de la cola de espera (los demás
+// puestos son nombres de muestra de esperaDe). El TO lo usa para «meterle» a él.
+export const ESPERA_USUARIO = '@usuario'
+
+// Crew AJENA de juego de equipo (scouting v1): sin el usuario entre los
+// miembros, VALORANT (plantilla scouting 'equipo') → su página ofrece
+// «Estudiar equipo». Definida aparte porque la usan el seed Y la migración v2
+// (estados persistidos de antes de scouting no la tienen).
+const CREW_SKUADRA_SEED: Crew = {
+  id: 'crew-sqd', nombre: 'Skuadra', tag: 'SKDR', juego: 'valorant', emoji: '🦅', color: '#4F8EF7',
+  miembros: ['Nyx', 'Volt', 'Zen', 'Aqua', 'Pyra'], creador: 'Nyx', admins: ['Nyx'],
+  descripcion: 'Stack fijo de ranked que se pasó a los presenciales.',
+}
+
+// Crew AJENA de Smash (del pool): también forma parte del mundo de una cuenta
+// nueva — es de Zen, no del usuario (extraída para reusarla en la plantilla).
+const CREW_DOJO_SEED: Crew = {
+  id: 'crew-dojo', nombre: 'Dojo Zen', tag: 'DOJO', juego: 'smash', emoji: '⛩️', color: '#2EC4B6',
+  miembros: ['Zen', 'Nyx', 'Rei'], creador: 'Zen', admins: ['Zen'],
+}
+
+// Promoción de UNA persona desde la lista de espera (F7). `quien` es un nombre
+// de la cola de muestra (o ESPERA_USUARIO para el jugador de la demo); sin
+// `quien` entra el primero pendiente: la cola de muestra por orden y, agotada
+// esta, el usuario si espera. Consume una plaza pendiente si la hay y devuelve
+// el parcial de estado a mezclar, o null si no había a quién promover.
+function promoverUnoDeEspera(s: DemoState, torneoId: string, nombreTorneo: string, quien?: string): Partial<DemoState> | null {
+  const base = getTorneo(torneoId) || s.creados.find(c => c.id === torneoId)
+  if (!base) return null
+  const cola = esperaDe({ ...base, ...(s.editados[torneoId] || {}) })
+  const entrados = s.entradosEspera[torneoId] ?? []
+  const pendientes = cola.filter(n => !entrados.includes(n))
+  const usuarioEspera = s.listaEspera.includes(torneoId)
+  const objetivo = quien ?? pendientes[0] ?? (usuarioEspera ? ESPERA_USUARIO : undefined)
+  if (!objetivo) return null
+  const menosPendiente = {
+    plazasPendientes: { ...s.plazasPendientes, [torneoId]: Math.max(0, (s.plazasPendientes[torneoId] ?? 0) - 1) },
+  }
+  if (objetivo === ESPERA_USUARIO) {
+    if (!usuarioEspera) return null
+    const noti: Notificacion = {
+      id: nextId(), tipo: 'inscripcion', titulo: '🎟️ ¡Estás dentro! Plaza liberada',
+      cuerpo: `Se ha liberado una plaza en «${nombreTorneo}» y el organizador te la ha dado desde la lista de espera. Pago procesado: tu entrada ya está en la cartera.`,
+      tituloKey: 'ntf.dentroT', cuerpoKey: 'ntf.dentroC', params: { torneo: nombreTorneo },
+      cuando: 'ahora', leida: false, href: '/entradas',
+    }
+    return {
+      ...menosPendiente,
+      listaEspera: s.listaEspera.filter(id => id !== torneoId),
+      inscritos: [...s.inscritos, torneoId],
+      notificaciones: [noti, ...s.notificaciones],
+    }
+  }
+  if (!pendientes.includes(objetivo)) return null
+  const noti: Notificacion = {
+    id: nextId(), tipo: 'sistema', titulo: `¡${objetivo} está dentro!`,
+    cuerpo: `Se liberó una plaza en «${nombreTorneo}» y el organizador se la ha dado desde la lista de espera.`,
+    tituloKey: 'ntf.dentroOtroT', cuerpoKey: 'ntf.dentroOtroC', params: { nombre: objetivo, torneo: nombreTorneo },
+    cuando: 'ahora', leida: false, href: `/torneo/${torneoId}`,
+  }
+  return {
+    ...menosPendiente,
+    entradosEspera: { ...s.entradosEspera, [torneoId]: [...entrados, objetivo] },
+    notificaciones: [noti, ...s.notificaciones],
+  }
+}
+
+// ── Datos iniciales del mundo demo (sin las acciones) ──
+// Extraídos a constante para poder: (a) resetear la memoria al cambiar a un
+// namespace de cuenta sin blob y (b) derivar la plantilla de cuenta VACÍA.
+type DatosDemo = {
+  [K in keyof DemoState as DemoState[K] extends (...args: never[]) => unknown ? never : K]: DemoState[K]
+}
+
+const DATOS_INICIALES: DatosDemo = {
+  // t4 viene inscrito de serie: la cartera y la ficha lo cuentan igual
+  // (antes la cartera lo sembraba por su cuenta y la ficha no lo sabía).
+  inscritos: ['t4'],
       listaEspera: [],
-      promovidosEspera: {},
+      entradosEspera: {},
+      plazasPendientes: {},
       seguidos: [],
       creados: [],
       juegosCustom: {},
@@ -220,13 +450,48 @@ export const useDemoStore = create<DemoState>()(
       cancelados: [],
       gestion: {},
       mesasSede: {},
-      solicitudesSede: [],
+      prepMesas: {},
+      // Dos solicitudes de muestra de otros organizadores: la sede decide sobre
+      // ellas con el MISMO flujo del store que las peticiones reales del TO.
+      solicitudesSede: [
+        { id: 'sol-seed1', localId: 'gamba', orgId: 'arcade-to', fecha: 'Vie 27 jun', franja: 'Noche (19-24h)', personas: 32, juego: 'tekken', estado: 'pendiente', recursos: ['8 consolas', '2 pantallas stream'], repartoTO: 30 },
+        { id: 'sol-seed2', localId: 'gamba', orgId: 'respawn-to', fecha: 'Dom 29 jun', franja: 'Tarde (16-21h)', personas: 24, juego: 'sf6', estado: 'pendiente', recursos: ['6 setups', 'micro y altavoces'], repartoTO: 20 },
+      ],
+      // Sedes de muestra con horario ya publicado: el filtro «Disponibles» del
+      // mapa de TO y el aro lima salen de aquí, no de "no tener torneos".
+      dispoSedes: {
+        nexus: { dias: [3, 4, 5], desdeH: 17, hastaH: 23, setups: 14, precioNoche: 55, publicada: true },
+        comarca: { dias: [5, 6], desdeH: 11, hastaH: 21, setups: 12, precioNoche: 30, publicada: true },
+      },
       // Disputa de muestra en el torneo live para que el modo directo luzca vivo
       disputas: [{ id: 'dsp-seed', torneoId: 't1', mesa: 5, a: 'Lux', b: 'Nyx' }],
+      reportesMatch: {},
+      // Personajes ya guardados en combates jugados del torneo en directo (t1,
+      // Smash): las brackets lucen los iconos de serie, sin jugar nada. Los ids
+      // cubren el cuadro de muestra (wq*/lr*/q*) del bracket público.
+      personajesPorMatch: {
+        t1: {
+          wq1: { A: ['Joker'], B: ['Sonic', 'Kirby'] },
+          wq2: { A: ['Pyra/Mythra'], B: ['Steve'] },
+          wq3: { A: ['Fox'], B: ['Cloud', 'Roy'] },
+          lr1: { A: ['Sonic'], B: ['Pyra/Mythra'] },
+          q1: { A: ['Joker'], B: ['Sonic', 'Kirby'] },
+          q2: { A: ['Pyra/Mythra'], B: ['Steve'] },
+          q3: { A: ['Fox'], B: ['Cloud', 'Roy'] },
+        },
+      },
+      // Contador real del perfil demo (se suma con cada consenso del jugador)
+      personajesJugados: { smash: { Pikachu: 3, Fox: 1 } },
       checkinsJugador: [],
       notificaciones: NOTIS_INICIALES,
+      descartadas: [],
       juegoPerfil: 'smash',
       avatarEmoji: null,
+      fotoPerfil: null,
+      bannerPerfil: null,
+      bioPerfil: '',
+      userTag: null,
+      tagRegenerado: false,
       mainsPerfil: {},
       juegosFavoritos: [],
       onboardingVisto: false,
@@ -237,56 +502,265 @@ export const useDemoStore = create<DemoState>()(
       reportes: [
         { id: 'rep-seed', torneoId: 't1', torneoNombre: 'Lima Smash Weekly #42', tipo: 'seeding', motivo: 'Me toca otra vez contra el mismo jugador en ronda 1', mensaje: 'Tercera semana seguida contra Sora en R1, tenemos nivel parecido y nos cruzáis pronto.', estado: 'abierto' },
       ],
-      puntuadosStartgg: [],
-      tagStartgg: null,
+      paisJugador: 'ES',
+      juegosOcultos: [],
       perfilTO: 'no',
       tierUsuario: null,
-      bonosComprados: [],
       chatsTorneo: {},
+      expedientesSede: [
+        {
+          id: 'exp1', nombre: 'Nivel 99', zona: 'Moncloa', representante: 'Marta Ruiz Salas', email: 'marta@nivel99.es',
+          telefono: '+34 611 22 33 44', cif: 'B-88412367', direccion: 'C/ Princesa 82, 28008 Madrid',
+          aforo: 90, setups: 14, docs: ['Licencia de actividad', 'Seguro RC', 'Titularidad del local'], estado: 'pendiente',
+        },
+        {
+          id: 'exp2', nombre: 'Dado Crítico', zona: 'Getafe', representante: 'Jorge Lamas Peña', email: 'hola@dadocritico.com',
+          telefono: '+34 622 87 90 11', cif: 'B-87201455', direccion: 'Av. de España 14, 28901 Getafe',
+          aforo: 55, setups: 10, docs: ['Licencia de actividad', 'Seguro RC'], estado: 'pendiente',
+        },
+      ],
+      expedientesTO: [
+        {
+          id: 'expto1', nombre: 'Trinity Games', representante: 'Lucía Vega', email: 'lucia@trinitygames.gg',
+          telefono: '+34 655 09 12 87', experiencia: 'Semanales de Melee en Alcorcón (2 años) y liga universitaria UC3M.',
+          juegos: ['smash', 'tft'], enlaces: 'start.gg/trinity-weekly', estado: 'pendiente',
+        },
+      ],
+      propuestasJuego: [
+        { id: 'pj1', nombre: 'Guilty Gear Strive', color: '#FF5C8A', emoji: '🥊', to: 'FGC Madrid' },
+        { id: 'pj2', nombre: 'EA FC 26', color: '#3FA65C', emoji: '⚽', to: 'Bracket Club' },
+      ],
+      valoracionesSedes: {},
+      // t10 viene valorado de serie: así «Enviadas» en /perfil/valoraciones
+      // enseña el patrón completo (enviadas + pendientes por rellenar).
+      valoracionesTO: { t10: 5 },
+      tosConfianza: { gamba: ['lima', 'dragon-to'] },
+      fichasSede: {},
+      amigos: ['Kaze', 'Sora', 'Volt', 'Lux', 'Drako'],
+      solicitudesAmistad: ['Nyx'],
+      gruposChat: [
+        {
+          id: 'gc1', nombre: 'Club Gamba', emoji: '🎮', miembros: ['Kaze', 'Sora', 'Volt', 'Lux'], propio: true,
+          mensajes: [
+            { autor: 'Kaze', texto: '¿Vamos todos al Weekly del jueves?', hora: '12:10' },
+            { autor: 'Sora', texto: 'Yo me apunto, quiero la revancha 😤', hora: '12:14' },
+            { autor: 'Volt', texto: 'Reservad mesa para amistosos antes', hora: '12:20' },
+          ],
+        },
+        {
+          id: 'gc2', nombre: 'Liga Magic Madrid', emoji: '🃏', miembros: ['Drako', 'Sora'],
+          mensajes: [
+            { autor: 'Drako', texto: 'Jornada 5 este viernes, no falléis', hora: 'ayer' },
+          ],
+        },
+        // Chats OFICIALES de las crews del usuario (F6): crear una crew abre
+        // su grupo vinculado; por él llegan las convocatorias de inscripción.
+        {
+          id: 'gc-nox', nombre: 'Nocturna', emoji: '🌙', miembros: ['Kaze', 'Sora', 'Volt'], propio: true, crewId: 'crew-nox',
+          mensajes: [
+            { autor: 'Kaze', texto: 'Semanal del jueves: ¿vamos los 4 con el tag?', hora: 'ayer' },
+          ],
+        },
+        {
+          id: 'gc-vnd', nombre: 'Vandalia', emoji: '🎯', miembros: ['Lux', 'Drako', 'Rei', 'Mist'], crewId: 'crew-vnd',
+          mensajes: [
+            { autor: 'Rei', texto: 'Hay Community Cup 5v5 el sábado, ojo al cupo 👀', hora: 'ayer' },
+          ],
+        },
+      ],
+      // Crews sembradas (F6, reseed paquete Chat: tags de 4 LETRAS + creador y
+      // admins): dos del usuario (Nocturna en Smash y Vandalia en VALORANT,
+      // juego de equipos) y una del pool (Dojo Zen) para que ranking y brackets
+      // de Smash luzcan tags de serie. Orden = antigüedad. En Vandalia el
+      // usuario es creador y Kaze admin (entra como miembro: un admin siempre
+      // es miembro) para demostrar concesión/revocación del rol.
+      // Skuadra (scouting v1): crew AJENA de juego de equipo — es la que hace
+      // demostrable «Estudiar equipo» (solo aparece en crews que no son tuyas).
+      crews: [
+        { id: 'crew-nox', nombre: 'Nocturna', tag: 'NOCT', juego: 'smash', emoji: '🌙', color: '#9B5DE5', miembros: [CREW_USUARIO, 'Kaze', 'Sora', 'Volt'], creadaPorMi: true, creador: CREW_USUARIO, admins: [CREW_USUARIO], descripcion: 'Los búhos del Smash madrileño: labs entre semana, bracket los jueves.' },
+        CREW_DOJO_SEED,
+        { id: 'crew-vnd', nombre: 'Vandalia', tag: 'VNDL', juego: 'valorant', emoji: '🎯', color: '#FF4655', miembros: [CREW_USUARIO, 'Kaze', 'Lux', 'Drako', 'Rei', 'Mist'], creadaPorMi: true, creador: CREW_USUARIO, admins: [CREW_USUARIO, 'Kaze'] },
+        CREW_SKUADRA_SEED,
+      ],
+      crewTorneo: {},
+      usuariosSuspendidos: [],
+      betaCerrada: true,
+      codigosBeta: ['TOUR-B7K2', 'TOUR-M4X9'],
+      moderacionChat: {},
+}
 
-      inscribir: (torneoId, nombreTorneo) => set((s) => {
+// ── Plantilla de cuenta VACÍA (30-08): lo PERSONAL a cero, el mundo intacto ──
+// Todo lo que en el seed es «de Álex» (inscripciones, amigos, crews propias,
+// valoraciones emitidas, personajes jugados, reportes, identidad del perfil…)
+// arranca vacío; el estado-mundo (dispoSedes, expedientes, propuestas, fichas,
+// moderación…) conserva sus defaults. Notificaciones: SOLO la bienvenida.
+export const ESTADO_CUENTA_NUEVA: DatosDemo = {
+  ...DATOS_INICIALES,
+  inscritos: [],
+  listaEspera: [],
+  entradasEspectador: [],
+  seguidos: [],
+  amigos: [],
+  solicitudesAmistad: [],
+  gruposChat: [],
+  notificaciones: [{ ...NOTI_BIENVENIDA, cuando: 'ahora', leida: false }],
+  descartadas: [],
+  valoracionesTO: {},
+  valoracionesSedes: {},
+  personajesJugados: {},
+  reportesMatch: {},
+  personajesPorMatch: {},
+  tierUsuario: null,
+  fotoPerfil: null,
+  bannerPerfil: null,
+  bioPerfil: '',
+  userTag: null,          // se genera al primer uso (asegurarUserTag)
+  tagRegenerado: false,
+  referidos: { codigo: 'ALBERT-3F7', jugados: 0, canjeados: [] },
+  creados: [],
+  crewTorneo: {},
+  // Crews: SOLO las del mundo que NO son del usuario (Nocturna y Vandalia son
+  // de Álex → fuera de este mundo).
+  crews: [CREW_DOJO_SEED, CREW_SKUADRA_SEED],
+  // Resto personal que el seed traía «vivido» por Álex:
+  disputas: [],           // la disputa seed es del torneo de Lima → «Sin avisos» en una consola nueva
+  reportes: [],
+  checkinsJugador: [],
+  chatsTorneo: {},
+  avatarEmoji: null,
+  mainsPerfil: {},
+  juegosFavoritos: [],
+  onboardingVisto: false, // una cuenta nueva pasa por el onboarding de verdad
+}
+
+// ── Storage POR CUENTA (30-08) ──
+// El nombre real de la clave se resuelve EN CADA llamada según la sesión activa
+// (claveDemoActual): cuentas legacy y sin sesión → 'todh-demo' (compatibilidad
+// total con suites y usuarios actuales); cuentas nuevas → 'todh-demo@{slug}'.
+// LIMITACIÓN ASUMIDA (v1, deliberada): cada cuenta nueva vive en su propio
+// namespace → lo que crea David NO aparece en el mundo de Javier; los cruces
+// entre cuentas se demuestran con las cuentas legacy (mundo compartido de Álex).
+const storagePorCuenta: StateStorage = {
+  getItem: (_name) => (typeof window === 'undefined' ? null : window.localStorage.getItem(claveDemoActual())),
+  setItem: (_name, value) => { if (typeof window !== 'undefined') window.localStorage.setItem(claveDemoActual(), value) },
+  removeItem: (_name) => { if (typeof window !== 'undefined') window.localStorage.removeItem(claveDemoActual()) },
+}
+
+export const useDemoStore = create<DemoState>()(
+  persist(
+    (set, get) => ({
+      ...DATOS_INICIALES,
+
+      // `crewId` (F6): la inscripción va EN NOMBRE de esa crew — el pago sigue
+      // siendo individual; solo se anota tu plaza en el cupo del torneo.
+      inscribir: (torneoId, nombreTorneo, crewId) => set((s) => {
         if (s.inscritos.includes(torneoId)) return s
+        const crew = crewId ? s.crews.find(c => c.id === crewId) : undefined
         const noti: Notificacion = {
           id: nextId(), tipo: 'inscripcion', titulo: 'Inscripción confirmada',
-          cuerpo: `Estás dentro de "${nombreTorneo}". Lo tienes en tu cartera.`,
+          cuerpo: crew
+            ? `Estás dentro de "${nombreTorneo}" en nombre de ${crew.nombre} #${crew.tag}. Lo tienes en tu cartera.`
+            : `Estás dentro de "${nombreTorneo}". Lo tienes en tu cartera.`,
+          tituloKey: 'ntf.inscT', cuerpoKey: crew ? 'ntf.inscCrewC' : 'ntf.inscC',
+          params: crew ? { torneo: nombreTorneo, crew: `${crew.nombre} #${crew.tag}` } : { torneo: nombreTorneo },
           cuando: 'ahora', leida: false, href: '/entradas',
         }
-        return { inscritos: [...s.inscritos, torneoId], notificaciones: [noti, ...s.notificaciones] }
+        const cupoPrevio = s.crewTorneo[torneoId]
+        const conCupo = crew
+          ? { crewTorneo: { ...s.crewTorneo, [torneoId]: {
+              crewId: crew.id,
+              inscritos: [...(cupoPrevio?.crewId === crew.id ? cupoPrevio.inscritos : []).filter(x => x !== CREW_USUARIO), CREW_USUARIO],
+            } } }
+          : {}
+        return { inscritos: [...s.inscritos, torneoId], notificaciones: [noti, ...s.notificaciones], ...conCupo }
       }),
-      // Cancelar inscripción: libera la plaza y, si hay cola, el primero entra.
+      // Cancelar inscripción (F7): la plaza NO se cubre sola — queda pendiente y
+      // el TO decide quién entra de la cola (promoverDeEspera). La devolución
+      // sigue la ventana de 24 h (cancelacion.ts); gratis → texto neutro.
       desinscribir: (torneoId, nombreTorneo) => set((s) => {
-        const noti: Notificacion = {
-          id: nextId(), tipo: 'sistema', titulo: 'Inscripción cancelada',
-          cuerpo: `Has cancelado tu plaza en «${nombreTorneo}». Reembolso emitido según la política del torneo.`,
-          cuando: 'ahora', leida: false,
+        const base = getTorneo(torneoId) || s.creados.find(c => c.id === torneoId)
+        const t = base ? { ...base, ...(s.editados[torneoId] || {}) } : undefined
+        const precio = t?.precio ?? 0
+        const conDevolucion = !t || puedeCancelarConDevolucion(t)
+        const notiJugador: Notificacion = precio === 0
+          ? {
+              id: nextId(), tipo: 'sistema', titulo: 'Inscripción cancelada',
+              cuerpo: `Has cancelado tu plaza en «${nombreTorneo}». Queda libre para otro jugador.`,
+              tituloKey: 'ntf.cancT', cuerpoKey: 'ntf.cancC', params: { torneo: nombreTorneo },
+              cuando: 'ahora', leida: false,
+            }
+          : conDevolucion
+            ? {
+                id: nextId(), tipo: 'sistema', titulo: 'Devolución emitida',
+                cuerpo: `Has cancelado tu plaza en «${nombreTorneo}» avisando con más de 24 h: ${precio}€ de vuelta en tu método de pago.`,
+                tituloKey: 'ntf.devolucionT', cuerpoKey: 'ntf.devolucionC', params: { torneo: nombreTorneo, precio },
+                cuando: 'ahora', leida: false,
+              }
+            : {
+                id: nextId(), tipo: 'sistema', titulo: 'Inscripción cancelada sin devolución',
+                cuerpo: `Has cancelado tu plaza en «${nombreTorneo}» con menos de 24 h de aviso: la inscripción (${precio}€) no se reembolsa.`,
+                tituloKey: 'ntf.sinDevolucionT', cuerpoKey: 'ntf.sinDevolucionC', params: { torneo: nombreTorneo, precio },
+                cuando: 'ahora', leida: false,
+              }
+        // Alerta al TO: la plaza liberada la resuelve él en /gestionar (F7).
+        const notiTO: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: `Plaza liberada en «${nombreTorneo}»`,
+          cuerpo: 'Un jugador ha cancelado su inscripción. Decide quién entra de la cola de espera.',
+          tituloKey: 'ntf.plazaLibreT', cuerpoKey: 'ntf.plazaLibreC', params: { torneo: nombreTorneo },
+          cuando: 'ahora', leida: false, href: `/gestionar/${torneoId}`,
         }
-        const tras: DemoState = { ...s, inscritos: s.inscritos.filter(id => id !== torneoId), notificaciones: [noti, ...s.notificaciones] }
-        return { inscritos: tras.inscritos, notificaciones: tras.notificaciones, ...promocionEspera(tras, torneoId, nombreTorneo, 1) }
+        // Si ibas en nombre de una crew (F6), tu plaza sale también del cupo.
+        const cupo = s.crewTorneo[torneoId]
+        const sinMiPlaza = cupo?.inscritos.includes(CREW_USUARIO)
+          ? { crewTorneo: { ...s.crewTorneo, [torneoId]: { ...cupo, inscritos: cupo.inscritos.filter(x => x !== CREW_USUARIO) } } }
+          : {}
+        return {
+          inscritos: s.inscritos.filter(id => id !== torneoId),
+          plazasPendientes: { ...s.plazasPendientes, [torneoId]: (s.plazasPendientes[torneoId] ?? 0) + 1 },
+          notificaciones: [notiJugador, notiTO, ...s.notificaciones],
+          ...sinMiPlaza,
+        }
       }),
       apuntarEspera: (torneoId, nombreTorneo, puesto) => set((s) => {
         if (s.listaEspera.includes(torneoId) || s.inscritos.includes(torneoId)) return s
         const noti: Notificacion = {
           id: nextId(), tipo: 'inscripcion', titulo: `En lista de espera · puesto ${puesto}`,
-          cuerpo: `«${nombreTorneo}» está completo. Si se libera una plaza entra el primero de la cola; te avisaremos y cobraremos solo si entras.`,
+          cuerpo: `«${nombreTorneo}» está completo. Si se libera una plaza, el organizador decide quién entra de la cola; te avisaremos y cobraremos solo si entras.`,
+          tituloKey: 'ntf.esperaT', cuerpoKey: 'ntf.esperaC', params: { puesto, torneo: nombreTorneo },
           cuando: 'ahora', leida: false, href: '/entradas',
         }
         return { listaEspera: [...s.listaEspera, torneoId], notificaciones: [noti, ...s.notificaciones] }
       }),
       salirEspera: (torneoId) => set((s) => ({ listaEspera: s.listaEspera.filter(id => id !== torneoId) })),
-      // El TO libera n plazas (baja de un jugador o ampliación de aforo).
-      liberarPlazas: (torneoId, nombreTorneo, n) => set((s) => promocionEspera(s, torneoId, nombreTorneo, n)),
-      estaInscrito: (torneoId) => get().inscritos.includes(torneoId),
+      // Acción EXPLÍCITA del TO (ampliar plazas o dar de baja a un inscrito):
+      // la cola entra sola por orden (FIFO), n veces, vía la promoción única.
+      liberarPlazas: (torneoId, nombreTorneo, n) => set((s) => {
+        let acc = s
+        for (let i = 0; i < n; i++) {
+          const p = promoverUnoDeEspera(acc, torneoId, nombreTorneo)
+          if (!p) break
+          acc = { ...acc, ...p }
+        }
+        return acc === s ? s : acc
+      }),
+      // El TO decide (F7): mete a `quien` desde la cola; sin `quien`, al primero.
+      promoverDeEspera: (torneoId, nombreTorneo, quien) => set((s) => promoverUnoDeEspera(s, torneoId, nombreTorneo, quien) ?? s),
+      // O deja la plaza libre para nuevas inscripciones (también es decidir).
+      descartarPlazasPendientes: (torneoId) => set((s) => ({
+        plazasPendientes: { ...s.plazasPendientes, [torneoId]: 0 },
+      })),
 
       alternarSeguir: (orgId, nombreOrg) => set((s) => {
         const sigue = s.seguidos.includes(orgId)
         if (sigue) return { seguidos: s.seguidos.filter(id => id !== orgId) }
         const noti: Notificacion = {
           id: nextId(), tipo: 'sistema', titulo: `Sigues a ${nombreOrg}`,
-          cuerpo: 'Te avisaremos cuando publique nuevos torneos.', cuando: 'ahora', leida: false,
+          cuerpo: 'Te avisaremos cuando publique nuevos torneos.',
+          tituloKey: 'ntf.siguesT', cuerpoKey: 'ntf.siguesC', params: { nombre: nombreOrg },
+          cuando: 'ahora', leida: false,
         }
         return { seguidos: [...s.seguidos, orgId], notificaciones: [noti, ...s.notificaciones] }
       }),
-      sigue: (orgId) => get().seguidos.includes(orgId),
 
       crearTorneo: (t) => set((s) => {
         const noti: Notificacion = {
@@ -326,6 +800,31 @@ export const useDemoStore = create<DemoState>()(
         mesasSede: { ...s.mesasSede, [localId]: mesas },
       })),
 
+      // Preparar una mesa antes del directo: persiste la marca (o la limpia con
+      // null) para que la sala preparada sobreviva a recargas y al arranque.
+      prepararMesa: (torneoId, n, estado) => set((s) => {
+        const marcas = { ...(s.prepMesas[torneoId] ?? {}) }
+        if (estado === null) delete marcas[n]
+        else marcas[n] = estado
+        return { prepMesas: { ...s.prepMesas, [torneoId]: marcas } }
+      }),
+
+      // Disponibilidad de la sede: al publicarla (transición off→on) se avisa,
+      // porque desde ese momento los TOs pueden reservar directo.
+      setDispoSede: (localId, dispo) => set((s) => {
+        const antes = s.dispoSedes[localId]
+        const publicaAhora = dispo.publicada && !antes?.publicada
+        const noti: Notificacion | null = publicaAhora ? {
+          id: nextId(), tipo: 'sistema', titulo: 'Disponibilidad publicada',
+          cuerpo: 'Tu horario ya es visible en tu ficha: los TOs de confianza pueden reservar directo.',
+          cuando: 'ahora', leida: false,
+        } : null
+        return {
+          dispoSedes: { ...s.dispoSedes, [localId]: dispo },
+          ...(noti ? { notificaciones: [noti, ...s.notificaciones] } : {}),
+        }
+      }),
+
       crearSolicitudSede: (sol, nombreLocal) => set((s) => {
         const noti: Notificacion = {
           id: nextId(), tipo: 'sistema', titulo: 'Solicitud enviada',
@@ -343,6 +842,7 @@ export const useDemoStore = create<DemoState>()(
         const noti: Notificacion = {
           id: nextId(), tipo: 'combate', titulo: 'Check-in hecho ✓',
           cuerpo: `Ya estás dentro de «${nombreTorneo}». Te avisaremos (con vibración) cuando te toque mesa.`,
+          tituloKey: 'ntf.checkinT', cuerpoKey: 'ntf.checkinC', params: { torneo: nombreTorneo },
           cuando: 'ahora', leida: false,
         }
         return { checkinsJugador: [...s.checkinsJugador, torneoId], notificaciones: [noti, ...s.notificaciones] }
@@ -352,32 +852,86 @@ export const useDemoStore = create<DemoState>()(
         const noti: Notificacion = {
           id: nextId(), tipo: 'disputa', titulo: '⚠️ Disputa en Mesa ' + d.mesa,
           cuerpo: `${d.a} y ${d.b} no coinciden en el resultado («${nombreTorneo}»). Resuélvela en el modo directo.`,
+          tituloKey: 'ntf.disputaT', cuerpoKey: 'ntf.disputaC', params: { mesa: d.mesa, a: d.a, b: d.b, torneo: nombreTorneo },
           cuando: 'ahora', leida: false, href: '/modo-directo',
         }
         return { disputas: [...s.disputas, { ...d, id: nextId() }], notificaciones: [noti, ...s.notificaciones] }
       }),
 
+      // Doble reporte real: cada lado reporta una vez (el primero manda; nada de
+      // re-reportar). Con AMBOS reportes: los personajes se guardan siempre —
+      // cada jugador declara los suyos — y el marcador decide: coincide →
+      // consenso (resultado al bracket por la misma vía que la disputa resuelta);
+      // difiere → disputa para el TO en el modo directo.
+      reportarResultado: ({ torneoId, matchId, lado, reporte, ctx }) => set((s) => {
+        const previos = s.reportesMatch[torneoId]?.[matchId] ?? {}
+        if (previos[lado]) return s
+        const ambos: ReportesCombate = { ...previos, [lado]: reporte }
+        const base: Partial<DemoState> = {
+          reportesMatch: { ...s.reportesMatch, [torneoId]: { ...s.reportesMatch[torneoId], [matchId]: ambos } },
+        }
+        const rA = ambos.A, rB = ambos.B
+        if (!rA || !rB) return base
+
+        // Personajes declarados (cada uno del suyo, sin disputa posible)
+        const pj = { A: (rA.personajes ?? []).slice(0, 2), B: (rB.personajes ?? []).slice(0, 2) }
+        if (pj.A.length || pj.B.length) {
+          base.personajesPorMatch = {
+            ...s.personajesPorMatch,
+            [torneoId]: { ...s.personajesPorMatch[torneoId], [matchId]: pj },
+          }
+          // Contador del perfil del jugador demo (solo sus propios reportes)
+          const cont = { ...(s.personajesJugados[ctx.juego] ?? {}) }
+          let tocado = false
+          for (const r of [rA, rB]) {
+            if (!r.deUsuario) continue
+            for (const p of (r.personajes ?? []).slice(0, 2)) { cont[p] = (cont[p] ?? 0) + 1; tocado = true }
+          }
+          if (tocado) base.personajesJugados = { ...s.personajesJugados, [ctx.juego]: cont }
+        }
+
+        const coincide = rA.marcador[0] === rB.marcador[0] && rA.marcador[1] === rB.marcador[1]
+        if (coincide) {
+          const puntos = { a: rA.marcador[0], b: rA.marcador[1] }
+          const ganador = puntos.a > puntos.b ? ctx.a : ctx.b
+          const noti: Notificacion = {
+            id: nextId(), tipo: 'combate', titulo: '✅ Resultado verificado',
+            cuerpo: `Ambos reportes coinciden: ${ganador} gana ${Math.max(puntos.a, puntos.b)}–${Math.min(puntos.a, puntos.b)} en «${ctx.nombreTorneo}». El bracket ya ha avanzado.`,
+            tituloKey: 'ntf.verificadoT', cuerpoKey: 'ntf.verificadoC',
+            params: { ganador, marcador: `${Math.max(puntos.a, puntos.b)}–${Math.min(puntos.a, puntos.b)}`, torneo: ctx.nombreTorneo },
+            cuando: 'ahora', leida: false, href: `/torneo/${torneoId}/bracket`,
+          }
+          return { ...base, ...gestionConResultado(s, torneoId, matchId, puntos), notificaciones: [noti, ...s.notificaciones] }
+        }
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'disputa', titulo: '⚠️ Disputa en Mesa ' + ctx.mesa,
+          cuerpo: `${ctx.a} y ${ctx.b} no coinciden en el resultado («${ctx.nombreTorneo}»). Resuélvela en el modo directo.`,
+          tituloKey: 'ntf.disputaT', cuerpoKey: 'ntf.disputaC', params: { mesa: ctx.mesa, a: ctx.a, b: ctx.b, torneo: ctx.nombreTorneo },
+          cuando: 'ahora', leida: false, href: '/modo-directo',
+        }
+        return {
+          ...base,
+          disputas: [...s.disputas, { id: nextId(), torneoId, mesa: ctx.mesa, a: ctx.a, b: ctx.b, mid: matchId }],
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
+
       // Resolver: quita la disputa y, si venía de un combate real, escribe el
-      // ganador (2-1) para que el bracket avance. Avisa a los jugadores.
-      resolverDisputa: (id, lado) => set((s) => {
+      // resultado para que el bracket avance. Con `marcador` el TO fija el
+      // tanteo exacto (2-1, 3-0…); sin él se anota 2-1 por defecto (admin).
+      resolverDisputa: (id, lado, marcador) => set((s) => {
         const d = s.disputas.find(x => x.id === id)
         if (!d) return s
         const ganador = lado === 'a' ? d.a : d.b
+        const puntos = marcador ?? (lado === 'a' ? { a: 2, b: 1 } : { a: 1, b: 2 })
+        const tanteo = `${Math.max(puntos.a, puntos.b)}–${Math.min(puntos.a, puntos.b)}`
         const noti: Notificacion = {
           id: nextId(), tipo: 'disputa', titulo: 'Disputa resuelta por el organizador',
-          cuerpo: `${ganador} gana el combate de la mesa ${d.mesa}. El resultado ya cuenta en el bracket.`,
+          cuerpo: `${ganador} gana ${tanteo} el combate de la mesa ${d.mesa}. El resultado ya cuenta en el bracket.`,
+          tituloKey: 'ntf.disputaResueltaT', cuerpoKey: 'ntf.disputaResueltaC', params: { ganador, tanteo, mesa: d.mesa },
           cuando: 'ahora', leida: false, href: d.mid ? `/torneo/${d.torneoId}/bracket` : undefined,
         }
-        const g = d.mid ? {
-          gestion: {
-            ...s.gestion,
-            [d.torneoId]: {
-              ...GESTION_VACIA, ...s.gestion[d.torneoId],
-              winners: { ...(s.gestion[d.torneoId]?.winners ?? {}), [d.mid]: lado },
-              puntos: { ...(s.gestion[d.torneoId]?.puntos ?? {}), [d.mid]: lado === 'a' ? { a: 2, b: 1 } : { a: 1, b: 2 } },
-            },
-          },
-        } : {}
+        const g = d.mid ? gestionConResultado(s, d.torneoId, d.mid, puntos, lado) : {}
         return { disputas: s.disputas.filter(x => x.id !== id), notificaciones: [noti, ...s.notificaciones], ...g }
       }),
 
@@ -432,21 +986,48 @@ export const useDemoStore = create<DemoState>()(
         notificaciones: [{ id: nextId(), leida: false, cuando: n.cuando || 'ahora', ...n }, ...s.notificaciones],
       })),
       marcarLeidas: () => set((s) => ({ notificaciones: s.notificaciones.map(n => ({ ...n, leida: true })) })),
-      noLeidas: () => get().notificaciones.filter(n => !n.leida).length,
+      noLeidas: () => {
+        const s = get()
+        return s.notificaciones.filter(n => !n.leida && !s.descartadas.includes(n.id)).length
+      },
+      // R1: quitar una notificación (swipe en móvil, X en PC). Se guarda el id
+      // en `descartadas` en vez de borrarla: así los avisos autogenerados (p. ej.
+      // inactividad) no reaparecen al volver a evaluarse.
+      descartarNoti: (id) => set((s) => ({
+        descartadas: s.descartadas.includes(id) ? s.descartadas : [...s.descartadas, id],
+      })),
+      descartarTodasNotis: () => set((s) => ({
+        descartadas: Array.from(new Set([...s.descartadas, ...s.notificaciones.map(n => n.id)])),
+      })),
+      // Aviso de inactividad (>45 días sin jugar): id fijo para no duplicarlo
+      // entre visitas; si el usuario lo descarta, no vuelve a entrar.
+      avisarInactividad: (titulo, cuerpo, extra) => set((s) => s.notificaciones.some(n => n.id === 'inactividad-45') ? s : ({
+        notificaciones: [{ id: 'inactividad-45', tipo: 'inactividad' as const, titulo, cuerpo, ...extra, cuando: 'ahora', leida: false, href: '/explorar' }, ...s.notificaciones],
+      })),
       setJuegoPerfil: (juegoPerfil) => set({ juegoPerfil }),
       setAvatarEmoji: (avatarEmoji) => set({ avatarEmoji }),
+      // ── Paquete Chat: identidad editable del perfil (persisten en la demo) ──
+      setFotoPerfil: (fotoPerfil) => set({ fotoPerfil }),
+      setBannerPerfil: (bannerPerfil) => set({ bannerPerfil }),
+      setBioPerfil: (bio) => set({ bioPerfil: bio.slice(0, 160) }),
+      // El tag de usuario #XABCD se genera al primer uso y queda fijo.
+      asegurarUserTag: () => set((s) => s.userTag ? s : { userTag: generarTagUsuario() }),
+      // Regenerable UNA sola vez (como en Discord con el discriminador: evita
+      // el abuso de rotar identidad y mantiene el tag citable entre amigos).
+      regenerarTag: () => set((s) => s.tagRegenerado ? s : { userTag: generarTagUsuario(), tagRegenerado: true }),
       setMainsPerfil: (juego, mains) => set((s) => ({ mainsPerfil: { ...s.mainsPerfil, [juego]: mains } })),
       setJuegosFavoritos: (juegosFavoritos) => set({ juegosFavoritos, onboardingVisto: true }),
       setIdioma: (idioma) => set({ idioma }),
       inscribirEspectador: (id, nombre) => set((s) => {
         if (s.entradasEspectador.includes(id)) return s
-        const n: Notificacion = { id: nextId(), tipo: 'inscripcion', titulo: 'Entrada de espectador', cuerpo: `Ya tienes tu entrada para ver «${nombre}». Enséñala en la puerta.`, cuando: 'ahora', leida: false, href: '/entradas' }
+        const n: Notificacion = { id: nextId(), tipo: 'inscripcion', titulo: 'Entrada de espectador', cuerpo: `Ya tienes tu entrada para ver «${nombre}». Enséñala en la puerta.`, tituloKey: 'ntf.espectadorT', cuerpoKey: 'ntf.espectadorC', params: { torneo: nombre }, cuando: 'ahora', leida: false, href: '/entradas' }
         return { entradasEspectador: [...s.entradasEspectador, id], notificaciones: [n, ...s.notificaciones] }
       }),
       canjearReferido: (nivel) => set((s) => {
         if (s.referidos.canjeados.includes(nivel) || s.referidos.jugados < nivel) return s
         const premio = nivel === 1 ? 'Entrada de espectador gratis' : nivel === 3 ? 'Inscripción estándar gratis' : 'Acceso a un torneo Oro este mes'
-        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: 'Recompensa canjeada', cuerpo: `${premio} — ya está aplicada en tu cuenta.`, cuando: 'ahora', leida: false, href: '/perfil' }
+        const cuerpoKey = nivel === 1 ? 'ntf.recompensaC1' : nivel === 3 ? 'ntf.recompensaC3' : 'ntf.recompensaC5'
+        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: 'Recompensa canjeada', cuerpo: `${premio} — ya está aplicada en tu cuenta.`, tituloKey: 'ntf.recompensaT', cuerpoKey, cuando: 'ahora', leida: false, href: '/perfil' }
         return {
           referidos: { ...s.referidos, canjeados: [...s.referidos.canjeados, nivel] },
           notificaciones: [n, ...s.notificaciones],
@@ -456,27 +1037,14 @@ export const useDemoStore = create<DemoState>()(
       compartirPreregistro: () => set((s) => ({
         preregistro: { ...s.preregistro, compartidos: s.preregistro.compartidos + 1, pos: Math.max(12, s.preregistro.pos - 47) },
       })),
-      // Ingesta del espejo: el torneo vinculado a start.gg ha terminado → sus
-      // resultados puntúan también en el ranking Tourneum (una sola vez).
-      puntuarStartgg: (torneoId, nombreTorneo) => set((s) => {
-        if (s.puntuadosStartgg.includes(torneoId)) return s
-        const n: Notificacion = {
-          id: nextId(), tipo: 'sistema', titulo: '🏆 Resultados importados de start.gg',
-          cuerpo: `«${nombreTorneo}» ha terminado. Sus resultados ya puntúan en el ranking Tourneum; los puntos de start.gg no se tocan.`,
-          cuando: 'ahora', leida: false, href: '/ranking',
-        }
-        return { puntuadosStartgg: [...s.puntuadosStartgg, torneoId], notificaciones: [n, ...s.notificaciones] }
-      }),
-      // Identidad start.gg: al vincular tu tag, el ranking real te reconoce
-      vincularStartgg: (tag) => set((s) => {
-        if (!tag) return { tagStartgg: null }
-        const n: Notificacion = {
-          id: nextId(), tipo: 'sistema', titulo: `Tag vinculado: ${tag}`,
-          cuerpo: 'Tus resultados reales de start.gg ya te identifican en el ranking. Al llegar el backend, tu historial sembrará tu rating inicial.',
-          cuando: 'ahora', leida: false, href: '/ranking',
-        }
-        return { tagStartgg: tag, notificaciones: [n, ...s.notificaciones] }
-      }),
+      // País competitivo: se elige al registrarte y puede corregirse. Tus puntos
+      // van siempre al ranking de TU país, juegues donde juegues.
+      setPaisJugador: (paisJugador) => set({ paisJugador }),
+      // Interruptor del catálogo (admin): un juego oculto deja de salir en la
+      // app de jugador y en el alta de torneos; sus torneos ya creados no se tocan.
+      alternarJuegoOculto: (juegoId) => set((s) => ({
+        juegosOcultos: s.juegosOcultos.includes(juegoId) ? s.juegosOcultos.filter(x => x !== juegoId) : [...s.juegosOcultos, juegoId],
+      })),
       crearReporte: (r) => set((s) => {
         const rep: ReporteTO = { ...r, id: nextId(), estado: 'abierto' }
         const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: `Revisar ${r.tipo}`, cuerpo: `Reporte en «${r.torneoNombre}»: ${r.motivo}`, cuando: 'ahora', leida: false, href: `/gestionar/${r.torneoId}` }
@@ -497,19 +1065,304 @@ export const useDemoStore = create<DemoState>()(
         }
       }),
       suscribirTier: (tier) => set((s) => {
-        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: `Tourneum ${tier} activado`, cuerpo: 'Ya puedes entrar en torneos de tu tier y lucir la insignia. Se renueva cada mes; cancela cuando quieras.', cuando: 'ahora', leida: false, href: '/perfil' }
+        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: `Torneum ${tier} activado`, cuerpo: 'Ya puedes entrar en torneos de tu tier y lucir la insignia. Se renueva cada mes; cancela cuando quieras.', tituloKey: 'ntf.tierT', cuerpoKey: 'ntf.tierC', params: { tier }, cuando: 'ahora', leida: false, href: '/perfil' }
         return { tierUsuario: tier, notificaciones: [n, ...s.notificaciones] }
-      }),
-      comprarBono: (localId, localNombre, titulo, precio) => set((s) => {
-        const n: Notificacion = { id: nextId(), tipo: 'inscripcion', titulo: 'Bono comprado', cuerpo: `${titulo} en ${localNombre}. Enséñalo en la barra desde tu cartera.`, cuando: 'ahora', leida: false, href: '/entradas' }
-        return {
-          bonosComprados: [{ id: nextId(), localId, localNombre, titulo, precio }, ...s.bonosComprados],
-          notificaciones: [n, ...s.notificaciones],
-        }
       }),
       enviarChat: (torneoId, texto) => set((s) => ({
         chatsTorneo: { ...s.chatsTorneo, [torneoId]: [...(s.chatsTorneo[torneoId] || []), { autor: 'Tú', texto, hora: 'ahora' }] },
       })),
+
+      // Alta de sede self-service (/alta-local): crea el expediente que el admin
+      // resuelve en Verificación. Cierra el callejón de /para-locales.
+      crearExpedienteSede: (e) => set((s) => {
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: 'Solicitud de alta de sede enviada',
+          cuerpo: `Expediente de «${e.nombre}» recibido. Revisamos la documentación y te contactamos en 24-48 h.`,
+          cuando: 'ahora', leida: false,
+        }
+        return {
+          expedientesSede: [{ ...e, id: nextId(), estado: 'pendiente' as const }, ...s.expedientesSede],
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
+      // Aprobar y rechazar hacen cosas DISTINTAS y quedan registradas (antes ambos
+      // botones solo borraban el expediente de la lista sin avisar a nadie).
+      resolverExpedienteSede: (id, aprueba) => set((s) => {
+        const e = s.expedientesSede.find(x => x.id === id)
+        if (!e || e.estado !== 'pendiente') return s
+        const noti: Notificacion = aprueba
+          ? { id: nextId(), tipo: 'sistema', titulo: `🏟️ Sede aprobada: ${e.nombre}`, cuerpo: 'Expediente verificado. La sede ya puede publicar disponibilidad y recibir solicitudes de organizadores.', cuando: 'ahora', leida: false }
+          : { id: nextId(), tipo: 'sistema', titulo: `Expediente rechazado: ${e.nombre}`, cuerpo: 'Falta documentación o datos fiscales. El representante puede volver a solicitarlo completando el expediente.', cuando: 'ahora', leida: false }
+        return {
+          expedientesSede: s.expedientesSede.map(x => x.id === id ? { ...x, estado: aprueba ? 'aprobada' as const : 'rechazada' as const } : x),
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
+      resolverExpedienteTO: (id, aprueba) => set((s) => {
+        const e = s.expedientesTO.find(x => x.id === id)
+        if (!e || e.estado !== 'pendiente') return s
+        const noti: Notificacion = aprueba
+          ? { id: nextId(), tipo: 'sistema', titulo: `🎉 Organizador aprobado: ${e.nombre}`, cuerpo: 'Expediente y entrevista superados. Ya puede crear y cobrar torneos.', cuando: 'ahora', leida: false }
+          : { id: nextId(), tipo: 'sistema', titulo: `Expediente rechazado: ${e.nombre}`, cuerpo: 'No supera la revisión por ahora. Puede volver a presentarse con más experiencia.', cuando: 'ahora', leida: false }
+        return {
+          expedientesTO: s.expedientesTO.map(x => x.id === id ? { ...x, estado: aprueba ? 'aprobado' as const : 'rechazado' as const } : x),
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
+
+      // Un TO ya no mete juegos directamente en el catálogo: los propone y el
+      // admin los revisa en su panel de Juegos (con plantilla) antes del alta.
+      proponerJuego: (p) => set((s) => {
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: `Juego propuesto: ${p.nombre}`,
+          cuerpo: 'Lo revisa el equipo de Torneum. Si se aprueba, podrás crear torneos suyos y aparecerá en el catálogo.',
+          cuando: 'ahora', leida: false,
+        }
+        return { propuestasJuego: [{ ...p, id: nextId() }, ...s.propuestasJuego], notificaciones: [noti, ...s.notificaciones] }
+      }),
+      retirarPropuestaJuego: (id) => set((s) => ({ propuestasJuego: s.propuestasJuego.filter(x => x.id !== id) })),
+      rechazarPropuestaJuego: (id) => set((s) => {
+        const p = s.propuestasJuego.find(x => x.id === id)
+        if (!p) return s
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: `Propuesta rechazada: ${p.nombre}`,
+          cuerpo: 'De momento no entra en el catálogo. Puedes volver a proponerlo con más contexto (comunidad, formatos, torneos previos).',
+          cuando: 'ahora', leida: false,
+        }
+        return { propuestasJuego: s.propuestasJuego.filter(x => x.id !== id), notificaciones: [noti, ...s.notificaciones] }
+      }),
+
+      // Reputación bidireccional PERSISTENTE (antes las estrellas se perdían al recargar).
+      valorarSede: (solicitudId, nombreLocal, estrellas) => set((s) => {
+        if (s.valoracionesSedes[solicitudId]) return s
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: 'Sede valorada',
+          cuerpo: `Has puntuado a ${nombreLocal} con ${estrellas}★. Su reputación ayuda a otros organizadores.`,
+          cuando: 'ahora', leida: false,
+        }
+        return { valoracionesSedes: { ...s.valoracionesSedes, [solicitudId]: estrellas }, notificaciones: [noti, ...s.notificaciones] }
+      }),
+      valorarOrganizador: (torneoId, nombreOrg, estrellas) => set((s) => {
+        if (s.valoracionesTO[torneoId]) return s
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: 'Organizador valorado',
+          cuerpo: `Has puntuado a ${nombreOrg} con ${estrellas}★ por este torneo. Las valoraciones construyen su reputación.`,
+          cuando: 'ahora', leida: false,
+        }
+        return { valoracionesTO: { ...s.valoracionesTO, [torneoId]: estrellas }, notificaciones: [noti, ...s.notificaciones] }
+      }),
+
+      agregarTOConfianza: (localId, orgId, nombreOrg, nombreLocal) => set((s) => {
+        const lista = s.tosConfianza[localId] ?? []
+        if (lista.includes(orgId)) return s
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: `⭐ TO de confianza: ${nombreOrg}`,
+          cuerpo: `${nombreLocal} le da reserva directa: sus solicitudes de fecha se confirman al momento.`,
+          cuando: 'ahora', leida: false,
+        }
+        return { tosConfianza: { ...s.tosConfianza, [localId]: [...lista, orgId] }, notificaciones: [noti, ...s.notificaciones] }
+      }),
+      quitarTOConfianza: (localId, orgId) => set((s) => ({
+        tosConfianza: { ...s.tosConfianza, [localId]: (s.tosConfianza[localId] ?? []).filter(x => x !== orgId) },
+      })),
+
+      // Overrides del admin sobre las sedes (persisten; antes se perdían al recargar).
+      patchFichaSede: (localId, patch) => set((s) => ({
+        fichasSede: { ...s.fichasSede, [localId]: { ...s.fichasSede[localId], ...patch } },
+      })),
+      alternarUsuarioSuspendido: (id) => set((s) => ({
+        usuariosSuspendidos: s.usuariosSuspendidos.includes(id)
+          ? s.usuariosSuspendidos.filter(x => x !== id)
+          : [...s.usuariosSuspendidos, id],
+      })),
+      setBetaCerrada: (betaCerrada) => set({ betaCerrada }),
+      agregarCodigoBeta: (codigo) => set((s) => ({ codigosBeta: [...s.codigosBeta, codigo] })),
+      alternarSilenciado: (torneoId, autor) => set((s) => {
+        const m = s.moderacionChat[torneoId] ?? { silenciados: [], borrados: [] }
+        const silenciados = m.silenciados.includes(autor) ? m.silenciados.filter(x => x !== autor) : [...m.silenciados, autor]
+        return { moderacionChat: { ...s.moderacionChat, [torneoId]: { ...m, silenciados } } }
+      }),
+      alternarBorrado: (torneoId, idx) => set((s) => {
+        const m = s.moderacionChat[torneoId] ?? { silenciados: [], borrados: [] }
+        const borrados = m.borrados.includes(idx) ? m.borrados.filter(x => x !== idx) : [...m.borrados, idx]
+        return { moderacionChat: { ...s.moderacionChat, [torneoId]: { ...m, borrados } } }
+      }),
+
+      // ── Capa social: amigos y grupos de chat (persisten en la demo) ──
+      agregarAmigo: (nombre) => set((s) => {
+        if (s.amigos.includes(nombre)) return s
+        const n: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: `${nombre} y tú ya sois amigos`,
+          cuerpo: 'Veréis en qué torneos compite cada uno y podéis compartir grupo de chat.',
+          cuando: 'ahora', leida: false, href: '/amigos',
+        }
+        return { amigos: [...s.amigos, nombre], solicitudesAmistad: s.solicitudesAmistad.filter(x => x !== nombre), notificaciones: [n, ...s.notificaciones] }
+      }),
+      quitarAmigo: (nombre) => set((s) => ({
+        amigos: s.amigos.filter(x => x !== nombre),
+        // También sale de tus grupos propios (los ajenos no se tocan)
+        gruposChat: s.gruposChat.map(g => g.propio ? { ...g, miembros: g.miembros.filter(m => m !== nombre) } : g),
+      })),
+      responderAmistad: (nombre, acepta) => set((s) => {
+        if (!s.solicitudesAmistad.includes(nombre)) return s
+        const n: Notificacion | null = acepta ? {
+          id: nextId(), tipo: 'sistema', titulo: `${nombre} y tú ya sois amigos`,
+          cuerpo: 'Solicitud aceptada. Añádele a un grupo de chat cuando quieras.',
+          cuando: 'ahora', leida: false, href: '/amigos',
+        } : null
+        return {
+          solicitudesAmistad: s.solicitudesAmistad.filter(x => x !== nombre),
+          ...(acepta ? { amigos: [...s.amigos, nombre] } : {}),
+          ...(n ? { notificaciones: [n, ...s.notificaciones] } : {}),
+        }
+      }),
+      crearGrupoChat: (nombre, emoji, miembros) => set((s) => {
+        const n: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: `Grupo «${nombre}» creado`,
+          cuerpo: `${miembros.length} ${miembros.length === 1 ? 'amigo añadido' : 'amigos añadidos'}. El chat ya está abierto.`,
+          cuando: 'ahora', leida: false, href: '/amigos',
+        }
+        return {
+          gruposChat: [{ id: nextId(), nombre, emoji, miembros, mensajes: [], propio: true }, ...s.gruposChat],
+          notificaciones: [n, ...s.notificaciones],
+        }
+      }),
+      enviarChatGrupo: (grupoId, texto) => set((s) => ({
+        gruposChat: s.gruposChat.map(g => g.id === grupoId
+          ? { ...g, mensajes: [...g.mensajes, { autor: 'Tú', texto, hora: 'ahora' }] }
+          : g),
+      })),
+      salirGrupoChat: (grupoId) => set((s) => ({ gruposChat: s.gruposChat.filter(g => g.id !== grupoId) })),
+
+      // ── Crews (F6) ──
+      // Crear una crew: valida tag (2-4 A-Z0-9, único) y el límite de 2 crews
+      // por juego por jugador (la UI enseña el motivo; aquí se re-garantiza).
+      // Abre AUTOMÁTICAMENTE su grupo de chat vinculado (crewId) — por él
+      // llegan las convocatorias de inscripción por equipos.
+      crearCrew: ({ nombre, tag, juego, emoji, color, miembros }) => set((s) => {
+        const TAG = tag.trim().toUpperCase()
+        if (!nombre.trim() || !TAG_RE.test(TAG)) return s
+        if (s.crews.some(c => c.tag === TAG)) return s
+        if (s.crews.filter(c => c.juego === juego && c.miembros.includes(CREW_USUARIO)).length >= MAX_CREWS_POR_JUEGO) return s
+        const crew: Crew = {
+          id: nextId(), nombre: nombre.trim(), tag: TAG, juego, emoji, color,
+          miembros: [CREW_USUARIO, ...miembros.filter(m => m !== CREW_USUARIO)], creadaPorMi: true,
+          creador: CREW_USUARIO, admins: [CREW_USUARIO],
+        }
+        const grupo: GrupoChat = {
+          id: nextId(), nombre: crew.nombre, emoji: emoji || '⚔️',
+          miembros: miembros.filter(m => m !== CREW_USUARIO), mensajes: [], propio: true, crewId: crew.id,
+        }
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: `⚔️ Crew «${crew.nombre}» #${TAG} creada`,
+          cuerpo: `${grupo.miembros.length} ${grupo.miembros.length === 1 ? 'miembro' : 'miembros'} · su grupo de chat ya está abierto. El tag os identificará en torneos y ranking de ${JUEGOS[juego]?.corto ?? juego}.`,
+          cuando: 'ahora', leida: false, href: '/amigos',
+        }
+        // Al final del array: el orden es la antigüedad (representación de tag).
+        return { crews: [...s.crews, crew], gruposChat: [grupo, ...s.gruposChat], notificaciones: [noti, ...s.notificaciones] }
+      }),
+      // Salir de una crew (modelo de administración 30-08): al creador NADIE
+      // puede echarle — solo puede salirse él mismo, desde aquí. Si el creador
+      // sale y quedan miembros, la crew PERSISTE y hereda creador/gestión el
+      // ADMIN MÁS ANTIGUO (admins se mantiene en orden de concesión, así que
+      // es el primero que quede); sin más admins, el miembro más antiguo. Solo
+      // si la crew queda vacía se disuelve (y su tag desaparece con ella).
+      // El grupo de chat vinculado no se toca (se sale aparte, como siempre).
+      salirCrew: (crewId) => set((s) => {
+        const c = s.crews.find(x => x.id === crewId)
+        if (!c) return s
+        const miembros = c.miembros.filter(m => m !== CREW_USUARIO)
+        const admins = (c.admins ?? []).filter(a => a !== CREW_USUARIO)
+        const creador = c.creador ?? (c.creadaPorMi ? CREW_USUARIO : c.miembros[0])
+        if (creador !== CREW_USUARIO) {
+          // Miembro raso o admin no creador: sale y la crew sigue igual.
+          return { crews: s.crews.map(x => x.id === crewId ? { ...x, miembros, admins } : x) }
+        }
+        if (miembros.length === 0) return { crews: s.crews.filter(x => x.id !== crewId) }
+        const heredero = admins[0] ?? miembros[0]
+        return {
+          crews: s.crews.map(x => x.id === crewId
+            ? { ...x, miembros, creador: heredero, admins: admins.includes(heredero) ? admins : [heredero, ...admins], creadaPorMi: false }
+            : x),
+        }
+      }),
+      // ── Administración de crews (paquete Chat): las hojas de edición solo se
+      // abren para admins (esAdminCrew); el store re-garantiza los invariantes
+      // duros — el creador no se puede quitar ni perder el rol.
+      editarCrew: (crewId, patch) => set((s) => ({
+        crews: s.crews.map(c => c.id === crewId
+          ? {
+              ...c,
+              ...(patch.nombre?.trim() ? { nombre: patch.nombre.trim() } : {}),
+              ...(patch.descripcion !== undefined ? { descripcion: patch.descripcion.trim() } : {}),
+              ...(patch.banner !== undefined ? { banner: patch.banner ?? undefined } : {}),
+            }
+          : c),
+      })),
+      agregarMiembroCrew: (crewId, nombre) => set((s) => ({
+        crews: s.crews.map(c => c.id === crewId && !c.miembros.includes(nombre)
+          ? { ...c, miembros: [...c.miembros, nombre] }
+          : c),
+      })),
+      // Quitar a cualquiera MENOS al creador (él solo puede salirse: salirCrew).
+      quitarMiembroCrew: (crewId, nombre) => set((s) => ({
+        crews: s.crews.map(c => c.id === crewId && nombre !== c.creador
+          ? { ...c, miembros: c.miembros.filter(m => m !== nombre), admins: (c.admins ?? []).filter(a => a !== nombre) }
+          : c),
+      })),
+      // Conceder el rol puede cualquier admin; REVOCARLO solo el creador (lo
+      // gatea la UI); el creador nunca entra ni sale del array por aquí.
+      alternarAdminCrew: (crewId, nombre) => set((s) => ({
+        crews: s.crews.map(c => {
+          if (c.id !== crewId || nombre === c.creador || !c.miembros.includes(nombre)) return c
+          const admins = c.admins ?? [c.creador]
+          return { ...c, admins: admins.includes(nombre) ? admins.filter(a => a !== nombre) : [...admins, nombre] }
+        }),
+      })),
+      // Inscripción por equipos (spec §7.6): cualquier miembro la inicia → se
+      // abre el cupo (tamGrupo de la plantilla del juego) y cae la convocatoria
+      // en el grupo de chat de la crew, clicable hacia la ficha con ?crew=.
+      // Cada jugador entra por el enlace y paga SU plaza por su cuenta.
+      abrirInscripcionCrew: (torneoId, nombreTorneo, crewId) => set((s) => {
+        if (s.crewTorneo[torneoId]) return s
+        const crew = s.crews.find(c => c.id === crewId)
+        if (!crew) return s
+        const plazas = plantillaDe(crew.juego).tamGrupo
+        const msg: MensajeGrupo = {
+          autor: 'Tú', hora: 'ahora', torneoId, crewId,
+          texto: `⚔️ He abierto la inscripción de ${crew.nombre} #${crew.tag} a «${nombreTorneo}» — ${plazas} plazas. Entra y paga tu plaza:`,
+        }
+        const yaHayGrupo = s.gruposChat.some(g => g.crewId === crewId)
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'inscripcion', titulo: `⚔️ Cupo de ${crew.nombre} abierto`,
+          cuerpo: `Convocatoria enviada al grupo de la crew: ${plazas} plazas para «${nombreTorneo}». Cada miembro paga su plaza por su cuenta.`,
+          cuando: 'ahora', leida: false, href: `/torneo/${torneoId}?crew=${crewId}`,
+        }
+        return {
+          crewTorneo: { ...s.crewTorneo, [torneoId]: { crewId, inscritos: [] } },
+          gruposChat: yaHayGrupo
+            ? s.gruposChat.map(g => g.crewId === crewId ? { ...g, mensajes: [...g.mensajes, msg] } : g)
+            // Estado antiguo sin el grupo sembrado: se abre aquí (resiliencia).
+            : [{ id: nextId(), nombre: crew.nombre, emoji: crew.emoji || '⚔️', miembros: crew.miembros.filter(m => m !== CREW_USUARIO), mensajes: [msg], propio: !!crew.creadaPorMi, crewId }, ...s.gruposChat],
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
+      // Un miembro seed paga su plaza (lo simula la ficha a los pocos segundos,
+      // patrón del rival demo de F5): avanza el cupo y avisa en el chat.
+      confirmarPlazaCrew: (torneoId, quien) => set((s) => {
+        const cupo = s.crewTorneo[torneoId]
+        if (!cupo || cupo.inscritos.includes(quien)) return s
+        const crew = s.crews.find(c => c.id === cupo.crewId)
+        if (!crew || !crew.miembros.includes(quien)) return s
+        const plazas = plantillaDe(crew.juego).tamGrupo
+        if (cupo.inscritos.length >= plazas) return s
+        const inscritos = [...cupo.inscritos, quien]
+        const msg: MensajeGrupo = { autor: quien, hora: 'ahora', texto: `Plaza pagada ✅ Vamos ${inscritos.length}/${plazas}.` }
+        return {
+          crewTorneo: { ...s.crewTorneo, [torneoId]: { ...cupo, inscritos } },
+          gruposChat: s.gruposChat.map(g => g.crewId === crew.id ? { ...g, mensajes: [...g.mensajes, msg] } : g),
+        }
+      }),
       solicitarTO: () => set((s) => {
         if (s.perfilTO !== 'no') return s
         const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: 'Solicitud de organizador enviada', cuerpo: 'Revisaremos tu experiencia y te haremos una breve entrevista. Te avisamos aquí.', cuando: 'ahora', leida: false, href: '/perfil' }
@@ -519,7 +1372,7 @@ export const useDemoStore = create<DemoState>()(
       // solicitud → revisión → perfil dual activo.
       aprobarTO: () => set((s) => {
         if (s.perfilTO === 'aprobado') return s
-        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: '🎉 Ya eres organizador', cuerpo: 'Tu solicitud está aprobada. Tienes la consola de TO en tu perfil; tu cuenta de jugador no cambia.', cuando: 'ahora', leida: false, href: '/consola' }
+        const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: '🎉 Ya eres organizador', cuerpo: 'Tu solicitud está aprobada. Tu menú ya incluye la sección Organizador con todas tus herramientas; tu cuenta de jugador no cambia.', cuando: 'ahora', leida: false, href: '/consola' }
         return { perfilTO: 'aprobado', notificaciones: [n, ...s.notificaciones] }
       }),
       rechazarTO: () => set((s) => {
@@ -530,6 +1383,39 @@ export const useDemoStore = create<DemoState>()(
     }),
     {
       name: 'todh-demo',
+      // La clave REAL depende de la sesión activa (ver storagePorCuenta):
+      // este name queda como etiqueta legacy del middleware.
+      storage: createJSONStorage(() => storagePorCuenta),
+      // Rehidratar SIEMPRE desde la base seed (no desde la memoria del momento):
+      // al cambiar de cuenta, la memoria trae el mundo de la cuenta anterior y
+      // un blob antiguo sin alguna clave nueva la heredaría de allí.
+      merge: (persisted, current) => ({ ...current, ...DATOS_INICIALES, ...(persisted as Partial<DemoState>) }),
+      // v1 (paquete Chat): tags de crew a 4 letras (#NOCT/#VNDL) + creador y
+      // admins en crews persistidas de antes del modelo de administración.
+      // v2 (scouting v1): entra la crew ajena de juego de equipo (Skuadra)
+      // en estados ya persistidos, para que «Estudiar equipo» sea demostrable.
+      version: 2,
+      migrate: (persisted, version) => {
+        const s = persisted as Partial<DemoState>
+        if (version < 2 && Array.isArray(s?.crews) && !s.crews.some(c => c.id === CREW_SKUADRA_SEED.id)) {
+          s.crews = [...s.crews, CREW_SKUADRA_SEED]
+        }
+        if (version < 1 && Array.isArray(s?.crews)) {
+          const NUEVO_TAG: Record<string, string> = { 'crew-nox': 'NOCT', 'crew-vnd': 'VNDL' }
+          s.crews = s.crews.map((c) => {
+            const base = { ...c, tag: NUEVO_TAG[c.id] ?? c.tag }
+            if (c.id === 'crew-dojo') return { ...base, creador: c.creador ?? 'Zen', admins: c.admins ?? ['Zen'] }
+            if (c.id === 'crew-vnd') return {
+              ...base, creadaPorMi: true, creador: CREW_USUARIO,
+              admins: c.admins ?? [CREW_USUARIO, 'Kaze'],
+              miembros: c.miembros.includes('Kaze') ? c.miembros : [c.miembros[0], 'Kaze', ...c.miembros.slice(1)],
+            }
+            const creador = c.creador ?? (c.creadaPorMi ? CREW_USUARIO : c.miembros[0] ?? CREW_USUARIO)
+            return { ...base, creador, admins: c.admins ?? [creador] }
+          })
+        }
+        return s as DemoState
+      },
       // Al rehidratar, los juegos custom persistidos vuelven al catálogo en memoria.
       onRehydrateStorage: () => (state) => {
         if (state?.juegosCustom) Object.assign(JUEGOS, state.juegosCustom)
@@ -537,3 +1423,85 @@ export const useDemoStore = create<DemoState>()(
     }
   )
 )
+
+// ── Cambio de cuenta (30-08): cargar el mundo del namespace de la sesión ──
+// Al entrar o salir de una cuenta, el demo store se re-apunta al blob de ESA
+// cuenta: si existe se rehidrata; si el namespace está virgen se parte de la
+// plantilla (vacía para cuentas `fresca`, seed normal para el resto) y el
+// propio setState la deja persistida. Se engancha a useSesionStore.subscribe
+// para no depender de cada call-site de login/logout.
+function activarCuentaDemo(sesion: Sesion | null) {
+  if (typeof window === 'undefined') return
+  const clave = claveDemo(sesion?.email)
+  if (window.localStorage.getItem(clave) != null) {
+    // Ya hay mundo guardado para esta cuenta → cargarlo tal cual.
+    useDemoStore.persist.rehydrate()
+    return
+  }
+  // Namespace virgen → estado base (y el persist escribe el blob al momento).
+  useDemoStore.setState(sesion?.fresca ? { ...ESTADO_CUENTA_NUEVA } : { ...DATOS_INICIALES })
+}
+
+if (typeof window !== 'undefined') {
+  // Arranque: si la sesión persistida es de cuenta fresca SIN blob (borrado a
+  // mano, p. ej.), que no herede el mundo seed de Álex.
+  const s0 = useSesionStore.getState().sesion
+  if (s0?.fresca && window.localStorage.getItem(claveDemo(s0.email)) == null) {
+    useDemoStore.setState({ ...ESTADO_CUENTA_NUEVA })
+  }
+  let emailPrev = s0?.email ?? null
+  useSesionStore.subscribe((st) => {
+    const email = st.sesion?.email ?? null
+    if (email === emailPrev) return
+    emailPrev = email
+    activarCuentaDemo(st.sesion)
+  })
+}
+
+// ¿La cuenta tiene el rol de organizador? (to@ de serie o solicitud aprobada.
+// Las sedes NO: son solo sedes, sin perfil de TO — decisión 28-ago.)
+// Ya no hay "modo" conmutable: con el rol, la capa de TO aparece siempre
+// (sección Organizador en el menú, precios de sede, locales disponibles…).
+export const useEsTO = () => {
+  const aprobado = useDemoStore(s => s.perfilTO === 'aprobado')
+  const sesion = useSesionStore(s => s.sesion)
+  // Las sedes son SOLO sedes (decisión 28-ago): sin perfil de organizador.
+  return sesion?.rol !== 'local' && (!!sesion?.to || aprobado)
+}
+
+// Identidad de ORGANIZADOR de la sesión actual (nada de asumir «lima»): la
+// cuenta de TO la trae de serie; un jugador aprobado self-service estrena
+// identidad propia ('alex' en la demo). Las sedes no organizan (28-ago).
+export const useOrgId = (): string => {
+  const sesion = useSesionStore(s => s.sesion)
+  if (!sesion) return 'lima'
+  if (sesion.orgId) return sesion.orgId
+  return 'alex'
+}
+
+// Local que gestiona la sesión de rol 'local' (nada de asumir «gamba»).
+export const useLocalId = (): string => {
+  const sesion = useSesionStore(s => s.sesion)
+  return sesion?.localId ?? 'gamba'
+}
+
+// Precio/noche EFECTIVO de una sede — una sola fuente para toda la app:
+// manda la disponibilidad publicada por la propia sede; después el override
+// del admin (ficha); por último la tarifa de muestra del local.
+export function precioNocheEfectivo(
+  localId: string,
+  dispoSedes: Record<string, DispoSede>,
+  fichasSede: Record<string, Partial<FichaSedeAdmin>>,
+): number {
+  const dispo = dispoSedes[localId]
+  return (dispo?.publicada ? dispo.precioNoche : undefined)
+    ?? fichasSede[localId]?.precioNoche
+    ?? LOCALES[localId]?.precioNoche
+    ?? 40
+}
+
+export const usePrecioNoche = (localId: string): number => {
+  const dispoSedes = useDemoStore(s => s.dispoSedes)
+  const fichasSede = useDemoStore(s => s.fichasSede)
+  return precioNocheEfectivo(localId, dispoSedes, fichasSede)
+}

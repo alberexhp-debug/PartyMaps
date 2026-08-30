@@ -2,11 +2,12 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { JUEGOS, TORNEOS_SAMPLE, getTorneo, esperaDe, type TorneoSample } from '@/lib/torneos/sample'
+import { TORNEOS_SAMPLE, getTorneo, esperaDe, type TorneoSample } from '@/lib/torneos/sample'
 import { conEdiciones } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
+import { GameBadge } from '@/components/todh/GameIcon'
 import { TicketModal } from '@/components/todh/TicketModal'
 import { QrCode, Calendar, MapPin, Trophy } from 'lucide-react'
 
@@ -25,9 +26,8 @@ export default function EntradasPage() {
   const [ticket, setTicket] = useState<{ t: TorneoSample; espectador?: boolean } | null>(null)
   const inscritos = useDemoStore(s => s.inscritos)
   const espectador = useDemoStore(s => s.entradasEspectador)
-  const bonos = useDemoStore(s => s.bonosComprados)
   const listaEspera = useDemoStore(s => s.listaEspera)
-  const promovidosEspera = useDemoStore(s => s.promovidosEspera)
+  const entradosEspera = useDemoStore(s => s.entradosEspera)
   const editados = useDemoStore(s => s.editados)
   const cancelados = useDemoStore(s => s.cancelados)
   const creados = useDemoStore(s => s.creados)
@@ -42,9 +42,9 @@ export default function EntradasPage() {
   const enEspera = useMemo(() =>
     listaEspera.filter(id => !cancelados.includes(id))
       .map(porId).filter((t): t is TorneoSample => !!t)
-      .map(t => ({ t, puesto: Math.max(0, esperaDe(t).length - (promovidosEspera[t.id] ?? 0)) + 1 })),
+      .map(t => ({ t, puesto: Math.max(0, esperaDe(t).length - (entradosEspera[t.id]?.length ?? 0)) + 1 })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [listaEspera, promovidosEspera, editados, cancelados, creados])
+    [listaEspera, entradosEspera, editados, cancelados, creados])
 
   // La entrada de un torneo cancelado no desaparece: queda marcada (reembolso)
   const proximos: Insc[] = useMemo(() => {
@@ -62,13 +62,13 @@ export default function EntradasPage() {
     // Halo a todo el ancho; solo el contenido se centra (sin corte negro).
     <div className="relative min-h-screen overflow-hidden">
       <div className="hero-halo-rose" />
-      <div className="lg:max-w-5xl lg:mx-auto">
+      <div className="lg:max-w-none">
 
       <div className="relative px-5 pt-6 safe-top">
         <p className="eyebrow mb-2">{tr('entradas.eyebrow')}</p>
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{tr('entradas.titulo')}</h1>
         <p className="text-[#A0A0B8] mt-2 text-sm">
-          <span className="text-white font-bold font-mono-num">{proximos.length}</span> {proximos.length === 1 ? 'inscripción activa' : 'inscripciones activas'}
+          <span className="text-white font-bold font-mono-num">{proximos.length}</span> {proximos.length === 1 ? tr('entradas.activaSing') : tr('entradas.activaPlur')}
         </p>
 
         <div className="flex gap-1 glass-subtle rounded-2xl p-1 mt-5 sm:max-w-sm">
@@ -86,11 +86,11 @@ export default function EntradasPage() {
         {lista.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-center px-6">
             <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center"><Trophy size={28} className="text-[#8B8BA8]" /></div>
-            <p className="text-white text-xl font-bold text-display">{tab === 'proximos' ? 'Sin inscripciones' : 'Sin historial'}</p>
+            <p className="text-white text-xl font-bold text-display">{tab === 'proximos' ? tr('entradas.sinInsc') : tr('entradas.sinHist')}</p>
             <p className="text-[#A0A0B8] text-sm max-w-xs">
-              {tab === 'proximos' ? 'Inscríbete en un torneo y aparecerá aquí con tu entrada (QR).' : 'Aquí verás los torneos que ya has jugado.'}
+              {tab === 'proximos' ? tr('entradas.sinInscSub') : tr('entradas.sinHistSub')}
             </p>
-            {tab === 'proximos' && <Link href="/explorar" className="mt-1 px-4 h-10 inline-flex items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">Explorar torneos</Link>}
+            {tab === 'proximos' && <Link href="/explorar" className="mt-1 px-4 h-10 inline-flex items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">{tr('inicio.explorar')}</Link>}
           </div>
         ) : (
           <div key={tab} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -103,7 +103,7 @@ export default function EntradasPage() {
         )}
       </div>
 
-      {/* Lista de espera: aún sin plaza — si alguien cancela, entra el primero */}
+      {/* Lista de espera: aún sin plaza — si alguien cancela, el TO decide quién entra (F7) */}
       {enEspera.length > 0 && tab === 'proximos' && (
         <div className="relative px-4 pb-4">
           <p className="eyebrow eyebrow-muted mb-2">⏳ {tr('espera.enLista')} · {enEspera.length}</p>
@@ -128,25 +128,6 @@ export default function EntradasPage() {
         </div>
       )}
 
-      {/* Bonos de locales (tienda del local) */}
-      {bonos.length > 0 && tab === 'proximos' && (
-        <div className="relative px-4 pb-4">
-          <p className="eyebrow eyebrow-muted mb-2">{tr('shop.bonos')}</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {bonos.map(b => (
-              <div key={b.id} className="card-premium px-3.5 py-3 flex items-center gap-3">
-                <span className="h-10 w-10 rounded-xl bg-[#E0BE63]/12 border border-[#E0BE63]/35 flex items-center justify-center text-lg">🎟️</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-bold text-white truncate">{b.titulo}</p>
-                  <p className="text-[11px] text-[#8B8BA8] truncate">{b.localNombre} · enséñalo en barra</p>
-                </div>
-                <span className="font-mono text-[11px] font-black tracking-widest text-[#E0BE63]">{b.id.slice(-4).toUpperCase()}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {ticket && <TicketModal torneo={ticket.t} espectador={ticket.espectador} onClose={() => setTicket(null)} />}
       </div>
     </div>
@@ -156,16 +137,13 @@ export default function EntradasPage() {
 function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
   const { t: tr } = useT()
   const { t, estado, puesto, espectador, cancelado } = insc
-  const juego = JUEGOS[t.juego]
   return (
     <div className={`ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch ${cancelado ? 'opacity-75' : ''}`}>
       <Link href={`/torneo/${t.id}`} className="flex items-stretch flex-1 min-w-0 card-int">
         <GameKeyart juegoId={t.juego} className="w-[72px] shrink-0" />
         <div className="flex-1 p-4 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
-            </span>
+            <GameBadge juegoId={t.juego} />
             {espectador && <span className="px-1.5 h-5 inline-flex items-center rounded-md text-[9px] font-black uppercase tracking-wider bg-[#9B82FF]/15 text-[#9B82FF] border border-[#9B82FF]/40">Espectador</span>}
             {cancelado && <span className="px-1.5 h-5 inline-flex items-center rounded-md text-[9px] font-black uppercase tracking-wider bg-[#FF6B6B]/15 text-[#FF8A8A] border border-[#FF6B6B]/40">{tr('tk.cancelado')}</span>}
             {estado === 'jugado' && puesto && <span className="ml-auto text-[11px] font-bold text-[#E0BE63]">🏆 {puesto}</span>}

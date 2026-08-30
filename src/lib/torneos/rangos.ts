@@ -34,19 +34,3 @@ export function rangoDe(rating: number): Rango {
     umbral,
   }
 }
-
-// Tabla de puntos por diferencia de rango (la de la reunión, para el explicador
-// y para simular ganancias en demo): ganar a tu nivel ~25; al superior, mucho más.
-export function puntosPorVictoria(difEscalones: number): number {
-  if (difEscalones >= 6) return 200
-  if (difEscalones >= 3) return 120
-  if (difEscalones >= 1) return 60
-  if (difEscalones === 0) return 25
-  if (difEscalones >= -2) return 12
-  return 5
-}
-
-// Multiplicador por profundidad de bracket (~×1,25 por ronda superada)
-export function multiplicadorProfundidad(rondasSuperadas: number): number {
-  return Math.round(Math.pow(1.25, rondasSuperadas) * 100) / 100
-}

@@ -149,7 +149,7 @@ export default function RRPPPanelLocal() {
               <Sparkles className="w-10 h-10 text-rose-400 mx-auto mb-3" />
               <p className="text-display text-xl mb-1">Aún no tienes RRPPs</p>
               <p className="text-secondary text-sm">
-                Pulsa <strong>Añadir RRPP</strong>: busca a alguien ya en Tourneum
+                Pulsa <strong>Añadir RRPP</strong>: busca a alguien ya en Torneum
                 o crea una invitación con su email para mandar por WhatsApp.
               </p>
             </div>

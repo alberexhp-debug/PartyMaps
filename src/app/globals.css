@@ -37,11 +37,13 @@
   --color-border-subtle: rgba(255, 255, 255, 0.06);
   --color-border-strong: rgba(255, 255, 255, 0.14);
 
-  /* Fuentes */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Sora', 'Inter', system-ui, sans-serif;
+  /* Fuentes — Noto Sans JP (var de next/font) cierra cada pila: las fuentes
+     latinas no tienen glifos CJK, así que el japonés cae ahí sin tocar el look
+     actual de ES/EN (i18n F9). */
+  --font-sans: 'Inter', var(--font-noto-jp, 'Noto Sans JP'), system-ui, -apple-system, sans-serif;
+  --font-display: 'Sora', 'Inter', var(--font-noto-jp, 'Noto Sans JP'), system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
-  --font-condensed: 'Oswald', 'Sora', system-ui, sans-serif;
+  --font-condensed: 'Oswald', 'Sora', var(--font-noto-jp, 'Noto Sans JP'), system-ui, sans-serif;
 
   /* === v2 PRO === */
   --color-lime-bright: #C8FF5C;

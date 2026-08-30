@@ -239,9 +239,9 @@ function QrModal({ codigo, onClose }: { codigo: Codigo; onClose: () => void }) {
       if (qrUrl && navigator.share) {
         const blob = await (await fetch(qrUrl)).blob()
         const file = new File([blob], `codigo-${codigo.codigo}.png`, { type: 'image/png' })
-        await navigator.share({ title: 'Tu código Tourneum', text: `Código: ${codigo.codigo}`, files: [file] })
+        await navigator.share({ title: 'Tu código Torneum', text: `Código: ${codigo.codigo}`, files: [file] })
       } else if (navigator.share) {
-        await navigator.share({ title: 'Tu código Tourneum', text: `Código: ${codigo.codigo}` })
+        await navigator.share({ title: 'Tu código Torneum', text: `Código: ${codigo.codigo}` })
       }
     } catch { /* cancelado */ }
   }

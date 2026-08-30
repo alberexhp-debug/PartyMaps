@@ -45,7 +45,7 @@ Si quieres que los **registros nuevos** funcionen sin tocar el seed, no hace fal
 
 Desde un móvil real (no localhost):
 
-1. `https://party-maps-hojy.vercel.app/login`
+1. `https://torneum.vercel.app/login`
 2. Introduce un número español (el tuyo).
 3. Pulsa "Enviar código SMS".
 4. Debe llegar un SMS de Twilio en 5-10s con código de 6 dígitos.

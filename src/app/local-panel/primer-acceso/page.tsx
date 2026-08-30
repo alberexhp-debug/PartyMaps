@@ -39,7 +39,7 @@ export default function PrimerAccesoPage() {
     setTrabajador(fresco)
     setLocal(fresco.locales)
     const { homeDeRol } = await import('@/lib/permisosLocal')
-    toast.success('¡Listo! Bienvenido a Tourneum')
+    toast.success('¡Listo! Bienvenido a Torneum')
     router.push(`/local-panel/${homeDeRol(fresco.rol)}`)
   }, [router, setLocal, setTrabajador, toast])
 

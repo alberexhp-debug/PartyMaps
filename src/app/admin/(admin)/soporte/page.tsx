@@ -41,7 +41,7 @@ export default function AdminSoportePage() {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-5">
-      <PageHeader eyebrow="Equipo Tourneum" acento="blue" titulo="Soporte"
+      <PageHeader eyebrow="Equipo Torneum" acento="blue" titulo="Soporte"
         subtitulo="Tickets de los locales. Responde y cambia el estado." halo={false} />
 
       <div className="flex gap-2 overflow-x-auto scrollbar-hide">

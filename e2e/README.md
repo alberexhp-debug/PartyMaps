@@ -16,7 +16,7 @@ npm run test:e2e:ui           # modo interactivo con time-travel
 
 ## Contra producción
 ```
-PLAYWRIGHT_BASE_URL=https://party-maps-hojy.vercel.app npm run test:e2e
+PLAYWRIGHT_BASE_URL=https://torneum.vercel.app npm run test:e2e
 ```
 
 ## Qué cubren

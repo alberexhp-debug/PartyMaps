@@ -2,24 +2,26 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { JUEGOS, type TorneoSample } from '@/lib/torneos/sample'
+import { JUEGOS, plantillaDe, type TorneoSample } from '@/lib/torneos/sample'
+import { CATEGORIAS } from '@/lib/torneos/puntos'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
-import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
+import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { OnboardingJuegos } from '@/components/todh/OnboardingJuegos'
-import { useT } from '@/lib/i18n'
+import { useT, type ClaveI18n } from '@/lib/i18n'
 import { TorneoArt, GameKeyart } from '@/components/todh/GameKeyart'
+import { GameIcon, GameChip, GameBadge } from '@/components/todh/GameIcon'
 import { FillBar } from '@/components/ui/CountUp'
 import {
   Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown, Bell, SlidersHorizontal, X, Eye,
 } from 'lucide-react'
 
-const FORMATOS_ALL = ['Doble eliminación', 'Eliminación simple', 'Suizo', 'Pools → Top cut', 'Round robin']
 
 type Orden = 'popularidad' | 'fecha' | 'precio'
-const ORDEN_LABEL: Record<Orden, string> = {
-  popularidad: 'Popularidad',
-  fecha: 'Más próximos',
-  precio: 'Precio',
+const ORDEN_LABEL: Record<Orden, ClaveI18n> = {
+  popularidad: 'exp.ordPopularidad',
+  fecha: 'exp.ordFecha',
+  precio: 'exp.ordPrecio',
 }
 
 export default function ExplorarPage() {
@@ -39,10 +41,20 @@ export default function ExplorarPage() {
   const cancelados = useDemoStore(s => s.cancelados)
   const seguidos = useDemoStore(s => s.seguidos)
   const favoritos = useDemoStore(s => s.juegosFavoritos)
+  const ocultos = useDemoStore(s => s.juegosOcultos)
+  const juegosCustom = useDemoStore(s => s.juegosCustom)
+  // Catálogo visible (sin los desactivados por el admin) y formatos reales de
+  // sus plantillas — nada de listas a mano.
+  const juegosVisibles = useMemo(() => Object.values(JUEGOS).filter(j => !ocultos.includes(j.id)), [ocultos, juegosCustom])
+  const formatosAll = useMemo(() => [...new Set(juegosVisibles.flatMap(j => plantillaDe(j.id).formatos))], [juegosVisibles])
   const { t, idioma } = useT()
-  const noLeidas = useDemoStore(s => s.notificaciones.filter(n => !n.leida).length)
+  const esTO = useEsTO()
+  // Una sede (rol local) puede ver Explorar, pero las sedes no organizan: el
+  // reclamo de organizador tampoco se le pinta a ella (solo a jugadores sin rol).
+  const esSede = useSesionStore(s => s.sesion?.rol === 'local')
+  const noLeidas = useDemoStore(s => s.notificaciones.filter(n => !n.leida && !s.descartadas.includes(n.id)).length)
 
-  const efectivos = useMemo(() => torneosEfectivos(creados, editados, cancelados), [creados, editados, cancelados])
+  const efectivos = useMemo(() => torneosEfectivos(creados, editados, cancelados).filter(t => !ocultos.includes(t.juego)), [creados, editados, cancelados, ocultos])
   const resultados = useMemo(() => {
     let r = [...efectivos]
     const q = busca.trim().toLowerCase()
@@ -93,7 +105,7 @@ export default function ExplorarPage() {
 
       {/* Top bar (solo móvil/tablet; en escritorio la sidebar cubre logo/buscar/avisos) */}
       <div className="relative flex lg:hidden items-center justify-between px-5 pt-5 safe-top">
-        <span className="text-lg font-black text-display tracking-tight text-white">Tourneum</span>
+        <span className="text-lg font-black text-display tracking-tight text-white">Torneum</span>
         <div className="flex items-center gap-2">
           <Link href="/buscar" aria-label="Buscar" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><Search size={18} /></Link>
           <Link href="/notificaciones" aria-label="Notificaciones" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white relative">
@@ -109,7 +121,9 @@ export default function ExplorarPage() {
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-display text-white">{t('explorar.titulo')}</h1>
         <p className="text-sm text-[#B8B8CC] mt-2">
           <span className="text-white font-bold text-numeric">{resultados.length}</span>{' '}
-          {idioma === 'en' ? `tournament${resultados.length === 1 ? '' : 's'} near you` : `${resultados.length === 1 ? 'torneo' : 'torneos'} cerca de ti`}
+          {idioma === 'en' ? `tournament${resultados.length === 1 ? '' : 's'} near you`
+            : idioma === 'ja' ? t('explorar.cerca')
+            : `${resultados.length === 1 ? 'torneo' : 'torneos'} cerca de ti`}
         </p>
       </div>
 
@@ -139,7 +153,7 @@ export default function ExplorarPage() {
                   <div className="absolute inset-x-0 bottom-0 p-3">
                     <span className="inline-flex items-center gap-1.5 px-2 h-5 rounded-full text-[9px] font-bold mb-1.5"
                       style={{ background: `${jj.color}30`, color: jj.color, border: `1px solid ${jj.color}55` }}>
-                      <span className="w-1 h-1 rounded-full" style={{ background: jj.color }} /> {jj.corto}
+                      <GameIcon juegoId={t.juego} size={10} /> {jj.corto}
                     </span>
                     <p className="text-[14px] lg:text-[15px] font-bold text-white leading-tight truncate text-display">{t.nombre}</p>
                     <p className="text-[10.5px] text-white/70 font-mono-num mt-0.5">{t.local} · {t.fechaLabel}</p>
@@ -169,7 +183,7 @@ export default function ExplorarPage() {
             onClick={() => setShowOrden(v => !v)}
             className="h-11 px-3 rounded-2xl flex items-center gap-1.5 font-semibold text-sm glass-strong text-[#B8B8CC] hover:text-white transition-all"
           >
-            <ArrowUpDown size={15} /> <span className="hidden sm:inline">{ORDEN_LABEL[orden]}</span>
+            <ArrowUpDown size={15} /> <span className="hidden sm:inline">{t(ORDEN_LABEL[orden])}</span>
           </button>
           <button
             onClick={() => setShowFiltros(true)}
@@ -186,7 +200,7 @@ export default function ExplorarPage() {
               <button key={o} onClick={() => { setOrden(o); setShowOrden(false) }}
                 className={cn('w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-sm transition-colors',
                   orden === o ? 'bg-[#B6FF3A]/12 text-white' : 'text-[#B8B8CC] hover:bg-white/5')}>
-                {ORDEN_LABEL[o]} {orden === o && <Check size={15} className="text-[#B6FF3A]" />}
+                {t(ORDEN_LABEL[o])} {orden === o && <Check size={15} className="text-[#B6FF3A]" />}
               </button>
             ))}
           </div>
@@ -202,10 +216,10 @@ export default function ExplorarPage() {
           <button onClick={() => setSoloGratis(v => !v)}
             className={cn('shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-colors',
               soloGratis ? 'bg-[#27AE60] text-white' : 'bg-white/4 border border-white/8 text-[#B8B8CC] hover:text-white')}>
-            Gratis
+            {t('explorar.gratis')}
           </button>
           <span className="shrink-0 w-px h-5 bg-white/10 mx-0.5" />
-          {Object.values(JUEGOS).map(j => {
+          {juegosVisibles.map(j => {
             const activo = juego === j.id
             return (
               <button key={j.id} onClick={() => setJuego(activo ? null : j.id)}
@@ -213,25 +227,27 @@ export default function ExplorarPage() {
                 style={activo
                   ? { background: `${j.color}26`, color: j.color, borderColor: `${j.color}88` }
                   : { background: 'rgba(255,255,255,0.04)', color: '#B8B8CC', borderColor: 'rgba(255,255,255,0.08)' }}>
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: j.color }} /> {j.corto}
+                <GameIcon juegoId={j.id} size={13} /> {j.corto}
               </button>
             )
           })}
           {numFiltros > 0 && (
-            <button onClick={limpiar} className="shrink-0 text-xs text-[#B6FF3A] font-semibold hover:underline ml-1">Limpiar</button>
+            <button onClick={limpiar} className="shrink-0 text-xs text-[#B6FF3A] font-semibold hover:underline ml-1">{t('exp.limpiar')}</button>
           )}
         </div>
       </div>
 
-      {/* CTA organizador */}
-      <Link href="/consola" className="relative mx-4 mt-3 flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.08] px-4 py-3 hover:bg-[#B6FF3A]/[0.12] transition-colors">
+      {/* CTA organizador: solo jugadores SIN el rol (con él ya tienes la sección
+          Organizador en el menú; las sedes no organizan). Lleva a /consola, cuya
+          puerta abre la solicitud de organizador directamente. */}
+      {!esTO && !esSede && <Link href="/consola" className="relative mx-4 mt-3 flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.08] px-4 py-3 hover:bg-[#B6FF3A]/[0.12] transition-colors">
         <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#B6FF3A]/20 text-[#B6FF3A]"><Trophy size={17} /></span>
         <span className="flex-1 min-w-0">
           <span className="block text-sm font-semibold text-white">{t('explorar.organizas')}</span>
           <span className="block text-xs text-[#A0A0B8]">{t('explorar.abreConsola')}</span>
         </span>
         <span className="text-[#B6FF3A] text-lg">›</span>
-      </Link>
+      </Link>}
 
       {/* Lista */}
       <div className="px-4 py-4 space-y-3 pb-8">
@@ -240,10 +256,10 @@ export default function ExplorarPage() {
             <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
               <Trophy size={28} className="text-[#8B8BA8]" />
             </div>
-            <p className="text-xl font-bold text-white text-display tracking-tight">Sin torneos</p>
-            <p className="text-sm text-[#B8B8CC] max-w-xs">Prueba a quitar algún filtro o cambia la búsqueda.</p>
+            <p className="text-xl font-bold text-white text-display tracking-tight">{t('exp.sinTorneos')}</p>
+            <p className="text-sm text-[#B8B8CC] max-w-xs">{t('exp.pruebaQuitar')}</p>
             {numFiltros > 0 && (
-              <button onClick={limpiar} className="mt-1 px-4 h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">Quitar filtros</button>
+              <button onClick={limpiar} className="mt-1 px-4 h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">{t('exp.quitarFiltros')}</button>
             )}
           </div>
         ) : secciones ? (
@@ -281,15 +297,15 @@ export default function ExplorarPage() {
           <div className="relative w-full max-w-lg bg-[#141822] border-t border-white/10 rounded-t-3xl pb-6 animate-slide-up-sm max-h-[85vh] overflow-y-auto">
             <div className="sticky top-0 bg-[#141822] pt-3 pb-2 px-5 flex items-center justify-between z-10 border-b border-white/5">
               <span className="absolute left-1/2 -translate-x-1/2 top-2 w-10 h-1 rounded-full bg-white/15" />
-              <p className="text-[15px] font-bold text-white mt-2">Filtros</p>
+              <p className="text-[15px] font-bold text-white mt-2">{t('exp.filtros')}</p>
               <button onClick={() => setShowFiltros(false)} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC] mt-1"><X size={16} /></button>
             </div>
             <div className="px-5 pt-4 space-y-5">
               {/* Formato */}
               <div>
-                <p className="eyebrow eyebrow-muted mb-2.5">Formato</p>
+                <p className="eyebrow eyebrow-muted mb-2.5">{t('torneo.formato')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {FORMATOS_ALL.map(f => (
+                  {formatosAll.map(f => (
                     <button key={f} onClick={() => toggleFormato(f)}
                       className={cn('px-3 h-9 rounded-xl text-xs font-semibold border transition-all',
                         formatos.has(f) ? 'bg-[#B6FF3A]/15 text-[#B6FF3A] border-[#B6FF3A]/45' : 'bg-white/4 text-[#B8B8CC] border-white/10')}>
@@ -301,27 +317,27 @@ export default function ExplorarPage() {
               {/* Precio máximo */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <p className="eyebrow eyebrow-muted">Precio máximo</p>
-                  <span className="text-sm font-bold text-white font-mono-num">{precioMax == null ? 'Cualquiera' : precioMax === 0 ? 'Gratis' : `${precioMax}€`}</span>
+                  <p className="eyebrow eyebrow-muted">{t('exp.precioMax')}</p>
+                  <span className="text-sm font-bold text-white font-mono-num">{precioMax == null ? t('exp.cualquiera') : precioMax === 0 ? t('explorar.gratis') : `${precioMax}€`}</span>
                 </div>
                 <input type="range" min={0} max={20} step={1} value={precioMax ?? 20}
                   onChange={e => setPrecioMax(Number(e.target.value) >= 20 ? null : Number(e.target.value))}
                   className="w-full accent-[#B6FF3A]" />
-                <div className="flex justify-between text-[10px] text-[#6B6B85] mt-1"><span>Gratis</span><span>20€+</span></div>
+                <div className="flex justify-between text-[10px] text-[#6B6B85] mt-1"><span>{t('explorar.gratis')}</span><span>20€+</span></div>
               </div>
               {/* Toggles */}
               <div className="space-y-2">
-                <ToggleRow label="Solo con plazas libres" on={soloLibres} onClick={() => setSoloLibres(v => !v)} />
-                <ToggleRow label="Solo torneos abiertos (no VIP)" on={soloAbiertos} onClick={() => setSoloAbiertos(v => !v)} />
-                <ToggleRow label="Solo hoy" on={soloHoy} onClick={() => setSoloHoy(v => !v)} />
-                <ToggleRow label="Solo gratis" on={soloGratis} onClick={() => setSoloGratis(v => !v)} />
+                <ToggleRow label={t('exp.soloLibres')} on={soloLibres} onClick={() => setSoloLibres(v => !v)} />
+                <ToggleRow label={t('exp.soloAbiertos')} on={soloAbiertos} onClick={() => setSoloAbiertos(v => !v)} />
+                <ToggleRow label={t('exp.soloHoy')} on={soloHoy} onClick={() => setSoloHoy(v => !v)} />
+                <ToggleRow label={t('exp.soloGratis')} on={soloGratis} onClick={() => setSoloGratis(v => !v)} />
               </div>
             </div>
             {/* CTA */}
             <div className="px-5 pt-5 flex gap-2.5">
-              <button onClick={limpiar} className="h-12 px-5 rounded-2xl bg-white/8 text-white font-semibold text-sm">Limpiar</button>
+              <button onClick={limpiar} className="h-12 px-5 rounded-2xl bg-white/8 text-white font-semibold text-sm">{t('exp.limpiar')}</button>
               <button onClick={() => setShowFiltros(false)} className="flex-1 h-12 rounded-2xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-sm">
-                Ver {resultados.length} {resultados.length === 1 ? 'torneo' : 'torneos'}
+                {t('exp.ver')} {resultados.length} {resultados.length === 1 ? t('exp.torneoSing') : t('exp.torneoPlur')}
               </button>
             </div>
           </div>
@@ -347,7 +363,7 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
   const { t: tCard } = useT()
   const juego = JUEGOS[t.juego]
   // Mismo cómputo de plazas que la ficha: bajas del TO y promociones de la cola
-  const ajuste = useDemoStore(s => (s.promovidosEspera[t.id] ?? 0) - (s.gestion[t.id]?.bajas?.length ?? 0))
+  const ajuste = useDemoStore(s => (s.entradosEspera[t.id]?.length ?? 0) - (s.gestion[t.id]?.bajas?.length ?? 0))
   const ocupadas = Math.max(0, t.inscritos + ajuste)
   const completo = ocupadas >= t.plazas
   const pct = Math.min(100, Math.round((ocupadas / t.plazas) * 100))
@@ -357,11 +373,14 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
         <TorneoArt t={t} className="w-[92px] shrink-0" />
         <div className="flex-1 p-3.5 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold"
-              style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
-            </span>
+            <GameBadge juegoId={t.juego} />
             {t.enDirecto && <span className="badge-live">Live</span>}
+            {t.categoria && t.categoria !== 'comunidad' && (
+              <span className="inline-flex items-center px-1.5 h-6 rounded-full text-[9px] font-black uppercase tracking-wider"
+                style={{ background: `${CATEGORIAS[t.categoria].color}1A`, color: CATEGORIAS[t.categoria].color, border: `1px solid ${CATEGORIAS[t.categoria].color}44` }}>
+                ✦ {CATEGORIAS[t.categoria].corto}
+              </span>
+            )}
             {t.vip && (
               <span className="ml-auto inline-flex items-center gap-1 px-1.5 h-6 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/8 text-[#E0BE63] border border-[#D4A84B]/40">
                 <Lock size={9} /> {t.vip}
@@ -387,7 +406,7 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
             </div>
             <div className="text-right shrink-0">
               <p className="text-[8px] text-[#8B8BA8] uppercase tracking-[0.12em] font-bold">{t.bote ? tCard('card.bote') : tCard('card.entrada')}</p>
-              <p className="text-[15px] font-bold text-white font-mono-num leading-none mt-0.5">{t.bote ? `${t.bote}€` : t.precio === 0 ? 'Free' : `${t.precio}€`}</p>
+              <p className="text-[15px] font-bold text-white font-mono-num leading-none mt-0.5">{t.bote ? `${t.bote}€` : t.precio === 0 ? tCard('card.free') : `${t.precio}€`}</p>
             </div>
           </div>
         </div>
@@ -402,6 +421,10 @@ const JUEGOS_SGG = new Set(['smash', 'sf6', 'tekken'])
 type ProximoSgg = { nombre: string; url: string; ciudad: string; sede: string; fecha: number | null; asistentes: number }
 
 function SeccionStartgg({ juego }: { juego: string }) {
+  // Ojo: dentro de g.items.map(t => …) la variable t es el torneo — el
+  // traductor va con otro nombre para no chocar.
+  const { t: tSgg, idioma } = useT()
+  const locale = idioma === 'en' ? 'en-GB' : idioma === 'ja' ? 'ja-JP' : 'es-ES'
   const [torneos, setTorneos] = useState<ProximoSgg[] | null>(null)
   useEffect(() => {
     let vivo = true
@@ -416,13 +439,13 @@ function SeccionStartgg({ juego }: { juego: string }) {
 
   // Agenda como piensa un jugador: Hoy / Mañana / día de la semana
   const etiquetaDia = (ms: number | null) => {
-    if (!ms) return 'Próximamente'
+    if (!ms) return tSgg('sgg.proximamente')
     const d = new Date(ms)
     const hoy = new Date()
     const dif = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() - new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime()) / 86400000)
-    if (dif <= 0) return 'Hoy'
-    if (dif === 1) return 'Mañana'
-    const label = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })
+    if (dif <= 0) return tSgg('explorar.hoy')
+    if (dif === 1) return tSgg('sgg.manana')
+    const label = d.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'short' })
     return label[0].toUpperCase() + label.slice(1)
   }
   const grupos: { dia: string; items: ProximoSgg[] }[] = []
@@ -437,8 +460,8 @@ function SeccionStartgg({ juego }: { juego: string }) {
     <section className="space-y-3">
       <div className="flex items-baseline justify-between pt-1">
         <div>
-          <p className="text-base font-bold text-white text-display tracking-tight flex items-center gap-2"><span className="dot-live" /> También en España · {j?.corto}</p>
-          <p className="text-[11px] text-[#8B8BA8]">La comunidad real, en vivo desde start.gg</p>
+          <p className="text-base font-bold text-white text-display tracking-tight flex items-center gap-2"><span className="dot-live" /> {tSgg('sgg.tambien')} <GameChip juegoId={juego} size={13} /></p>
+          <p className="text-[11px] text-[#8B8BA8]">{tSgg('sgg.sub')}</p>
         </div>
         <span className="text-[11px] font-mono-num text-[#6B6B85]">{torneos.length}</span>
       </div>
@@ -451,16 +474,16 @@ function SeccionStartgg({ juego }: { juego: string }) {
             className="flex items-center gap-3 card-premium card-int px-3.5 py-3">
             <span className="w-12 shrink-0 text-center">
               <span className="block text-[11px] font-black uppercase leading-tight text-white">
-                {t.fecha ? new Date(t.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '—'}
+                {t.fecha ? new Date(t.fecha).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) : '—'}
               </span>
               <span className="block text-[10px] text-[#8B8BA8] font-mono-num">
-                {t.fecha ? new Date(t.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : ''}
+                {t.fecha ? new Date(t.fecha).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : ''}
               </span>
             </span>
             <span className="w-1 self-stretch rounded-full" style={{ background: j?.color ?? '#6E9BFF' }} />
             <span className="flex-1 min-w-0">
               <span className="block text-[13px] font-bold text-white truncate">{t.nombre}</span>
-              <span className="block text-[11px] text-[#8B8BA8] truncate">{t.ciudad || 'España'}{t.sede ? ` · ${t.sede}` : ''} · <span className="font-mono-num">{t.asistentes}</span> apuntados</span>
+              <span className="block text-[11px] text-[#8B8BA8] truncate">{t.ciudad || tSgg('ranking.espana')}{t.sede ? ` · ${t.sede}` : ''} · <span className="font-mono-num">{t.asistentes}</span> {tSgg('sgg.apuntados')}</span>
             </span>
             <span className="shrink-0 text-[10px] font-bold text-[#6E9BFF] uppercase tracking-wide">start.gg ↗</span>
           </a>
@@ -468,7 +491,7 @@ function SeccionStartgg({ juego }: { juego: string }) {
         </div>
       </div>
       ))}
-      <p className="text-[11px] text-[#8B8BA8]">Estos torneos aún no usan Tourneum: son la comunidad a la que vamos. Los datos llegan de start.gg.</p>
+      <p className="text-[11px] text-[#8B8BA8]">{tSgg('sgg.pie')}</p>
     </section>
   )
 }

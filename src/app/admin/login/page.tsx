@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
         </div>
         <p className="text-[10px] font-bold text-[#4F8EF7] uppercase tracking-[0.25em] mb-2">Acceso restringido</p>
         <h1 className="text-3xl font-bold text-white text-display tracking-tight">Panel de administración</h1>
-        <p className="text-[#A0A0B8] text-sm mt-2">Solo para el equipo de Tourneum</p>
+        <p className="text-[#A0A0B8] text-sm mt-2">Solo para el equipo de Torneum</p>
       </div>
 
       <div className="relative w-full max-w-sm space-y-4">
@@ -128,7 +128,7 @@ export default function AdminLoginPage() {
           href="/gestor/login"
           className="relative mt-8 flex items-center gap-2 text-sm text-[#9B82FF] hover:text-white transition-colors"
         >
-          <Briefcase size={15} /> Acceder como Gestor de Tourneum
+          <Briefcase size={15} /> Acceder como Gestor de Torneum
         </Link>
       )}
     </div>

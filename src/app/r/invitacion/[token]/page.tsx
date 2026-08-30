@@ -112,7 +112,7 @@ export default function PaginaInvitacion({ params }: { params: Promise<{ token: 
         <div className="space-y-2 text-sm text-secondary">
           <p>Para aceptar, inicia sesión con <strong>{invitacion.email}</strong>.</p>
           <p className="text-tertiary text-xs">
-            Tourneum no procesa pagos entre tú y el local — solo refleja lo que te corresponde.
+            Torneum no procesa pagos entre tú y el local — solo refleja lo que te corresponde.
             La comisión final la pactáis vosotros desde tu panel.
           </p>
         </div>

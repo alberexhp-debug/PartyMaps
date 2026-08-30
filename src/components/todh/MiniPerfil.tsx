@@ -1,10 +1,13 @@
 'use client'
+import { useState } from 'react'
 import type { Jugador } from '@/lib/torneos/sample'
-import { JUEGOS } from '@/lib/torneos/sample'
+import { JUEGOS, plantillaDe, TORNEOS_SAMPLE } from '@/lib/torneos/sample'
 import Link from 'next/link'
-import { X, Star, Swords, TrendingUp, Trophy, ArrowUpRight } from 'lucide-react'
+import { X, Star, Swords, TrendingUp, Trophy, ArrowUpRight, Search } from 'lucide-react'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { RangoChip } from '@/components/todh/RangoChip'
+import { GameIcon, GameChip } from '@/components/todh/GameIcon'
+import { ScoutingSheet } from '@/components/todh/ScoutingSheet'
 import { useT } from '@/lib/i18n'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
@@ -20,6 +23,7 @@ function avatarColor(name: string) {
 // Sin datos personales: alias, juego, tier, rating, récord, main, logros.
 export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; puesto?: number; onClose: () => void }) {
   const { t: tr } = useT()
+  const [scout, setScout] = useState(false)   // scouting v1: «Estudiar a fondo»
   const juego = JUEGOS[jugador.juego]
   const tierColor = TIER_COLOR[jugador.tier] || '#E0BE63'
   const winrate = Math.round((jugador.victorias / (jugador.victorias + jugador.derrotas)) * 100)
@@ -47,9 +51,9 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
             <RangoChip rating={jugador.rating} size="md" />
             <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-[11px] font-bold border" style={{ color: tierColor, borderColor: `${tierColor}55`, background: `${tierColor}1A` }}>{jugador.tier}</span>
             <span className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[11px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
+              <GameIcon juegoId={jugador.juego} size={13} /> {juego.corto}
             </span>
-            {puesto && <span className="ml-auto inline-flex items-center gap-1 text-[12px] font-bold text-[#E0BE63]"><Trophy size={13} /> #{puesto} {juego.corto}</span>}
+            {puesto && <span className="ml-auto inline-flex items-center gap-1 text-[12px] font-bold text-[#E0BE63]"><Trophy size={13} /> #{puesto} <GameChip juegoId={jugador.juego} size={12} /></span>}
           </div>
 
           {/* Stats */}
@@ -63,7 +67,7 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
           <div className="mt-3 space-y-2">
             {jugador.main && (
               <div className="flex items-center justify-between card-premium px-3.5 py-2.5">
-                <span className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">{tr('mp.main')}</span>
+                <span className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">{plantillaDe(jugador.juego).labelMain}</span>
                 <PersonajeChip juegoId={jugador.juego} nombre={jugador.main} size="md" />
               </div>
             )}
@@ -77,6 +81,41 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
             </div>
           </div>
 
+          {/* Historial: últimos torneos jugados (deterministas por jugador) */}
+          {(() => {
+            const delJuego = TORNEOS_SAMPLE.filter(x => x.juego === jugador.juego).slice(0, 3)
+            if (delJuego.length === 0) return null
+            const puestoDe = (tid: string) => {
+              let h = 0
+              for (const ch of jugador.nombre + tid) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+              return ['🥇 1º', '🥈 2º', 'Top 4', 'Top 8', 'Top 16'][h % 5]
+            }
+            return (
+              <div className="mt-3">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#8B8BA8] font-bold mb-1.5">{tr('mp.ultimosTorneos')}</p>
+                <div className="space-y-1.5">
+                  {delJuego.map(x => (
+                    <Link key={x.id} href={`/torneo/${x.id}/resultados`} className="flex items-center gap-2.5 card-premium px-3 py-2 hover:bg-white/[0.06] transition-colors">
+                      <span className="w-1 self-stretch rounded-full" style={{ background: juego.color }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-bold text-white truncate">{x.nombre}</p>
+                        <p className="text-[10px] text-[#8B8BA8]">{x.fechaLabel}</p>
+                      </div>
+                      <span className="text-[11px] font-bold text-[#E0BE63] shrink-0">{puestoDe(x.id)}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Scouting v1: enlace discreto al estudio a fondo (muros por tier
+              dentro del propio sheet: sin tier se ve el teaser con candados) */}
+          <button onClick={() => setScout(true)}
+            className="mt-3 w-full text-[12px] font-semibold text-[#67E8F9] flex items-center justify-center gap-1 hover:text-white transition-colors">
+            <Search size={12} /> {tr('sc.estudiarFondo')} ›
+          </button>
+
           {/* Perfil completo (página) */}
           <Link href={`/jugador/${encodeURIComponent(jugador.nombre)}?juego=${jugador.juego}`}
             className="mt-3 w-full h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-1.5">
@@ -84,6 +123,7 @@ export function MiniPerfil({ jugador, puesto, onClose }: { jugador: Jugador; pue
           </Link>
         </div>
       </div>
+      {scout && <ScoutingSheet nombre={jugador.nombre} juego={jugador.juego} onClose={() => setScout(false)} />}
     </div>
   )
 }

@@ -40,7 +40,7 @@ export default function SoporteLocalPage() {
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-5">
       <PageHeader
         eyebrow="Ayuda" titulo="Soporte"
-        subtitulo="Abre un ticket y el equipo de Tourneum te responde por aquí."
+        subtitulo="Abre un ticket y el equipo de Torneum te responde por aquí."
         acciones={puedeAbrir ? <Button size="sm" onClick={() => setAbrirNuevo(true)}><Plus size={16} /> Abrir ticket</Button> : undefined}
       />
 
@@ -191,7 +191,7 @@ function TicketModal({ id, onClose }: { id: string; onClose: () => void }) {
               <div className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm ${
                 m.autor === 'local' ? 'bg-[#B6FF3A]/15 text-[#0A0A0F] rounded-br-sm' : 'bg-white/[0.06] text-[#E8E8F0] rounded-bl-sm'
               }`}>
-                <p className="text-[10px] uppercase tracking-wide opacity-60 mb-0.5">{m.autor === 'local' ? 'Tú' : 'Soporte Tourneum'}</p>
+                <p className="text-[10px] uppercase tracking-wide opacity-60 mb-0.5">{m.autor === 'local' ? 'Tú' : 'Soporte Torneum'}</p>
                 <p className="whitespace-pre-wrap break-words">{m.mensaje}</p>
                 <p className="text-[10px] opacity-50 mt-1">{haceTiempo(m.created_at)}</p>
               </div>

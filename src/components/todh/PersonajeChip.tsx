@@ -15,10 +15,32 @@ export function PersonajeChip({ juegoId, nombre, size = 'sm' }: { juegoId: strin
   )
 }
 
-// Solo el medallón (para listas densas o avatares).
+// Hasta 2 medallones en línea: los personajes que un jugador declaró en un
+// combate (doble reporte). Para las brackets: pequeño, con tooltip del nombre.
+export function PersonajesDeLado({ juegoId, nombres, px = 14 }: { juegoId: string; nombres?: string[]; px?: number }) {
+  if (!nombres?.length) return null
+  return (
+    <span className="inline-flex items-center gap-0.5 shrink-0 align-middle">
+      {nombres.slice(0, 2).map(n => <PersonajeIcon key={n} juegoId={juegoId} nombre={n} px={px} />)}
+    </span>
+  )
+}
+
+// Solo el medallón (para listas densas o avatares). Con logo real (`img`,
+// autohospedado en /public/personajes) lo pinta; si no, medallón color+emoji.
 export function PersonajeIcon({ juegoId, nombre, px = 16 }: { juegoId: string; nombre?: string | null; px?: number }) {
   const p = getPersonaje(juegoId, nombre)
   if (!p) return null
+  if (p.img) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={p.img} alt={p.nombre} title={p.nombre} width={px} height={px}
+        className="inline-block shrink-0 rounded-full object-cover"
+        style={{ width: px, height: px, filter: 'drop-shadow(0 1px 1px rgba(0,0,0,.45))' }}
+      />
+    )
+  }
   return (
     <span
       title={p.nombre}

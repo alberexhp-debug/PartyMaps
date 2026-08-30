@@ -22,7 +22,7 @@
 1. Authentication → Providers → **Google** → activar y pegar Client ID + Secret.
 2. Authentication → URL Configuration → **Redirect URLs**, añade:
    - `http://localhost:3000/auth/callback`
-   - `https://party-maps-hojy.vercel.app/auth/callback`
+   - `https://torneum.vercel.app/auth/callback`
 
 Hecho esto, "Continuar con Google" funciona. Usuario nuevo → `/completar-perfil`.
 

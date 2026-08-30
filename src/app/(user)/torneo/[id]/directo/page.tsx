@@ -4,8 +4,10 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, JUEGOS, bracketDe } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
+import { GameBadge, GameIcon } from '@/components/todh/GameIcon'
 import { VideoEmbed } from '@/components/todh/VideoEmbed'
 import { ArrowLeft, Radio, Send, ListTree, Eye, Play } from 'lucide-react'
 
@@ -41,6 +43,9 @@ export default function DirectoPage() {
   const [reproduciendo, setReproduciendo] = useState(false)
   const [viendo, setViendo] = useState(t?.viendo || 0)
   const chatRef = useRef<HTMLDivElement>(null)
+  // La sala live es de jugadores y espectadores: una sede no entra (ni por URL).
+  const esSede = useSesionStore(s => s.sesion?.rol === 'local')
+  useEffect(() => { if (esSede) router.replace(`/torneo/${id}`) }, [esSede, id, router])
 
   // Ambiente: mensajes que entran solos + espectadores que fluctúan
   useEffect(() => {
@@ -57,12 +62,14 @@ export default function DirectoPage() {
     setMsg('')
   }
 
+  if (esSede) return null
+
   if (!t) {
-    return <div className="min-h-screen flex items-center justify-center text-white">Torneo no encontrado</div>
+    return <div className="min-h-screen flex items-center justify-center text-white">{tr('ges.torneoNoEncontrado')}</div>
   }
 
   return (
-    <div className="relative min-h-screen pb-4 max-w-xl lg:max-w-5xl mx-auto">
+    <div className="relative min-h-screen pb-4 max-w-xl mx-auto lg:max-w-none lg:mx-0">
       {/* Reproductor: la emisión real (YouTube/Twitch) si el TO pegó la URL;
           si no, la señal de demostración de siempre. */}
       {t.videoUrl ? (
@@ -81,13 +88,13 @@ export default function DirectoPage() {
         <div className="relative h-full flex flex-col items-center justify-center gap-2">
           {reproduciendo ? (
             <>
-              <span className="inline-flex items-center gap-2 text-[#B6FF3A] text-sm font-semibold"><span className="dot-live" /> Reproduciendo emisión</span>
-              <p className="text-xs text-white/55">Señal de demostración · {juego.nombre}</p>
+              <span className="inline-flex items-center gap-2 text-[#B6FF3A] text-sm font-semibold"><span className="dot-live" /> {tr('dir.reproduciendo')}</span>
+              <p className="text-xs text-white/55 inline-flex items-center gap-1.5">{tr('dir.senalDemo')} <GameIcon juegoId={t.juego} size={12} /> {juego.nombre}</p>
             </>
           ) : (
             <>
               <button onClick={() => setReproduciendo(true)} aria-label="Reproducir emisión" className="h-16 w-16 rounded-full bg-white/10 border border-white/25 flex items-center justify-center hover:scale-110 transition-transform"><Play size={26} className="text-white ml-1" /></button>
-              <p className="text-sm text-white/80">Pulsa para ver la emisión en directo</p>
+              <p className="text-sm text-white/80">{tr('dir.pulsaVer')}</p>
             </>
           )}
         </div>
@@ -101,10 +108,8 @@ export default function DirectoPage() {
       <div className="px-4 pt-3 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start">
       <div className="lg:min-w-0">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-[10px] font-bold" style={{ background: `${juego.color}1F`, color: juego.color, border: `1px solid ${juego.color}44` }}>
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: juego.color }} /> {juego.corto}
-          </span>
-          <span className="inline-flex items-center gap-1 text-[11px] text-[#FF6076] font-bold uppercase tracking-wide"><Radio size={11} className="animate-pulse-heat" /> En directo</span>
+          <GameBadge juegoId={t.juego} />
+          <span className="inline-flex items-center gap-1 text-[11px] text-[#FF6076] font-bold uppercase tracking-wide"><Radio size={11} className="animate-pulse-heat" /> {tr('tf.enDirecto')}</span>
         </div>
         <h1 className="mt-2 text-xl font-bold text-white text-display leading-tight">{t.nombre}</h1>
 
@@ -118,7 +123,7 @@ export default function DirectoPage() {
             </div>
             <div className="px-4 text-center">
               <p className="text-3xl font-bold text-score text-white">1<span className="text-[#6B6B85] mx-1">-</span>1</p>
-              <p className="text-[10px] text-[#8B8BA8] uppercase tracking-wide">Semifinal · Bo5</p>
+              <p className="text-[10px] text-[#8B8BA8] uppercase tracking-wide">{tr('dir.semifinalBo5')}</p>
             </div>
             <div className="text-center flex-1">
               <span className="inline-flex items-center justify-center w-12 h-12 rounded-full text-[#0A0A0F] font-black text-lg" style={{ background: '#4F8EF7' }}>R</span>
@@ -130,7 +135,7 @@ export default function DirectoPage() {
         {/* Bracket lateral (acceso) */}
         <Link href={`/torneo/${id}/bracket`} className="mt-3 flex items-center justify-between card-premium card-int p-3.5">
           <span className="inline-flex items-center gap-2 text-white font-semibold text-sm"><ListTree size={17} className="text-[#9B82FF]" /> {tr('directo.verBracket')}</span>
-          <span className="text-[#8B8BA8]">{rondas.reduce((a, r) => a + r.matches.length, 0)} combates ›</span>
+          <span className="text-[#8B8BA8]">{rondas.reduce((a, r) => a + r.matches.length, 0)} {tr('dir.combates')} ›</span>
         </Link>
 
       </div>

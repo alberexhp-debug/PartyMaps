@@ -348,7 +348,7 @@ async function verificarQR(qrData: string, localId: string, modoConsumicion: boo
 
   // Format: PM2:<entrada_id>
   if (!qrData.startsWith('PM2:')) {
-    return { tipo: 'qr_invalido', mensaje: 'QR no reconocido. No es de Tourneum.' }
+    return { tipo: 'qr_invalido', mensaje: 'QR no reconocido. No es de Torneum.' }
   }
 
   const entradaId = qrData.split(':')[1]

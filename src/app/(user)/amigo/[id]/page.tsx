@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { UserPlus, Check, Clock, LogIn, ArrowRight } from 'lucide-react'
+import { useT, conParams } from '@/lib/i18n'
 
 type Estado = 'cargando' | 'enviada' | 'aceptada' | 'login' | 'error' | 'yo'
 
@@ -13,6 +14,7 @@ type Estado = 'cargando' | 'enviada' | 'aceptada' | 'login' | 'error' | 'yo'
  * acepta si ya había una en sentido contrario). Si no, le invita a entrar.
  */
 export default function AmigoInvitePage() {
+  const { t: tr } = useT()
   const { id } = useParams<{ id: string }>()
   const { usuario, isLoading } = useAuthStore()
   const [estado, setEstado] = useState<Estado>('cargando')
@@ -29,7 +31,7 @@ export default function AmigoInvitePage() {
       .then(async r => ({ ok: r.ok, d: await r.json().catch(() => ({})) }))
       .then(({ ok, d }) => {
         if (!ok) { setEstado('error'); return }
-        setNombre(d.nombre || 'tu amigo')
+        setNombre(d.nombre || '')
         setEstado(d.estado === 'aceptada' ? 'aceptada' : 'enviada')
       })
       .catch(() => setEstado('error'))
@@ -40,29 +42,29 @@ export default function AmigoInvitePage() {
       {estado === 'cargando' && <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/20 border-t-[#B6FF3A]" />}
 
       {estado === 'enviada' && (
-        <Card icon={<Clock size={30} className="text-[#F39C12]" />} titulo="Solicitud enviada"
-          texto={`Le hemos enviado tu solicitud a ${nombre}. Cuando la acepte, seréis amigos en Tourneum.`}
-          cta={{ href: '/amigos', label: 'Ver mis amigos' }} />
+        <Card icon={<Clock size={30} className="text-[#F39C12]" />} titulo={tr('inv.enviadaT')}
+          texto={conParams(tr('inv.enviadaC'), { nombre: nombre || tr('inv.tuAmigo') })}
+          cta={{ href: '/amigos', label: tr('inv.verAmigos') }} />
       )}
       {estado === 'aceptada' && (
-        <Card icon={<Check size={30} className="text-[#27AE60]" />} titulo={`¡Ya sois amigos!`}
-          texto={`${nombre} y tú ya estáis conectados. Organizad vuestra próxima salida.`}
-          cta={{ href: '/amigos', label: 'Ver mis amigos' }} />
+        <Card icon={<Check size={30} className="text-[#27AE60]" />} titulo={tr('inv.aceptadaT')}
+          texto={conParams(tr('inv.aceptadaC'), { nombre: nombre || tr('inv.tuAmigo') })}
+          cta={{ href: '/amigos', label: tr('inv.verAmigos') }} />
       )}
       {estado === 'yo' && (
-        <Card icon={<UserPlus size={30} className="text-[#B6FF3A]" />} titulo="Este es tu enlace"
-          texto="Compártelo con quien quieras para que te añada como amigo."
-          cta={{ href: '/amigos', label: 'Ir a Amigos' }} />
+        <Card icon={<UserPlus size={30} className="text-[#B6FF3A]" />} titulo={tr('inv.yoT')}
+          texto={tr('inv.yoC')}
+          cta={{ href: '/amigos', label: tr('inv.irAmigos') }} />
       )}
       {estado === 'login' && (
-        <Card icon={<LogIn size={30} className="text-[#B6FF3A]" />} titulo="Entra para añadir a tu amigo"
-          texto="Inicia sesión o crea tu cuenta en Tourneum y os conectaréis al instante."
-          cta={{ href: '/login', label: 'Entrar o registrarme' }} />
+        <Card icon={<LogIn size={30} className="text-[#B6FF3A]" />} titulo={tr('inv.loginT')}
+          texto={tr('inv.loginC')}
+          cta={{ href: '/login', label: tr('inv.entrar') }} />
       )}
       {estado === 'error' && (
-        <Card icon={<UserPlus size={30} className="text-[#8B8BA8]" />} titulo="No se pudo completar"
-          texto="Ese enlace no es válido o ha ocurrido un error. Inténtalo de nuevo más tarde."
-          cta={{ href: '/mapa', label: 'Ir al mapa' }} />
+        <Card icon={<UserPlus size={30} className="text-[#8B8BA8]" />} titulo={tr('inv.errorT')}
+          texto={tr('inv.errorC')}
+          cta={{ href: '/mapa', label: tr('inv.irMapa') }} />
       )}
     </div>
   )

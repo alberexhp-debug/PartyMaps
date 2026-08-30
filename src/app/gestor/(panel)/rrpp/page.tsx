@@ -265,7 +265,7 @@ function VincularModal({ localId, onClose, onHecho }: { localId: string; onClose
               </button>
             ))}
             {q.trim().length >= 2 && !buscando && resultados.length === 0 && (
-              <p className="px-1 py-3 text-center text-xs text-[#6B6B85]">Sin resultados. Si no está en Tourneum, invítalo por email.</p>
+              <p className="px-1 py-3 text-center text-xs text-[#6B6B85]">Sin resultados. Si no está en Torneum, invítalo por email.</p>
             )}
           </div>
         </div>
@@ -315,7 +315,7 @@ function InvitarModal({ localId, onClose, onHecho }: { localId: string; onClose:
       {link ? (
         <div className="space-y-4 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-500/15 text-green-400"><Check size={26} /></div>
-          <p className="text-sm text-[#A0A0B8]">Esta persona aún no está en Tourneum. Envíale este enlace para que acepte:</p>
+          <p className="text-sm text-[#A0A0B8]">Esta persona aún no está en Torneum. Envíale este enlace para que acepte:</p>
           <div className="break-all rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left text-xs text-[#B8B8CC]">{link}</div>
           <div className="flex gap-2">
             <Button variant="outline" fullWidth onClick={copiar}>{copiado ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar enlace</>}</Button>
@@ -364,7 +364,7 @@ function AltaRrppModal({ localId, onClose, onHecho }: { localId: string; onClose
 
   const copiar = () => {
     if (!cred) return
-    navigator.clipboard.writeText(`Acceso RRPP Tourneum\nUsuario: ${cred.username}\nContraseña: ${cred.password}\nEntra en: ${location.origin}/rrpp/login`)
+    navigator.clipboard.writeText(`Acceso RRPP Torneum\nUsuario: ${cred.username}\nContraseña: ${cred.password}\nEntra en: ${location.origin}/rrpp/login`)
     setCopiado(true); setTimeout(() => setCopiado(false), 2000)
   }
 

@@ -1,4 +1,4 @@
-/* Service worker de TOURNEUM · v2 (mínimo a conciencia).
+/* Service worker de TORNEUM · v2 (mínimo a conciencia).
  *
  * Historia: el SW de Rumbo cacheaba el shell (cache-first) y tras el pivote
  * servía HTML viejo con chunks muertos → pantalla de carga infinita. Le siguió

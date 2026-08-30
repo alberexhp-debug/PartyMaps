@@ -7,7 +7,7 @@ import { getTrabajadorLocal } from '@/lib/rrpp/auth'
 const ROLES = ['dueno', 'gestor']
 
 /**
- * Chat del LOCAL con su TourneumGestor (el gestor de Tourneum que lleva su cartera).
+ * Chat del LOCAL con su TorneumGestor (el gestor de Torneum que lleva su cartera).
  * GET  → hilo con el gestor del local (marca como leídos los del gestor).
  * POST { mensaje } → envía como 'local'.
  * Graceful: si el local no tiene gestor asignado o la migración 053 aún no se
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
   const db = createServiceRoleClient()
   const gestorId = await gestorDelLocal(db, t.local_id)
-  if (!gestorId) return NextResponse.json({ error: 'Tu local aún no tiene un gestor de Tourneum asignado.' }, { status: 409 })
+  if (!gestorId) return NextResponse.json({ error: 'Tu local aún no tiene un gestor de Torneum asignado.' }, { status: 409 })
 
   const { data, error } = await db.from('mensajes_gestor')
     .insert({ local_id: t.local_id, gestor_id: gestorId, emisor: 'local', mensaje })

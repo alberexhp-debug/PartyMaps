@@ -5,7 +5,7 @@ export default function PrivacidadPage() {
   return (
     <div className="min-h-screen">
       <div className="px-5 pt-12 pb-20 max-w-2xl mx-auto">
-        <Link href="/registro" className="inline-flex items-center gap-2 text-[#A0A0B8] mb-8 hover:text-white transition-colors">
+        <Link href="/inicio" className="inline-flex items-center gap-2 text-[#A0A0B8] mb-8 hover:text-white transition-colors">
           <ChevronLeft size={18} /> Volver
         </Link>
 
@@ -14,15 +14,15 @@ export default function PrivacidadPage() {
 
         <div className="space-y-8 text-sm text-[#A0A0B8] leading-relaxed">
           <Section title="1. Responsable del tratamiento">
-            Tourneum es responsable del tratamiento de tus datos personales. Contacto: <span className="text-[#B6FF3A]">privacidad@partymaps.com</span>
+            Torneum es responsable del tratamiento de tus datos personales. Contacto: <span className="text-[#B6FF3A]">privacidad@torneum.app</span>
           </Section>
 
           <Section title="2. Datos que recogemos">
-            Recogemos los datos que tú nos proporcionas al registrarte (número de teléfono, nombre, fecha de nacimiento, foto de perfil opcional), datos de uso de la app (locales visitados, entradas compradas, planes), y datos de ubicación cuando activas el permiso para centrar el mapa.
+            Recogemos los datos que tú nos proporcionas al registrarte (número de teléfono, nombre, fecha de nacimiento, foto de perfil opcional), datos de uso de la app (torneos en los que participas, inscripciones y resultados), y datos de ubicación cuando activas el permiso para centrar el mapa.
           </Section>
 
           <Section title="3. Finalidad del tratamiento">
-            Usamos tus datos para: gestionar tu cuenta y autenticación, procesar compras de entradas, mostrarte contenido relevante en el mapa, enviarte notificaciones de locales que sigues (si lo consientes), y mejorar la plataforma mediante análisis agregados y anónimos.
+            Usamos tus datos para: gestionar tu cuenta y autenticación, procesar inscripciones, mostrarte contenido relevante en el mapa, enviarte notificaciones de organizadores que sigues (si lo consientes), y mejorar la plataforma mediante análisis agregados y anónimos.
           </Section>
 
           <Section title="4. Base legal">
@@ -34,11 +34,11 @@ export default function PrivacidadPage() {
           </Section>
 
           <Section title="6. Tus derechos">
-            Tienes derecho de acceso, rectificación, supresión, portabilidad y limitación del tratamiento. Ejércelos en <span className="text-[#B6FF3A]">privacidad@partymaps.com</span> o directamente desde la sección Perfil de la app.
+            Tienes derecho de acceso, rectificación, supresión, portabilidad y limitación del tratamiento. Ejércelos en <span className="text-[#B6FF3A]">privacidad@torneum.app</span> o directamente desde la sección Perfil de la app.
           </Section>
 
           <Section title="7. Terceros">
-            Tourneum usa Supabase (base de datos, autenticación), Mapbox (mapas) y Stripe (pagos). Cada servicio tiene su propia política de privacidad. No vendemos tus datos a terceros.
+            Torneum usa Supabase (base de datos, autenticación), Mapbox (mapas) y Stripe (pagos). Cada servicio tiene su propia política de privacidad. No vendemos tus datos a terceros.
           </Section>
 
           <Section title="8. Cookies">

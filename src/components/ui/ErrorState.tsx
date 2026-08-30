@@ -1,6 +1,7 @@
 'use client'
 import { AlertCircle, RotateCcw, WifiOff } from 'lucide-react'
 import { Button } from './Button'
+import { useT } from '@/lib/i18n'
 
 interface ErrorStateProps {
   /** Título principal — qué pasó */
@@ -23,12 +24,13 @@ export function ErrorState({
   onReintentar,
   variante = 'error',
 }: ErrorStateProps) {
+  const { t: tr } = useT()
   const Icon = variante === 'offline' ? WifiOff : AlertCircle
   const color = variante === 'offline' ? '#F39C12' : '#B6FF3A'
-  const tituloFinal = titulo || (variante === 'offline' ? 'Sin conexión' : 'Algo ha fallado')
+  const tituloFinal = titulo || (variante === 'offline' ? tr('err.sinConexion') : tr('err.algoFallo'))
   const mensajeFinal = mensaje || (variante === 'offline'
-    ? 'Revisa tu Wi-Fi o datos móviles y vuelve a intentarlo.'
-    : 'Vuelve a intentarlo en un momento. Si sigue sin funcionar, contacta con soporte.')
+    ? tr('err.revisaWifi')
+    : tr('err.reintentaLuego'))
 
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-4 px-6 text-center">
@@ -44,7 +46,7 @@ export function ErrorState({
       </div>
       {onReintentar && (
         <Button variant="secondary" onClick={onReintentar}>
-          <RotateCcw size={14} /> Reintentar
+          <RotateCcw size={14} /> {tr('err.reintentar')}
         </Button>
       )}
     </div>

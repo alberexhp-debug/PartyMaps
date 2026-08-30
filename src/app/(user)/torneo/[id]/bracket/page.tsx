@@ -1,22 +1,28 @@
 'use client'
 import { useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, standingsSuizoDe, rankingPorJuego, type MatchSample, type RondaSample, type Jugador } from '@/lib/torneos/sample'
+import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, standingsSuizoDe, rankingPorJuego, plantillaDe, type MatchSample, type RondaSample, type Jugador } from '@/lib/torneos/sample'
+import { PersonajesDeLado } from '@/components/todh/PersonajeChip'
+import { CrewTag } from '@/components/todh/CrewTag'
 import { construirRondas, nombreRonda, boDeRonda } from '@/lib/torneos/bracket'
 import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { ReportButton } from '@/components/todh/ReportSheet'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
+import { GameIcon } from '@/components/todh/GameIcon'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Crown, ShieldCheck } from 'lucide-react'
 
 export default function BracketPage() {
-  const { t: tr } = useT()
+  const { t: tr, idioma } = useT()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
   const gestion = useDemoStore(s => s.gestion[id])
+  const pjTorneo = useDemoStore(s => s.personajesPorMatch[id])
   const t = getTorneo(id) || creado
+  // Personajes jugados por combate (doble reporte): solo en juegos que los llevan
+  const pj = t && plantillaDe(t.juego).personajes ? pjTorneo : undefined
   const color = t ? (JUEGOS[t.juego]?.color ?? '#B6FF3A') : '#B6FF3A'
   const ranking = t ? rankingPorJuego(t.juego) : []
   const [sel, setSel] = useState<Jugador | null>(null)
@@ -33,7 +39,7 @@ export default function BracketPage() {
     const puntos = gestion!.puntos ?? {}
     const bo = gestion!.bo ?? { base: 3, top: 5, desde: 'semis' as BoDesde }
     return rb.map((matches, ri) => ({
-      nombre: `${nombreRonda(matches.length)} · Bo${boDeRonda(ri, rb.length, bo)}`,
+      nombre: `${nombreRonda(matches.length, idioma)} · Bo${boDeRonda(ri, rb.length, bo)}`,
       matches: matches.map(m => {
         const pts = puntos[m.id]
         return {
@@ -45,7 +51,7 @@ export default function BracketPage() {
         } as MatchSample
       }),
     }))
-  }, [real, t, gestion])
+  }, [real, t, gestion, idioma])
 
   const esDoble = !real && t?.formato === 'Doble eliminación'
   const esTabla = !real && (t?.formato === 'Suizo' || t?.formato === 'Round robin')
@@ -66,12 +72,12 @@ export default function BracketPage() {
   const labelFormato = esTabla ? tr('bracket.clasifVivo') : tr('bracket.enVivo')
 
   return (
-    <div className="min-h-screen max-w-xl lg:max-w-6xl mx-auto">
+    <div className="min-h-screen max-w-xl mx-auto lg:max-w-none lg:mx-0">
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 safe-top sticky top-0 z-10 bg-[#0D0F15]/92 backdrop-blur-md border-b border-white/6">
         <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white shrink-0"><ArrowLeft size={18} /></button>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{labelFormato} · {t?.formato || 'Eliminación'}</p>
-          <p className="text-base font-bold text-white truncate">{t?.nombre || 'Torneo'}</p>
+          <p className="text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{labelFormato} · {t?.formato || tr('bk.eliminacion')}</p>
+          <p className="text-base font-bold text-white truncate">{t && <GameIcon juegoId={t.juego} size={15} className="mr-1.5" />}{t?.nombre || tr('rk2.torneoSingCap')}</p>
         </div>
         {t && <ReportButton torneoId={t.id} torneoNombre={t.nombre} />}
       </div>
@@ -103,11 +109,11 @@ export default function BracketPage() {
 
       {esTabla
         ? <StandingsSuizo torneoId={id} juego={t!.juego} formato={t!.formato} color={color} onPick={abrirJugador} />
-        : <BracketGrid rondas={rondas} color={color} onPick={abrirJugador} />}
+        : <BracketGrid rondas={rondas} color={color} onPick={abrirJugador} pj={pj} juegoId={t?.juego} />}
 
       {/* Nota del bracket reset (doble elim) */}
       {doble && !esTabla && vista === 'winners' && (
-        <p className="px-4 pb-6 -mt-2 text-[11px] text-[#8B8BA8]">Gran final: el que llega de Losers debe ganar dos sets (bracket reset).</p>
+        <p className="px-4 pb-6 -mt-2 text-[11px] text-[#8B8BA8]">{tr('bk.granFinalNota')}</p>
       )}
 
       {sel && <MiniPerfil jugador={sel} onClose={() => setSel(null)} />}
@@ -116,19 +122,20 @@ export default function BracketPage() {
 }
 
 function StandingsSuizo({ torneoId, juego, formato, color, onPick }: { torneoId: string; juego: string; formato: string; color: string; onPick: (n: string) => void }) {
+  const { t: tr } = useT()
   const { rondaActual, totalRondas, filas } = standingsSuizoDe(juego)
   const esRR = formato === 'Round robin'
   return (
     <div className="px-4 py-4">
       <div className="flex items-center justify-between mb-3">
-        <p className="eyebrow eyebrow-muted">Clasificación</p>
+        <p className="eyebrow eyebrow-muted">{tr('bk.clasificacion')}</p>
         <span className="inline-flex items-center gap-1.5 text-[12px] font-bold text-white">
-          <span className="dot-live" /> {esRR ? `Jornada ${rondaActual}` : `Ronda ${rondaActual}`} de {totalRondas}
+          <span className="dot-live" /> {esRR ? `${tr('bk.jornada')} ${rondaActual}` : `${tr('bk.ronda')} ${rondaActual}`} {tr('logros.de')} {totalRondas}
         </span>
       </div>
       {/* Cabecera */}
       <div className="flex items-center gap-3 px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[#6B6B85]">
-        <span className="w-6 text-center">#</span><span className="flex-1">Jugador</span>
+        <span className="w-6 text-center">#</span><span className="flex-1">{tr('dual.jugador')}</span>
         <span className="w-12 text-center">V-D</span><span className="w-10 text-right">Pts</span><span className="w-12 text-right">OMW%</span>
       </div>
       <div className="space-y-1.5">
@@ -148,15 +155,15 @@ function StandingsSuizo({ torneoId, juego, formato, color, onPick }: { torneoId:
         })}
       </div>
       <p className="mt-3 text-[11px] text-[#8B8BA8]">
-        {esRR
-          ? 'Round robin: todos contra todos. Clasificación por victorias → enfrentamiento directo → diferencia de juegos.'
-          : 'Suizo: empareja por puntos cada ronda. Desempate por OMW% (rivales) → GW% → OGW%. Top 8 pasa a corte.'}
+        {esRR ? tr('bk.rrExplica') : tr('bk.suizoExplica')}
       </p>
     </div>
   )
 }
 
-function BracketGrid({ rondas, color, onPick }: { rondas: RondaSample[]; color: string; onPick: (n: string) => void }) {
+type PJMap = Record<string, { A: string[]; B: string[] }>
+
+function BracketGrid({ rondas, color, onPick, pj, juegoId }: { rondas: RondaSample[]; color: string; onPick: (n: string) => void; pj?: PJMap; juegoId?: string }) {
   return (
     <div className="overflow-x-auto px-4 py-5 scrollbar-hide">
       <div className="bkt min-w-max min-h-[440px]" style={{ ['--bkt-line' as string]: 'rgba(255,255,255,0.14)' }}>
@@ -168,7 +175,7 @@ function BracketGrid({ rondas, color, onPick }: { rondas: RondaSample[]; color: 
                 {ronda.matches.map(m => (
                   <div key={m.id} className="bkt-cell">
                     <div className={cn('w-full', ri > 0 && 'bkt-stub-in')}>
-                      <MatchCard m={m} color={color} onPick={onPick} />
+                      <MatchCard m={m} color={color} onPick={onPick} pj={pj?.[m.id]} juegoId={juegoId} />
                     </div>
                   </div>
                 ))}
@@ -191,31 +198,38 @@ function BracketGrid({ rondas, color, onPick }: { rondas: RondaSample[]; color: 
   )
 }
 
-function MatchCard({ m, color, onPick }: { m: MatchSample; color: string; onPick: (n: string) => void }) {
+function MatchCard({ m, color, onPick, pj, juegoId }: { m: MatchSample; color: string; onPick: (n: string) => void; pj?: { A: string[]; B: string[] }; juegoId?: string }) {
+  const { t: tr } = useT()
   const live = m.estado === 'en-juego'
   const done = m.estado === 'jugado'
   const winA = done && m.ganador === 'a'
   const winB = done && m.ganador === 'b'
+  // Personajes declarados (doble reporte): solo junto a resultados ya jugados
+  const pjA = done && juegoId ? pj?.A : undefined
+  const pjB = done && juegoId ? pj?.B : undefined
   return (
     <div className="w-44 rounded-xl border overflow-hidden bg-[#161A24]" style={live
       ? { borderColor: color, boxShadow: `0 0 22px -6px ${color}77, 0 0 0 1px ${color}33 inset` }
       : { borderColor: 'rgba(255,255,255,0.08)' }}>
-      <Row name={m.a} score={m.scoreA} win={winA} champ={winA} onPick={onPick} show={done || live} />
+      <Row name={m.a} score={m.scoreA} win={winA} champ={winA} onPick={onPick} show={done || live} pers={pjA} juegoId={juegoId} />
       <div className="h-px bg-white/8" />
-      <Row name={m.b} score={m.scoreB} win={winB} champ={winB} onPick={onPick} show={done || live} />
-      {live && <div className="text-[9px] text-center font-bold uppercase tracking-wider py-1 flex items-center justify-center gap-1" style={{ color, background: `${color}14` }}><span className="dot-live" style={{ width: 5, height: 5 }} /> En juego{m.setup ? ` · ${m.setup}` : ''}</div>}
-      {m.estado === 'pendiente' && <div className="text-[9px] text-center font-semibold uppercase tracking-wider py-1 text-[#6B6B85] bg-white/[0.02]">Por jugar</div>}
+      <Row name={m.b} score={m.scoreB} win={winB} champ={winB} onPick={onPick} show={done || live} pers={pjB} juegoId={juegoId} />
+      {live && <div className="text-[9px] text-center font-bold uppercase tracking-wider py-1 flex items-center justify-center gap-1" style={{ color, background: `${color}14` }}><span className="dot-live" style={{ width: 5, height: 5 }} /> {tr('em.ocupada')}{m.setup ? ` · ${m.setup}` : ''}</div>}
+      {m.estado === 'pendiente' && <div className="text-[9px] text-center font-semibold uppercase tracking-wider py-1 text-[#6B6B85] bg-white/[0.02]">{tr('bracket.porJugar')}</div>}
     </div>
   )
 }
 
-function Row({ name, score, win, champ, show, onPick }: { name: string; score: number | null; win: boolean; champ?: boolean; show: boolean; onPick: (n: string) => void }) {
+function Row({ name, score, win, champ, show, onPick, pers, juegoId }: { name: string; score: number | null; win: boolean; champ?: boolean; show: boolean; onPick: (n: string) => void; pers?: string[]; juegoId?: string }) {
   const empty = name === '—'
   return (
     <button onClick={() => onPick(name)} disabled={empty}
       className={cn('w-full flex items-center justify-between px-3 py-2.5 transition-colors', win ? 'bg-[#B6FF3A]' : !empty && 'hover:bg-white/5')}>
       <span className={cn('text-sm truncate flex items-center gap-1', win ? 'text-[#0A0A0F] font-bold' : empty ? 'text-[#5A5A70]' : 'text-white font-medium')}>
         {champ && <Crown size={12} className="text-[#0A0A0F]" fill="currentColor" />}{name}
+        {/* Tag de crew junto al nick (F6): solo en torneo y ranking */}
+        <CrewTag nombre={name} juego={juegoId} onLight={win} />
+        {juegoId && <PersonajesDeLado juegoId={juegoId} nombres={pers} px={14} />}
       </span>
       <span className={cn('text-[17px] font-bold text-score ml-2 shrink-0', win ? 'text-[#0A0A0F]' : 'text-[#8B8BA8]')}>{show && !empty && score != null ? score : ''}</span>
     </button>

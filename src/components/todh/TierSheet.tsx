@@ -1,15 +1,16 @@
 'use client'
 import { useState } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
-import { Check, Crown } from 'lucide-react'
-import { useT } from '@/lib/i18n'
+import { ArrowLeft, Check, Crown } from 'lucide-react'
+import { useT, conParams } from '@/lib/i18n'
 
 // Tiers de usuario (reunión 5-jul): se pagan (4,99/7,99/9,99) o se regalan por
 // rango alto. Desbloquean torneos tier, perfil destacado y ofertas de locales.
+// Las ventajas son CLAVES i18n (F9): se traducen con tr() al pintarlas.
 export const TIERS_USUARIO = [
-  { id: 'Oro' as const, precio: 4.99, color: '#E0BE63', regaloRango: 'A', ventajas: ['Torneos tier Oro', 'Perfil destacado en fichas', 'Ofertas de locales Oro'] },
-  { id: 'Platino' as const, precio: 7.99, color: '#67E8F9', regaloRango: 'A+', ventajas: ['Todo lo de Oro', 'Torneos tier Platino', 'Estadísticas avanzadas'] },
-  { id: 'Diamante' as const, precio: 9.99, color: '#A78BFA', regaloRango: 'S', ventajas: ['Todo lo de Platino', 'Torneos tier Diamante', 'Prioridad en listas de espera'] },
+  { id: 'Oro' as const, precio: 4.99, color: '#E0BE63', regaloRango: 'A', ventajas: ['tier.vOro1', 'tier.vOro2', 'tier.vOro3'] as const },
+  { id: 'Platino' as const, precio: 7.99, color: '#67E8F9', regaloRango: 'A+', ventajas: ['tier.vPlat1', 'tier.vPlat2', 'tier.vPlat3'] as const },
+  { id: 'Diamante' as const, precio: 9.99, color: '#A78BFA', regaloRango: 'S', ventajas: ['tier.vDia1', 'tier.vDia2', 'tier.vDia3'] as const },
 ]
 const ORDEN: Record<string, number> = { Oro: 1, Platino: 2, Diamante: 3 }
 
@@ -37,12 +38,19 @@ export function TierSheet({ requerido, onClose }: { requerido?: string; onClose:
         {ok ? (
           <div className="py-8 flex flex-col items-center text-center gap-3">
             <div className="h-14 w-14 rounded-full bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 flex items-center justify-center animate-pop"><Check size={26} className="text-[#B6FF3A]" /></div>
-            <p className="text-lg font-bold text-white text-display">Tourneum {ok} activado</p>
-            <p className="text-sm text-[#B8B8CC] max-w-xs">Insignia puesta y torneos tier desbloqueados. Cancela cuando quieras.</p>
+            <p className="text-lg font-bold text-white text-display">{conParams(tr('ntf.tierT'), { tier: ok })}</p>
+            <p className="text-sm text-[#B8B8CC] max-w-xs">{tr('tier.okSub')}</p>
           </div>
         ) : (
           <>
-            <p className="text-lg font-bold text-white text-display flex items-center gap-2"><Crown size={18} className="text-[#E0BE63]" /> {tr('tier.titulo')}</p>
+            {/* Botón Atrás (sección 6.7): devuelve al perfil sin elegir tier */}
+            <div className="flex items-center gap-2.5">
+              <button onClick={onClose} aria-label={tr('comun.atras')}
+                className="h-9 w-9 -ml-1 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center text-[#B8B8CC] hover:text-white transition-colors shrink-0">
+                <ArrowLeft size={17} />
+              </button>
+              <p className="text-lg font-bold text-white text-display flex items-center gap-2"><Crown size={18} className="text-[#E0BE63]" /> {tr('tier.titulo')}</p>
+            </div>
             <p className="mt-1 text-[13px] text-[#B8B8CC]">
               {requerido ? <>{tr('tier.pide')} <strong className="text-white">tier {requerido}</strong>. </> : null}
               {tr('tier.intro')}
@@ -56,11 +64,11 @@ export function TierSheet({ requerido, onClose }: { requerido?: string; onClose:
                     style={{ borderColor: destacado || activo ? `${t.color}66` : 'rgba(255,255,255,0.08)' }}>
                     <div className="flex items-center gap-2">
                       <span className="font-black text-display text-[15px]" style={{ color: t.color }}>{t.id}</span>
-                      {activo && <span className="text-[10px] font-bold text-[#B6FF3A] inline-flex items-center gap-1"><Check size={11} /> Activo</span>}
-                      <span className="ml-auto text-white font-bold font-mono-num">{t.precio.toFixed(2).replace('.', ',')}€<span className="text-[11px] text-[#8B8BA8] font-semibold">/mes</span></span>
+                      {activo && <span className="text-[10px] font-bold text-[#B6FF3A] inline-flex items-center gap-1"><Check size={11} /> {tr('tier.activo')}</span>}
+                      <span className="ml-auto text-white font-bold font-mono-num">{t.precio.toFixed(2).replace('.', ',')}€<span className="text-[11px] text-[#8B8BA8] font-semibold">{tr('tier.mes')}</span></span>
                     </div>
                     <ul className="mt-2 space-y-1">
-                      {t.ventajas.map(v => <li key={v} className="text-[12px] text-[#B8B8CC] flex items-center gap-1.5"><span className="w-1 h-1 rounded-full" style={{ background: t.color }} /> {v}</li>)}
+                      {t.ventajas.map(v => <li key={v} className="text-[12px] text-[#B8B8CC] flex items-center gap-1.5"><span className="w-1 h-1 rounded-full" style={{ background: t.color }} /> {tr(v)}</li>)}
                     </ul>
                     <div className="mt-2.5 flex items-center gap-2">
                       <button onClick={() => elegir(t.id)} disabled={activo}
@@ -74,7 +82,7 @@ export function TierSheet({ requerido, onClose }: { requerido?: string; onClose:
                 )
               })}
             </div>
-            <p className="mt-3 text-center text-[10px] text-[#6E6E85]">Modo demo · sin cobro real. Renovación mensual, cancelación en un clic.</p>
+            <p className="mt-3 text-center text-[10px] text-[#6E6E85]">{tr('tier.demoNota')}</p>
           </>
         )}
       </div>

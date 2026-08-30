@@ -1,4 +1,5 @@
 import { JUEGOS, type TorneoSample } from '@/lib/torneos/sample'
+import { GameIcon } from '@/components/todh/GameIcon'
 
 // Keyart de juego generado por CSS (sin assets externos): gradiente del color del
 // juego + grano + brillo diagonal. Da identidad visual fuerte a cards/fichas/perfil.
@@ -24,9 +25,12 @@ export function GameKeyart({ juegoId, className = '', label = true }: { juegoId:
       <div className="absolute inset-0" style={{ background: 'linear-gradient(120deg, transparent 42%, rgba(255,255,255,.07) 50%, transparent 58%)' }} />
       {label && j.corto && (
         <span
-          className="absolute bottom-1.5 left-2 right-1 font-black text-display leading-none tracking-tight text-white"
+          className="absolute bottom-1.5 left-2 right-1 inline-flex items-center gap-1 font-black text-display leading-none tracking-tight text-white"
           style={{ fontSize: 12, textShadow: '0 2px 10px rgba(0,0,0,.55)' }}
         >
+          {/* Icono en blanco: sobre el keyart del propio color del juego, el
+              glifo tintado se fundiría con el fondo */}
+          <GameIcon juegoId={juegoId} size={12} color="#FFFFFF" />
           {j.corto.toUpperCase()}
         </span>
       )}

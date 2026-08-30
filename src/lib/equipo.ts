@@ -42,7 +42,7 @@ export function pareceEmail(s: string): boolean {
 
 /** Contraseña por defecto legible para entregar al trabajador. */
 export function passwordPorDefecto(): string {
-  const palabras = ['Tourneum', 'Noche', 'Madrid', 'Fiesta', 'Vibe', 'Neon', 'Luna', 'Sala']
+  const palabras = ['Torneum', 'Noche', 'Madrid', 'Fiesta', 'Vibe', 'Neon', 'Luna', 'Sala']
   const p = palabras[Math.floor(Math.random() * palabras.length)]
   const n = Math.floor(1000 + Math.random() * 9000)
   return `${p}${n}!`

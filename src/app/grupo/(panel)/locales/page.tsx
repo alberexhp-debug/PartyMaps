@@ -45,7 +45,7 @@ export default function GrupoLocalesPage() {
         <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl skeleton" />)}</div>
       ) : locales.length === 0 ? (
         <EmptyState icon={Store} acento="blue" titulo="Sin locales en el grupo"
-          descripcion="Cuando el equipo de Tourneum asocie locales a tu grupo, aparecerán aquí." />
+          descripcion="Cuando el equipo de Torneum asocie locales a tu grupo, aparecerán aquí." />
       ) : (
         <div className="space-y-2">
           {locales.map(l => (

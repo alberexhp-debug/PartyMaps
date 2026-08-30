@@ -1,15 +1,28 @@
 import type { Metadata, Viewport } from 'next'
+import { Noto_Sans_JP } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 
+// Tipografía japonesa (i18n F9): variable font autoalojada por next/font.
+// Va SIEMPRE al final de las pilas (globals.css): Inter/Sora/Oswald no tienen
+// glifos CJK, así que el latín no cambia y el japonés cae aquí (pesos 100-900,
+// bold de headers incluido). preload:false — los glifos JP se sirven por
+// unicode-range y solo se descargan cuando el idioma es ja.
+const notoJP = Noto_Sans_JP({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-noto-jp',
+  preload: false,
+})
+
 export const metadata: Metadata = {
-  title: 'Tourneum — Torneos presenciales de juegos',
+  title: 'Torneum — Torneos presenciales de juegos',
   description: 'Organiza y descubre torneos presenciales de videojuegos y cartas. Brackets en vivo, inscripción, ranking y comunidad.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Tourneum',
+    title: 'Torneum',
   },
   icons: {
     icon: '/icons/icon-192.png',
@@ -27,7 +40,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" className={notoJP.variable}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />

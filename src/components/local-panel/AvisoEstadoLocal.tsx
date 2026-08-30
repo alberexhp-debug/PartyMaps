@@ -39,7 +39,7 @@ export function AvisoEstadoLocal() {
         <Clock size={17} className="mt-0.5 shrink-0 text-[#F39C12]" />
         <p className="text-xs leading-relaxed text-[#E7CB86] sm:text-sm">
           <span className="font-semibold text-white">Tu local está en revisión.</span>{' '}
-          Aún no es visible en el mapa. El equipo de Tourneum lo revisa y lo activa en 24-48&nbsp;h; te avisaremos al aprobarlo. Mientras tanto, puedes ir dejando tu perfil a punto.
+          Aún no es visible en el mapa. El equipo de Torneum lo revisa y lo activa en 24-48&nbsp;h; te avisaremos al aprobarlo. Mientras tanto, puedes ir dejando tu perfil a punto.
         </p>
       </div>
     )

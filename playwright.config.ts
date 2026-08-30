@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test'
 
 const PORT = Number(process.env.PORT || 3000)
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${PORT}`
+// CHROMIUM_EXE: ruta a un Chromium ya instalado (portátil sin descargas de
+// Playwright). Sin la variable se usan los navegadores propios de Playwright.
+const launchLocal = process.env.CHROMIUM_EXE ? { launchOptions: { executablePath: process.env.CHROMIUM_EXE } } : {}
 
 export default defineConfig({
   testDir: './e2e',
@@ -23,7 +26,11 @@ export default defineConfig({
   projects: [
     {
       name: 'mobile',
-      use: { ...devices['Pixel 5'] },
+      use: { ...devices['Pixel 5'], ...launchLocal },
+    },
+    {
+      name: 'desktop',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, ...launchLocal },
     },
   ],
 
