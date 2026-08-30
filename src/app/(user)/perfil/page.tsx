@@ -137,10 +137,11 @@ export default function PerfilPage() {
               <div aria-hidden className="absolute inset-x-0 top-0 h-24 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 20%, #12161F 100%)' }} />
             </>
           )}
-          {/* Editar perfil (paquete Chat): foto propia, banner y bio */}
-          <button onClick={() => setEditarPerfil(true)}
-            className="absolute top-3.5 right-3.5 z-10 inline-flex items-center gap-1.5 h-8 px-3 rounded-xl glass-strong border border-white/12 text-[12px] font-bold text-[#B8B8CC] hover:text-white transition-colors">
-            <Edit3 size={12} /> {tr('pfl.editarPerfil')}
+          {/* Editar perfil (paquete Chat): foto propia, banner y bio. En móvil
+              es solo el lápiz (compacto): el botón con texto tapaba el #tag. */}
+          <button onClick={() => setEditarPerfil(true)} aria-label={tr('pfl.editarPerfil')} title={tr('pfl.editarPerfil')}
+            className="absolute top-3.5 right-3.5 z-10 inline-flex items-center justify-center h-8 w-8 sm:w-auto sm:gap-1.5 sm:px-3 rounded-xl glass-strong border border-white/12 text-[12px] font-bold text-[#B8B8CC] hover:text-white transition-colors">
+            <Edit3 size={12} /> <span className="hidden sm:inline">{tr('pfl.editarPerfil')}</span>
           </button>
           <div className="relative flex items-center gap-4">
             <div className="relative">
@@ -174,7 +175,7 @@ export default function PerfilPage() {
                 </div>
               )}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pr-10 sm:pr-0">
               {editandoNombre ? (
                 <div className="space-y-2">
                   <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} autoFocus
