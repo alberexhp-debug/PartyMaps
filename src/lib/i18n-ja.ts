@@ -1705,4 +1705,27 @@ export const JA: Record<string, string> = {
   'msd.notaPanel': '会場はパネルでリクエストを受け取り、承諾か逆提案で返信します。タイトル：',
   'em.entrada': '入口',
   'em.plazas': '{n}席',
+  // ── i18n ronda 2 (30-08) · barrido mapa de torneos ──
+  'mt.titulo': '大会マップ',
+  'mt.tituloTO': 'マップ · 大会と会場',
+  'mt.en': '件 ·',
+  'mt.locales': '会場',
+  'mt.sedesLibres': '空き会場',
+  'mt.todos': 'すべて',
+  'mt.fechaPorAnunciar': '日程未定',
+  'mt.verStartgg': 'start.ggで見る',
+  'mt.verSede': '会場を見る',
+  'mt.desde': '最低',
+  'mt.sinTorneosSede': '公開中の大会なし — 開催に使える会場です。',
+  // ── i18n ronda 2 (30-08) · barrido ficha de local ──
+  'loc.noEncontrado': '会場が見つかりません',
+  'loc.verMapa': 'マップを見る',
+  'loc.calendarioPide': 'カレンダー · 日付をリクエスト',
+  'loc.organizadoresVen': '主催者はこのカレンダーで料金を確認し、日付を予約します。',
+  // ── i18n ronda 2 (30-08) · barrido ReportSheet ──
+  'rep.enviadoSub': '主催者に「{tipo}の見直し」通知として届き、トーナメント表の調整や返信ができます。',
+  'rep.otros': 'その他…',
+  'rep.otroPh': '理由を教えてください',
+  'rep.mensajePh': '主催者へのメッセージ（任意）…',
+  'rep.pie': '主催者はトーナメント表を調整するか、返信のうえ現状維持にできます。',
 }

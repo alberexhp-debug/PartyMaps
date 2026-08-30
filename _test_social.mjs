@@ -60,7 +60,10 @@ async function login(page, email) {
   await page.goto(`${BASE}/live/t4`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
   await page.locator('text=/\\d+%/').first().click(); await page.waitForTimeout(600)
   ok(await page.getByText('Últimos torneos').count() > 0, 'el perfil del rival lista sus torneos')
-  await page.getByRole('link', { name: /TFT Iberian Cup/ }).first().click(); await page.waitForTimeout(1500)
+  // Esperar al enlace concreto (el MiniPerfil anima al montarse): clic robusto
+  const linkRes = page.locator('a[href="/torneo/t4/resultados"]').first()
+  await linkRes.waitFor({ state: 'visible' }); await page.waitForTimeout(300)
+  await linkRes.click(); await page.waitForTimeout(1500)
   ok(page.url().includes('/resultados'), `el torneo del historial abre sus RESULTADOS (${page.url()})`)
   ok(await page.getByText(/Campeón/i).count() > 0, 'con los ganadores del torneo')
   ok(await page.getByText('Formato', { exact: true }).count() > 0, 'y los detalles del torneo (juego/fecha/sede/formato)')

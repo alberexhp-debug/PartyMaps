@@ -151,6 +151,9 @@ async function logout(page) {
   ok(await page.getByText('Aún no tienes torneos').count() > 0, '/gestionar vacío')
   await page.goto(`${BASE}/crear-torneo`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
   await page.getByPlaceholder(/Lima Smash Weekly/).fill('Open de David #1')
+  // Sin local vinculado: David elige sede antes de publicar
+  await page.getByRole('button', { name: /elegir sede/i }).first().click(); await page.waitForTimeout(600)
+  await page.getByRole('button', { name: /Arcade Planet/ }).last().click(); await page.waitForTimeout(500)
   await page.getByRole('button', { name: /Publicar torneo/ }).first().click(); await page.waitForTimeout(1200)
   await page.goto(`${BASE}/gestionar`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
   ok(await page.getByText('Open de David #1').count() > 0, 'su torneo publicado aparece en /gestionar')

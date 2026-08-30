@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { Flag, Check } from 'lucide-react'
-import { useT } from '@/lib/i18n'
+import { useT, conParams } from '@/lib/i18n'
 
 // Botón rojo de Report (reunión 5-jul): el jugador reporta bracket o seeding
 // con motivos predefinidos; le llega al TO como "Revisar seeding" accionable.
@@ -60,7 +60,7 @@ function ReportSheet({ torneoId, torneoNombre, onClose }: { torneoId: string; to
           <div className="py-8 flex flex-col items-center text-center gap-3">
             <div className="h-14 w-14 rounded-full bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 flex items-center justify-center animate-pop"><Check size={26} className="text-[#B6FF3A]" /></div>
             <p className="text-lg font-bold text-white text-display">{tr('rep.enviado')}</p>
-            <p className="text-sm text-[#B8B8CC] max-w-xs">El organizador lo verá como aviso «Revisar {tipo}» y podrá ajustar el cuadro o responderte.</p>
+            <p className="text-sm text-[#B8B8CC] max-w-xs">{conParams(tr('rep.enviadoSub'), { tipo })}</p>
           </div>
         ) : (
           <>
@@ -77,17 +77,17 @@ function ReportSheet({ torneoId, torneoNombre, onClose }: { torneoId: string; to
                   className={`w-full text-left px-3.5 py-2.5 rounded-xl border text-[13px] font-semibold transition-all ${motivo === m ? 'bg-[#FF6076]/12 border-[#FF6076]/50 text-white' : 'bg-white/[0.04] border-white/8 text-[#B8B8CC]'}`}>{m}</button>
               ))}
               <button onClick={() => setMotivo('otros')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-xl border text-[13px] font-semibold transition-all ${motivo === 'otros' ? 'bg-[#FF6076]/12 border-[#FF6076]/50 text-white' : 'bg-white/[0.04] border-white/8 text-[#B8B8CC]'}`}>Otros…</button>
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl border text-[13px] font-semibold transition-all ${motivo === 'otros' ? 'bg-[#FF6076]/12 border-[#FF6076]/50 text-white' : 'bg-white/[0.04] border-white/8 text-[#B8B8CC]'}`}>{tr('rep.otros')}</button>
               {motivo === 'otros' && (
-                <input value={otro} onChange={e => setOtro(e.target.value)} placeholder="Cuéntanos el motivo"
+                <input value={otro} onChange={e => setOtro(e.target.value)} placeholder={tr('rep.otroPh')}
                   className="w-full h-11 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#FF6076]/60 outline-none" />
               )}
             </div>
-            <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} placeholder="Detalla el mensaje para el organizador (opcional)…" rows={2}
+            <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} placeholder={tr('rep.mensajePh')} rows={2}
               className="mt-2 w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#FF6076]/60 outline-none resize-none" />
             <button onClick={enviar} disabled={!motivo}
               className="mt-3 w-full h-12 rounded-xl bg-[#FF6076] text-white font-bold disabled:opacity-40">{tr('rep.enviar')}</button>
-            <p className="mt-2 text-center text-[10px] text-[#6E6E85]">El organizador puede ajustar el cuadro o mantenerlo respondiéndote.</p>
+            <p className="mt-2 text-center text-[10px] text-[#6E6E85]">{tr('rep.pie')}</p>
           </>
         )}
       </div>

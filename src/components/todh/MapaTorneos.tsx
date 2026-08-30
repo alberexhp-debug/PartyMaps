@@ -218,10 +218,10 @@ export default function MapaTorneos() {
       <div className="absolute top-0 left-0 right-0 z-10 px-4 pt-5 safe-top pointer-events-none">
         <div className="flex items-center justify-between pointer-events-auto">
           <div className="glass-strong rounded-2xl px-3.5 py-2">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-[#B6FF3A] font-bold">{esTO ? 'Mapa · torneos y sedes' : 'Mapa de torneos'}</p>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#B6FF3A] font-bold">{esTO ? tr('mt.tituloTO') : tr('mt.titulo')}</p>
             <p className="text-sm font-bold text-white">
-              <span className="font-mono-num">{nTorneos}</span> en <span className="font-mono-num">{porLocal.size}</span> locales
-              {esTO && <span className="text-[#8B8BA8] font-semibold"> · <span className="font-mono-num">{Object.keys(LOCALES).length - porLocal.size}</span> sedes libres</span>}
+              <span className="font-mono-num">{nTorneos}</span> {tr('mt.en')} <span className="font-mono-num">{porLocal.size}</span> {tr('mt.locales')}
+              {esTO && <span className="text-[#8B8BA8] font-semibold"> · <span className="font-mono-num">{Object.keys(LOCALES).length - porLocal.size}</span> {tr('mt.sedesLibres')}</span>}
             </p>
           </div>
           {realesVisibles.length > 0 && (
@@ -234,7 +234,7 @@ export default function MapaTorneos() {
         {/* Chips de juego */}
         <div className="mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pointer-events-auto pb-1">
           <button onClick={() => setJuego(null)}
-            className={`shrink-0 px-3 h-8 rounded-full text-xs font-bold transition-all ${!juego ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'glass-strong text-[#B8B8CC]'}`}>Todos</button>
+            className={`shrink-0 px-3 h-8 rounded-full text-xs font-bold transition-all ${!juego ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'glass-strong text-[#B8B8CC]'}`}>{tr('mt.todos')}</button>
           {Object.values(JUEGOS).filter(j => !ocultos.includes(j.id)).map(j => {
             const on = juego === j.id
             return (
@@ -258,7 +258,7 @@ export default function MapaTorneos() {
 // Hoja de un torneo REAL de start.gg: info esencial + enlace fuera. Es la
 // comunidad a captar — todavía no usa Torneum y se dice tal cual.
 function RealSheet({ t, onClose }: { t: TorneoReal; onClose: () => void }) {
-  const { t: tr } = useT()
+  const { t: tr, idioma } = useT()
   const j = JUEGOS[t.juego]
   return (
     <div className="absolute bottom-4 left-3 right-3 z-20 animate-slide-up-sm lg:max-w-md">
@@ -271,12 +271,12 @@ function RealSheet({ t, onClose }: { t: TorneoReal; onClose: () => void }) {
           </div>
           <p className="text-[15px] font-bold text-white leading-snug">{t.nombre}</p>
           <p className="mt-1 text-[12px] text-[#8B8BA8]">
-            {t.fecha ? new Date(t.fecha).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Fecha por anunciar'}
+            {t.fecha ? new Date(t.fecha).toLocaleDateString(idioma === 'ja' ? 'ja-JP' : idioma === 'en' ? 'en-GB' : 'es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) : tr('mt.fechaPorAnunciar')}
             {' · '}{t.ciudad || tr('ranking.espana')}{t.sede ? ` · ${t.sede}` : ''} · <span className="font-mono-num text-[#B8B8CC]">{t.asistentes}</span> {tr('sgg.apuntados')}
           </p>
           <a href={t.url} target="_blank" rel="noopener noreferrer"
             className="mt-3 w-full h-11 rounded-xl bg-[#6E9BFF] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-1.5">
-            Ver en start.gg ↗
+            {tr('mt.verStartgg')} ↗
           </a>
           <p className="mt-2 text-[10px] text-[#8B8BA8] text-center">{tr('mt.noUsaTorneum')}</p>
         </div>
@@ -286,6 +286,7 @@ function RealSheet({ t, onClose }: { t: TorneoReal; onClose: () => void }) {
 }
 
 function LocalSheet({ local, torneos, esTO, onClose }: { local: Local; torneos: TorneoSample[]; esTO: boolean; onClose: () => void }) {
+  const { t: tr } = useT()
   const [verSede, setVerSede] = useState(false)
   return (
     <div className="absolute bottom-4 left-3 right-3 z-20 animate-slide-up-sm lg:max-w-md">
@@ -299,23 +300,23 @@ function LocalSheet({ local, torneos, esTO, onClose }: { local: Local; torneos: 
             <p className="text-[15px] font-bold text-white truncate">{local.nombre}</p>
             <p className="text-[11px] text-[#8B8BA8]">{local.zona} · {local.setups} setups · <span className="inline-flex items-center gap-0.5 text-[#E0BE63]"><Star size={9} className="fill-[#E0BE63]" /> {local.rating}</span></p>
           </div>
-          <span className="text-[11px] font-bold text-[#B6FF3A] shrink-0 mr-6">Ver sede ›</span>
+          <span className="text-[11px] font-bold text-[#B6FF3A] shrink-0 mr-6">{tr('mt.verSede')} ›</span>
         </button>
 
         {/* Condiciones para organizar: SOLO las ve el TO (el jugador, jamás) */}
         {esTO && (
           <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl bg-[#B6FF3A]/8 border border-[#B6FF3A]/25 px-3 py-2">
             <p className="flex-1 text-[11px] font-semibold text-[#D4D4E4]">
-              Desde <span className="text-[#B6FF3A] font-bold font-mono-num">{local.precioNoche}€</span>/noche · aforo <span className="font-mono-num">{local.aforo}</span> · <span className="font-mono-num">{local.m2}</span> m²
+              {tr('mt.desde')} <span className="text-[#B6FF3A] font-bold font-mono-num">{local.precioNoche}€</span>/{tr('ml.noche')} · {tr('msd.aforo')} <span className="font-mono-num">{local.aforo}</span> · <span className="font-mono-num">{local.m2}</span> m²
             </p>
-            <Link href={`/local/${local.id}`} className="shrink-0 h-7 px-2.5 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[11px] font-bold flex items-center">Pedir fecha</Link>
+            <Link href={`/local/${local.id}`} className="shrink-0 h-7 px-2.5 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[11px] font-bold flex items-center">{tr('msd.pedirFecha')}</Link>
           </div>
         )}
 
         {/* Torneos del local */}
         <div className="border-t border-white/6 max-h-56 overflow-y-auto">
           {torneos.length === 0 && (
-            <p className="px-4 py-3 text-[12px] text-[#8B8BA8]">Sin torneos publicados — sede disponible para organizar.</p>
+            <p className="px-4 py-3 text-[12px] text-[#8B8BA8]">{tr('mt.sinTorneosSede')}</p>
           )}
           {torneos.map(t => {
             const j = JUEGOS[t.juego]

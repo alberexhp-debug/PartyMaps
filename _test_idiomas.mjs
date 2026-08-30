@@ -113,6 +113,40 @@ await login(page, 'jugador@torneum.com')
   ok(await page.getByText('Lima Smash Weekly #42').count() > 0, 'y el título del torneo sigue ahí')
 }
 
+// ── 5. Ronda 2: /para-locales trilingüe con su propio selector (metadata ES intacta)
+{
+  console.log('— /para-locales (ronda 2)')
+  await page.goto(`${BASE}/para-locales`, { waitUntil: 'networkidle' }); await page.waitForTimeout(900)
+  ok((await page.title()).includes('Torneum para locales'), 'la metadata del server sigue en ES («Torneum para locales…»)')
+  ok(await page.locator('h1', { hasText: 'Llena tu sala con torneos.' }).count() > 0, 'arranca en ES («Llena tu sala con torneos.»)')
+  await page.getByRole('button', { name: 'EN', exact: true }).click(); await page.waitForTimeout(600)
+  ok(await page.locator('h1', { hasText: 'Fill your venue with tournaments.' }).count() > 0, 'en EN el hero es «Fill your venue with tournaments.»')
+  ok(await page.getByText('Frequently asked questions').count() > 0, 'las FAQ pasan a «Frequently asked questions»')
+  ok(await page.getByText('Preguntas frecuentes').count() === 0, 'sin «Preguntas frecuentes» en español')
+  await page.getByRole('button', { name: '日本語', exact: true }).click(); await page.waitForTimeout(600)
+  await page.screenshot({ path: `${OUT}/5-para-locales-ja.png`, fullPage: false })
+  ok(await page.locator('h1', { hasText: 'あなたの会場を大会で満席に。' }).count() > 0, 'en 日本語 el hero es japonés')
+  ok(await page.getByText('よくある質問').count() > 0, 'y las FAQ son «よくある質問»')
+  ok((await page.title()).includes('Torneum para locales'), 'la metadata no cambia con el idioma del cliente')
+  await page.getByRole('button', { name: 'ES', exact: true }).click(); await page.waitForTimeout(400)
+}
+
+// ── 6. Ronda 2: calendario de reserva de un local en EN, sin meses/días ES
+{
+  console.log('— calendario de reserva en EN (ronda 2)')
+  await login(page, 'to@torneum.com')
+  await cambiarIdioma(page, 'en')
+  await page.goto(`${BASE}/local/gamba`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1400)
+  await page.screenshot({ path: `${OUT}/6-local-calendario-en.png`, fullPage: false })
+  const cuerpo = await page.locator('body').innerText()
+  const MES_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][new Date().getMonth()]
+  ok(cuerpo.includes(MES_EN), `el calendario enseña el mes en inglés («${MES_EN}»)`)
+  ok(!/Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre/.test(cuerpo), 'sin nombres de mes en español')
+  ok(!/\bLun\b|\bMié\b/.test(cuerpo), 'sin cabeceras «Lun/Mié» españolas')
+  ok(await page.getByText('Calendar · request your date').count() > 0, 'el eyebrow del calendario está en EN')
+  await cambiarIdioma(page, 'es')
+}
+
 await ctx.close()
 await browser.close()
 console.log(fallos === 0 ? `\n✅ Idiomas: todo OK (capturas en ${OUT})` : `\n❌ ${fallos} fallos (capturas en ${OUT})`)

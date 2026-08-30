@@ -1714,6 +1714,29 @@ const D = {
   'msd.notaPanel': ['La sede recibe tu petición en su panel y te responde con confirmación o contraoferta. Con el juego:', 'The venue receives your request in its panel and replies with a confirmation or counter-offer. Game:'],
   'em.entrada': ['Entrada', 'Entrance'],
   'em.plazas': ['{n} pl.', '{n} seats'],
+  // ── i18n ronda 2 (30-08) · barrido mapa de torneos (MapaTorneos) ──
+  'mt.titulo': ['Mapa de torneos', 'Tournament map'],
+  'mt.tituloTO': ['Mapa · torneos y sedes', 'Map · events & venues'],
+  'mt.en': ['en', 'across'],
+  'mt.locales': ['locales', 'venues'],
+  'mt.sedesLibres': ['sedes libres', 'open venues'],
+  'mt.todos': ['Todos', 'All'],
+  'mt.fechaPorAnunciar': ['Fecha por anunciar', 'Date TBA'],
+  'mt.verStartgg': ['Ver en start.gg', 'View on start.gg'],
+  'mt.verSede': ['Ver sede', 'View venue'],
+  'mt.desde': ['Desde', 'From'],
+  'mt.sinTorneosSede': ['Sin torneos publicados — sede disponible para organizar.', 'No events published — venue open for organizing.'],
+  // ── i18n ronda 2 (30-08) · barrido ficha de local (/local/[id]) ──
+  'loc.noEncontrado': ['Local no encontrado', 'Venue not found'],
+  'loc.verMapa': ['Ver el mapa', 'See the map'],
+  'loc.calendarioPide': ['Calendario · pide tu fecha', 'Calendar · request your date'],
+  'loc.organizadoresVen': ['Los organizadores ven tarifas y reservan fechas en este calendario.', 'Organizers see rates and book dates on this calendar.'],
+  // ── i18n ronda 2 (30-08) · barrido ReportSheet (los MOTIVOS se persisten en ES como dato) ──
+  'rep.enviadoSub': ['El organizador lo verá como aviso «Revisar {tipo}» y podrá ajustar el cuadro o responderte.', 'The organizer will see it as a "Review {tipo}" notice and can adjust the bracket or reply to you.'],
+  'rep.otros': ['Otros…', 'Other…'],
+  'rep.otroPh': ['Cuéntanos el motivo', 'Tell us the reason'],
+  'rep.mensajePh': ['Detalla el mensaje para el organizador (opcional)…', 'Add details for the organizer (optional)…'],
+  'rep.pie': ['El organizador puede ajustar el cuadro o mantenerlo respondiéndote.', 'The organizer can adjust the bracket or keep it and reply to you.'],
 } as const
 
 export type ClaveI18n = keyof typeof D

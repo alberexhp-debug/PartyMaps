@@ -37,8 +37,8 @@ export default function LocalPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-6 text-center">
         <Store size={40} className="text-[#8B8BA8]" />
-        <p className="text-lg font-bold text-white">Local no encontrado</p>
-        <Link href="/mapa" className="px-4 h-10 inline-flex items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">Ver el mapa</Link>
+        <p className="text-lg font-bold text-white">{tr('loc.noEncontrado')}</p>
+        <Link href="/mapa" className="px-4 h-10 inline-flex items-center rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-semibold">{tr('loc.verMapa')}</Link>
       </div>
     )
   }
@@ -132,7 +132,7 @@ export default function LocalPage() {
 
             {esTO ? (
               <div>
-                <p className="eyebrow eyebrow-muted mb-2.5">Calendario · pide tu fecha</p>
+                <p className="eyebrow eyebrow-muted mb-2.5">{tr('loc.calendarioPide')}</p>
                 <CalendarioReserva local={local} />
               </div>
             ) : (
@@ -142,7 +142,7 @@ export default function LocalPage() {
                   <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/6 text-[#8B8BA8]"><Megaphone size={17} /></span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white">{tr('ml.hazteTO')}</p>
-                    <p className="text-xs text-[#8B8BA8]">Los organizadores ven tarifas y reservan fechas en este calendario.</p>
+                    <p className="text-xs text-[#8B8BA8]">{tr('loc.organizadoresVen')}</p>
                   </div>
                   <ChevronRight size={15} className="text-[#6B6B85]" />
                 </Link>
