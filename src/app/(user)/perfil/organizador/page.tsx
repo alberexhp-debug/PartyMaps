@@ -55,9 +55,11 @@ function EditorPerfilOrg({ orgId }: { orgId: string }) {
   const org = organizadorEfectivo(orgId)
 
   const guardar = () => {
+    // Ojo: `@${…}` nunca es falsy — el fallback va sobre el handle limpio.
+    const handleLimpio = handle.trim().replace(/^@+/, '')
     editarPerfilOrg(orgId, {
       nombre: nombre.trim() || org.nombre,
-      handle: `@${handle.trim().replace(/^@+/, '')}` || org.handle,
+      handle: handleLimpio ? `@${handleLimpio}` : org.handle,
       ciudad: ciudad.trim() || org.ciudad,
       bio: bio.trim().slice(0, 200),
       color,
