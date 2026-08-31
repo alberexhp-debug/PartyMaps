@@ -367,7 +367,8 @@ function ReporteSheet({ nombres, boN, juegoId, conPersonajes, demoDistinto, setD
   const [ganador, setGanador] = useState<string | null>(null)
   const gana = paraGanar(boN)
   const opciones = Array.from({ length: gana }, (_, l) => [gana, l] as const)
-  const [marcador, setMarcador] = useState<readonly [number, number]>(opciones[0])
+  // Sin marcador preseleccionado (QA L3): reportar 3–0 sin querer es carne de disputa
+  const [marcador, setMarcador] = useState<readonly [number, number] | null>(null)
   const [pers, setPers] = useState<string[]>([])
   const [filtro, setFiltro] = useState('')
   const pool = PERSONAJES[juegoId] ?? []
@@ -402,7 +403,7 @@ function ReporteSheet({ nombres, boN, juegoId, conPersonajes, demoDistinto, setD
         <div className="flex items-center gap-2 flex-wrap">
           {opciones.map(([w, l]) => (
             <button key={`${w}-${l}`} onClick={() => setMarcador([w, l])}
-              className={`px-3.5 h-10 rounded-xl text-[13px] font-bold border text-score transition-all ${marcador[0] === w && marcador[1] === l ? 'bg-[#9B82FF]/15 text-[#B9A6FF] border-[#9B82FF]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>
+              className={`px-3.5 h-10 rounded-xl text-[13px] font-bold border text-score transition-all ${marcador?.[0] === w && marcador?.[1] === l ? 'bg-[#9B82FF]/15 text-[#B9A6FF] border-[#9B82FF]/50' : 'bg-white/4 text-[#B8B8CC] border-white/10'}`}>
               {w}–{l}
             </button>
           ))}
@@ -436,7 +437,7 @@ function ReporteSheet({ nombres, boN, juegoId, conPersonajes, demoDistinto, setD
           </div>
         )}
 
-        <button onClick={() => ganador && onEnviar(ganador, marcador[0], marcador[1], pers)} disabled={!ganador}
+        <button onClick={() => ganador && marcador && onEnviar(ganador, marcador[0], marcador[1], pers)} disabled={!ganador || !marcador}
           className="mt-4 w-full h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold disabled:opacity-40">
           {tr('rr.enviar')}
         </button>

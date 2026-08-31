@@ -191,6 +191,27 @@ await loginBoton('Lucía')
 await page.goto(`${BASE}/live/${idCopa}`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1800)
 ok(await page.getByText(/Ahora: tú vs Marcos/).count() > 0, '(A) Lucía ve el mismo match desde su lado (vs Marcos)')
 
+// ── A2. (QA 01-09) El «directo» público de un torneo con bracket REAL deja la
+// maqueta: nada de Sora/Rei ni chat falso; escenario con jugadores del cuadro,
+// contador real de combates y el chat compartido del torneo.
+console.log('— (A2) directo público: escenario y chat reales, sin maqueta')
+await page.goto(`${BASE}/torneo/${idCopa}/directo`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
+ok(await page.getByText(/\bSora\b/).count() === 0 && await page.getByText(/\bRei\b/).count() === 0, '(A2) ni «Sora» ni «Rei»: la maqueta no se cuela en un torneo real')
+const enEscena = []
+for (const n of ['Lucía', 'Marcos', 'Carmen', 'Álvaro']) if (await page.getByText(n, { exact: true }).count() > 0) enEscena.push(n)
+ok(enEscena.length >= 2 || await page.getByText('Torneo finalizado').count() > 0, `(A2) el escenario enseña jugadores REALES del bracket (${enEscena.join(', ') || 'finalizado'})`)
+ok(await page.getByText(/2 combates/).count() > 0, '(A2) el contador del bracket es el real (2 combates con jugadores)')
+ok(await page.getByText('GGs en cuartos').count() === 0, '(A2) el chat falso de ambiente no aparece')
+await page.getByPlaceholder(/Escribe en el chat/).fill('¡Vamos Copa Buzón, directo real!')
+await page.locator('button[aria-label="Enviar"]').click(); await page.waitForTimeout(700)
+ok(await page.getByText('¡Vamos Copa Buzón, directo real!').count() > 0, '(A2) su mensaje entra en el chat REAL del torneo')
+await page.screenshot({ path: `${OUT}/3-directo-real.png` })
+// Y es la MISMA sala que el chat del torneo: Marcos lo lee desde su cuenta
+await logout()
+await loginBoton('Marcos')
+await page.goto(`${BASE}/torneo/${idCopa}/directo`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
+ok(await page.getByText('¡Vamos Copa Buzón, directo real!').count() > 0, '(A2) Marcos lee el mensaje en el mismo chat (mundo común)')
+
 await ctx.close()
 await browser.close()
 console.log(fallos === 0 ? '\nTODO OK' : `\n${fallos} FALLOS`)

@@ -109,7 +109,8 @@ export default function CrearTorneoPage() {
       ciudad: sala === 'online' ? 'Online' : sede!.ciudad, distanciaKm: sala === 'online' ? 0 : (DIST_KM[sede!.id] ?? 2),
       inscritos: 0, plazas, precio, bote: precio > 0 ? Math.round(plazas * precio * 0.8) : 0,
       enDirecto: false, vip: vipMap[acceso], organizadorId: orgId, popularidad: 50,
-      plazasVer, verCerrado: false, privado: privado || undefined,
+      // Online sin entrada de espectador (la ficha nunca la vende): cupo 0
+      plazasVer: sala === 'online' ? 0 : plazasVer, verCerrado: false, privado: privado || undefined,
       bestOf: plantilla.bestOf, descripcion: `Torneo de ${j.nombre}. Formato: ${formato.trim() || 'por anunciar'}. Cierre de inscripciones: ${cierre.toLowerCase()}.`,
       reglas: reglas.trim() || undefined,
       comentarios: comentarios.trim() || undefined,
@@ -315,11 +316,14 @@ export default function CrearTorneoPage() {
               </div>
             </Field>
           </div>
+          {sala !== 'online' && (
+
           <Field label={tr('espv.plazas')}>
             <div className="flex items-center gap-2">
               <Stepper value={plazasVer} onDec={() => setPlazasVer(v => Math.max(0, v - 8))} onInc={() => setPlazasVer(v => v + 8)} icon={<Eye size={14} />} suffix={plazasVer === 0 ? tr('espv.sinEntrada') : undefined} gratis={plazasVer === 0} />
             </div>
           </Field>
+              )}
           {/* Privado: se publica con candado y solo inscriben los invitados */}
           <button onClick={() => setPrivado(v => !v)} aria-pressed={privado}
             className={`w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${privado ? 'border-[#E0BE63]/50 bg-[#E0BE63]/[0.08]' : 'border-white/10 bg-white/[0.03]'}`}>

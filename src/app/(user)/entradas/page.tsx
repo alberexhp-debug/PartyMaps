@@ -6,6 +6,7 @@ import { TORNEOS_SAMPLE, getTorneo, esperaDe, type TorneoSample } from '@/lib/to
 import { conEdiciones } from '@/lib/torneos/efectivos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameBadge } from '@/components/todh/GameIcon'
 import { TicketModal } from '@/components/todh/TicketModal'
@@ -21,7 +22,7 @@ const HISTORIAL: Insc[] = [
 ]
 
 export default function EntradasPage() {
-  const { t: tr } = useT()
+  const { t: tr, idioma } = useT()
   const [tab, setTab] = useState<'proximos' | 'historial'>('proximos')
   const [ticket, setTicket] = useState<{ t: TorneoSample; espectador?: boolean } | null>(null)
   const inscritos = useDemoStore(s => s.inscritos)
@@ -114,7 +115,7 @@ export default function EntradasPage() {
                   <GameKeyart juegoId={t.juego} label={false} className="w-10 h-10 rounded-xl shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-bold text-white truncate">{t.nombre}</p>
-                    <p className="text-[11px] text-[#8B8BA8]">{t.fechaLabel} · <span className="text-[#FF8A5C] font-bold">{tr('espera.puesto')} {puesto}</span></p>
+                    <p className="text-[11px] text-[#8B8BA8]">{fechaLabelTr(t.fechaLabel, idioma)} · <span className="text-[#FF8A5C] font-bold">{tr('espera.puesto')} {puesto}</span></p>
                   </div>
                 </Link>
                 <button onClick={() => salirEspera(t.id)}
@@ -135,7 +136,7 @@ export default function EntradasPage() {
 }
 
 function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
-  const { t: tr } = useT()
+  const { t: tr, idioma } = useT()
   const { t, estado, puesto, espectador, cancelado } = insc
   return (
     <div className={`ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch ${cancelado ? 'opacity-75' : ''}`}>
@@ -152,7 +153,7 @@ function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
           </div>
           <p className="font-bold text-white text-display tracking-tight leading-snug truncate">{t.nombre}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-[#A0A0B8]">
-            <span className="inline-flex items-center gap-1"><Calendar size={12} className="text-[#B6FF3A]" /> {t.fechaLabel}</span>
+            <span className="inline-flex items-center gap-1"><Calendar size={12} className="text-[#B6FF3A]" /> {fechaLabelTr(t.fechaLabel, idioma)}</span>
             <span className="inline-flex items-center gap-1 min-w-0"><MapPin size={12} className="shrink-0" /> <span className="truncate">{t.local}</span></span>
           </div>
         </div>

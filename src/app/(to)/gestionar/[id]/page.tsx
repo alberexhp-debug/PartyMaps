@@ -106,6 +106,8 @@ export default function GestionarTorneoPage() {
   const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
   const miEmail = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
   const iniciarTorneo = useDemoStore(s => s.iniciarTorneo)
+  const avisarInscritosTorneo = useDemoStore(s => s.avisarInscritosTorneo)
+  const editarTorneoFin = useDemoStore(s => s.editarTorneo)
   const [verCuenta, setVerCuenta] = useState<string | null>(null)
   const jugadoresCuenta = useMemo(() => {
     if (!base) return [] as Jugador[]
@@ -134,6 +136,13 @@ export default function GestionarTorneoPage() {
   const colaCuentas = (esperasCuentasRaw ?? []).map(email => ({ email, nombre: nombreCuentaDemo(email, perfilesCuentas) }))
   // El usuario de la app cuenta como un inscrito más: el TO lo ve en su lista
   const nOcupadas = inscritos.length + entraron.length + (usuarioInscrito ? 1 : 0)
+  // Total REAL de inscritos, el mismo que enseña la ficha pública (QA 01-09:
+  // el panel decía 16/68 y facturación 58×9€ a la vez). En torneos de MUESTRA
+  // la lista gestionable se limita a 16 jugadores sembrados; los KPIs y avisos
+  // usan el número real y la lista lo aclara.
+  const totalReales = esCreado
+    ? nOcupadas
+    : Math.max(nOcupadas, ((override?.inscritos ?? base?.inscritos ?? 0) - bajas.size + entraron.length + (usuarioInscrito ? 1 : 0)))
 
   const bracketSeeds = useMemo(() => {
     if (!base) return [] as Jugador[]
@@ -194,12 +203,14 @@ export default function GestionarTorneoPage() {
   // backend serán push/email a cada inscrito.
   const generar = () => {
     setGestion(id, { seeds: seeded.map(p => p.id), winners: {}, puntos: {}, generado: true })
-    pushNoti({
-      tipo: 'combate', titulo: 'Tu combate está listo',
+    const aviso = {
+      tipo: 'combate' as const, titulo: 'Tu combate está listo',
       cuerpo: `Bracket de «${t!.nombre}» publicado (${seeded.length} jugadores). Consulta tu primer combate.`,
       tituloKey: 'ntf.bracketListoT', cuerpoKey: 'ntf.bracketListoC', params: { torneo: t!.nombre, n: seeded.length },
       href: `/torneo/${t!.id}/bracket`,
-    })
+    }
+    pushNoti(aviso)                       // registro local del TO
+    avisarInscritosTorneo(id, aviso)      // y a CADA inscrito en su cuenta (QA 01-09)
   }
   // Tamaño real del cuadro (seeds congelados; sin generar, las plazas): decide
   // qué profundidades de Bo tienen sentido (top16 solo con ≥16, etc.).
@@ -306,7 +317,7 @@ export default function GestionarTorneoPage() {
         )}
         {/* KPIs */}
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-          <Kpi icon={<Users size={15} className="text-[#9B82FF]" />} value={`${nOcupadas}/${t.plazas}`} label={tr('ges.tabInscritos')} />
+          <Kpi icon={<Users size={15} className="text-[#9B82FF]" />} value={`${totalReales}/${t.plazas}`} label={tr('ges.tabInscritos')} />
           <Kpi icon={<UserCheck size={15} className="text-[#B6FF3A]" />} value={`${nCheck}`} label={tr('ges.conCheckin')} />
           <Kpi icon={<Trophy size={15} className="text-[#E0BE63]" />} value={t.bote ? `${t.bote}€` : '—'} label={tr('ges.bote')} />
           <Kpi icon={<CircleDot size={15} className="text-[#4F8EF7]" />} value={t.formato.split(' ')[0]} label={tr('ges.formato')} />
@@ -314,10 +325,13 @@ export default function GestionarTorneoPage() {
 
         {/* Acciones rápidas */}
         <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-          <button onClick={() => setGestion(id, { cerrado: !cerrado })} disabled={cancelado} className="h-11 rounded-xl bg-white/6 border border-white/10 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors disabled:opacity-40">
+          <button onClick={() => setGestion(id, { cerrado: !cerrado })} disabled={cancelado || (t.enDirecto && cerrado)}
+            title={t.enDirecto && cerrado ? tr('ges.noReabrirLive') : undefined}
+            className="h-11 rounded-xl bg-white/6 border border-white/10 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors disabled:opacity-40">
             <Lock size={15} /> {cerrado ? tr('ges.reabrir') : tr('ges.cerrarInscripcion')}
           </button>
-          <button onClick={() => { generar(); setTab('bracket') }} disabled={nCheck < 2 || cancelado}
+          <button onClick={() => { generar(); setTab('bracket') }} disabled={nCheck < 2 || cancelado || hayResultados}
+            title={hayResultados ? tr('ges.noRegenerar') : undefined}
             className="h-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
             <Zap size={15} /> {tr('ges.generarBracket')}
           </button>
@@ -355,7 +369,7 @@ export default function GestionarTorneoPage() {
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#B6FF3A]/15 text-[#B6FF3A] shrink-0"><ListTree size={20} /></span>
             <div className="flex-1 min-w-44">
               <p className="text-[15px] font-bold text-white">{tr('ges.bracketSinGenerar')}</p>
-              <p className="text-xs text-[#A0A0B8]"><span className="font-mono-num text-white font-bold">{nOcupadas}</span> {tr('ges.inscritosAhora')} · <span className="font-mono-num">{nCheck}</span> {tr('ges.conCheckin').toLowerCase()}</p>
+              <p className="text-xs text-[#A0A0B8]"><span className="font-mono-num text-white font-bold">{totalReales}</span> {tr('ges.inscritosAhora')} · <span className="font-mono-num">{nCheck}</span> {tr('ges.conCheckin').toLowerCase()}{totalReales > nOcupadas && <span className="block mt-0.5 text-[11px] text-[#8B8BA8]">{conParams(tr('ges.listaMuestra'), { n: nOcupadas })}</span>}</p>
             </div>
             <button onClick={() => { generar(); setTab('bracket') }} disabled={nOcupadas < 2 || nCheck < 2}
               className="h-11 px-4 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold disabled:opacity-40 shrink-0">
@@ -396,7 +410,7 @@ export default function GestionarTorneoPage() {
           {(['inscritos', 'bracket', 'ajustes'] as const).map(tb => (
             <button key={tb} onClick={() => setTab(tb)}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all ${tab === tb ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'text-[#A0A0B8] hover:text-white'}`}>
-              {tb === 'inscritos' ? `${tr('ges.tabInscritos')} · ${nOcupadas}` : tb === 'bracket' ? tr('ges.tabBracket') : tr('ges.tabAjustes')}
+              {tb === 'inscritos' ? `${tr('ges.tabInscritos')} · ${totalReales}` : tb === 'bracket' ? tr('ges.tabBracket') : tr('ges.tabAjustes')}
             </button>
           ))}
         </div>
@@ -424,7 +438,7 @@ export default function GestionarTorneoPage() {
             </button>
           )}
             </div>
-            <p className="mt-2.5 text-[11px] text-[#8B8BA8]"><span className="font-mono-num text-[#B6FF3A]">{nCheck}</span> {tr('logros.de')} <span className="font-mono-num">{inscritos.length}</span> {tr('ges.conCheckinSeeding')}</p>
+            <p className="mt-2.5 text-[11px] text-[#8B8BA8]"><span className="font-mono-num text-[#B6FF3A]">{nCheck + entraron.length}</span> {tr('logros.de')} <span className="font-mono-num">{inscritos.length + entraron.length}</span> {tr('ges.conCheckinSeeding')}</p>
 
             {/* Avisar a todos los inscritos (cambio de hora, sala, normas…) */}
             <div className="mt-2.5">
@@ -440,7 +454,7 @@ export default function GestionarTorneoPage() {
                       setAvisoTexto(''); setAvisoOpen(false); setAvisoEnviado(true); setTimeout(() => setAvisoEnviado(false), 2500)
                     }} disabled={!avisoTexto.trim()}
                       className="flex-1 h-10 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold disabled:opacity-40">
-                      {tr('ges.enviarA')} {nOcupadas} {tr('torneo.inscritos')}
+                      {tr('ges.enviarA')} {totalReales} {tr('torneo.inscritos')}
                     </button>
                     <button onClick={() => setAvisoOpen(false)} className="h-10 px-3.5 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-semibold">{tr('adm.cancelar')}</button>
                   </div>
@@ -640,12 +654,17 @@ export default function GestionarTorneoPage() {
               <div>
                 {campeon ? (
                   <Podio rondas={rondas} campeon={campeon} juegoColor={juego.color} nombreTorneo={t.nombre} onPublicar={() => {
-                    pushNoti({
-                      tipo: 'sistema', titulo: 'Resultados publicados',
+                    const aviso = {
+                      tipo: 'sistema' as const, titulo: 'Resultados publicados',
                       cuerpo: `Clasificación final de «${t!.nombre}» disponible. ¡Gracias por competir!`,
                       tituloKey: 'ntf.resultadosT', cuerpoKey: 'ntf.resultadosC', params: { torneo: t!.nombre },
                       href: `/torneo/${t!.id}/resultados`,
-                    })
+                    }
+                    pushNoti(aviso)                       // registro del TO
+                    avisarInscritosTorneo(id, aviso)      // a cada inscrito (QA 01-09)
+                    // Publicar la clasificación TERMINA el torneo: se apaga el
+                    // «EN DIRECTO» en ficha, explorar y salas (QA 01-09).
+                    if (t!.enDirecto) editarTorneoFin(t!.id, { enDirecto: false })
                   }} />
                 ) : editBracket ? (
                   <div className="flex items-center gap-2.5 rounded-2xl border border-[#E0BE63]/50 bg-[#E0BE63]/[0.08] p-3.5 mb-4">
@@ -768,7 +787,9 @@ export default function GestionarTorneoPage() {
                   </div>
                 </div>
               </div>
-              {/* Espectadores (31-08): cupo aparte + abrir/cerrar al instante */}
+              {/* Espectadores (31-08): cupo aparte + abrir/cerrar al instante.
+                  Online sin entrada de espectador — la ficha no la vende (QA 01-09). */}
+              {!t.online && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('espv.plazas')}</label>
@@ -786,6 +807,7 @@ export default function GestionarTorneoPage() {
                   </button>
                 </div>
               </div>
+              )}
               {/* Invitaciones (torneo PRIVADO): el TO mete a la gente a dedo */}
               {t.privado && (
                 <div className="rounded-2xl border border-[#E0BE63]/30 bg-[#E0BE63]/[0.05] p-4">

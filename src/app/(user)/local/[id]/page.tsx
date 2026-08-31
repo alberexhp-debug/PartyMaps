@@ -12,6 +12,7 @@ import { fondoBanner } from '@/components/todh/bannerPresets'
 import { CalendarioReserva } from '@/components/todh/CalendarioReserva'
 import { MapaMesas, PisoTabs, pisosDe, mesasDePiso } from '@/components/todh/MapaMesas'
 import { useT, conParams } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 import { ArrowLeft, Star, Users, Wallet, CalendarClock, ChevronRight, Megaphone, Store } from '@/components/todh/iconosTorneum'
 import { Ruler, Monitor } from 'lucide-react'
 
@@ -124,7 +125,7 @@ export default function LocalPage() {
                       <GameIcon juegoId={t.juego} size={32} variant="tile" className="shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
-                        <p className="text-[11px] text-[#8B8BA8]">{t.fechaLabel} · <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></p>
+                        <p className="text-[11px] text-[#8B8BA8]">{fechaLabelTr(t.fechaLabel, idioma)} · <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></p>
                       </div>
                       {t.enDirecto && <span className="badge-live shrink-0">Live</span>}
                       <ChevronRight size={14} className="text-[#6B6B85] shrink-0" />

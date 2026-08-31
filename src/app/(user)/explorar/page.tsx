@@ -9,6 +9,7 @@ import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { OnboardingJuegos } from '@/components/todh/OnboardingJuegos'
 import { useT, type ClaveI18n } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 import { TorneoArt, GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon, GameChip, GameBadge } from '@/components/todh/GameIcon'
 import { FillBar } from '@/components/ui/CountUp'
@@ -158,7 +159,7 @@ export default function ExplorarPage() {
                       <GameIcon juegoId={t.juego} size={10} /> {jj.corto}
                     </span>
                     <p className="text-[14px] lg:text-[15px] font-bold text-white leading-tight truncate text-display">{t.nombre}</p>
-                    <p className="text-[10.5px] text-white/70 font-mono-num mt-0.5">{t.local} · {t.fechaLabel}</p>
+                    <p className="text-[10.5px] text-white/70 font-mono-num mt-0.5">{t.local} · {fechaLabelTr(t.fechaLabel, idioma)}</p>
                   </div>
                   <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full opacity-80" style={{ background: `linear-gradient(90deg, ${jj.color}, transparent)` }} />
                 </Link>
@@ -362,7 +363,7 @@ function ToggleRow({ label, on, onClick }: { label: string; on: boolean; onClick
 }
 
 function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
-  const { t: tCard } = useT()
+  const { t: tCard, idioma } = useT()
   const juego = JUEGOS[t.juego]
   // Mismo cómputo de plazas que la ficha: bajas del TO, promociones de la
   // cola y las cuentas demo inscritas (mundo compartido; sin contarte a ti).
@@ -396,7 +397,7 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
           <p className="font-bold text-white text-display tracking-tight text-[15px] leading-snug truncate">{t.privado && <Lock size={12} className="inline mr-1 -mt-0.5 text-[#E0BE63]" aria-label="Solo con invitación" />}{t.nombre}</p>
 
           <div className="mt-1.5 flex items-center gap-2 text-[11px] text-[#A0A0B8] min-w-0">
-            <span className="inline-flex items-center gap-1 text-white shrink-0"><Calendar size={11} className="text-[#B6FF3A]" /> {t.fechaLabel}</span>
+            <span className="inline-flex items-center gap-1 text-white shrink-0"><Calendar size={11} className="text-[#B6FF3A]" /> {fechaLabelTr(t.fechaLabel, idioma)}</span>
             <span className="text-[#3A3A4A]">·</span>
             <span className="inline-flex items-center gap-1 min-w-0"><MapPin size={11} className="shrink-0" /> <span className="truncate">{t.local}</span></span>
           </div>
@@ -405,7 +406,7 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between text-[10px] mb-1">
                 <span className="inline-flex items-center gap-1 text-[#8B8BA8]"><Users size={10} /> <span className="font-mono-num text-[#B8B8CC]">{ocupadas}/{t.plazas}</span></span>
-                <span className={cn('font-semibold', completo ? 'text-[#FF8A5C]' : 'text-[#B6FF3A]')}>{completo ? tCard('card.listaEspera') : tCard('card.abierta')}</span>
+                <span className={cn('font-semibold', t.enDirecto ? 'text-[#FF6076]' : completo ? 'text-[#FF8A5C]' : 'text-[#B6FF3A]')}>{t.enDirecto ? tCard('card.enDirecto') : completo ? tCard('card.listaEspera') : tCard('card.abierta')}</span>
               </div>
               <FillBar pct={pct} color={completo ? '#FF8A5C' : `linear-gradient(90deg, ${juego.color}, #C8FF5C)`} />
             </div>

@@ -49,7 +49,7 @@ export function CompetitiveCard() {
       <div className="relative p-4">
         {/* Nivel cuenta (fundador + temporada), separado de la identidad por juego */}
         <div className="flex items-center justify-between gap-2 flex-wrap mb-3 pb-3 border-b border-white/10">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-white/70 font-bold">Identidad</span>
+          <span className="text-[10px] uppercase tracking-[0.18em] text-white/70 font-bold">{tr('cc.identidad')}</span>
           <div className="flex items-center gap-1.5">
             {!fresca && <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-black border border-[#E0BE63]/50 bg-[#E0BE63]/12 text-[#E0BE63]" title="Fundador de Torneum">⚡ Fundador #12</span>}
             <span className="inline-flex items-center px-2 h-6 rounded-full text-[10px] font-bold bg-white/6 text-[#8B8BA8] border border-white/10" title="Los rangos se reinician cada temporada">{tr('rk.temporada')}</span>
@@ -106,7 +106,7 @@ export function CompetitiveCard() {
             <p className="text-sm font-bold text-white font-mono-num">{s.v}V · {s.d}D</p>
           </div>
           <div className="rounded-xl bg-white/4 border border-white/8 px-3 py-2">
-            <p className="text-[10px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Mejor puesto</p>
+            <p className="text-[10px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{tr('cc.mejorPuesto')}</p>
             <p className="text-sm font-bold text-[#E0BE63]">🏆 {s.mejor}</p>
           </div>
         </div>
@@ -144,7 +144,7 @@ export function CompetitiveCard() {
         {/* Racha reciente (solo con sets jugados) */}
         {s.racha.length > 0 && (
           <div className="mt-3 flex items-center gap-2">
-            <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Racha</span>
+            <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wider font-semibold">{tr('cc.racha')}</span>
             <div className="flex items-center gap-1">
               {s.racha.map((r, i) => (
                 <span key={i} className={`w-6 h-6 rounded-md inline-flex items-center justify-center text-[11px] font-black font-mono-num ${r === 'V' ? 'bg-[#2ED47A]/18 text-[#2ED47A]' : 'bg-[#FF6B6B]/18 text-[#FF6B6B]'}`}>{r}</span>

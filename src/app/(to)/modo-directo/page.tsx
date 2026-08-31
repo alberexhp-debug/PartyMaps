@@ -75,11 +75,16 @@ export default function ModoDirectoPage() {
   // «lima»): en directo primero, después los próximos.
   const orgId = useOrgId()
   const creados = useDemoStore(s => s.creados)
+  const editados = useDemoStore(s => s.editados)
   const cancelados = useDemoStore(s => s.cancelados)
   const misTorneos = useMemo(() => {
-    const todos = [...creados, ...TORNEOS_SAMPLE].filter(t => t.organizadorId === orgId && !cancelados.includes(t.id))
+    // Con `editados` aplicados: el selector enseñaba el nombre viejo tras
+    // renombrar un torneo en Ajustes (QA 01-09).
+    const todos = [...creados, ...TORNEOS_SAMPLE]
+      .filter(t => t.organizadorId === orgId && !cancelados.includes(t.id))
+      .map(t => ({ ...t, ...(editados[t.id] ?? {}) }))
     return [...todos.filter(t => t.enDirecto), ...todos.filter(t => !t.enDirecto)]
-  }, [creados, cancelados, orgId])
+  }, [creados, cancelados, orgId, editados])
   const [torneoIdSel, setTorneoId] = useState('t1')
   // El torneo activo SIEMPRE es de esta cuenta (derivado, sin efecto): si el
   // seleccionado no lo es (p. ej. una sede entra por primera vez), cae al
@@ -148,8 +153,14 @@ export default function ModoDirectoPage() {
   // Un torneo que aún no ha empezado no tiene combates: nada de nombres ni
   // cronos de muestra. Solo cuentan las marcas de PREPARACIÓN del TO (caídas,
   // quitadas, añadidas); el resto de mesas se ve libre hasta que arranque.
+  const generadoLive = !!gestion?.generado
+  // Con bracket REAL generado, fuera el atrezzo de muestra: solo se ven
+  // ocupadas las mesas con un combate real asignado (mid) — QA 01-09: Sora
+  // aparecía jugando en la mesa del atrezzo y a la vez «siguiente» en la cola.
   const setupsVista = enDirecto
-    ? setups
+    ? (generadoLive
+        ? setups.map(s => s.mid ? s : { ...s, estado: (s.estado === 'caido' ? 'caido' : 'libre') as Estado, a: undefined, b: undefined, seg: undefined })
+        : setups)
     : fusionarPrep(mesas, prep).map(s => ({ ...s, estado: (prep[s.n] === 'caido' ? 'caido' : 'libre') as Estado, a: undefined, b: undefined, seg: undefined, mid: undefined }))
   const nombreTorneo = override?.nombre ?? torneo?.nombre ?? 'Torneo en directo'
   // Rondas VIVAS del bracket real: la misma estructura alimenta la cola de
@@ -157,7 +168,6 @@ export default function ModoDirectoPage() {
   // de jugadores, marcador manual del TO o disputa resuelta). Deps granulares
   // (primitivas y slices del store) para que React Compiler pueda optimizar.
   const juegoTorneo = torneo?.juego
-  const generadoLive = !!gestion?.generado
   const seedsLive = gestion?.seeds
   const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
   const winnersLive = gestion?.winners

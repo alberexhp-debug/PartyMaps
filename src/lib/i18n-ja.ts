@@ -1781,6 +1781,17 @@ export const JA: Record<string, string> = {
   'login.correoInvalido': 'このメールアドレスは無効のようです。',
   'login.rateLimit': '試行回数が多すぎます。数分後にお試しください。',
   'login.google': 'Google で続行',
+  'res.enJuegoEyebrow': '進行中のトーナメント',
+  'res.enJuegoTitulo': '現在試合中',
+  'res.enJuegoSub': '主催者がトーナメントを終了すると、最終順位がここに表示されます。',
+  'res.verDirecto': 'ライブを見る',
+  'cc.identidad': 'アイデンティティ',
+  'cc.mejorPuesto': '最高順位',
+  'cc.racha': '連続記録',
+  'card.enDirecto': 'ライブ中',
+  'ges.noReabrirLive': 'ライブ中は参加受付を再開できません',
+  'lv.finalizadoSub': '大会終了：最終順位をチェック。',
+  'ges.listaMuestra': 'デモでは管理リストに{n}人を表示：残りも定員と売上には反映されます。',
   'ma.escribe': '{nombre}にメッセージを送る…',
   'ma.vacio': 'まだメッセージはありません。話しかけてみましょう！',
   // Perfil de organizador editable (/perfil/organizador)
@@ -1844,4 +1855,10 @@ export const JA: Record<string, string> = {
   'pv.buscarPh': '名前または名前#タグで検索…',
   'pv.invT': '🎟️ 「{torneo}」への招待',
   'pv.invC': '主催者からプライベート大会に招待されました。ページを開いてエントリーしましょう。',
+  // ── Directo público con bracket real (QA 01-09)
+  'dx.finalizado': '大会終了',
+  'dx.campeon': '優勝',
+  'dx.verResultados': '最終結果を見る',
+  'dx.esperaCombate': '次の試合を準備中…',
+  'dx.chatVacio': 'まだメッセージはありません。大会チャットの最初の一言をどうぞ！',
 }

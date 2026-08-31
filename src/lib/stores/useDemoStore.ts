@@ -392,6 +392,7 @@ interface DemoState {
   enviarMensajeAmigo: (email: string, texto: string) => void
   // Arranca el crono del set cuando ambos jugadores dan «Todo listo» (idempotente:
   // si el rival ya lo arrancó, ambos comparten el mismo inicio).
+  avisarInscritosTorneo: (torneoId: string, noti: Omit<Notificacion, 'id' | 'cuando' | 'leida'>) => void
   iniciarSetEnJuego: (torneoId: string, mid: string) => void
   editarPerfilSede: (localId: string, patch: Partial<PerfilSede>) => void
   invitarATorneo: (torneoId: string, nombreTorneo: string, email: string) => void
@@ -782,6 +783,17 @@ function buzonConEntregas(s: DemoState, entregas: Entrega[]): Record<string, Not
     buzon[el] = [{ ...noti, id: nextId(), cuando: 'ahora', leida: false }, ...(buzon[el] ?? [])]
   }
   return buzon ?? s.buzonCuentas
+}
+
+// Nombre público → email de cuenta (los brackets hablan en nombres): busca en
+// los perfiles publicados del mundo y en el directorio de cuentas demo.
+function emailDeNombre(nombre: string, perfiles: Record<string, PerfilCuenta>): string | null {
+  const n = nombre.trim().toLowerCase()
+  for (const [email, p] of Object.entries(perfiles)) {
+    if (p.nombre.trim().toLowerCase() === n) return email
+  }
+  const c = CUENTAS_DEMO.find(x => x.rol === 'jugador' && x.nombre.trim().toLowerCase() === n)
+  return c && !EMAILS_LEGACY.has(c.email.toLowerCase()) ? c.email.toLowerCase() : null
 }
 
 // Email de la CUENTA (no legacy) dueña de un organizadorId, para avisos al TO.
@@ -1302,7 +1314,15 @@ export const useDemoStore = create<DemoState>()(
             params: { ganador, marcador: `${Math.max(puntos.a, puntos.b)}–${Math.min(puntos.a, puntos.b)}`, torneo: ctx.nombreTorneo },
             cuando: 'ahora', leida: false, href: `/torneo/${torneoId}/bracket`,
           }
-          return { ...base, ...gestionConResultado(s, torneoId, matchId, puntos), notificaciones: [noti, ...s.notificaciones] }
+          return {
+            ...base, ...gestionConResultado(s, torneoId, matchId, puntos),
+            notificaciones: [noti, ...s.notificaciones],
+            // (QA 01-09) El rival también se entera EN SU CUENTA del resultado
+            buzonCuentas: buzonConEntregas(s, [ctx.a, ctx.b].map(nombre => ({
+              email: emailDeNombre(nombre, s.perfilesCuentas),
+              noti: { tipo: 'combate', titulo: noti.titulo, cuerpo: noti.cuerpo, tituloKey: noti.tituloKey, cuerpoKey: noti.cuerpoKey, params: noti.params, href: noti.href },
+            }))),
+          }
         }
         const noti: Notificacion = {
           id: nextId(), tipo: 'disputa', titulo: '⚠️ Disputa en Mesa ' + ctx.mesa,
@@ -1458,6 +1478,11 @@ export const useDemoStore = create<DemoState>()(
       }),
       // Crono del set (pedido 31-08): arranca con el «todo listo» y es
       // idempotente — si el rival ya lo arrancó, se comparte el mismo inicio.
+      // Aviso del TO a TODOS los inscritos de cuentas (bracket listo, resultados
+      // publicados, avisos manuales): antes se lo quedaba el propio TO (QA 01-09).
+      avisarInscritosTorneo: (torneoId, noti) => set((s) => ({
+        buzonCuentas: buzonConEntregas(s, (s.inscripcionesCuentas[torneoId] ?? []).map(email => ({ email, noti }))),
+      })),
       iniciarSetEnJuego: (torneoId, mid) => set((s) => {
         if (s.setsEnJuego[torneoId]?.[mid]) return s
         return { setsEnJuego: { ...s.setsEnJuego, [torneoId]: { ...s.setsEnJuego[torneoId], [mid]: Date.now() } } }
@@ -1918,6 +1943,9 @@ export const useDemoStore = create<DemoState>()(
       // cuentas al instante (explorar, mapa, ficha, live). Las inscripciones
       // quedan cerradas por la regla de la ficha (torneo en directo).
       iniciarTorneo: (id, nombre) => set((s) => {
+        // Un torneo EN DIRECTO no puede decir «Próximamente» (QA 01-09)
+        const actual = { ...(getTorneo(id) ?? s.creados.find(c => c.id === id)), ...s.editados[id] }
+        const fechaFix = (actual.fechaLabel ?? '').startsWith('Próximamente') ? { fechaLabel: 'Hoy' } : {}
         const noti: Notificacion = {
           id: nextId(), tipo: 'combate', titulo: '🔴 Torneo en directo',
           cuerpo: `Has iniciado «${nombre}»: ya está EN DIRECTO para todos y las inscripciones quedan cerradas.`,
@@ -1931,8 +1959,10 @@ export const useDemoStore = create<DemoState>()(
           tituloKey: 'bz.liveT', cuerpoKey: 'bz.liveC', params: { torneo: nombre }, href: `/torneo/${id}/directo`,
         }
         return {
-          editados: { ...s.editados, [id]: { ...s.editados[id], enDirecto: true } },
-          creados: s.creados.map(c => c.id === id ? { ...c, enDirecto: true } : c),
+          editados: { ...s.editados, [id]: { ...s.editados[id], enDirecto: true, ...fechaFix } },
+          creados: s.creados.map(c => c.id === id ? { ...c, enDirecto: true, ...fechaFix } : c),
+          // El confirm promete cerrar inscripciones: la gestión lo refleja (QA 01-09)
+          gestion: { ...s.gestion, [id]: { ...GESTION_VACIA, ...s.gestion[id], cerrado: true } },
           notificaciones: [noti, ...s.notificaciones],
           buzonCuentas: buzonConEntregas(s, (s.inscripcionesCuentas[id] ?? []).map(email => ({ email, noti: notiInscrito }))),
         }

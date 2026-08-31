@@ -40,7 +40,7 @@ export default function ComunidadTOPage() {
   // Difundir: copia el enlace de la página de eventos pública y confirma 2 s
   const [copiado, setCopiado] = useState<string | null>(null)
   const difundir = async (grupoId: string) => {
-    try { await navigator.clipboard.writeText(`${location.origin}/mi-pagina`) } catch { /* demo: sin permiso de portapapeles */ }
+    try { await navigator.clipboard.writeText(`${location.origin}/organizador/${orgId}`) } catch { /* demo: sin permiso de portapapeles */ }
     setCopiado(grupoId)
     setTimeout(() => setCopiado(v => (v === grupoId ? null : v)), 2000)
   }

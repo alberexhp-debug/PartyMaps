@@ -177,9 +177,25 @@ export function rankingPlataforma(juego: string): FilaRankingTorneum[] {
     .slice(0, 12)
 }
 
-export function rankingTorneum(juego: string, modalidad: 'presencial' | 'online', ambito: 'pais' | 'mundial', paisId: string): FilaRankingTorneum[] {
+export function rankingTorneum(juego: string, modalidad: 'presencial' | 'online', ambito: 'pais' | 'mundial' | 'circuito', paisId: string): FilaRankingTorneum[] {
   if (ambito === 'pais') return filasDe(juego, modalidad, paisDe(paisId), 12)
-  // Mundial: los mejores de cada país compiten en la misma tabla.
-  const todos = PAISES.flatMap(p => filasDe(juego, modalidad, p, 3))
-  return todos.sort((a, b) => b.puntos - a.puntos).slice(0, 12)
+  // Mundial/Circuito: los mejores de cada país en la misma tabla. Dos países
+  // pueden generar el mismo alias (QA L6: NovaV2 duplicado): nos quedamos con
+  // la primera aparición de cada nombre.
+  const todos = PAISES.flatMap(p => filasDe(juego, modalidad, p, 4))
+  const vistos = new Set<string>()
+  const unicos = todos.filter(f => (vistos.has(f.nombre) ? false : (vistos.add(f.nombre), true)))
+  if (ambito === 'circuito') {
+    // Tabla PROPIA (QA L6: era un clon del mundial): solo cuentan oficiales y
+    // Super Majors, así que hay menos torneos y otro reparto de puntos.
+    return unicos
+      .map(f => {
+        let x = 0
+        for (const ch of f.nombre + juego + 'circuito') x = (x * 33 + ch.charCodeAt(0)) >>> 0
+        return { ...f, puntos: 3600 - (x % 13) * 210, torneos: 1 + (x % 4), mejor: 1 + (x % 6), tendencia: ((x >> 2) % 5) - 2 }
+      })
+      .sort((a, b) => b.puntos - a.puntos)
+      .slice(0, 12)
+  }
+  return unicos.sort((a, b) => b.puntos - a.puntos).slice(0, 12)
 }

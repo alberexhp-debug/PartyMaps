@@ -103,7 +103,8 @@ export default function SalaLivePage() {
     }))
     const final = rondas[rondas.length - 1]?.[0]
     const campeon = !!final?.ganador && (final.ganador === 'a' ? final.a : final.b)?.id === miId
-    return { actual: actual as MiMatchActual | null, ultimo: ultimo as MiUltimoSet | null, candidatos, campeon, eliminado }
+    const finalCerrada = !!final?.ganador
+    return { actual: actual as MiMatchActual | null, ultimo: ultimo as MiUltimoSet | null, candidatos, campeon, eliminado, finalCerrada }
   }, [t, gestion, miEmail, pool, perfilesCuentas, idioma])
 
   // Marcadores en vivo: del bracket REAL si el TO lo generó; si no, muestra.
@@ -249,7 +250,7 @@ export default function SalaLivePage() {
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8B8BA8]">{tr('lv.siguienteMesa')}</p>
                     <p className="mt-1 text-3xl lg:text-4xl font-bold text-[#8B8BA8] text-display leading-none">✕</p>
                     <p className="mt-2 text-sm font-bold text-[#B8B8CC]">{tr('lv.eliminadoTu')}</p>
-                    <p className="mt-0.5 text-[11px] text-[#8B8BA8]">{tr('lv.eliminadoSub')}</p>
+                    <p className="mt-0.5 text-[11px] text-[#8B8BA8]">{vistaReal.finalCerrada ? tr('lv.finalizadoSub') : tr('lv.eliminadoSub')}</p>
                   </div>
                 ) : (
                   <div className={`rounded-2xl border p-4 text-center ${t.enDirecto ? 'border-[#B6FF3A]/60 bg-[#B6FF3A]/[0.09]' : 'border-[#FF8A5C]/40 bg-[#FF8A5C]/[0.06]'}`}>

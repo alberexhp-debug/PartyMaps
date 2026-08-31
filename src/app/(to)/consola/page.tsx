@@ -141,7 +141,7 @@ export default function ConsolaTOPage() {
           <section className="mt-6 lg:mt-0 lg:col-start-1 lg:row-start-1">
             <p className="eyebrow eyebrow-muted mb-2.5">{tr('cx.resumen')}</p>
             <div className="grid grid-cols-2 gap-3">
-              <KPI icon={<Trophy size={16} className="text-[#B6FF3A]" />} value={String(misTorneos.length)} label={tr('to.torneosActivos')} />
+              <KPI icon={<Trophy size={16} className="text-[#B6FF3A]" />} value={String(vivos.length)} label={tr('to.torneosActivos')} />
               <KPI icon={<Users size={16} className="text-[#9B82FF]" />} value={String(totalInscritos)} label={tr('to.inscritos')} />
               <KPI icon={<Wallet size={16} className="text-[#E0BE63]" />} value={`${ingresos}€`} label={tr('to.ingresosMes')} />
               <KPI icon={<TrendingUp size={16} className="text-[#4F8EF7]" />} value={`+${Math.round(org.seguidores * 0.04)}`} label={tr('to.nuevosSeguidores')} />

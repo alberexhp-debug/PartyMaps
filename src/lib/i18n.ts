@@ -1793,6 +1793,17 @@ const D = {
   'login.correoInvalido': ['Ese correo no parece válido.', 'That email does not look valid.'],
   'login.rateLimit': ['Demasiados intentos seguidos. Prueba en unos minutos.', 'Too many attempts. Try again in a few minutes.'],
   'login.google': ['Continuar con Google', 'Continue with Google'],
+  'res.enJuegoEyebrow': ['Torneo en juego', 'Tournament in progress'],
+  'res.enJuegoTitulo': ['Se está jugando ahora', 'Being played right now'],
+  'res.enJuegoSub': ['La clasificación final aparecerá aquí cuando el organizador cierre el torneo.', 'The final standings will appear here once the organizer closes the tournament.'],
+  'res.verDirecto': ['Ver el directo', 'Watch live'],
+  'cc.identidad': ['Identidad', 'Identity'],
+  'cc.mejorPuesto': ['Mejor puesto', 'Best placing'],
+  'cc.racha': ['Racha', 'Streak'],
+  'card.enDirecto': ['En directo', 'Live now'],
+  'ges.noReabrirLive': ['Con el torneo en directo las inscripciones quedan cerradas', 'With the tournament live, registrations stay closed'],
+  'lv.finalizadoSub': ['Torneo finalizado: mira la clasificación final.', 'Tournament finished: check the final standings.'],
+  'ges.listaMuestra': ['En la demo, la lista gestionable siembra {n} jugadores; el resto cuenta en aforo y facturación.', 'In the demo, the manageable list seeds {n} players; the rest count toward capacity and billing.'],
   'ma.escribe': ['Escríbele a {nombre}…', 'Write to {nombre}…'],
   'ma.vacio': ['Aún no hay mensajes. ¡Rompe el hielo!', 'No messages yet. Break the ice!'],
   // Perfil de organizador editable (/perfil/organizador, decisión 30-08)
@@ -1856,6 +1867,12 @@ const D = {
   'pv.buscarPh': ['Busca por alias o alias#tag…', 'Search by alias or alias#tag…'],
   'pv.invT': ['🎟️ Invitación a «{torneo}»', '🎟️ Invitation to “{torneo}”'],
   'pv.invC': ['El organizador te ha invitado a su torneo privado. Tu plaza te espera: entra a la ficha e inscríbete.', 'The organizer invited you to their private tournament. Your spot awaits: open the page and register.'],
+  // ── Directo público con bracket real (QA 01-09): la emisión deja la maqueta
+  'dx.finalizado': ['Torneo finalizado', 'Tournament finished'],
+  'dx.campeon': ['Campeón', 'Champion'],
+  'dx.verResultados': ['Ver resultados finales', 'View final results'],
+  'dx.esperaCombate': ['Preparando el siguiente combate…', 'Setting up the next match…'],
+  'dx.chatVacio': ['Aún no hay mensajes. ¡Estrena el chat del torneo!', 'No messages yet. Be the first in the tournament chat!'],
 } as const
 
 export type ClaveI18n = keyof typeof D

@@ -6,6 +6,7 @@ import { construirRondas, standingsDe } from '@/lib/torneos/bracket'
 import { topePuntos, puntosPorPuesto } from '@/lib/torneos/puntos'
 import { useDemoStore, resolverSeeds } from '@/lib/stores/useDemoStore'
 import { useT, conParams } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 import Link from 'next/link'
 import { ArrowLeft, Crown, Trophy, Star, Check, ShieldCheck, Radio } from '@/components/todh/iconosTorneum'
 import { CountUp } from '@/components/ui/CountUp'
@@ -53,6 +54,9 @@ export default function ResultadosPage() {
     return st.length ? st.map(p => p.nombre) : null
   }, [t, gestion, perfilesCuentas])
   const real = !!standingsReales
+  // Un torneo EN DIRECTO sin resultados reales no puede lucir una clasificación
+  // «final» (era la de muestra: QA L7). Estado en juego con enlace al directo.
+  const enJuego = !!t?.enDirecto && !real
   const STANDINGS = standingsReales ?? STANDINGS_SAMPLE
   // Main de cada jugador (para el icono de personaje en la clasificación)
   const poolJuego = useMemo(() => (t ? rankingPorJuego(t.juego) : []), [t])
@@ -69,7 +73,7 @@ export default function ResultadosPage() {
       </div>
 
       <div className="relative px-5 -mt-6">
-        <p className="eyebrow eyebrow-muted">{tr('res.clasifFinal')}</p>
+        <p className="eyebrow eyebrow-muted">{enJuego ? tr('res.enJuegoEyebrow') : tr('res.clasifFinal')}</p>
         <h1 className="text-2xl font-bold text-white text-display tracking-tight">{t?.nombre || tr('rk2.torneoSingCap')}</h1>
         {real && (
           <p className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-[#B6FF3A]"><ShieldCheck size={13} /> {tr('res.oficiales')}</p>
@@ -81,7 +85,7 @@ export default function ResultadosPage() {
           <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-2">
             {[
               ['juego', tr('res.lblJuego'), JUEGOS[t.juego]?.nombre ?? t.juego],
-              ['fecha', tr('adm.fecha'), t.fechaLabel],
+              ['fecha', tr('adm.fecha'), fechaLabelTr(t.fechaLabel, idioma)],
               ['sede', tr('mesa.sede'), t.online ? 'Online' : t.local],
               ['formato', tr('torneo.formato'), t.formato],
             ].map(([k, l, v]) => (
@@ -93,53 +97,64 @@ export default function ResultadosPage() {
           </div>
         )}
 
-        {/* Campeón */}
-        <div className="mt-5 card-premium p-5 text-center relative overflow-hidden animate-slide-up-sm">
-          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full bg-[#E0BE63]/20 blur-3xl" />
-          <Crown size={26} className="mx-auto text-[#E0BE63] mb-1" fill="#E0BE63" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-[#E0BE63] font-bold">{tr('res.campeon')}</p>
-          <div className="relative mt-3 flex flex-col items-center">
-            <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] ring-4 ring-[#E0BE63]/40 animate-pop" style={{ background: avatarColor(STANDINGS[0]), boxShadow: '0 0 40px -6px rgba(224,190,99,.55)' }}>{STANDINGS[0][0]}</span>
-            <p className="mt-3 text-2xl font-bold text-white text-display">{STANDINGS[0]}</p>
-            {bote > 0 && <p className="mt-1 text-lg font-bold text-[#E0BE63] text-numeric"><CountUp value={premios[0]} suffix="€" duration={1200} /></p>}
+        {enJuego ? (
+          <div className="mt-5 card-premium p-5 text-center animate-slide-up-sm">
+            <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[#E63E54] font-bold"><span className="dot-live" /> {tr('res.enJuegoTitulo')}</p>
+            <p className="mt-2 text-sm text-[#B8B8CC]">{tr('res.enJuegoSub')}</p>
+            <Link href={`/torneo/${id}/directo`} className="mt-4 inline-flex items-center justify-center h-11 px-5 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold active:scale-[0.98] transition-transform">
+              {tr('res.verDirecto')}
+            </Link>
           </div>
-        </div>
-
-        {/* Podio 2-3 (un torneo real de 2 jugadores no tiene 3º puesto) */}
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {[1, 2].filter(i => STANDINGS[i]).map(i => (
-            <div key={i} className="card-premium p-4 text-center stagger-item" style={{ ['--delay' as string]: `${150 + i * 90}ms` }}>
-              <span className="inline-flex items-center justify-center w-14 h-14 rounded-xl text-xl font-black text-[#0A0A0F] mx-auto" style={{ background: avatarColor(STANDINGS[i]) }}>{STANDINGS[i][0]}</span>
-              <p className="mt-2 text-sm font-bold text-white">{STANDINGS[i]}</p>
-              <p className="text-[11px] font-bold" style={{ color: medallas[i] }}>{idioma === 'en' ? (i === 1 ? '2nd place' : '3rd place') : idioma === 'ja' ? `${i + 1}位` : `${i + 1}º puesto`}</p>
-              {bote > 0 && <p className="text-sm font-bold text-white text-numeric mt-0.5">{premios[i]}€</p>}
+        ) : (<>
+          {/* Campeón */}
+          <div className="mt-5 card-premium p-5 text-center relative overflow-hidden animate-slide-up-sm">
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full bg-[#E0BE63]/20 blur-3xl" />
+            <Crown size={26} className="mx-auto text-[#E0BE63] mb-1" fill="#E0BE63" />
+            <p className="text-[11px] uppercase tracking-[0.2em] text-[#E0BE63] font-bold">{tr('res.campeon')}</p>
+            <div className="relative mt-3 flex flex-col items-center">
+              <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] ring-4 ring-[#E0BE63]/40 animate-pop" style={{ background: avatarColor(STANDINGS[0]), boxShadow: '0 0 40px -6px rgba(224,190,99,.55)' }}>{STANDINGS[0][0]}</span>
+              <p className="mt-3 text-2xl font-bold text-white text-display">{STANDINGS[0]}</p>
+              {bote > 0 && <p className="mt-1 text-lg font-bold text-[#E0BE63] text-numeric"><CountUp value={premios[0]} suffix="€" duration={1200} /></p>}
             </div>
-          ))}
-        </div>
-
-        {/* Reparto */}
-        {bote > 0 && (
-          <div className="mt-4 flex items-center justify-between rounded-2xl bg-white/4 border border-white/8 px-4 py-3">
-            <span className="text-sm text-[#B8B8CC]">{tr('res.boteRepartido')}</span>
-            <span className="text-base font-bold text-[#E0BE63] text-numeric">{bote}€</span>
           </div>
-        )}
 
-        {/* Standings */}
-        <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('res.clasifCompleta')}</p>
-        <div className="space-y-1.5">
-          {STANDINGS.map((n, i) => (
-            <div key={n} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 10) * 50}ms` }}>
-              <span className="w-6 text-center text-sm font-bold text-numeric" style={{ color: i < 3 ? medallas[i] : '#8B8BA8' }}>{i + 1}</span>
-              <span className="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black text-[#0A0A0F] shrink-0" style={{ background: avatarColor(n) }}>{n[0]}</span>
-              <span className="flex-1 text-sm font-bold text-white inline-flex items-center gap-1.5">{n} {t && <PersonajeIcon juegoId={t.juego} nombre={mainDe(n)} px={16} />}</span>
-              {/* Puntos ganados de verdad para el ranking (solo standings reales) */}
-              {real && t && <span className="text-[12px] font-bold text-[#B6FF3A] text-numeric">+{puntosPorPuesto(topePuntos(t), i + 1)} pts</span>}
-              {i < 3 && bote > 0 && <span className="text-sm font-bold text-[#E0BE63] text-numeric">{premios[i]}€</span>}
-              {i === 0 && <Trophy size={15} className="text-[#E0BE63]" />}
+          {/* Podio 2-3 (un torneo real de 2 jugadores no tiene 3º puesto) */}
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            {[1, 2].filter(i => STANDINGS[i]).map(i => (
+              <div key={i} className="card-premium p-4 text-center stagger-item" style={{ ['--delay' as string]: `${150 + i * 90}ms` }}>
+                <span className="inline-flex items-center justify-center w-14 h-14 rounded-xl text-xl font-black text-[#0A0A0F] mx-auto" style={{ background: avatarColor(STANDINGS[i]) }}>{STANDINGS[i][0]}</span>
+                <p className="mt-2 text-sm font-bold text-white">{STANDINGS[i]}</p>
+                <p className="text-[11px] font-bold" style={{ color: medallas[i] }}>{idioma === 'en' ? (i === 1 ? '2nd place' : '3rd place') : idioma === 'ja' ? `${i + 1}位` : `${i + 1}º puesto`}</p>
+                {bote > 0 && <p className="text-sm font-bold text-white text-numeric mt-0.5">{premios[i]}€</p>}
+              </div>
+            ))}
+          </div>
+
+          {/* Reparto */}
+          {bote > 0 && (
+            <div className="mt-4 flex items-center justify-between rounded-2xl bg-white/4 border border-white/8 px-4 py-3">
+              <span className="text-sm text-[#B8B8CC]">{tr('res.boteRepartido')}</span>
+              <span className="text-base font-bold text-[#E0BE63] text-numeric">{bote}€</span>
             </div>
-          ))}
-        </div>
+          )}
+
+          {/* Standings */}
+          <p className="eyebrow eyebrow-muted mt-6 mb-2.5">{tr('res.clasifCompleta')}</p>
+          <div className="space-y-1.5">
+            {STANDINGS.map((n, i) => (
+              <div key={n} className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/4 border border-white/8 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 10) * 50}ms` }}>
+                <span className="w-6 text-center text-sm font-bold text-numeric" style={{ color: i < 3 ? medallas[i] : '#8B8BA8' }}>{i + 1}</span>
+                <span className="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black text-[#0A0A0F] shrink-0" style={{ background: avatarColor(n) }}>{n[0]}</span>
+                <span className="flex-1 text-sm font-bold text-white inline-flex items-center gap-1.5">{n} {t && <PersonajeIcon juegoId={t.juego} nombre={mainDe(n)} px={16} />}</span>
+                {/* Puntos ganados de verdad para el ranking (solo standings reales) */}
+                {real && t && <span className="text-[12px] font-bold text-[#B6FF3A] text-numeric">+{puntosPorPuesto(topePuntos(t), i + 1)} pts</span>}
+                {i < 3 && bote > 0 && <span className="text-sm font-bold text-[#E0BE63] text-numeric">{premios[i]}€</span>}
+                {i === 0 && <Trophy size={15} className="text-[#E0BE63]" />}
+              </div>
+            ))}
+          </div>
+
+        </>)}
 
         {/* La emisión que hubo en ese momento (VOD del directo). VODs N1: el
             `key` re-monta el player al pulsar «ver mi set» y arranca en el

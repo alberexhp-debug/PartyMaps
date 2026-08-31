@@ -11,6 +11,7 @@ import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { useT } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 import { ArrowLeft, Search, Trophy, Store, MapPin, Star } from '@/components/todh/iconosTorneum'
 import { Verified } from 'lucide-react'
 
@@ -19,7 +20,7 @@ const TODOS_JUGADORES: Jugador[] = JUEGOS_LIST.flatMap(j => rankingPorJuego(j.id
 const SUGERENCIAS = ['Smash', 'Lima Esports', 'Gamba', 'Major', 'Magic', 'Kaze']
 
 export default function BuscarPage() {
-  const { t: tr } = useT()
+  const { t: tr, idioma } = useT()
   const router = useRouter()
   const creados = useDemoStore(s => s.creados)
   const editados = useDemoStore(s => s.editados)
@@ -79,7 +80,7 @@ export default function BuscarPage() {
                   <GameKeyart juegoId={t.juego} label={false} className="w-11 h-11 rounded-xl shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
-                    <p className="text-[11px] text-[#8B8BA8]"><GameIcon juegoId={t.juego} size={12} /> {JUEGOS[t.juego]?.corto} · {t.fechaLabel} · <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></p>
+                    <p className="text-[11px] text-[#8B8BA8]"><GameIcon juegoId={t.juego} size={12} /> {JUEGOS[t.juego]?.corto} · {fechaLabelTr(t.fechaLabel, idioma)} · <span className="font-mono-num">{t.inscritos}/{t.plazas}</span></p>
                   </div>
                   {t.enDirecto && <span className="badge-live shrink-0">Live</span>}
                 </Link>
@@ -114,7 +115,7 @@ export default function BuscarPage() {
                     <GameKeyart juegoId={t.juego} label={false} className="w-12 h-12 rounded-xl shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
-                      <p className="text-[11px] text-[#8B8BA8]"><GameIcon juegoId={t.juego} size={12} /> {JUEGOS[t.juego]?.corto} · {t.fechaLabel}</p>
+                      <p className="text-[11px] text-[#8B8BA8]"><GameIcon juegoId={t.juego} size={12} /> {JUEGOS[t.juego]?.corto} · {fechaLabelTr(t.fechaLabel, idioma)}</p>
                     </div>
                   </Link>
                 ))}

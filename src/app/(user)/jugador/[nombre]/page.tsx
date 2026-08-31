@@ -10,6 +10,7 @@ import { CountUp } from '@/components/ui/CountUp'
 import { RangoChip } from '@/components/todh/RangoChip'
 import { ScoutingPanel } from '@/components/todh/ScoutingSheet'
 import { useT } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 import { ArrowLeft, Star, Swords, TrendingUp, Trophy, UserPlus, Check, Calendar, ChevronRight, Search } from '@/components/todh/iconosTorneum'
 import { Medal } from 'lucide-react'
 
@@ -33,7 +34,7 @@ export default function JugadorPage() {
 }
 
 function JugadorContent() {
-  const { t: tr } = useT()
+  const { t: tr, idioma } = useT()
   const { nombre: nombreParam } = useParams<{ nombre: string }>()
   const router = useRouter()
   const params = useSearchParams()
@@ -157,7 +158,7 @@ function JugadorContent() {
               <span className="w-1 h-9 rounded-full shrink-0" style={{ background: juego.color }} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{t.nombre}</p>
-                <p className="text-[11px] text-[#8B8BA8] inline-flex items-center gap-1"><Calendar size={10} /> {t.fechaLabel}</p>
+                <p className="text-[11px] text-[#8B8BA8] inline-flex items-center gap-1"><Calendar size={10} /> {fechaLabelTr(t.fechaLabel, idioma)}</p>
               </div>
               <span className="text-sm font-bold text-[#E0BE63] shrink-0 inline-flex items-center gap-1">
                 {pu === '1º' && <Medal size={13} className="text-[#E0BE63]" aria-hidden="true" />}

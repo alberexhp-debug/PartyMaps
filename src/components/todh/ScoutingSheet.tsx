@@ -13,6 +13,7 @@ import { scoutingDe, headToHead, historialDe, vodsDe, scoutingCrew } from '@/lib
 import type { Crew } from '@/lib/torneos/crews'
 import type { ModuloScouting } from '@/lib/torneos/plantillas'
 import { useT, conParams } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCOUTING v1 (30-08): la vista de «🔍 Estudiar» a un rival. Solo stats
@@ -248,13 +249,14 @@ export function ScoutingPanel({ nombre, juego, sinHistorial, propio }: {
 }
 
 function FilaHistorial({ e, juego }: { e: { torneoId: string; nombre: string; fechaLabel: string; puesto: string }; juego: string }) {
+  const { idioma } = useT()
   const color = JUEGOS[juego]?.color ?? '#B6FF3A'
   return (
     <Link href={`/torneo/${e.torneoId}/resultados`} className="flex items-center gap-2.5 rounded-xl bg-white/4 border border-white/8 px-3 py-2 hover:bg-white/[0.07] transition-colors">
       <span className="w-1 self-stretch rounded-full" style={{ background: color }} />
       <div className="flex-1 min-w-0">
         <p className="text-[12px] font-bold text-white truncate">{e.nombre}</p>
-        <p className="text-[10px] text-[#8B8BA8]">{e.fechaLabel}</p>
+        <p className="text-[10px] text-[#8B8BA8]">{fechaLabelTr(e.fechaLabel, idioma)}</p>
       </div>
       <span className="text-[11px] font-bold text-[#E0BE63] shrink-0">{e.puesto}</span>
     </Link>

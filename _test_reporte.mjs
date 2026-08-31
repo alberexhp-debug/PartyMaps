@@ -115,6 +115,8 @@ async function hastaHoja(page, url) {
   await login(page, 'jugador@torneum.com')
   await hastaHoja(page, `${BASE}/torneo/t1/mesa?n=2&vs=${encodeURIComponent('Kaze vs Aqua')}&mid=r0m0`)
   await page.getByRole('button', { name: 'Kaze', exact: true }).click()
+  // Desde QA L3 no hay marcador preseleccionado: hay que elegirlo
+  await page.getByRole('button', { name: /^2–1$/ }).click()
   await page.getByText('(demo) el rival reportará distinto').click()
   await page.getByRole('button', { name: /Enviar mi reporte/ }).click()
   await page.waitForTimeout(3600)
@@ -138,6 +140,7 @@ async function hastaHoja(page, url) {
   await hastaHoja(page, `${BASE}/torneo/t2/mesa?n=1&vs=${encodeURIComponent('Kaze vs Aqua')}&mid=r0m0`)
   ok(await page.getByText('¿Con qué has jugado?').count() === 0, 'Magic NO ofrece selector de personajes')
   await page.getByRole('button', { name: 'Kaze', exact: true }).click()
+  await page.getByRole('button', { name: /^2–0$/ }).click()
   await page.getByRole('button', { name: /Enviar mi reporte/ }).click()
   await page.waitForTimeout(3600)
   ok(await page.getByText('Resultado verificado').count() > 0, 'el consenso funciona igual sin personajes')

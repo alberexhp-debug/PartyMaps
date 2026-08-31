@@ -90,7 +90,7 @@ export default function RankingPage() {
 
   const filas = useMemo(() => {
     if (esPlataforma) return rankingPlataforma(juego)
-    const base = rankingTorneum(juego, modalidad, esCircuito ? 'mundial' : ambito, pais)
+    const base = rankingTorneum(juego, modalidad, ambito, pais)
     const reales = puntosPorJugador(puntuados, juego, modalidad, esCircuito)
     if (reales.size === 0) return base
     return fusionarRanking(base, reales, !esCircuito && ambito === 'pais' ? pais : null)

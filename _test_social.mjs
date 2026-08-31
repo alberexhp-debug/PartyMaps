@@ -65,7 +65,10 @@ async function login(page, email) {
   await linkRes.waitFor({ state: 'visible' }); await page.waitForTimeout(300)
   await linkRes.click(); await page.waitForTimeout(1500)
   ok(page.url().includes('/resultados'), `el torneo del historial abre sus RESULTADOS (${page.url()})`)
-  ok(await page.getByText(/Campeón/i).count() > 0, 'con los ganadores del torneo')
+  // t4 está EN DIRECTO en la semilla: desde QA L7 resultados no inventa un
+  // campeón mientras se juega; enseña el estado en juego con enlace al directo
+  ok(await page.getByText('Se está jugando ahora').count() > 0, 'un torneo en directo no enseña campeón: estado en juego')
+  ok(await page.getByText('Ver el directo').count() > 0, 'con el enlace a la emisión')
   ok(await page.getByText('Formato', { exact: true }).count() > 0, 'y los detalles del torneo (juego/fecha/sede/formato)')
   // VOD: t1 tiene la emisión guardada
   await page.goto(`${BASE}/torneo/t1/resultados`, { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(1800)

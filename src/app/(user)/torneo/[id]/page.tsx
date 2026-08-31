@@ -27,6 +27,7 @@ import { ReglasTorneo } from '@/components/todh/ReglasTorneo'
 import { topePuntos, puntosPorPuesto, CATEGORIAS } from '@/lib/torneos/puntos'
 import { puedeCancelarConDevolucion } from '@/lib/torneos/cancelacion'
 import { useT, conParams } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 import type { Jugador } from '@/lib/torneos/sample'
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, Lock, Radio, ListTree, Check, Star, X } from '@/components/todh/iconosTorneum'
 import { Share2, Coins, Wifi } from 'lucide-react'
@@ -186,15 +187,15 @@ export default function TorneoDetallePage() {
   // Torneo lleno → a la cola de espera (no a inscritos): la incoherencia que
   // había era que "lista de espera" te daba plaza y QR como a un inscrito.
   // En directo NO se confirma nada: las inscripciones están cerradas.
+  // La hoja se cierra SOLA a los 2 s (tras su animación); aquí solo se escribe
+  // — al instante del clic, para que recargar no pierda nada (QA 01-09).
   function confirmarInscripcion() {
     if (enVivo) { setSheet(false); return }
     if (completo) apuntarEspera(t!.id, t!.nombre, puestoEspera)
     else inscribir(t!.id, t!.nombre, crewSheet?.id)
-    setSheet(false)
   }
   function confirmarEspectador() {
     inscribirEspectador(t!.id, t!.nombre)
-    setSheet(false)
   }
   function abrirSheet(modo: 'jugar' | 'ver') {
     setModoSheet(modo)
@@ -416,7 +417,7 @@ export default function TorneoDetallePage() {
 
         {/* Info: en escritorio, una sola fila de 4 tarjetas (menos apilado) */}
         <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-3">
-          <InfoCard icon={<Calendar size={15} className="text-[#B6FF3A]" />} label={tr('torneo.cuando')} value={t.fechaLabel} />
+          <InfoCard icon={<Calendar size={15} className="text-[#B6FF3A]" />} label={tr('torneo.cuando')} value={fechaLabelTr(t.fechaLabel, idioma)} />
           {local ? (
             <button onClick={() => setVerSede(true)} className="card-premium card-int p-3.5 text-left">
               <div className="flex items-center gap-1.5 text-[11px] text-[#8B8BA8] uppercase tracking-wider font-semibold mb-1"><MapPin size={15} className="text-[#4F8EF7]" />{tr('torneo.donde')}</div>
@@ -599,7 +600,7 @@ export default function TorneoDetallePage() {
               </div>
             )}
             <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-[#B8B8CC]"><Calendar size={15} className="text-[#B6FF3A]" /> {t.fechaLabel}</div>
+              <div className="flex items-center gap-2 text-[#B8B8CC]"><Calendar size={15} className="text-[#B6FF3A]" /> {fechaLabelTr(t.fechaLabel, idioma)}</div>
               <div className="flex items-center gap-2 text-[#B8B8CC]"><MapPin size={15} className="text-[#4F8EF7]" /> {t.online ? 'Online' : t.local}</div>
               <div className="flex items-center gap-2 text-[#B8B8CC]"><Users size={15} className="text-[#9B82FF]" /> <span className="font-mono-num">{inscritosVis}/{t.plazas}</span> · {completo && !inscrito ? tr('torneo.completo').toLowerCase() : `${Math.max(0, t.plazas - inscritosVis)} ${t.plazas - inscritosVis === 1 ? tr('tf.libre') : tr('tf.libres')}`}</div>
             </div>
@@ -642,7 +643,7 @@ export default function TorneoDetallePage() {
                 <button onClick={() => setCancelarOpen(false)} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC] mt-1"><X size={16} /></button>
               </div>
               <div className="px-5">
-                <p className="text-sm font-semibold text-[#B8B8CC]">{t.nombre} · <span className="text-[#8B8BA8]">{t.fechaLabel}</span></p>
+                <p className="text-sm font-semibold text-[#B8B8CC]">{t.nombre} · <span className="text-[#8B8BA8]">{fechaLabelTr(t.fechaLabel, idioma)}</span></p>
                 {gratis ? (
                   <p className="mt-3 text-sm text-[#B8B8CC] leading-relaxed">{tr('canc.gratis')}</p>
                 ) : conDev ? (

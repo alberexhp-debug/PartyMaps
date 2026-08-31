@@ -6,13 +6,14 @@ import { TorneoArt } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { JUEGOS } from '@/lib/torneos/sample'
 import { useT } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 import { Radio, CalendarClock, ChevronRight, Ticket } from '@/components/todh/iconosTorneum'
 
 // LIVE: tus salas de torneo en tiempo real. Un recuadro por torneo INSCRITO;
 // la sala se abre cuando el organizador la activa (directo o bracket generado),
 // pero los detalles y las reglas se pueden ver antes de empezar.
 export default function LivePage() {
-  const { t: tr } = useT()
+  const { t: tr, idioma } = useT()
   const inscritos = useDemoStore(s => s.inscritos)
   const creados = useDemoStore(s => s.creados)
   const editados = useDemoStore(s => s.editados)
@@ -54,7 +55,7 @@ export default function LivePage() {
                   </div>
                   <div className="p-3.5">
                     <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
-                    <p className="mt-0.5 text-[11px] text-[#8B8BA8]"><GameIcon juegoId={t.juego} size={12} /> {j?.corto} · {t.fechaLabel} · {t.online ? 'Online' : t.local}</p>
+                    <p className="mt-0.5 text-[11px] text-[#8B8BA8]"><GameIcon juegoId={t.juego} size={12} /> {j?.corto} · {fechaLabelTr(t.fechaLabel, idioma)} · {t.online ? 'Online' : t.local}</p>
                     <p className={`mt-2 text-[12px] font-bold inline-flex items-center gap-1 ${abierta ? 'text-[#B6FF3A]' : 'text-[#8B8BA8]'}`}>
                       {abierta ? tr('lv.entrarSala') : tr('lv.verDetalles')} <ChevronRight size={13} />
                     </p>

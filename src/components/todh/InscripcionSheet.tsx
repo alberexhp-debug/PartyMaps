@@ -5,6 +5,7 @@ import type { Crew } from '@/lib/torneos/crews'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { useT, conParams } from '@/lib/i18n'
+import { fechaLabelTr } from '@/lib/torneos/fechas'
 import { X, Check, ShieldCheck, Clock } from '@/components/todh/iconosTorneum'
 import { CreditCard } from 'lucide-react'
 
@@ -26,7 +27,7 @@ type Props = {
 
 // Hoja de checkout en una sola pantalla (mínima fricción). En demo simula el pago.
 export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, total, completo, puestoEspera, precioVer, modoInicial, crew, onClose, onConfirm, onConfirmVer }: Props) {
-  const { t: tr } = useT()
+  const { t: tr, idioma } = useT()
   const [fase, setFase] = useState<'resumen' | 'pagando' | 'ok'>('resumen')
   const [codigoOpen, setCodigoOpen] = useState(false)
   const [codigo, setCodigo] = useState('')
@@ -40,8 +41,12 @@ export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, 
   function pagar() {
     if (gratis || waitlist) { finalizar(); return }
     setFase('pagando')
+    // El ALTA se escribe AL INSTANTE (QA 01-09: el «ok» visual salía ~1 s antes
+    // que la escritura y recargar en esa ventana perdía la plaza ya «pagada»).
+    // La animación de pago es solo teatro; el cierre llega a los 2 s.
+    finalizar()
     setTimeout(() => setFase('ok'), 1100)
-    setTimeout(finalizar, 2000)
+    setTimeout(onClose, 2000)
   }
   function finalizar() { if (ver) onConfirmVer!(); else onConfirm() }
 
@@ -68,7 +73,7 @@ export function InscripcionSheet({ torneo, juego, comisionPct, comisionImporte, 
               <GameKeyart juegoId={torneo.juego} label={false} className="w-14 h-14 rounded-xl shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm font-bold text-white truncate">{torneo.nombre}</p>
-                <p className="text-xs text-[#8B8BA8]"><GameIcon juegoId={torneo.juego} size={12} /> {juego.corto} · {torneo.fechaLabel}</p>
+                <p className="text-xs text-[#8B8BA8]"><GameIcon juegoId={torneo.juego} size={12} /> {juego.corto} · {fechaLabelTr(torneo.fechaLabel, idioma)}</p>
               </div>
             </div>
 
