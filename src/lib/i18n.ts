@@ -1792,6 +1792,7 @@ const D = {
   'login.errorReal': ['Correo o contraseña incorrectos.', 'Wrong email or password.'],
   'login.correoInvalido': ['Ese correo no parece válido.', 'That email does not look valid.'],
   'login.rateLimit': ['Demasiados intentos seguidos. Prueba en unos minutos.', 'Too many attempts. Try again in a few minutes.'],
+  'login.google': ['Continuar con Google', 'Continue with Google'],
   'ma.escribe': ['Escríbele a {nombre}…', 'Write to {nombre}…'],
   'ma.vacio': ['Aún no hay mensajes. ¡Rompe el hielo!', 'No messages yet. Break the ice!'],
   // Perfil de organizador editable (/perfil/organizador, decisión 30-08)

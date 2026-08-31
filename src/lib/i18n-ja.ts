@@ -1780,6 +1780,7 @@ export const JA: Record<string, string> = {
   'login.errorReal': 'メールまたはパスワードが違います。',
   'login.correoInvalido': 'このメールアドレスは無効のようです。',
   'login.rateLimit': '試行回数が多すぎます。数分後にお試しください。',
+  'login.google': 'Google で続行',
   'ma.escribe': '{nombre}にメッセージを送る…',
   'ma.vacio': 'まだメッセージはありません。話しかけてみましょう！',
   // Perfil de organizador editable (/perfil/organizador)

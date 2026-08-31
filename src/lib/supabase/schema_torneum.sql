@@ -677,3 +677,31 @@ END $$;
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- =============================================================================
+-- FASE A.5 (31-08): la DEMO en la nube — puente hasta la migración relacional.
+-- El estado del navegador (blob personal por usuario + mundo común) se guarda
+-- tal cual en jsonb: una cuenta REAL recupera sus chats/torneos en cualquier
+-- navegador. Limitación asumida: el mundo es último-en-escribir-gana.
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS estado_cuenta (
+  usuario_id  UUID PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,
+  estado      JSONB NOT NULL,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE estado_cuenta ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS mi_estado ON estado_cuenta;
+CREATE POLICY mi_estado ON estado_cuenta FOR ALL
+  USING (usuario_id = mi_usuario_id()) WITH CHECK (usuario_id = mi_usuario_id());
+
+CREATE TABLE IF NOT EXISTS estado_mundo (
+  id          TEXT PRIMARY KEY DEFAULT 'mundo',
+  estado      JSONB NOT NULL,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE estado_mundo ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS mundo_lee ON estado_mundo;
+CREATE POLICY mundo_lee ON estado_mundo FOR SELECT USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS mundo_escribe ON estado_mundo;
+CREATE POLICY mundo_escribe ON estado_mundo FOR ALL
+  USING (auth.uid() IS NOT NULL) WITH CHECK (id = 'mundo' AND auth.uid() IS NOT NULL);

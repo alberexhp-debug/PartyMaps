@@ -97,6 +97,10 @@ interface SesionState {
   // Cuentas REALES (Supabase Auth). Devuelven la sesión o un error legible.
   loginReal: (email: string, password: string) => Promise<Sesion | { error: string }>
   registrarReal: (nombre: string, email: string, password: string) => Promise<Sesion | { error?: string; confirmar?: boolean }>
+  // OAuth (Google): redirige a Google; al volver, adoptarSesionOAuth() convierte
+  // la sesión de Supabase en la de la app (la usa el login al aterrizar).
+  entrarConGoogle: () => Promise<{ error?: string }>
+  adoptarSesionOAuth: () => Promise<Sesion | null>
   logout: () => void
 }
 
@@ -138,6 +142,29 @@ export const useSesionStore = create<SesionState>()(
         // Con la confirmación por correo activada no hay sesión todavía.
         if (!data.session) return { confirmar: true }
         const sesion: Sesion = { email: email.trim().toLowerCase(), nombre: nombre.trim(), rol: 'jugador', fresca: true, real: true }
+        set({ sesion })
+        return sesion
+      },
+      entrarConGoogle: async () => {
+        const sb = supabaseTorneum()
+        if (!sb) return { error: 'sin-backend' }
+        const { error } = await sb.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: `${window.location.origin}/login` },
+        })
+        return error ? { error: error.message } : {}
+      },
+      adoptarSesionOAuth: async () => {
+        const sb = supabaseTorneum()
+        if (!sb || get().sesion) return null
+        const { data } = await sb.auth.getSession()
+        const u = data.session?.user
+        if (!u?.email) return null
+        const sesion: Sesion = {
+          email: u.email.toLowerCase(),
+          nombre: (u.user_metadata?.nombre as string) || (u.user_metadata?.full_name as string) || (u.user_metadata?.name as string) || u.email.split('@')[0],
+          rol: 'jugador', fresca: true, real: true,
+        }
         set({ sesion })
         return sesion
       },

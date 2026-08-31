@@ -5,6 +5,7 @@ import { AvisoMiMesa } from '@/components/todh/AvisoMiMesa'
 import { AvisoInactividad } from '@/components/todh/AvisoInactividad'
 import { BuzonCuenta } from '@/components/todh/BuzonCuenta'
 import { PerfilRealSync } from '@/components/todh/PerfilRealSync'
+import { NubeDemoSync } from '@/components/todh/NubeDemoSync'
 import { RequireSesion } from '@/components/todh/RequireSesion'
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
@@ -31,6 +32,8 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       <BuzonCuenta />
       {/* Perfil de cuentas REALES sincronizado con Supabase (fase A backend) */}
       <PerfilRealSync />
+      {/* Fase A.5: TODO el estado (torneos, chats, mundo) te sigue con cuenta real */}
+      <NubeDemoSync />
       <UserBottomNav />
     </div>
     </RequireSesion>

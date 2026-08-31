@@ -22,7 +22,10 @@ export function AvisoMiMesa() {
   if (!esJugador) return null
   const vivo = torneosEfectivos(creados, editados, cancelados).find(t => t.enDirecto && inscritos.includes(t.id))
   // En su propia vista de mesa el aviso sobra (ya está donde le lleva)
-  if (!vivo || pathname.startsWith(`/torneo/${vivo.id}/mesa`)) return null
+  // En CUALQUIER página de mesa la pastilla sobra (estás jugando un set) — y
+  // en móvil llegaba a tapar el CTA «Confirmo, voy de camino» de otra mesa
+  // (bug cazado por QA 01-09). Antes solo se ocultaba en la mesa de SU torneo.
+  if (!vivo || /\/torneo\/[^/]+\/mesa/.test(pathname)) return null
   return (
     <Link href={`/torneo/${vivo.id}/mesa`}
       className="fixed z-40 bottom-20 right-4 lg:bottom-6 lg:right-6 inline-flex items-center gap-2 h-11 pl-3 pr-4 rounded-full bg-[#B6FF3A] text-[#0A0A0F] text-sm font-bold shadow-[0_10px_30px_-8px_rgba(182,255,58,0.55)] active:scale-[0.98] transition-transform animate-slide-up-sm">
