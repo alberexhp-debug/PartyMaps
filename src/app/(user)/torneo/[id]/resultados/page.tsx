@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, organizadorEfectivo, rankingPorJuego, JUEGOS, STANDINGS_SAMPLE, HISTORIAL_USUARIO, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, standingsDe } from '@/lib/torneos/bracket'
+import { topePuntos, puntosPorPuesto } from '@/lib/torneos/puntos'
 import { useDemoStore, resolverSeeds } from '@/lib/stores/useDemoStore'
 import { useT, conParams } from '@/lib/i18n'
 import Link from 'next/link'
@@ -104,9 +105,9 @@ export default function ResultadosPage() {
           </div>
         </div>
 
-        {/* Podio 2-3 */}
+        {/* Podio 2-3 (un torneo real de 2 jugadores no tiene 3º puesto) */}
         <div className="mt-3 grid grid-cols-2 gap-3">
-          {[1, 2].map(i => (
+          {[1, 2].filter(i => STANDINGS[i]).map(i => (
             <div key={i} className="card-premium p-4 text-center stagger-item" style={{ ['--delay' as string]: `${150 + i * 90}ms` }}>
               <span className="inline-flex items-center justify-center w-14 h-14 rounded-xl text-xl font-black text-[#0A0A0F] mx-auto" style={{ background: avatarColor(STANDINGS[i]) }}>{STANDINGS[i][0]}</span>
               <p className="mt-2 text-sm font-bold text-white">{STANDINGS[i]}</p>
@@ -132,6 +133,8 @@ export default function ResultadosPage() {
               <span className="w-6 text-center text-sm font-bold text-numeric" style={{ color: i < 3 ? medallas[i] : '#8B8BA8' }}>{i + 1}</span>
               <span className="inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-black text-[#0A0A0F] shrink-0" style={{ background: avatarColor(n) }}>{n[0]}</span>
               <span className="flex-1 text-sm font-bold text-white inline-flex items-center gap-1.5">{n} {t && <PersonajeIcon juegoId={t.juego} nombre={mainDe(n)} px={16} />}</span>
+              {/* Puntos ganados de verdad para el ranking (solo standings reales) */}
+              {real && t && <span className="text-[12px] font-bold text-[#B6FF3A] text-numeric">+{puntosPorPuesto(topePuntos(t), i + 1)} pts</span>}
               {i < 3 && bote > 0 && <span className="text-sm font-bold text-[#E0BE63] text-numeric">{premios[i]}€</span>}
               {i === 0 && <Trophy size={15} className="text-[#E0BE63]" />}
             </div>

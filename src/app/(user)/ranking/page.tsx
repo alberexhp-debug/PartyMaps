@@ -1,9 +1,11 @@
 'use client'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
-import { JUEGOS } from '@/lib/torneos/sample'
+import { JUEGOS, rankingPorJuego } from '@/lib/torneos/sample'
 import { rankingTorneum, rankingPlataforma, plataformaDe, topePuntos, PAISES, paisDe, type FilaRankingTorneum } from '@/lib/torneos/puntos'
-import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { torneosPuntuados, puntosPorJugador, fusionarRanking } from '@/lib/torneos/puntosReales'
+import { torneosEfectivos } from '@/lib/torneos/efectivos'
+import { useDemoStore, resolverSeeds } from '@/lib/stores/useDemoStore'
 import { useT, conParams } from '@/lib/i18n'
 import { RangoChip } from '@/components/todh/RangoChip'
 import { GameIcon } from '@/components/todh/GameIcon'
@@ -68,11 +70,30 @@ export default function RankingPage() {
   const esCircuito = ambito === 'circuito'
   const esPlataforma = fuente === 'plataforma'
   const plataforma = plataformaDe(juego)
-  const filas = useMemo(
-    () => esPlataforma
-      ? rankingPlataforma(juego)
-      : rankingTorneum(juego, modalidad, esCircuito ? 'mundial' : ambito, pais),
-    [juego, modalidad, ambito, esCircuito, pais, esPlataforma])
+
+  // Resultados REALES: torneos con la final cerrada en Torneum (gestión del
+  // MUNDO) puntuados con puntos.ts y fundidos con la tabla de muestra. La
+  // fuente plataforma nunca los toca (solo consulta, regla de oro).
+  const creados = useDemoStore(s => s.creados)
+  const editados = useDemoStore(s => s.editados)
+  const cancelados = useDemoStore(s => s.cancelados)
+  const gestion = useDemoStore(s => s.gestion)
+  const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
+  const puntuados = useMemo(
+    () => torneosPuntuados(
+      torneosEfectivos(creados, editados, cancelados),
+      gestion,
+      (t, g) => resolverSeeds(g.seeds ?? [], rankingPorJuego(t.juego), t.juego, perfilesCuentas),
+    ),
+    [creados, editados, cancelados, gestion, perfilesCuentas])
+
+  const filas = useMemo(() => {
+    if (esPlataforma) return rankingPlataforma(juego)
+    const base = rankingTorneum(juego, modalidad, esCircuito ? 'mundial' : ambito, pais)
+    const reales = puntosPorJugador(puntuados, juego, modalidad, esCircuito)
+    if (reales.size === 0) return base
+    return fusionarRanking(base, reales, !esCircuito && ambito === 'pais' ? pais : null)
+  }, [juego, modalidad, ambito, esCircuito, pais, esPlataforma, puntuados])
 
   return (
     // El halo de fondo va a TODO el ancho (fuera del contenedor centrado) para
