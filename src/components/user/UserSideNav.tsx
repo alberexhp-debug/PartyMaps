@@ -40,8 +40,12 @@ export function UserSideNav() {
   const avatarEmoji = useDemoStore(s => s.avatarEmoji)
   const fotoPerfil = useDemoStore(s => s.fotoPerfil)
   const inicial = useSesionStore(s => (s.sesion?.nombre?.trim()?.[0] || 'T').toUpperCase())
-  // Badge de Chat: solicitudes de amistad pendientes de responder.
-  const pendAmistad = useDemoStore(s => s.solicitudesAmistad.length)
+  // Badge de Chat: solicitudes de amistad pendientes de responder (del pool
+  // y, con el mundo compartido, las de otras cuentas demo).
+  const emailSesion = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
+  const pendAmistad = useDemoStore(s =>
+    s.solicitudesAmistad.length +
+    (emailSesion ? s.amistadesCuentas.filter(a => a.a === emailSesion && a.estado === 'pendiente').length : 0))
   const { t } = useT()
   // Solicitudes pendientes de la sede: badge en su menú (como las notis)
   const localId = useLocalId()

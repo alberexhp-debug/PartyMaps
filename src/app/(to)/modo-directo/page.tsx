@@ -7,7 +7,7 @@ import { getTorneo, getLocal, rankingPorJuego, plantillaDe, TORNEOS_SAMPLE, type
 import { PersonajesDeLado } from '@/components/todh/PersonajeChip'
 import { CrewTag } from '@/components/todh/CrewTag'
 import { construirRondas, nombreRonda, normalizarDesde, opcionesDesde, etiquetaDesde, type MatchB } from '@/lib/torneos/bracket'
-import { useDemoStore, useOrgId } from '@/lib/stores/useDemoStore'
+import { useDemoStore, useOrgId, resolverSeeds } from '@/lib/stores/useDemoStore'
 import { useT, conParams, type ClaveI18n } from '@/lib/i18n'
 import { MapaMesas, LeyendaMesas, ESTADO_MESA, PisoTabs, pisosDe, mesasDePiso, type EstadoMesa } from '@/components/todh/MapaMesas'
 import { ArrowLeft, Radio, Pause, Play, AlertTriangle, Tv, Clock, Check, RotateCcw, Flag, ListTree, Map as MapIcon, List, CalendarClock, Plus, X, ClipboardList, Undo2 } from 'lucide-react'
@@ -154,13 +154,13 @@ export default function ModoDirectoPage() {
   const juegoTorneo = torneo?.juego
   const generadoLive = !!gestion?.generado
   const seedsLive = gestion?.seeds
+  const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
   const winnersLive = gestion?.winners
   const rondasVivas = useMemo<MatchB[][]>(() => {
     if (!juegoTorneo || !generadoLive || !seedsLive) return []
-    const pool = rankingPorJuego(juegoTorneo)
-    const seeds = seedsLive.map(sid => pool.find(p => p.id === sid)).filter(Boolean) as Jugador[]
+    const seeds = resolverSeeds(seedsLive, rankingPorJuego(juegoTorneo), juegoTorneo, perfilesCuentas)
     return construirRondas(seeds, winnersLive ?? {})
-  }, [juegoTorneo, generadoLive, seedsLive, winnersLive])
+  }, [juegoTorneo, generadoLive, seedsLive, winnersLive, perfilesCuentas])
   const colaBracket = useMemo<ColaItem[]>(() =>
     rondasVivas.flatMap(matches =>
       matches.filter(m => m.a && m.b && !m.ganador)

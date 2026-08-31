@@ -43,6 +43,9 @@ export default function ExplorarPage() {
   const favoritos = useDemoStore(s => s.juegosFavoritos)
   const ocultos = useDemoStore(s => s.juegosOcultos)
   const juegosCustom = useDemoStore(s => s.juegosCustom)
+  // Mundo compartido: inscripciones de otras cuentas (para «Disponibles»)
+  const inscCuentas = useDemoStore(s => s.inscripcionesCuentas)
+  const miEmailExp = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
   // Catálogo visible (sin los desactivados por el admin) y formatos reales de
   // sus plantillas — nada de listas a mano.
   const juegosVisibles = useMemo(() => Object.values(JUEGOS).filter(j => !ocultos.includes(j.id)), [ocultos, juegosCustom])
@@ -64,7 +67,7 @@ export default function ExplorarPage() {
     if (soloGratis) r = r.filter(t => t.precio === 0)
     if (formatos.size) r = r.filter(t => formatos.has(t.formato))
     if (precioMax != null) r = r.filter(t => t.precio <= precioMax)
-    if (soloLibres) r = r.filter(t => t.inscritos < t.plazas)
+    if (soloLibres) r = r.filter(t => t.inscritos + (inscCuentas[t.id] ?? []).filter(e => e !== miEmailExp).length < t.plazas)
     if (soloAbiertos) r = r.filter(t => !t.vip)
     switch (orden) {
       case 'fecha': r.sort((a, b) => (b.esHoy ? 1 : 0) - (a.esHoy ? 1 : 0)); break
@@ -72,7 +75,7 @@ export default function ExplorarPage() {
       default: r.sort((a, b) => (b.enDirecto ? 1 : 0) - (a.enDirecto ? 1 : 0) || b.popularidad - a.popularidad)
     }
     return r
-  }, [busca, juego, soloHoy, soloGratis, formatos, precioMax, soloLibres, soloAbiertos, orden, efectivos])
+  }, [busca, juego, soloHoy, soloGratis, formatos, precioMax, soloLibres, soloAbiertos, orden, efectivos, inscCuentas, miEmailExp])
 
   const numFiltros = (juego ? 1 : 0) + (soloHoy ? 1 : 0) + (soloGratis ? 1 : 0) + formatos.size + (precioMax != null ? 1 : 0) + (soloLibres ? 1 : 0) + (soloAbiertos ? 1 : 0)
   const limpiar = () => { setJuego(null); setSoloHoy(false); setSoloGratis(false); setFormatos(new Set()); setPrecioMax(null); setSoloLibres(false); setSoloAbiertos(false) }
@@ -362,9 +365,12 @@ function ToggleRow({ label, on, onClick }: { label: string; on: boolean; onClick
 function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
   const { t: tCard } = useT()
   const juego = JUEGOS[t.juego]
-  // Mismo cómputo de plazas que la ficha: bajas del TO y promociones de la cola
+  // Mismo cómputo de plazas que la ficha: bajas del TO, promociones de la
+  // cola y las cuentas demo inscritas (mundo compartido; sin contarte a ti).
   const ajuste = useDemoStore(s => (s.entradosEspera[t.id]?.length ?? 0) - (s.gestion[t.id]?.bajas?.length ?? 0))
-  const ocupadas = Math.max(0, t.inscritos + ajuste)
+  const miEmail = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
+  const nCuentas = useDemoStore(s => (s.inscripcionesCuentas[t.id] ?? []).filter(e => e !== miEmail).length)
+  const ocupadas = Math.max(0, t.inscritos + ajuste + nCuentas)
   const completo = ocupadas >= t.plazas
   const pct = Math.min(100, Math.round((ocupadas / t.plazas) * 100))
   return (

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, rankingPorJuego, bracketDe, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, nombreRonda } from '@/lib/torneos/bracket'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
-import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useDemoStore, resolverSeeds } from '@/lib/stores/useDemoStore'
 import { TorneoArt } from '@/components/todh/GameKeyart'
 import { VideoEmbed } from '@/components/todh/VideoEmbed'
 import { ReglasTorneo } from '@/components/todh/ReglasTorneo'
@@ -34,6 +34,7 @@ export default function SalaLivePage() {
   const cancelados = useDemoStore(s => s.cancelados)
   const inscrito = useDemoStore(s => s.inscritos.includes(id))
   const gestion = useDemoStore(s => s.gestion[id])
+  const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
   const tierUsuario = useDemoStore(s => s.tierUsuario)
   const [chatAbierto, setChatAbierto] = useState(false)
   const [selJugador, setSelJugador] = useState<Jugador | null>(null)
@@ -55,7 +56,7 @@ export default function SalaLivePage() {
   const marcadores = useMemo(() => {
     if (!t) return []
     if (gestion?.generado) {
-      const seeds = (gestion.seeds ?? []).map(sid => pool.find(p => p.id === sid)).filter(Boolean) as Jugador[]
+      const seeds = resolverSeeds(gestion.seeds ?? [], pool, t.juego, perfilesCuentas)
       return construirRondas(seeds, gestion.winners ?? {}).flatMap(matches =>
         matches.filter(m => m.a && m.b).map(m => ({
           id: m.id, ronda: nombreRonda(matches.length, idioma),
@@ -67,7 +68,7 @@ export default function SalaLivePage() {
     return bracketDe(t.id).flatMap(r => r.matches.filter(m => m.a !== '—' && m.b !== '—').map(m => ({
       id: m.id, ronda: r.nombre, a: m.a, b: m.b, sa: m.scoreA, sb: m.scoreB, ganador: m.ganador ?? null,
     })))
-  }, [t, gestion, pool, idioma])
+  }, [t, gestion, pool, idioma, perfilesCuentas])
 
   if (!t) {
     return (

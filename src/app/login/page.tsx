@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSesionStore, rutaInicial, CUENTAS_DEMO, type CuentaDemo } from '@/lib/stores/useSesionStore'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { getCookieConsent } from '@/components/ui/CookieBanner'
 import { useT, type ClaveI18n } from '@/lib/i18n'
 import { Eye, EyeOff, LogIn, KeyRound, User, Megaphone, Store, ShieldCheck } from 'lucide-react'
 
@@ -39,6 +40,16 @@ function LoginDemo() {
   const [hidratado, setHidratado] = useState(false)
   useEffect(() => setHidratado(true), [])
 
+  // Primera visita: el banner de cookies (fixed abajo) tapaba las cuentas demo
+  // en móvil. Mientras el banner esté abierto, la columna reserva su hueco.
+  const [conBannerCookies, setConBannerCookies] = useState(false)
+  useEffect(() => {
+    setConBannerCookies(getCookieConsent() === null)
+    const decidido = () => setConBannerCookies(false)
+    window.addEventListener('pm:cookie-consent', decidido)
+    return () => window.removeEventListener('pm:cookie-consent', decidido)
+  }, [])
+
   // Ya con sesión → a su panel (el login no se enseña dos veces)
   useEffect(() => {
     if (hidratado && sesion) router.replace(rutaInicial(sesion))
@@ -57,7 +68,7 @@ function LoginDemo() {
       <div className="pointer-events-none absolute -top-40 -left-40 h-[34rem] w-[34rem] rounded-full bg-[#B6FF3A]/20 blur-[120px]" />
       <div className="pointer-events-none absolute top-1/3 -right-40 h-[34rem] w-[34rem] rounded-full bg-[#7C5CFF]/18 blur-[120px]" />
 
-      <div className="relative w-full max-w-sm py-10">
+      <div className={`relative w-full max-w-sm py-10 ${conBannerCookies ? 'pb-[27rem] sm:pb-64' : ''}`}>
         <div className="flex items-center justify-center gap-2.5 mb-8">
           <span className="w-10 h-10 rounded-xl bg-[#B6FF3A] flex items-center justify-center text-[#0A0A0F] text-base font-black text-display">T</span>
           <span className="text-xl font-black text-display uppercase tracking-[0.22em] text-white">Torneum</span>

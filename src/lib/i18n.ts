@@ -1737,6 +1737,25 @@ const D = {
   'rep.otroPh': ['Cuéntanos el motivo', 'Tell us the reason'],
   'rep.mensajePh': ['Detalla el mensaje para el organizador (opcional)…', 'Add details for the organizer (optional)…'],
   'rep.pie': ['El organizador puede ajustar el cuadro o mantenerlo respondiéndote.', 'The organizer can adjust the bracket or keep it and reply to you.'],
+
+  // ── mundo compartido (30-08): cuentas demo que se ven entre sí — buscador
+  // de amigos entre cuentas, perfil público, inscripciones cruzadas, torneo
+  // iniciado por el TO e inscripciones cerradas en directo ──
+  'mc.cuentaTorneum': ['Cuenta Torneum', 'Torneum account'],
+  'mc.pendiente': ['Pendiente', 'Pending'],
+  'mc.sinHistorial': ['Cuenta nueva: aún sin historial de torneos.', 'New account: no tournament history yet.'],
+  'mc.inscritoCuenta': ['Inscrito desde su cuenta', 'Signed up from their account'],
+  'mc.liveCerrado': ['Torneo en directo — inscripciones cerradas', 'Tournament live — registrations closed'],
+  'mc.iniciarTorneo': ['Iniciar torneo', 'Start tournament'],
+  'mc.iniciarConfirm': ['¿Iniciar «{nombre}» ahora? Pasará a EN DIRECTO para todas las cuentas y se cerrarán las inscripciones.', 'Start "{nombre}" now? It will go LIVE for every account and registrations will close.'],
+  'mc.iniciarNecesitaBracket': ['Genera el bracket para poder iniciarlo', 'Generate the bracket to start it'],
+  'mc.enDirecto': ['El torneo está EN DIRECTO', 'The tournament is LIVE'],
+  'mc.ntfSolT': ['Solicitud de amistad enviada', 'Friend request sent'],
+  'mc.ntfSolC': ['Le has pedido amistad a {nombre}. La verá al entrar con su cuenta.', 'You sent {nombre} a friend request. They will see it when they sign in.'],
+  'mc.ntfAmigosT': ['{nombre} y tú ya sois amigos', 'You and {nombre} are now friends'],
+  'mc.ntfAmigosC': ['Solicitud aceptada: os veis en vuestras listas de amigos.', 'Request accepted: you now appear in each other\'s friend lists.'],
+  'mc.ntfLiveT': ['🔴 Torneo en directo', '🔴 Tournament is live'],
+  'mc.ntfLiveC': ['Has iniciado «{torneo}»: ya está EN DIRECTO para todos y las inscripciones quedan cerradas.', 'You started "{torneo}": it is now LIVE for everyone and registrations are closed.'],
 } as const
 
 export type ClaveI18n = keyof typeof D

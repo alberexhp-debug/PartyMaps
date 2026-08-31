@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, organizadorEfectivo, rankingPorJuego, JUEGOS, STANDINGS_SAMPLE, HISTORIAL_USUARIO, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, standingsDe } from '@/lib/torneos/bracket'
-import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useDemoStore, resolverSeeds } from '@/lib/stores/useDemoStore'
 import { useT, conParams } from '@/lib/i18n'
 import Link from 'next/link'
 import { ArrowLeft, Crown, Trophy, Star, Check, ShieldCheck, Radio } from 'lucide-react'
@@ -26,6 +26,7 @@ export default function ResultadosPage() {
   const router = useRouter()
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
   const gestion = useDemoStore(s => s.gestion[id])
+  const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
   // Ediciones del TO (p.ej. el vodUrlFinal pegado al cerrar el directo) aplican
   // también aquí: antes esta página leía el sample sin overrides.
   const override = useDemoStore(s => s.editados[id])
@@ -46,11 +47,10 @@ export default function ResultadosPage() {
   // Clasificación REAL si el TO cerró la final en /gestionar; si no, la de muestra.
   const standingsReales = useMemo<string[] | null>(() => {
     if (!t || !gestion?.generado) return null
-    const pool = rankingPorJuego(t.juego)
-    const seeds = (gestion.seeds ?? []).map(sid => pool.find(p => p.id === sid)).filter(Boolean) as Jugador[]
+    const seeds = resolverSeeds(gestion.seeds ?? [], rankingPorJuego(t.juego), t.juego, perfilesCuentas)
     const st = standingsDe(construirRondas(seeds, gestion.winners ?? {}))
     return st.length ? st.map(p => p.nombre) : null
-  }, [t, gestion])
+  }, [t, gestion, perfilesCuentas])
   const real = !!standingsReales
   const STANDINGS = standingsReales ?? STANDINGS_SAMPLE
   // Main de cada jugador (para el icono de personaje en la clasificación)

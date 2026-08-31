@@ -30,8 +30,12 @@ export function UserBottomNav() {
   const avatarEmoji = useDemoStore(s => s.avatarEmoji)
   const fotoPerfil = useDemoStore(s => s.fotoPerfil)
   const inicial = useSesionStore(s => (s.sesion?.nombre?.trim()?.[0] || 'T').toUpperCase())
-  // Badge de Chat: solicitudes de amistad pendientes.
-  const pendAmistad = useDemoStore(s => s.solicitudesAmistad.length)
+  // Badge de Chat: solicitudes de amistad pendientes (del pool y, con el
+  // mundo compartido, también las que llegan de otras cuentas demo).
+  const emailSesion = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
+  const pendAmistad = useDemoStore(s =>
+    s.solicitudesAmistad.length +
+    (emailSesion ? s.amistadesCuentas.filter(a => a.a === emailSesion && a.estado === 'pendiente').length : 0))
 
   // La sede navega directa a sus apartados (sin Explorar/Mapa); es SOLO sede,
   // sin capa de organizador.

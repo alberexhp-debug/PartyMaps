@@ -5,7 +5,7 @@ import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, standingsSuizoDe, ranking
 import { PersonajesDeLado } from '@/components/todh/PersonajeChip'
 import { CrewTag } from '@/components/todh/CrewTag'
 import { construirRondas, nombreRonda, boDeRonda } from '@/lib/torneos/bracket'
-import { useDemoStore, type BoDesde } from '@/lib/stores/useDemoStore'
+import { useDemoStore, resolverSeeds, type BoDesde } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { ReportButton } from '@/components/todh/ReportSheet'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
@@ -19,6 +19,7 @@ export default function BracketPage() {
   const router = useRouter()
   const creado = useDemoStore(s => s.creados.find(c => c.id === id))
   const gestion = useDemoStore(s => s.gestion[id])
+  const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
   const pjTorneo = useDemoStore(s => s.personajesPorMatch[id])
   const t = getTorneo(id) || creado
   // Personajes jugados por combate (doble reporte): solo en juegos que los llevan
@@ -33,8 +34,8 @@ export default function BracketPage() {
   const real = !!gestion?.generado
   const rondasReales = useMemo<RondaSample[] | null>(() => {
     if (!real || !t) return null
-    const pool = rankingPorJuego(t.juego)
-    const seeds = (gestion!.seeds ?? []).map(sid => pool.find(p => p.id === sid)).filter(Boolean) as Jugador[]
+    // resolverSeeds: pool de muestra + cuentas demo inscritas ('cuenta-{email}')
+    const seeds = resolverSeeds(gestion!.seeds ?? [], rankingPorJuego(t.juego), t.juego, perfilesCuentas)
     const rb = construirRondas(seeds, gestion!.winners ?? {})
     const puntos = gestion!.puntos ?? {}
     const bo = gestion!.bo ?? { base: 3, top: 5, desde: 'semis' as BoDesde }
@@ -51,7 +52,7 @@ export default function BracketPage() {
         } as MatchSample
       }),
     }))
-  }, [real, t, gestion, idioma])
+  }, [real, t, gestion, idioma, perfilesCuentas])
 
   const esDoble = !real && t?.formato === 'Doble eliminación'
   const esTabla = !real && (t?.formato === 'Suizo' || t?.formato === 'Round robin')

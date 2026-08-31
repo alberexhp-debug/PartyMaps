@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { organizadorEfectivo } from '@/lib/torneos/sample'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore, useOrgId } from '@/lib/stores/useDemoStore'
+import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { useT } from '@/lib/i18n'
 import { CabeceraConsola } from '@/components/todh/CabeceraConsola'
 import { GameIcon, GameChip } from '@/components/todh/GameIcon'
@@ -18,6 +19,9 @@ export default function GestionarIndexPage() {
   const creados = useDemoStore(s => s.creados)
   const editados = useDemoStore(s => s.editados)
   const cancelados = useDemoStore(s => s.cancelados)
+  // Mundo compartido: inscripciones de cuentas demo (suman en el contador)
+  const inscCuentas = useDemoStore(s => s.inscripcionesCuentas)
+  const miEmail = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
   const misTorneos = torneosEfectivos(creados, editados, cancelados, { conCancelados: true })
     .filter(t => t.organizadorId === org.id)
 
@@ -52,7 +56,7 @@ export default function GestionarIndexPage() {
                   <GameIcon juegoId={t.juego} size={32} variant="tile" className="shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white truncate">{t.nombre}</p>
-                    <p className="text-[11px] text-[#8B8BA8] font-mono-num"><GameChip juegoId={t.juego} size={11} /> · {t.local} · {t.inscritos}/{t.plazas}</p>
+                    <p className="text-[11px] text-[#8B8BA8] font-mono-num"><GameChip juegoId={t.juego} size={11} /> · {t.local} · {t.inscritos + (inscCuentas[t.id] ?? []).filter(e => e !== miEmail).length}/{t.plazas}</p>
                   </div>
                   {cancelados.includes(t.id)
                     ? <span className="text-[11px] text-[#FF8A8A] font-semibold shrink-0">{tr('tk.cancelado')}</span>

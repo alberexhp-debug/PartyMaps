@@ -58,7 +58,12 @@ export const CUENTAS_DEMO: CuentaDemo[] = [
 // Las cuentas legacy (y sin sesión) comparten la clave histórica 'todh-demo'
 // (compatibilidad total con las suites y los usuarios actuales); cada cuenta
 // nueva vive en su propio namespace 'todh-demo@{slug-del-email}'.
-const EMAILS_LEGACY = new Set(['jugador@torneum.com', 'to@torneum.com', 'local@torneum.com', 'admin@torneum.com'])
+export const EMAILS_LEGACY = new Set(['jugador@torneum.com', 'to@torneum.com', 'local@torneum.com', 'admin@torneum.com'])
+
+// ── Mundo compartido (30-08): directorio de cuentas buscables en /amigos ──
+// Solo cuentas VISIBLES de rol jugador (David incluido): ni sedes, ni admin,
+// ni las legacy ocultas. Es la base del buscador de amigos entre cuentas.
+export const CUENTAS_DIRECTORIO: CuentaDemo[] = CUENTAS_DEMO.filter(c => c.rol === 'jugador' && !c.oculta)
 
 export function claveDemo(email?: string | null): string {
   if (!email || EMAILS_LEGACY.has(email.toLowerCase())) return 'todh-demo'

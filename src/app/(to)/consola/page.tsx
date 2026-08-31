@@ -27,12 +27,15 @@ export default function ConsolaTOPage() {
   const creados = useDemoStore(s => s.creados)
   const editados = useDemoStore(s => s.editados)
   const cancelados = useDemoStore(s => s.cancelados)
-  const disputas = useDemoStore(s => s.disputas)
+  const disputasTodas = useDemoStore(s => s.disputas)
   const plazasPendientes = useDemoStore(s => s.plazasPendientes)
   const solicitudesSede = useDemoStore(s => s.solicitudesSede).filter(x => (x.orgId ?? 'lima') === org.id)
   // El TO ve también sus cancelados (marcados); las métricas solo cuentan los vivos
   const misTorneos = torneosEfectivos(creados, editados, cancelados, { conCancelados: true })
     .filter(t => t.organizadorId === org.id)
+  // Mundo compartido: las disputas son del TORNEO — la consola solo enseña
+  // las de TUS torneos (la disputa seed de t1 es de Lima, no de David).
+  const disputas = disputasTodas.filter(d => misTorneos.some(t => t.id === d.torneoId))
   const vivos = misTorneos.filter(t => !cancelados.includes(t.id))
   const proximo = vivos[0]
   const totalInscritos = vivos.reduce((a, t) => a + t.inscritos, 0)

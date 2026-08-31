@@ -8,7 +8,9 @@ import {
   MessagesSquare, Send, Search, Swords, ChevronRight, Megaphone, BellPlus,
 } from 'lucide-react'
 import { JUEGOS, JUEGOS_LIST, ORGANIZADORES, rankingPorJuego, plantillaDe, type Jugador } from '@/lib/torneos/sample'
-import { useDemoStore, type GrupoChat, type MensajeGrupo } from '@/lib/stores/useDemoStore'
+import { useDemoStore, nombreCuentaDemo, tagCuentaDemo, type GrupoChat, type MensajeGrupo } from '@/lib/stores/useDemoStore'
+import { useSesionStore, CUENTAS_DIRECTORIO } from '@/lib/stores/useSesionStore'
+import { MiniPerfilCuenta, AvatarCuenta } from '@/components/todh/MiniPerfilCuenta'
 import { CREW_USUARIO, nivelCrew, puntuacionCrew } from '@/lib/torneos/crews'
 import { tagUsuarioDe } from '@/lib/torneos/tags'
 import { CrewEmblema } from '@/components/todh/CrewEmblema'
@@ -80,13 +82,35 @@ export default function AmigosPage() {
   const salirGrupo = useDemoStore(s => s.salirGrupoChat)
 
   const crews = useDemoStore(s => s.crews)
+  // ── Mundo compartido (30-08): amistades ENTRE cuentas demo ──
+  const sesionEmail = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
+  const perfiles = useDemoStore(s => s.perfilesCuentas)
+  const amistades = useDemoStore(s => s.amistadesCuentas)
+  const solicitarCuenta = useDemoStore(s => s.solicitarAmistadCuenta)
+  const responderCuenta = useDemoStore(s => s.responderAmistadCuenta)
+  const quitarCuenta = useDemoStore(s => s.quitarAmigoCuenta)
   const [tab, setTab] = useState<'amigos' | 'grupos' | 'crews' | 'difusion'>('amigos')
   const [crear, setCrear] = useState(false)
   const [crearCrew, setCrearCrew] = useState(false)
   const [buscar, setBuscar] = useState('')
   const [verJugador, setVerJugador] = useState<Jugador | null>(null)
+  const [verCuenta, setVerCuenta] = useState<string | null>(null)
   const [chatDe, setChatDe] = useState<string | null>(null)
   const grupoChat = grupos.find(g => g.id === chatDe) ?? null
+
+  // Directorio de cuentas buscables (visibles, rol jugador, sin la propia):
+  // nombre/tag/foto los publica cada dueño en su perfil (perfilesCuentas).
+  const dirCuentas = CUENTAS_DIRECTORIO
+    .map(c => c.email.toLowerCase())
+    .filter(email => email !== sesionEmail)
+    .map(email => ({ email, nombre: nombreCuentaDemo(email, perfiles), tag: tagCuentaDemo(email, perfiles) }))
+  const relacionCon = (email: string) =>
+    amistades.find(a => (a.de === sesionEmail && a.a === email) || (a.de === email && a.a === sesionEmail))
+  const solicitudesCuenta = sesionEmail ? amistades.filter(a => a.a === sesionEmail && a.estado === 'pendiente') : []
+  const amigosCuenta = sesionEmail
+    ? amistades.filter(a => a.estado === 'aceptada' && (a.de === sesionEmail || a.a === sesionEmail)).map(a => a.de === sesionEmail ? a.a : a.de)
+    : []
+  const pendAmistades = solicitudes.length + solicitudesCuenta.length
 
   // Buscador: por nombre sigue siendo parcial; si el texto lleva `#`, la
   // búsqueda pasa a EXACTA `nombre#XABCD` (case-insensitive) — el tag de cada
@@ -97,6 +121,14 @@ export default function AmigosPage() {
         ? NOMBRES_UNICOS.filter(n => !amigos.includes(n) && `${n}#${tagUsuarioDe(n)}`.toLowerCase() === q.replace(/\s+/g, '').toLowerCase())
         : NOMBRES_UNICOS.filter(n => !amigos.includes(n) && n.toLowerCase().includes(q.toLowerCase()))
       ).slice(0, 6)
+    : []
+  // Cuentas Torneum que casan con la búsqueda (mismas reglas), sin las que ya
+  // son amigas: van ANTES que el pool y marcadas como «Cuenta Torneum».
+  const candidatosCuenta = q.length > 0 && sesionEmail
+    ? (q.includes('#')
+        ? dirCuentas.filter(c => `${c.nombre}#${c.tag}`.toLowerCase() === q.replace(/\s+/g, '').toLowerCase())
+        : dirCuentas.filter(c => c.nombre.toLowerCase().includes(q.toLowerCase()))
+      ).filter(c => relacionCon(c.email)?.estado !== 'aceptada').slice(0, 4)
     : []
 
   const compartir = async () => {
@@ -128,7 +160,7 @@ export default function AmigosPage() {
               tab === t ? 'bg-[#B6FF3A] border-[#B6FF3A] text-[#0A0A0F]' : 'border-white/10 text-[#8B8BA8] hover:text-white')}>
             {t === 'amigos' ? <Users size={15} /> : t === 'grupos' ? <MessagesSquare size={15} /> : t === 'crews' ? <Swords size={15} /> : <Megaphone size={15} />}
             {t === 'amigos' ? tr('amigos.titulo') : t === 'grupos' ? tr('amigos.grupos') : t === 'crews' ? tr('crew.tab') : tr('chat.difusion')}
-            {t === 'amigos' && solicitudes.length > 0 && <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF3D71] px-1 text-[11px] font-bold text-white">{solicitudes.length}</span>}
+            {t === 'amigos' && pendAmistades > 0 && <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF3D71] px-1 text-[11px] font-bold text-white">{pendAmistades}</span>}
           </button>
         ))}
       </div>
@@ -144,6 +176,26 @@ export default function AmigosPage() {
               <input value={buscar} onChange={e => setBuscar(e.target.value)} placeholder={tr('am.buscarAliasPh')}
                 className="w-full h-11 pl-9 pr-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-[#6B6B85] focus:border-[#B6FF3A]/60 outline-none" />
             </div>
+            {/* Cuentas Torneum encontradas (mundo compartido): agregar crea una
+                solicitud REAL que el destinatario acepta o rechaza al entrar. */}
+            {candidatosCuenta.map(c => {
+              const rel = relacionCon(c.email)
+              return (
+                <div key={c.email} className="flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/20 bg-[#B6FF3A]/[0.04] px-3.5 py-2.5">
+                  <AvatarCuenta email={c.email} size={34} />
+                  <span className="flex-1 min-w-0 truncate text-sm font-semibold text-white">
+                    {c.nombre} <span className="text-[12px] font-bold text-[#8B8BA8] font-mono-num">#{c.tag}</span>
+                    <span className="ml-1.5 inline-flex items-center px-1.5 h-5 rounded-full bg-[#B6FF3A]/12 border border-[#B6FF3A]/35 text-[#B6FF3A] text-[9px] font-bold uppercase tracking-wide align-middle">{tr('mc.cuentaTorneum')}</span>
+                  </span>
+                  {rel ? (
+                    <span className="inline-flex items-center h-8 px-3 rounded-lg bg-white/6 text-[#8B8BA8] text-[12px] font-bold">{tr('mc.pendiente')}</span>
+                  ) : (
+                    <button onClick={() => { solicitarCuenta(c.email); setBuscar('') }}
+                      className="inline-flex items-center gap-1 h-8 px-3 rounded-lg bg-[#B6FF3A]/15 text-[#B6FF3A] text-[12px] font-bold"><UserPlus size={13} /> {tr('am.agregar')}</button>
+                  )}
+                </div>
+              )
+            })}
             {candidatos.map(n => {
               const j = jugadorDe(n)
               return (
@@ -157,13 +209,29 @@ export default function AmigosPage() {
                 </div>
               )
             })}
-            {buscar.trim() && candidatos.length === 0 && <p className="text-[12px] text-[#8B8BA8] px-1">{tr('am.sinResultados')}</p>}
+            {buscar.trim() && candidatos.length === 0 && candidatosCuenta.length === 0 && <p className="text-[12px] text-[#8B8BA8] px-1">{tr('am.sinResultados')}</p>}
           </section>
 
           {/* Solicitudes recibidas */}
-          {solicitudes.length > 0 && (
+          {(solicitudes.length > 0 || solicitudesCuenta.length > 0) && (
             <section className="space-y-2">
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">{tr('amigos.solicitudes')}</p>
+              {/* Solicitudes de cuentas Torneum (mundo compartido): Aceptar y
+                  Rechazar son reales — la relación cambia para AMBAS cuentas. */}
+              {solicitudesCuenta.map(a => {
+                const nombre = nombreCuentaDemo(a.de, perfiles)
+                return (
+                  <div key={a.de} className="flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.05] px-3.5 py-3">
+                    <AvatarCuenta email={a.de} />
+                    <span className="flex-1 min-w-0 truncate text-sm font-semibold text-white">
+                      {nombre} <span className="text-[12px] font-bold text-[#8B8BA8] font-mono-num">#{tagCuentaDemo(a.de, perfiles)}</span>
+                      <span className="ml-1.5 inline-flex items-center px-1.5 h-5 rounded-full bg-[#B6FF3A]/12 border border-[#B6FF3A]/35 text-[#B6FF3A] text-[9px] font-bold uppercase tracking-wide align-middle">{tr('mc.cuentaTorneum')}</span>
+                    </span>
+                    <button onClick={() => responderCuenta(a.de, true)} aria-label={`Aceptar a ${nombre}`} className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#27AE60] text-white"><Check size={17} /></button>
+                    <button onClick={() => responderCuenta(a.de, false)} aria-label={`Rechazar a ${nombre}`} className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-[#8B8BA8] hover:text-white"><X size={17} /></button>
+                  </div>
+                )
+              })}
               {solicitudes.map(n => (
                 <div key={n} className="flex items-center gap-3 rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.05] px-3.5 py-3">
                   <Avatar nombre={n} />
@@ -178,14 +246,32 @@ export default function AmigosPage() {
 
           {/* Tus amigos */}
           <section className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">{tr('amigos.tus')} ({amigos.length})</p>
-            {amigos.length === 0 ? (
+            <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B8BA8]">{tr('amigos.tus')} ({amigos.length + amigosCuenta.length})</p>
+            {amigos.length === 0 && amigosCuenta.length === 0 ? (
               <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-8 text-center">
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#B6FF3A]/15 text-[#B6FF3A]"><UserPlus size={22} /></div>
                 <p className="font-semibold text-white">{tr('am.sinAmigos')}</p>
                 <p className="mx-auto mt-1 max-w-xs text-sm text-[#8B8BA8]">{tr('am.sinAmigosSub')}</p>
               </div>
-            ) : amigos.map(nombre => {
+            ) : <>
+            {/* Amigos que son CUENTAS Torneum (mundo compartido): su avatar es
+                la foto pública de su perfil; el toque abre su mini-perfil. */}
+            {amigosCuenta.map(email => {
+              const nombre = nombreCuentaDemo(email, perfiles)
+              return (
+                <div key={email} className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 card-int">
+                  <button onClick={() => setVerCuenta(email)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                    <AvatarCuenta email={email} />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-white">{nombre} <span className="text-[11px] font-bold text-[#8B8BA8] font-mono-num">#{tagCuentaDemo(email, perfiles)}</span></span>
+                      <span className="text-[11px] text-[#B6FF3A] font-semibold">{tr('mc.cuentaTorneum')}</span>
+                    </span>
+                  </button>
+                  <button onClick={() => quitarCuenta(email)} aria-label={`Quitar a ${nombre}`} className="flex h-9 w-9 items-center justify-center rounded-xl text-[#6B6B85] hover:text-[#FF8A8A]"><Trash2 size={16} /></button>
+                </div>
+              )
+            })}
+            {amigos.map(nombre => {
               const j = jugadorDe(nombre)
               return (
                 <div key={nombre} className="flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 card-int">
@@ -204,6 +290,7 @@ export default function AmigosPage() {
                 </div>
               )
             })}
+            </>}
           </section>
         </div>
       ) : tab === 'grupos' ? (
@@ -287,6 +374,7 @@ export default function AmigosPage() {
       {crearCrew && <CrearCrewSheet onClose={() => setCrearCrew(false)} />}
       {grupoChat && <GrupoChatSheet grupo={grupoChat} onSalir={() => { salirGrupo(grupoChat.id); setChatDe(null) }} onClose={() => setChatDe(null)} />}
       {verJugador && <MiniPerfil jugador={verJugador} onClose={() => setVerJugador(null)} />}
+      {verCuenta && <MiniPerfilCuenta email={verCuenta} onClose={() => setVerCuenta(null)} />}
     </div>
   )
 }

@@ -5,7 +5,9 @@ import { useMemo, useRef, useState } from 'react'
 import { getTorneo, JUEGOS, rankingPorJuego, plantillaDe, esperaDe, type Jugador } from '@/lib/torneos/sample'
 import { descargarCSV } from '@/lib/torneos/exportar'
 import { construirRondas, nombreRonda, boDeRonda, paraGanar, normalizarDesde, opcionesDesde, etiquetaDesde } from '@/lib/torneos/bracket'
-import { useDemoStore, useOrgId, ESPERA_USUARIO, type BoDesde } from '@/lib/stores/useDemoStore'
+import { useDemoStore, useOrgId, ESPERA_USUARIO, jugadorDeCuenta, resolverSeeds, tagCuentaDemo, ID_CUENTA_PREFIJO, type BoDesde } from '@/lib/stores/useDemoStore'
+import { useSesionStore } from '@/lib/stores/useSesionStore'
+import { MiniPerfilCuenta, AvatarCuenta } from '@/components/todh/MiniPerfilCuenta'
 import { useT, conParams } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
@@ -93,15 +95,32 @@ export default function GestionarTorneoPage() {
   const checkin = useMemo(() => new Set(gestion?.checkin ?? []), [gestion?.checkin])
 
   const bajas = useMemo(() => new Set(gestion?.bajas ?? []), [gestion?.bajas])
+  // Mundo compartido (30-08): cuentas demo inscritas a este torneo — el TO las
+  // ve CON SU NOMBRE en la lista y en el check-in, y son seedeables (id
+  // 'cuenta-{email}') como cualquier jugador. La propia cuenta del TO no
+  // (esa sale como «usuario de la app», igual que siempre).
+  const inscCuentasRaw = useDemoStore(s => s.inscripcionesCuentas[id])
+  const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
+  const miEmail = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
+  const iniciarTorneo = useDemoStore(s => s.iniciarTorneo)
+  const [verCuenta, setVerCuenta] = useState<string | null>(null)
+  const jugadoresCuenta = useMemo(() => {
+    if (!base) return [] as Jugador[]
+    return (inscCuentasRaw ?? [])
+      .filter(e => e !== miEmail)
+      .map(e => jugadorDeCuenta(e, base.juego, perfilesCuentas))
+      .filter(p => !bajas.has(p.id))
+  }, [base, inscCuentasRaw, miEmail, perfilesCuentas, bajas])
   const inscritos = useMemo(() => {
     if (!base) return [] as Jugador[]
     // Torneo creado por el TO: SOLO inscritos reales (nada de rellenar con el
     // pool de muestra — antes un torneo recién publicado enseñaba 16 jugadores
-    // que no se habían inscrito y permitía generar un bracket falso).
-    if (esCreado) return [] as Jugador[]
+    // que no se habían inscrito y permitía generar un bracket falso). Las
+    // cuentas demo inscritas SÍ son reales y entran en ambos casos.
+    if (esCreado) return jugadoresCuenta
     const n = Math.min((override?.inscritos ?? base.inscritos) || 16, (override?.plazas ?? base.plazas), 16)
-    return rankingPorJuego(base.juego).slice(0, n).filter(p => !bajas.has(p.id))
-  }, [base, esCreado, override?.inscritos, override?.plazas, bajas])
+    return [...rankingPorJuego(base.juego).slice(0, n).filter(p => !bajas.has(p.id)), ...jugadoresCuenta]
+  }, [base, esCreado, override?.inscritos, override?.plazas, bajas, jugadoresCuenta])
 
   // Cola de espera del torneo: los ya entrados (por nombre, F7) ocupan plaza;
   // el resto sigue esperando en su orden original.
@@ -113,9 +132,9 @@ export default function GestionarTorneoPage() {
 
   const bracketSeeds = useMemo(() => {
     if (!base) return [] as Jugador[]
-    const pool = rankingPorJuego(base.juego)
-    return (gestion?.seeds ?? []).map(sid => pool.find(p => p.id === sid)).filter(Boolean) as Jugador[]
-  }, [base, gestion?.seeds])
+    // resolverSeeds: pool de muestra + cuentas demo ('cuenta-{email}').
+    return resolverSeeds(gestion?.seeds ?? [], rankingPorJuego(base.juego), base.juego, perfilesCuentas)
+  }, [base, gestion?.seeds, perfilesCuentas])
 
   // Bracket de eliminación simple, calculado a partir de los sembrados congelados
   // y de los ganadores reportados. Los byes avanzan solos.
@@ -340,6 +359,33 @@ export default function GestionarTorneoPage() {
           </div>
         )}
 
+        {/* Iniciar torneo (30-08): el TO lo pone EN DIRECTO cuando quiere —
+            aunque no esté lleno ni sea la fecha. Es un override COMPARTIDO
+            (editados del mundo): todas las cuentas lo ven live al instante y
+            las inscripciones quedan cerradas. Requiere bracket generado. */}
+        {!cancelado && (t.enDirecto ? (
+          <div className="mt-5 rounded-2xl border border-[#E63E54]/45 bg-[#E63E54]/[0.08] p-4 flex items-center gap-3">
+            <span className="badge-live shrink-0">Live</span>
+            <p className="flex-1 text-sm font-bold text-white">{tr('mc.enDirecto')}</p>
+            <Link href="/modo-directo" className="h-10 px-3.5 rounded-xl bg-[#E63E54] text-white text-[13px] font-bold inline-flex items-center gap-1.5 shrink-0"><Radio size={14} /> {tr('to.modoDirecto')}</Link>
+          </div>
+        ) : generado ? (
+          <div className="mt-5 rounded-2xl border border-[#E63E54]/40 bg-[#E63E54]/[0.06] p-4 flex items-center gap-3 flex-wrap">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#E63E54]/15 text-[#FF8A8A] shrink-0"><Radio size={20} /></span>
+            <div className="flex-1 min-w-44">
+              <p className="text-[15px] font-bold text-white">{tr('mc.iniciarTorneo')}</p>
+              <p className="text-xs text-[#A0A0B8]">{tr('mc.liveCerrado')}</p>
+            </div>
+            <button onClick={() => {
+              if (typeof window !== 'undefined' && !window.confirm(conParams(tr('mc.iniciarConfirm'), { nombre: t.nombre }))) return
+              iniciarTorneo(id, t.nombre)
+            }}
+              className="h-11 px-4 rounded-xl bg-[#E63E54] text-white text-sm font-bold shrink-0 inline-flex items-center gap-1.5">
+              <Radio size={15} /> {tr('mc.iniciarTorneo')}
+            </button>
+          </div>
+        ) : null)}
+
         {/* Tabs */}
         <div className="mt-5 flex gap-1 glass-subtle rounded-2xl p-1 sm:max-w-sm">
           {(['inscritos', 'bracket', 'ajustes'] as const).map(tb => (
@@ -405,13 +451,21 @@ export default function GestionarTorneoPage() {
             <div className="mt-2 space-y-1.5">
               {filtrados.map((p, i) => {
                 const ok = checkin.has(p.id)
+                // Cuenta Torneum inscrita (mundo compartido): avatar público,
+                // tag y mini-perfil de cuenta — sin stats de pool inventadas.
+                const emailCuenta = p.id.startsWith(ID_CUENTA_PREFIJO) ? p.id.slice(ID_CUENTA_PREFIJO.length) : null
+                const abrir = () => emailCuenta ? setVerCuenta(emailCuenta) : setSel(p)
                 return (
                   <div key={p.id} className="flex items-center gap-3 card-premium p-2.5 stagger-item" style={{ ['--delay' as string]: `${Math.min(i, 12) * 35}ms` }}>
                     <span className="w-7 text-center text-xs font-bold text-[#8B8BA8] font-mono-num">#{seedOf(p.id)}</span>
-                    <button onClick={() => setSel(p)} className="inline-flex items-center justify-center w-9 h-9 rounded-full text-[#0A0A0F] font-black shrink-0" style={{ background: juego.color }}>{p.nombre[0]}</button>
-                    <button onClick={() => setSel(p)} className="flex-1 min-w-0 text-left">
+                    {emailCuenta
+                      ? <button onClick={abrir} className="shrink-0"><AvatarCuenta email={emailCuenta} size={36} /></button>
+                      : <button onClick={abrir} className="inline-flex items-center justify-center w-9 h-9 rounded-full text-[#0A0A0F] font-black shrink-0" style={{ background: juego.color }}>{p.nombre[0]}</button>}
+                    <button onClick={abrir} className="flex-1 min-w-0 text-left">
                       <p className="text-sm font-bold text-white truncate">{p.nombre} <span className="text-xs">{p.bandera}</span></p>
-                      <p className="text-[11px] text-[#8B8BA8] font-mono-num flex items-center gap-1 whitespace-nowrap overflow-hidden">{p.rating} · {p.tier}{p.main ? <> · <PersonajeChip juegoId={p.juego} nombre={p.main} /></> : null}</p>
+                      {emailCuenta
+                        ? <p className="text-[11px] text-[#B6FF3A] font-semibold flex items-center gap-1 whitespace-nowrap overflow-hidden"><span className="font-mono-num text-[#8B8BA8]">#{tagCuentaDemo(emailCuenta, perfilesCuentas)}</span> · {tr('mc.cuentaTorneum')} · {tr('mc.inscritoCuenta')}</p>
+                        : <p className="text-[11px] text-[#8B8BA8] font-mono-num flex items-center gap-1 whitespace-nowrap overflow-hidden">{p.rating} · {p.tier}{p.main ? <> · <PersonajeChip juegoId={p.juego} nombre={p.main} /></> : null}</p>}
                     </button>
                     <button onClick={() => toggle(p.id)} aria-label={ok ? 'Quitar check-in' : 'Hacer check-in'}
                       className={`h-9 px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${ok ? 'bg-[#B6FF3A] text-[#0A0A0F]' : 'bg-white/8 text-[#B8B8CC] hover:bg-white/12'}`}>
@@ -765,6 +819,7 @@ export default function GestionarTorneoPage() {
       )}
 
       {sel && <MiniPerfil jugador={sel} onClose={() => setSel(null)} />}
+      {verCuenta && <MiniPerfilCuenta email={verCuenta} onClose={() => setVerCuenta(null)} />}
     </div>
   )
 }

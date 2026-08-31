@@ -1,7 +1,9 @@
 // Prueba de las CUENTAS DEMO (30-08): el login enseña los 11 accesos nuevos
 // (6 jugadores + David TO + 3 sedes + admin) sin los 4 botones viejos; las
-// cuentas legacy siguen entrando tecleando; cada cuenta nueva es un mundo
-// VACÍO en su propio namespace (persiste y NO se cruza con las demás).
+// cuentas legacy siguen entrando tecleando; lo PERSONAL de cada cuenta nueva
+// arranca vacío y persiste en su namespace, y desde v2 TODAS comparten MUNDO
+// ('todh-mundo'): torneos, inscripciones cruzadas y amistades entre cuentas
+// (sección 7).
 //   BASE_URL=http://localhost:3006 node _test_cuentas.mjs
 import { chromium } from 'playwright'
 import { mkdirSync } from 'fs'
@@ -176,6 +178,134 @@ async function logout(page) {
   await page.waitForTimeout(1000)
   ok(await page.getByText('La Tienda del Dragón').count() > 0, 'el panel es el de La Tienda del Dragón')
   await page.screenshot({ path: `${OUT}/6-dragon-sede.png`, fullPage: true })
+  await ctx.close()
+}
+
+// ── 7. MUNDO COMPARTIDO (v2): las cuentas comparten mundo — torneos,
+// inscripciones cruzadas, amistades entre cuentas y torneo iniciado en vivo.
+// Mismo contexto de navegador todo el rato, cambiando de cuenta por logout/login.
+{
+  const { ctx, page } = await nuevaPagina()
+  page.on('dialog', d => d.accept())
+  console.log('— mundo compartido: David publica, Javier/Lucía lo ven y se inscriben')
+  // Una cuenta fresca estrena el onboarding real en /explorar: se salta aquí
+  // para que no tape los clicks del flujo (el onboarding ya tiene su prueba).
+  const saltarOnboarding = async () => {
+    const saltar = page.getByRole('button', { name: /Saltar por ahora/ })
+    if (await saltar.count() > 0) { await saltar.first().click(); await page.waitForTimeout(600) }
+  }
+
+  // (a) David crea su torneo
+  await loginBoton(page, 'David')
+  await saltarOnboarding()
+  await page.goto(`${BASE}/crear-torneo`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
+  await page.getByPlaceholder(/Lima Smash Weekly/).fill('Copa Mundo Compartido')
+  await page.getByRole('button', { name: /elegir sede/i }).first().click(); await page.waitForTimeout(600)
+  await page.getByRole('button', { name: /Arcade Planet/ }).last().click(); await page.waitForTimeout(500)
+  await page.getByRole('button', { name: /Publicar torneo/ }).first().click(); await page.waitForTimeout(1200)
+  await logout(page)
+
+  // Javier LO VE en /explorar y se inscribe
+  await loginBoton(page, 'Javier')
+  await saltarOnboarding()
+  await page.goto(`${BASE}/explorar`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
+  await saltarOnboarding()
+  ok(await page.getByText('Copa Mundo Compartido').count() > 0, 'Javier VE el torneo de David en /explorar (mundo compartido)')
+  await page.getByText('Copa Mundo Compartido').first().click()
+  await page.waitForURL('**/torneo/**', { timeout: 8000 }); await page.waitForTimeout(1500)
+  await page.getByRole('button', { name: /Inscribirme/i }).first().click(); await page.waitForTimeout(700)
+  await page.getByRole('button', { name: /^Pagar .*€$|^Confirmar inscripción$/ }).click(); await page.waitForTimeout(2600)
+  ok(await page.getByText('Inscrito · ver en mi cartera').count() > 0, 'Javier queda inscrito al torneo de David')
+  ok(await page.getByText(/1 ?\/ ?32/).count() > 0, 'el contador de la ficha marca 1/32')
+
+  // (b) Javier busca a Lucía en /amigos y la agrega
+  await page.goto(`${BASE}/amigos`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  await page.getByPlaceholder(/Busca por alias/).fill('Lucía'); await page.waitForTimeout(500)
+  ok(await page.getByText('Cuenta Torneum').count() > 0, 'Lucía sale en el buscador marcada como «Cuenta Torneum»')
+  await page.getByRole('button', { name: /Agregar/ }).first().click(); await page.waitForTimeout(700)
+  await page.getByPlaceholder(/Busca por alias/).fill('Lucía'); await page.waitForTimeout(500)
+  ok(await page.getByText('Pendiente').count() > 0, 'tras agregar, la solicitud queda Pendiente')
+  await logout(page)
+
+  // Lucía: la solicitud de Javier le aparece → Aceptar; y también se inscribe
+  await loginBoton(page, 'Lucía')
+  await saltarOnboarding()
+  await page.goto(`${BASE}/amigos`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  ok(await page.locator('button[aria-label="Aceptar a Javier"]').count() > 0, 'a Lucía le aparece la solicitud de Javier')
+  await page.locator('button[aria-label="Aceptar a Javier"]').click(); await page.waitForTimeout(700)
+  ok(await page.getByText('Javier').count() > 0, 'aceptar → Javier en la lista de amigos de Lucía')
+  await page.goto(`${BASE}/explorar`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  await saltarOnboarding()
+  await page.getByText('Copa Mundo Compartido').first().click()
+  await page.waitForURL('**/torneo/**', { timeout: 8000 }); await page.waitForTimeout(1500)
+  ok(await page.getByText(/1 ?\/ ?32/).count() > 0, 'Lucía ve la inscripción de Javier en el contador (1/32)')
+  await page.getByRole('button', { name: /Inscribirme/i }).first().click(); await page.waitForTimeout(700)
+  await page.getByRole('button', { name: /^Pagar .*€$|^Confirmar inscripción$/ }).click(); await page.waitForTimeout(2600)
+  await logout(page)
+
+  // (c) Marcos agrega a Carmen → Carmen RECHAZA
+  await loginBoton(page, 'Marcos')
+  await saltarOnboarding()
+  await page.goto(`${BASE}/amigos`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  await page.getByPlaceholder(/Busca por alias/).fill('Carmen'); await page.waitForTimeout(500)
+  await page.getByRole('button', { name: /Agregar/ }).first().click(); await page.waitForTimeout(700)
+  await logout(page)
+  await loginBoton(page, 'Carmen')
+  await saltarOnboarding()
+  await page.goto(`${BASE}/amigos`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  ok(await page.locator('button[aria-label="Rechazar a Marcos"]').count() > 0, 'a Carmen le aparece la solicitud de Marcos')
+  await page.locator('button[aria-label="Rechazar a Marcos"]').click(); await page.waitForTimeout(700)
+  ok(await page.locator('button[aria-label="Rechazar a Marcos"]').count() === 0, 'rechazar → la solicitud desaparece')
+  ok(await page.getByText('Marcos').count() === 0, 'y Marcos NO queda como amigo de Carmen')
+  await logout(page)
+
+  // Verificación en la otra dirección: Javier ve a Lucía como amiga
+  await loginBoton(page, 'Javier')
+  await saltarOnboarding()
+  await page.goto(`${BASE}/amigos`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  ok(await page.getByText('Lucía').count() > 0, 'Javier ve a Lucía en SU lista de amigos (las dos direcciones)')
+  await logout(page)
+
+  // (a2) David ve el contador subido y los nombres; hace check-in, genera el
+  // bracket y ARRANCA el torneo sin estar lleno → EN DIRECTO para todos
+  await loginBoton(page, 'David')
+  await saltarOnboarding()
+  await page.goto(`${BASE}/gestionar`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
+  ok(await page.getByText('2/32').count() > 0, 'David ve el contador con las 2 inscripciones de cuenta (2/32)')
+  await page.getByText('Copa Mundo Compartido').first().click()
+  await page.waitForURL('**/gestionar/**', { timeout: 8000 }); await page.waitForTimeout(1800)
+  ok(await page.getByText('Javier').count() > 0, 'David ve a «Javier» POR SU NOMBRE en la lista de inscritos')
+  ok(await page.getByText('Lucía').count() > 0, 'y a «Lucía» también')
+  await page.getByRole('button', { name: /Check-in masivo/i }).click(); await page.waitForTimeout(600)
+  await page.getByRole('button', { name: /Generar bracket/ }).first().click(); await page.waitForTimeout(900)
+  ok(await page.getByRole('button', { name: /Iniciar torneo/ }).count() > 0, 'con bracket generado aparece «Iniciar torneo»')
+  await page.getByRole('button', { name: /Iniciar torneo/ }).first().click(); await page.waitForTimeout(900)
+  ok(await page.getByText('El torneo está EN DIRECTO').count() > 0, 'David inicia el torneo sin llenarlo → EN DIRECTO')
+  await logout(page)
+
+  // Marcos (no inscrito) lo ve EN DIRECTO y ya NO puede inscribirse. La ficha
+  // se abre por id leído del MUNDO compartido (verifica de paso 'todh-mundo').
+  await loginBoton(page, 'Marcos')
+  await saltarOnboarding()
+  await page.goto(`${BASE}/explorar`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
+  await saltarOnboarding()
+  ok(await page.getByText('Copa Mundo Compartido').count() > 0, 'Marcos también ve el torneo (ya en directo) en /explorar')
+  const idCopa = await page.evaluate(() => {
+    const w = JSON.parse(localStorage.getItem('todh-mundo'))
+    return w?.state?.creados?.find(c => c.nombre === 'Copa Mundo Compartido')?.id ?? null
+  })
+  ok(!!idCopa, `el torneo vive en el MUNDO común 'todh-mundo' (${idCopa})`)
+  await page.goto(`${BASE}/torneo/${idCopa}`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
+  ok(await page.getByText(/inscripciones cerradas/i).count() > 0, 'la ficha avisa: torneo en directo — inscripciones cerradas')
+  ok(await page.getByRole('button', { name: /Inscribirme/i }).count() === 0, 'y el botón Inscribirme ya no existe')
+  await page.screenshot({ path: `${OUT}/7-live-cerrado.png` })
+  await logout(page)
+
+  // (d) el mundo rico legacy sigue: jugador@ tecleando ve su mundo de siempre
+  await loginTeclado(page, 'jugador@torneum.com')
+  await page.goto(`${BASE}/perfil`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
+  ok(await page.getByText('Lima Smash Weekly #41').count() > 0, 'jugador@ conserva su historial rico tras todo el cruce')
+  ok(await page.getByText(/Nocturna/).count() > 0, 'y sus crews propias (Nocturna) siguen siendo suyas')
   await ctx.close()
 }
 

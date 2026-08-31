@@ -8,8 +8,9 @@ import {
 } from '@/lib/torneos/sample'
 import { CREW_USUARIO, puntuacionCrew, nivelCrew } from '@/lib/torneos/crews'
 import { CrewEmblema } from '@/components/todh/CrewEmblema'
-import { useDemoStore } from '@/lib/stores/useDemoStore'
+import { useDemoStore, nombreCuentaDemo, tagCuentaDemo } from '@/lib/stores/useDemoStore'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
+import { MiniPerfilCuenta, AvatarCuenta } from '@/components/todh/MiniPerfilCuenta'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { FillBar, CountUp } from '@/components/ui/CountUp'
@@ -69,6 +70,14 @@ export default function TorneoDetallePage() {
   const enEspera = useDemoStore(s => s.listaEspera.includes(id))
   const promovidos = useDemoStore(s => s.entradosEspera[id]?.length ?? 0)
   const bajas = useDemoStore(s => s.gestion[id]?.bajas?.length ?? 0)
+  // Mundo compartido (30-08): cuentas demo inscritas a ESTE torneo (por email,
+  // sin la propia — la propia ya cuenta como `inscrito`). Suman en el contador,
+  // en el «lleno» y salen como participantes con su perfil público.
+  const inscCuentasRaw = useDemoStore(s => s.inscripcionesCuentas[id])
+  const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
+  const miEmail = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
+  const cuentasInscritas = (inscCuentasRaw ?? []).filter(e => e !== miEmail)
+  const [selCuenta, setSelCuenta] = useState<string | null>(null)
   const apuntarEspera = useDemoStore(s => s.apuntarEspera)
   const salirEspera = useDemoStore(s => s.salirEspera)
   const desinscribir = useDemoStore(s => s.desinscribir)
@@ -121,10 +130,15 @@ export default function TorneoDetallePage() {
   const org = t.organizadorId ? getOrganizador(t.organizadorId) : undefined
   const local = t.localId ? getLocal(t.localId) : undefined
   // Plazas ocupadas reales: inscritos de muestra − bajas del TO + promovidos de
-  // la cola. El usuario suma aparte (inscritosVis).
+  // la cola (esto alimenta los participantes del pool); las cuentas demo
+  // inscritas suman en el EFECTIVO (contador, % y «lleno») y el usuario aparte.
   const ocupadas = t.inscritos - bajas + promovidos
-  const completo = ocupadas >= t.plazas
-  const inscritosVis = ocupadas + (inscrito ? 1 : 0)
+  const ocupadasEf = ocupadas + cuentasInscritas.length
+  const completo = ocupadasEf >= t.plazas
+  const inscritosVis = ocupadasEf + (inscrito ? 1 : 0)
+  // Torneo EN DIRECTO (efectivo: de muestra o iniciado por el TO): las
+  // inscripciones están CERRADAS — solo queda la entrada de espectador.
+  const enVivo = !!t.enDirecto && !cancelado
   // Cola de espera pendiente (muestra) + el usuario si está apuntado
   const colaPendiente = Math.max(0, esperaDe(t).length - promovidos) + (enEspera ? 1 : 0)
   const puestoEspera = Math.max(0, esperaDe(t).length - promovidos) + 1
@@ -161,7 +175,9 @@ export default function TorneoDetallePage() {
 
   // Torneo lleno → a la cola de espera (no a inscritos): la incoherencia que
   // había era que "lista de espera" te daba plaza y QR como a un inscrito.
+  // En directo NO se confirma nada: las inscripciones están cerradas.
   function confirmarInscripcion() {
+    if (enVivo) { setSheet(false); return }
     if (completo) apuntarEspera(t!.id, t!.nombre, puestoEspera)
     else inscribir(t!.id, t!.nombre, crewSheet?.id)
     setSheet(false)
@@ -198,6 +214,12 @@ export default function TorneoDetallePage() {
       <button onClick={() => setCancelarOpen(true)}
         className="mt-1.5 w-full text-center text-[11px] text-[#8B8BA8] font-semibold hover:text-[#FF8A8A] transition-colors">{tr('espera.cancelarInsc')}</button>
     </div>
+  ) : enVivo ? (
+    // Regla (30-08): un torneo EN DIRECTO no admite inscripciones nuevas. El
+    // CTA queda deshabilitado con el motivo claro; ver de espectador sí sigue.
+    <div className="w-full h-14 rounded-2xl bg-[#E63E54]/10 border border-[#E63E54]/40 text-[#FF8A8A] font-bold text-[14px] flex items-center justify-center gap-2">
+      <span className="badge-live shrink-0">Live</span> {tr('mc.liveCerrado')}
+    </div>
   ) : enEspera ? (
     <div className="w-full rounded-2xl bg-[#FF8A5C]/10 border border-[#FF8A5C]/40 p-3.5">
       <p className="text-[#FF8A5C] font-bold text-sm flex items-center gap-1.5">⏳ {tr('espera.enLista')} · {tr('espera.puesto')} {puestoEspera}</p>
@@ -226,7 +248,7 @@ export default function TorneoDetallePage() {
   // CTA/estado de la inscripción POR EQUIPOS (F6): si el juego se juega en
   // equipos y tienes crew de ese juego, puedes abrir el cupo (avisa al grupo de
   // chat de la crew); abierto, la ficha enseña el cupo avanzando en vivo.
-  const ctaCrew = esSede || cancelado || !esEquipos ? null : cupo && cupoCrew ? (
+  const ctaCrew = esSede || cancelado || !esEquipos || enVivo ? null : cupo && cupoCrew ? (
     <div className="mt-2 w-full rounded-2xl border p-3.5" style={{ borderColor: `${cupoCrew.color ?? '#B6FF3A'}45`, background: `${cupoCrew.color ?? '#B6FF3A'}0D` }}>
       <div className="flex items-center gap-2.5">
         <CrewEmblema nivel={nivelCrew(cupoCrew)} variant="tile" size={34} />
@@ -468,7 +490,7 @@ export default function TorneoDetallePage() {
             <p className="eyebrow eyebrow-muted">{tr('torneo.participantes')}</p>
             {participantes.length > 0 && <button onClick={() => setVerParts(true)} className="text-xs text-[#B6FF3A] font-semibold">{tr('torneo.verTodos')}</button>}
           </div>
-          {participantes.length === 0 ? (
+          {participantes.length === 0 && cuentasInscritas.length === 0 ? (
             <div className="card-premium p-4 flex items-center gap-3">
               <Users size={18} className="text-[#8B8BA8] shrink-0" />
               <p className="text-sm text-[#8B8BA8]">{tr('tf.sinInscritos')} {cancelado ? '' : tr('tf.sePrimero')}</p>
@@ -485,6 +507,13 @@ export default function TorneoDetallePage() {
                     </span>
                   )
                 })}
+                {/* Cuentas demo inscritas: su avatar público se suma a la pila */}
+                {cuentasInscritas.slice(0, 6).map((email, i) => (
+                  <span key={email} className="rounded-full border-2 border-[#10131B] overflow-hidden inline-flex"
+                    style={{ marginLeft: participantes.length + i > 0 ? -10 : 0, zIndex: 10 - participantes.length - i }}>
+                    <AvatarCuenta email={email} size={34} />
+                  </span>
+                ))}
                 {ocupadas > 6 && <span className="ml-3 text-sm text-[#B8B8CC] font-medium">+{ocupadas - 6} {tr('tf.mas')}</span>}
               </button>
               <div className="mt-2 flex items-center gap-1.5 flex-wrap">
@@ -493,6 +522,14 @@ export default function TorneoDetallePage() {
                     <RangoChip rating={p.rating} />
                     <span className="text-[11px] font-bold text-[#D4D4E4]">{p.nombre}</span>
                   </span>
+                ))}
+                {/* Chips de cuenta: clicables → mini-perfil público (sin stats falsas) */}
+                {cuentasInscritas.slice(0, 4).map(email => (
+                  <button key={email} onClick={() => setSelCuenta(email)}
+                    className="inline-flex items-center gap-1.5 pl-1 pr-2 h-7 rounded-full bg-[#B6FF3A]/[0.06] border border-[#B6FF3A]/25 hover:bg-[#B6FF3A]/[0.12] transition-colors">
+                    <AvatarCuenta email={email} size={20} />
+                    <span className="text-[11px] font-bold text-[#D4D4E4]">{nombreCuentaDemo(email, perfilesCuentas)}</span>
+                  </button>
                 ))}
               </div>
               {tierTorneo && (
@@ -674,12 +711,25 @@ export default function TorneoDetallePage() {
                   <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wide">Seed {i + 1}</span>
                 </button>
               ))}
+              {/* Cuentas demo inscritas, con su perfil público */}
+              {cuentasInscritas.map(email => (
+                <button key={email} onClick={() => { setSelCuenta(email); setVerParts(false) }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-[#B6FF3A]/[0.05] border border-[#B6FF3A]/20 hover:bg-[#B6FF3A]/[0.1] transition-colors text-left">
+                  <span className="w-7" />
+                  <AvatarCuenta email={email} size={36} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{nombreCuentaDemo(email, perfilesCuentas)} <span className="text-[11px] font-bold text-[#8B8BA8] font-mono-num">#{tagCuentaDemo(email, perfilesCuentas)}</span></p>
+                    <p className="text-[11px] text-[#B6FF3A] font-semibold">{tr('mc.cuentaTorneum')}</p>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         </div>
       )}
 
       {selJugador && <MiniPerfil jugador={selJugador} onClose={() => setSelJugador(null)} />}
+      {selCuenta && <MiniPerfilCuenta email={selCuenta} onClose={() => setSelCuenta(null)} />}
       {verSede && local && <MiniLocal local={local} onClose={() => setVerSede(false)} />}
     </div>
   )

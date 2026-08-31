@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware'
-import { JUEGOS, LOCALES, getTorneo, esperaDe, plantillaDe, type TorneoSample, type Juego, type Mesa, type MesaTipo } from '@/lib/torneos/sample'
+import { JUEGOS, LOCALES, getTorneo, esperaDe, plantillaDe, type TorneoSample, type Juego, type Jugador, type Mesa, type MesaTipo } from '@/lib/torneos/sample'
 import { puedeCancelarConDevolucion } from '@/lib/torneos/cancelacion'
 import { CREW_USUARIO, TAG_RE, MAX_CREWS_POR_JUEGO, type Crew } from '@/lib/torneos/crews'
-import { generarTagUsuario } from '@/lib/torneos/tags'
+import { generarTagUsuario, tagUsuarioDe } from '@/lib/torneos/tags'
 import type { BoDesde } from '@/lib/torneos/bracket'
-import { useSesionStore, claveDemo, claveDemoActual, type Sesion } from '@/lib/stores/useSesionStore'
+import { useSesionStore, claveDemo, claveDemoActual, CUENTAS_DEMO, EMAILS_LEGACY, type Sesion } from '@/lib/stores/useSesionStore'
 
 // Store de DEMO (modo sin backend): mantiene en memoria + localStorage el estado
 // interactivo de la sesión para que inscribirse / seguir / crear torneo / leer
@@ -161,6 +161,15 @@ export type ReporteJugador = {
 }
 export type ReportesCombate = { A?: ReporteJugador; B?: ReporteJugador }
 
+// ── Mundo compartido (30-08): relaciones ENTRE cuentas demo ──
+// Las amistades entre cuentas viven en el MUNDO ('todh-mundo'), identificadas
+// por email: así la solicitud que envía Javier le aparece a Lucía al entrar.
+export type AmistadCuenta = { de: string; a: string; estado: 'pendiente' | 'aceptada' }
+// Perfil público de cada cuenta (lo actualiza su dueño al editar el perfil):
+// es lo que ven las demás cuentas en el buscador, la lista de amigos y el
+// mini-perfil. Sin stats falsas: una cuenta nueva no tiene historial.
+export type PerfilCuenta = { nombre: string; tag: string; foto?: string | null; bio?: string }
+
 export type Notificacion = {
   id: string
   tipo: NotiTipo
@@ -240,6 +249,10 @@ interface DemoState {
   // o 'dentro' (mesa del plano añadida al torneo fuera de los setups base).
   // El modo directo las fusiona al montar, antes y al empezar el directo.
   prepMesas: Record<string, Record<number, 'caido' | 'fuera' | 'dentro'>>
+  // ── Mundo compartido (30-08) ──
+  amistadesCuentas: AmistadCuenta[]              // solicitudes/amistades entre cuentas (ids = emails)
+  perfilesCuentas: Record<string, PerfilCuenta>  // perfil público de cada cuenta, por email
+  inscripcionesCuentas: Record<string, string[]> // por torneo: emails de cuentas inscritas (no legacy)
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string, crewId?: string) => void
   desinscribir: (torneoId: string, nombreTorneo: string) => void
@@ -327,6 +340,13 @@ interface DemoState {
   alternarAdminCrew: (crewId: string, nombre: string) => void
   abrirInscripcionCrew: (torneoId: string, nombreTorneo: string, crewId: string) => void
   confirmarPlazaCrew: (torneoId: string, quien: string) => void
+  // ── Mundo compartido (30-08): amistades entre cuentas ──
+  solicitarAmistadCuenta: (email: string) => void
+  responderAmistadCuenta: (email: string, acepta: boolean) => void
+  quitarAmigoCuenta: (email: string) => void
+  // El TO inicia el torneo cuando quiere (aunque no esté lleno ni sea la
+  // fecha): lo pone EN DIRECTO para TODAS las cuentas y cierra inscripciones.
+  iniciarTorneo: (id: string, nombre: string) => void
 }
 
 let nid = 0
@@ -587,15 +607,112 @@ const DATOS_INICIALES: DatosDemo = {
       betaCerrada: true,
       codigosBeta: ['TOUR-B7K2', 'TOUR-M4X9'],
       moderacionChat: {},
+      amistadesCuentas: [],
+      perfilesCuentas: {},
+      inscripcionesCuentas: {},
 }
 
-// ── Plantilla de cuenta VACÍA (30-08): lo PERSONAL a cero, el mundo intacto ──
-// Todo lo que en el seed es «de Álex» (inscripciones, amigos, crews propias,
-// valoraciones emitidas, personajes jugados, reportes, identidad del perfil…)
-// arranca vacío; el estado-mundo (dispoSedes, expedientes, propuestas, fichas,
-// moderación…) conserva sus defaults. Notificaciones: SOLO la bienvenida.
-export const ESTADO_CUENTA_NUEVA: DatosDemo = {
-  ...DATOS_INICIALES,
+// ── Mundo compartido (30-08): clasificación WORLD/PERSONAL de las claves ──
+// Criterio: describe el mundo u otros actores → MUNDO (clave 'todh-mundo',
+// común a TODAS las cuentas); describe a ESTE usuario → PERSONAL (clave de la
+// cuenta). El adaptador de persistencia separa/junta por esta lista.
+export const CLAVES_MUNDO = [
+  'creados', 'editados', 'cancelados', 'juegosCustom', 'juegosOcultos',
+  'gestion', 'prepMesas', 'plazasPendientes', 'entradosEspera',
+  'solicitudesSede', 'dispoSedes', 'mesasSede', 'fichasSede',
+  'disputas', 'reportes', 'reportesMatch', 'personajesPorMatch',
+  'chatsTorneo', 'moderacionChat',
+  'expedientesSede', 'expedientesTO', 'propuestasJuego', 'tosConfianza',
+  'valoracionesSedes', 'valoracionesTO',
+  'usuariosSuspendidos', 'betaCerrada', 'codigosBeta',
+  'crews', 'crewTorneo',
+  'amistadesCuentas', 'perfilesCuentas', 'inscripcionesCuentas',
+] as const satisfies readonly (keyof DatosDemo)[]
+export type ClaveMundo = (typeof CLAVES_MUNDO)[number]
+export type DatosPersonales = Omit<DatosDemo, ClaveMundo>
+const ES_MUNDO = new Set<string>(CLAVES_MUNDO)
+
+function soloMundo(s: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(s).filter(([k]) => ES_MUNDO.has(k)))
+}
+function soloPersonal(s: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(s).filter(([k]) => !ES_MUNDO.has(k)))
+}
+
+// Email de la sesión activa si es una cuenta de JUGADOR (las amistades entre
+// cuentas y los perfiles públicos son de jugadores; sedes y admin no).
+function emailSesionJugador(): string | null {
+  const ses = useSesionStore.getState().sesion
+  return ses && ses.rol === 'jugador' ? ses.email.toLowerCase() : null
+}
+// Las cuentas legacy comparten el blob 'todh-demo' entre ellas (jugador@/to@…):
+// su inscripción ya cuenta como «el usuario demo» (+1 personal); anotar además
+// su email en el mundo la contaría DOBLE al cambiar entre cuentas legacy.
+function emailMundoInscripciones(): string | null {
+  const e = emailSesionJugador()
+  return e && !EMAILS_LEGACY.has(e) ? e : null
+}
+
+// El perfil público de la cuenta activa se re-publica en el mundo cada vez que
+// su dueño edita identidad (foto/bio/tag): las demás cuentas ven lo último.
+function conPerfilCuenta(s: DemoState, patch: Partial<DemoState>): Partial<DemoState> {
+  const ses = useSesionStore.getState().sesion
+  if (!ses || ses.rol !== 'jugador') return patch
+  const email = ses.email.toLowerCase()
+  const n = { ...s, ...patch }
+  return {
+    ...patch,
+    perfilesCuentas: {
+      ...n.perfilesCuentas,
+      [email]: {
+        nombre: ses.nombre,
+        tag: n.userTag ?? tagUsuarioDe(ses.nombre),
+        foto: n.fotoPerfil,
+        bio: n.bioPerfil,
+      },
+    },
+  }
+}
+
+// Nombre y tag públicos de una cuenta demo: manda su perfil publicado en el
+// mundo; sin él, el nombre de CUENTAS_DEMO y el tag determinista del nombre.
+export function nombreCuentaDemo(email: string, perfiles: Record<string, PerfilCuenta>): string {
+  return perfiles[email]?.nombre ?? CUENTAS_DEMO.find(c => c.email.toLowerCase() === email)?.nombre ?? email.split('@')[0]
+}
+export function tagCuentaDemo(email: string, perfiles: Record<string, PerfilCuenta>): string {
+  return perfiles[email]?.tag ?? tagUsuarioDe(nombreCuentaDemo(email, perfiles))
+}
+
+// ── Mundo compartido: una cuenta inscrita como jugador de bracket/listas ──
+// Id 'cuenta-{email}': así entra en check-in, seeds y cuadros con su NOMBRE.
+// Stats neutras de cuenta nueva (récord 0-0, sin mejor puesto): nada inventado.
+export const ID_CUENTA_PREFIJO = 'cuenta-'
+export function jugadorDeCuenta(email: string, juego: string, perfiles: Record<string, PerfilCuenta>): Jugador {
+  const nombre = nombreCuentaDemo(email, perfiles)
+  return {
+    id: `${ID_CUENTA_PREFIJO}${email}`, nombre, handle: `@${nombre.toLowerCase()}`,
+    pais: 'ES', bandera: '', juego, rating: 800, tier: 'Oro', victorias: 0, derrotas: 0,
+    torneosJugados: 0, mejorPuesto: '—', tendencia: 0,
+  }
+}
+// Resolver de seeds tolerante a cuentas: primero el pool de muestra; un id
+// 'cuenta-{email}' se reconstruye del directorio (todas las vistas de bracket
+// pasan por aquí para que los cuadros con cuentas se vean en cualquier sesión).
+export function resolverSeeds(sids: string[], pool: Jugador[], juego: string, perfiles: Record<string, PerfilCuenta>): Jugador[] {
+  return sids
+    .map(sid => pool.find(p => p.id === sid)
+      ?? (sid.startsWith(ID_CUENTA_PREFIJO) ? jugadorDeCuenta(sid.slice(ID_CUENTA_PREFIJO.length), juego, perfiles) : undefined))
+    .filter(Boolean) as Jugador[]
+}
+
+// ── Plantilla de cuenta VACÍA (30-08, v2 mundo compartido): SOLO lo PERSONAL ──
+// Todo lo que en el seed es «de Álex» (inscripciones, amigos, valoraciones
+// emitidas, personajes jugados, identidad del perfil…) arranca vacío. Las
+// claves de MUNDO ya no van aquí: el mundo es común ('todh-mundo') y las crews
+// de Álex dejan de «ser tuyas» gracias al mapeo de identidad del adaptador.
+// Notificaciones: SOLO la bienvenida.
+export const ESTADO_CUENTA_NUEVA: DatosPersonales = {
+  ...(soloPersonal(DATOS_INICIALES) as DatosPersonales),
   inscritos: [],
   listaEspera: [],
   entradasEspectador: [],
@@ -605,11 +722,7 @@ export const ESTADO_CUENTA_NUEVA: DatosDemo = {
   gruposChat: [],
   notificaciones: [{ ...NOTI_BIENVENIDA, cuando: 'ahora', leida: false }],
   descartadas: [],
-  valoracionesTO: {},
-  valoracionesSedes: {},
   personajesJugados: {},
-  reportesMatch: {},
-  personajesPorMatch: {},
   tierUsuario: null,
   fotoPerfil: null,
   bannerPerfil: null,
@@ -617,33 +730,148 @@ export const ESTADO_CUENTA_NUEVA: DatosDemo = {
   userTag: null,          // se genera al primer uso (asegurarUserTag)
   tagRegenerado: false,
   referidos: { codigo: 'ALBERT-3F7', jugados: 0, canjeados: [] },
-  creados: [],
-  crewTorneo: {},
-  // Crews: SOLO las del mundo que NO son del usuario (Nocturna y Vandalia son
-  // de Álex → fuera de este mundo).
-  crews: [CREW_DOJO_SEED, CREW_SKUADRA_SEED],
-  // Resto personal que el seed traía «vivido» por Álex:
-  disputas: [],           // la disputa seed es del torneo de Lima → «Sin avisos» en una consola nueva
-  reportes: [],
   checkinsJugador: [],
-  chatsTorneo: {},
   avatarEmoji: null,
   mainsPerfil: {},
   juegosFavoritos: [],
   onboardingVisto: false, // una cuenta nueva pasa por el onboarding de verdad
 }
 
-// ── Storage POR CUENTA (30-08) ──
-// El nombre real de la clave se resuelve EN CADA llamada según la sesión activa
-// (claveDemoActual): cuentas legacy y sin sesión → 'todh-demo' (compatibilidad
-// total con suites y usuarios actuales); cuentas nuevas → 'todh-demo@{slug}'.
-// LIMITACIÓN ASUMIDA (v1, deliberada): cada cuenta nueva vive en su propio
-// namespace → lo que crea David NO aparece en el mundo de Javier; los cruces
-// entre cuentas se demuestran con las cuentas legacy (mundo compartido de Álex).
+// ── Storage v2 (30-08): MUNDO COMPARTIDO + parte personal por cuenta ──
+// El estado se parte en dos al persistir: las CLAVES_MUNDO van a la clave común
+// 'todh-mundo' (el mundo de TODAS las cuentas, legacy incluidas) y el resto a
+// la clave personal de la cuenta activa (claveDemoActual). Al leer se juntan.
+//
+// Compatibilidad (restricción nº1):
+// · El blob legacy 'todh-demo' se sigue escribiendo COMPLETO (mundo+personal),
+//   marcado con `mundo: 1` en la envoltura: las suites que leen
+//   JSON.parse(localStorage.getItem('todh-demo')).state.X siguen funcionando.
+// · Un 'todh-demo' SIN marca es un blob externo (suite que siembra gestion/etc.
+//   o usuario de la app anterior): su mundo se ADOPTA como el mundo común
+//   (se deriva 'todh-mundo' de él), exactamente la semántica v1 del seed.
+//
+// Identidad en el mundo: el usuario legacy se guarda con sus sentinelas de
+// siempre ('@usuario' en crews, 'Tú' en chats) — así el blob legacy es
+// bit-compatible. Cada cuenta NUEVA se guarda por su NOMBRE público; al leer,
+// su nombre se convierte en el sentinela (es «tú») y el sentinela del legacy
+// se muestra como «Álex». Así Javier no «hereda» las crews de Álex.
+const CLAVE_MUNDO = 'todh-mundo'
+const CLAVE_LEGACY = 'todh-demo'
+const VERSION_DEMO = 2
+const NOMBRE_LEGACY_MUNDO = 'Álex'
+
+type EnvolturaDemo = { state?: Record<string, unknown>; version?: number; mundo?: 1 }
+
+function leerEnvoltura(clave: string): EnvolturaDemo | null {
+  try {
+    const raw = window.localStorage.getItem(clave)
+    const env = raw ? (JSON.parse(raw) as EnvolturaDemo) : null
+    return env && typeof env === 'object' ? env : null
+  } catch { return null }
+}
+
+// Nombre público de la sesión si NO es legacy (las legacy comparten identidad
+// de sentinela). Es la clave del mapeo de identidad del mundo.
+function nombreMundoSesion(): string | null {
+  const ses = useSesionStore.getState().sesion
+  if (!ses || EMAILS_LEGACY.has(ses.email.toLowerCase())) return null
+  return ses.nombre
+}
+
+// Mapeo de identidad sobre las estructuras del mundo que nombran al usuario:
+// crews (miembros/creador/admins), cupos de crew y chats de torneo.
+// dir 'leer':   sentinela → 'Álex' (es el legacy) · miNombre → sentinela (soy yo)
+// dir 'guardar': sentinela → miNombre · 'Álex' → sentinela (inversa exacta)
+function mapearMundo(mundo: Record<string, unknown>, nombrePropio: string | null, dir: 'leer' | 'guardar'): Record<string, unknown> {
+  if (!nombrePropio) return mundo
+  const f = (x: string, sentinela: string): string => dir === 'leer'
+    ? (x === sentinela ? NOMBRE_LEGACY_MUNDO : x === nombrePropio ? sentinela : x)
+    : (x === sentinela ? nombrePropio : x === NOMBRE_LEGACY_MUNDO ? sentinela : x)
+  const out: Record<string, unknown> = { ...mundo }
+  if (Array.isArray(out.crews)) {
+    out.crews = (out.crews as Crew[]).map(c => {
+      const creadorBase = c.creador ?? (c.creadaPorMi ? CREW_USUARIO : undefined)
+      const creador = creadorBase ? f(creadorBase, CREW_USUARIO) : undefined
+      return {
+        ...c,
+        miembros: c.miembros.map(m => f(m, CREW_USUARIO)),
+        ...(creador ? { creador } : {}),
+        ...(c.admins ? { admins: c.admins.map(a => f(a, CREW_USUARIO)) } : {}),
+        creadaPorMi: creador === CREW_USUARIO,
+      }
+    })
+  }
+  if (out.crewTorneo && typeof out.crewTorneo === 'object') {
+    out.crewTorneo = Object.fromEntries(Object.entries(out.crewTorneo as Record<string, CupoCrew>)
+      .map(([k, v]) => [k, { ...v, inscritos: v.inscritos.map(m => f(m, CREW_USUARIO)) }]))
+  }
+  if (out.chatsTorneo && typeof out.chatsTorneo === 'object') {
+    out.chatsTorneo = Object.fromEntries(Object.entries(out.chatsTorneo as Record<string, { autor: string; texto: string; hora: string }[]>)
+      .map(([k, v]) => [k, v.map(m => ({ ...m, autor: f(m.autor, 'Tú') }))]))
+  }
+  return out
+}
+
+// Resuelve el MUNDO vigente (envoltura {state, version}) y hace la migración
+// de compatibilidad: un 'todh-demo' sin marca manda (se adopta su mundo).
+function resolverMundo(): EnvolturaDemo | null {
+  const legacy = leerEnvoltura(CLAVE_LEGACY)
+  let w = leerEnvoltura(CLAVE_MUNDO)
+  const legacySinMarca = !!legacy?.state && !legacy.mundo
+  if (legacySinMarca && (claveDemoActual() === CLAVE_LEGACY || !w)) {
+    // Blob externo (suite o app anterior): su mundo ES el mundo común.
+    w = { state: soloMundo(legacy.state as Record<string, unknown>), version: legacy.version ?? 0 }
+    try {
+      window.localStorage.setItem(CLAVE_MUNDO, JSON.stringify(w))
+      // Marcar el blob como adoptado (contenido intacto): a partir de aquí
+      // manda 'todh-mundo' hasta que alguien vuelva a sembrar desde fuera.
+      window.localStorage.setItem(CLAVE_LEGACY, JSON.stringify({ ...legacy, mundo: 1 }))
+    } catch { /* almacenamiento lleno o bloqueado: seguimos en memoria */ }
+  }
+  if (!w && legacy?.state) w = { state: soloMundo(legacy.state as Record<string, unknown>), version: legacy.version ?? 0 }
+  return w
+}
+
 const storagePorCuenta: StateStorage = {
-  getItem: (_name) => (typeof window === 'undefined' ? null : window.localStorage.getItem(claveDemoActual())),
-  setItem: (_name, value) => { if (typeof window !== 'undefined') window.localStorage.setItem(claveDemoActual(), value) },
-  removeItem: (_name) => { if (typeof window !== 'undefined') window.localStorage.removeItem(claveDemoActual()) },
+  getItem: (_name) => {
+    if (typeof window === 'undefined') return null
+    const clave = claveDemoActual()
+    const p = leerEnvoltura(clave)
+    const w = resolverMundo()
+    if (!p?.state && !w?.state) return null
+    // El mundo SIEMPRE se materializa completo (defaults del seed + blob):
+    // así el mapeo de identidad cubre también los defaults — sin esto, una
+    // cuenta nueva sin 'todh-mundo' heredaría las crews de Álex sin mapear.
+    const mundoBase = {
+      ...soloMundo(DATOS_INICIALES as unknown as Record<string, unknown>),
+      ...(w?.state ? soloMundo(w.state) : {}),
+    }
+    const mundo = mapearMundo(mundoBase, nombreMundoSesion(), 'leer')
+    const personal = p?.state ? soloPersonal(p.state) : {}
+    // La versión más BAJA manda: así un seed v0 de suite sigue pasando por
+    // migrate() como en v1 (las migraciones son idempotentes).
+    const version = Math.min(p?.version ?? VERSION_DEMO, w?.version ?? VERSION_DEMO)
+    return JSON.stringify({ state: { ...personal, ...mundo }, version })
+  },
+  setItem: (_name, value) => {
+    if (typeof window === 'undefined') return
+    let env: EnvolturaDemo
+    try { env = JSON.parse(value) as EnvolturaDemo } catch { return }
+    const state = env.state ?? {}
+    const clave = claveDemoActual()
+    const mundo = mapearMundo(soloMundo(state), nombreMundoSesion(), 'guardar')
+    try {
+      window.localStorage.setItem(CLAVE_MUNDO, JSON.stringify({ state: mundo, version: env.version ?? VERSION_DEMO }))
+      window.localStorage.setItem(clave, clave === CLAVE_LEGACY
+        // Blob legacy COMPLETO y marcado (compatibilidad con las suites).
+        ? JSON.stringify({ state, version: env.version ?? VERSION_DEMO, mundo: 1 })
+        : JSON.stringify({ state: soloPersonal(state), version: env.version ?? VERSION_DEMO }))
+    } catch { /* cuota llena: la demo sigue en memoria */ }
+  },
+  removeItem: (_name) => {
+    // Borra SOLO la parte personal de la cuenta activa; el mundo es de todos.
+    if (typeof window !== 'undefined') window.localStorage.removeItem(claveDemoActual())
+  },
 }
 
 export const useDemoStore = create<DemoState>()(
@@ -672,7 +900,13 @@ export const useDemoStore = create<DemoState>()(
               inscritos: [...(cupoPrevio?.crewId === crew.id ? cupoPrevio.inscritos : []).filter(x => x !== CREW_USUARIO), CREW_USUARIO],
             } } }
           : {}
-        return { inscritos: [...s.inscritos, torneoId], notificaciones: [noti, ...s.notificaciones], ...conCupo }
+        // Mundo compartido: la inscripción de una cuenta nueva se anota por
+        // email en el mundo — así el resto de cuentas (y el TO) la ven.
+        const email = emailMundoInscripciones()
+        const conMundo = email
+          ? { inscripcionesCuentas: { ...s.inscripcionesCuentas, [torneoId]: [...(s.inscripcionesCuentas[torneoId] ?? []).filter(e => e !== email), email] } }
+          : {}
+        return { inscritos: [...s.inscritos, torneoId], notificaciones: [noti, ...s.notificaciones], ...conCupo, ...conMundo }
       }),
       // Cancelar inscripción (F7): la plaza NO se cubre sola — queda pendiente y
       // el TO decide quién entra de la cola (promoverDeEspera). La devolución
@@ -714,11 +948,17 @@ export const useDemoStore = create<DemoState>()(
         const sinMiPlaza = cupo?.inscritos.includes(CREW_USUARIO)
           ? { crewTorneo: { ...s.crewTorneo, [torneoId]: { ...cupo, inscritos: cupo.inscritos.filter(x => x !== CREW_USUARIO) } } }
           : {}
+        // Mundo compartido: al cancelar, el email de la cuenta sale del mundo.
+        const email = emailMundoInscripciones()
+        const sinMundo = email && s.inscripcionesCuentas[torneoId]?.includes(email)
+          ? { inscripcionesCuentas: { ...s.inscripcionesCuentas, [torneoId]: s.inscripcionesCuentas[torneoId].filter(e => e !== email) } }
+          : {}
         return {
           inscritos: s.inscritos.filter(id => id !== torneoId),
           plazasPendientes: { ...s.plazasPendientes, [torneoId]: (s.plazasPendientes[torneoId] ?? 0) + 1 },
           notificaciones: [notiJugador, notiTO, ...s.notificaciones],
           ...sinMiPlaza,
+          ...sinMundo,
         }
       }),
       apuntarEspera: (torneoId, nombreTorneo, puesto) => set((s) => {
@@ -1007,14 +1247,15 @@ export const useDemoStore = create<DemoState>()(
       setJuegoPerfil: (juegoPerfil) => set({ juegoPerfil }),
       setAvatarEmoji: (avatarEmoji) => set({ avatarEmoji }),
       // ── Paquete Chat: identidad editable del perfil (persisten en la demo) ──
-      setFotoPerfil: (fotoPerfil) => set({ fotoPerfil }),
+      setFotoPerfil: (fotoPerfil) => set((s) => conPerfilCuenta(s, { fotoPerfil })),
       setBannerPerfil: (bannerPerfil) => set({ bannerPerfil }),
-      setBioPerfil: (bio) => set({ bioPerfil: bio.slice(0, 160) }),
-      // El tag de usuario #XABCD se genera al primer uso y queda fijo.
-      asegurarUserTag: () => set((s) => s.userTag ? s : { userTag: generarTagUsuario() }),
+      setBioPerfil: (bio) => set((s) => conPerfilCuenta(s, { bioPerfil: bio.slice(0, 160) })),
+      // El tag de usuario #XABCD se genera al primer uso y queda fijo. Se
+      // re-publica también en el perfil público del mundo (búsqueda exacta).
+      asegurarUserTag: () => set((s) => s.userTag ? s : conPerfilCuenta(s, { userTag: generarTagUsuario() })),
       // Regenerable UNA sola vez (como en Discord con el discriminador: evita
       // el abuso de rotar identidad y mantiene el tag citable entre amigos).
-      regenerarTag: () => set((s) => s.tagRegenerado ? s : { userTag: generarTagUsuario(), tagRegenerado: true }),
+      regenerarTag: () => set((s) => s.tagRegenerado ? s : conPerfilCuenta(s, { userTag: generarTagUsuario(), tagRegenerado: true })),
       setMainsPerfil: (juego, mains) => set((s) => ({ mainsPerfil: { ...s.mainsPerfil, [juego]: mains } })),
       setJuegosFavoritos: (juegosFavoritos) => set({ juegosFavoritos, onboardingVisto: true }),
       setIdioma: (idioma) => set({ idioma }),
@@ -1363,6 +1604,71 @@ export const useDemoStore = create<DemoState>()(
           gruposChat: s.gruposChat.map(g => g.crewId === crew.id ? { ...g, mensajes: [...g.mensajes, msg] } : g),
         }
       }),
+      // ── Mundo compartido (30-08): amistades ENTRE cuentas demo ──
+      // Ids = emails. La solicitud vive en el mundo: el destinatario la ve en
+      // su pestaña de Solicitudes al entrar con su cuenta (Aceptar/Rechazar).
+      solicitarAmistadCuenta: (email) => set((s) => {
+        const yo = emailSesionJugador()
+        const el = email.toLowerCase()
+        if (!yo || yo === el) return s
+        if (s.amistadesCuentas.some(a => (a.de === yo && a.a === el) || (a.de === el && a.a === yo))) return s
+        const nombre = nombreCuentaDemo(el, s.perfilesCuentas)
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: 'Solicitud de amistad enviada',
+          cuerpo: `Le has pedido amistad a ${nombre}. La verá al entrar con su cuenta.`,
+          tituloKey: 'mc.ntfSolT', cuerpoKey: 'mc.ntfSolC', params: { nombre },
+          cuando: 'ahora', leida: false, href: '/amigos',
+        }
+        return conPerfilCuenta(s, {
+          amistadesCuentas: [...s.amistadesCuentas, { de: yo, a: el, estado: 'pendiente' as const }],
+          notificaciones: [noti, ...s.notificaciones],
+        })
+      }),
+      responderAmistadCuenta: (email, acepta) => set((s) => {
+        const yo = emailSesionJugador()
+        const el = email.toLowerCase()
+        if (!yo) return s
+        const sol = s.amistadesCuentas.find(a => a.de === el && a.a === yo && a.estado === 'pendiente')
+        if (!sol) return s
+        if (!acepta) {
+          // Rechazar: la solicitud desaparece (sin rencor y sin aviso al otro).
+          return conPerfilCuenta(s, { amistadesCuentas: s.amistadesCuentas.filter(a => a !== sol) })
+        }
+        const nombre = nombreCuentaDemo(el, s.perfilesCuentas)
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'sistema', titulo: `${nombre} y tú ya sois amigos`,
+          cuerpo: 'Solicitud aceptada: os veis en vuestras listas de amigos.',
+          tituloKey: 'mc.ntfAmigosT', cuerpoKey: 'mc.ntfAmigosC', params: { nombre },
+          cuando: 'ahora', leida: false, href: '/amigos',
+        }
+        return conPerfilCuenta(s, {
+          amistadesCuentas: s.amistadesCuentas.map(a => a === sol ? { ...a, estado: 'aceptada' as const } : a),
+          notificaciones: [noti, ...s.notificaciones],
+        })
+      }),
+      quitarAmigoCuenta: (email) => set((s) => {
+        const yo = emailSesionJugador()
+        const el = email.toLowerCase()
+        if (!yo) return s
+        return { amistadesCuentas: s.amistadesCuentas.filter(a => !((a.de === yo && a.a === el) || (a.de === el && a.a === yo))) }
+      }),
+      // Iniciar el torneo (30-08): override compartido vía `editados` (y el
+      // propio objeto en `creados`) — enDirecto pasa a true para TODAS las
+      // cuentas al instante (explorar, mapa, ficha, live). Las inscripciones
+      // quedan cerradas por la regla de la ficha (torneo en directo).
+      iniciarTorneo: (id, nombre) => set((s) => {
+        const noti: Notificacion = {
+          id: nextId(), tipo: 'combate', titulo: '🔴 Torneo en directo',
+          cuerpo: `Has iniciado «${nombre}»: ya está EN DIRECTO para todos y las inscripciones quedan cerradas.`,
+          tituloKey: 'mc.ntfLiveT', cuerpoKey: 'mc.ntfLiveC', params: { torneo: nombre },
+          cuando: 'ahora', leida: false, href: '/modo-directo',
+        }
+        return {
+          editados: { ...s.editados, [id]: { ...s.editados[id], enDirecto: true } },
+          creados: s.creados.map(c => c.id === id ? { ...c, enDirecto: true } : c),
+          notificaciones: [noti, ...s.notificaciones],
+        }
+      }),
       solicitarTO: () => set((s) => {
         if (s.perfilTO !== 'no') return s
         const n: Notificacion = { id: nextId(), tipo: 'sistema', titulo: 'Solicitud de organizador enviada', cuerpo: 'Revisaremos tu experiencia y te haremos una breve entrevista. Te avisamos aquí.', cuando: 'ahora', leida: false, href: '/perfil' }
@@ -1394,7 +1700,7 @@ export const useDemoStore = create<DemoState>()(
       // admins en crews persistidas de antes del modelo de administración.
       // v2 (scouting v1): entra la crew ajena de juego de equipo (Skuadra)
       // en estados ya persistidos, para que «Estudiar equipo» sea demostrable.
-      version: 2,
+      version: VERSION_DEMO,
       migrate: (persisted, version) => {
         const s = persisted as Partial<DemoState>
         if (version < 2 && Array.isArray(s?.crews) && !s.crews.some(c => c.id === CREW_SKUADRA_SEED.id)) {
@@ -1424,30 +1730,34 @@ export const useDemoStore = create<DemoState>()(
   )
 )
 
-// ── Cambio de cuenta (30-08): cargar el mundo del namespace de la sesión ──
-// Al entrar o salir de una cuenta, el demo store se re-apunta al blob de ESA
-// cuenta: si existe se rehidrata; si el namespace está virgen se parte de la
-// plantilla (vacía para cuentas `fresca`, seed normal para el resto) y el
-// propio setState la deja persistida. Se engancha a useSesionStore.subscribe
-// para no depender de cada call-site de login/logout.
+// ── Cambio de cuenta (30-08, v2 mundo compartido) ──
+// Al entrar o salir de una cuenta, el demo store se re-apunta a la parte
+// PERSONAL de esa cuenta y al mundo común: si la clave personal está virgen se
+// siembra primero su plantilla (vacía para cuentas `fresca`, seed personal para
+// el resto) y después se rehidrata SIEMPRE por el adaptador — que junta
+// personal + 'todh-mundo', aplica migraciones y el mapeo de identidad.
 function activarCuentaDemo(sesion: Sesion | null) {
   if (typeof window === 'undefined') return
   const clave = claveDemo(sesion?.email)
-  if (window.localStorage.getItem(clave) != null) {
-    // Ya hay mundo guardado para esta cuenta → cargarlo tal cual.
-    useDemoStore.persist.rehydrate()
-    return
+  if (window.localStorage.getItem(clave) == null) {
+    // Clave personal virgen → sembrar SOLO lo personal (el mundo es común y lo
+    // resuelve getItem). El blob legacy nace marcado: aquí no hay mundo externo
+    // que adoptar, y sin marca la adopción machacaría 'todh-mundo' con el seed.
+    const plantilla = sesion?.fresca ? { ...ESTADO_CUENTA_NUEVA } : soloPersonal(DATOS_INICIALES)
+    const env = clave === CLAVE_LEGACY
+      ? { state: plantilla, version: VERSION_DEMO, mundo: 1 as const }
+      : { state: plantilla, version: VERSION_DEMO }
+    try { window.localStorage.setItem(clave, JSON.stringify(env)) } catch { /* cuota */ }
   }
-  // Namespace virgen → estado base (y el persist escribe el blob al momento).
-  useDemoStore.setState(sesion?.fresca ? { ...ESTADO_CUENTA_NUEVA } : { ...DATOS_INICIALES })
+  useDemoStore.persist.rehydrate()
 }
 
 if (typeof window !== 'undefined') {
-  // Arranque: si la sesión persistida es de cuenta fresca SIN blob (borrado a
-  // mano, p. ej.), que no herede el mundo seed de Álex.
+  // Arranque: si la sesión persistida no tiene blob personal (borrado a mano,
+  // p. ej.), sembrarlo — una cuenta fresca no debe heredar lo personal de Álex.
   const s0 = useSesionStore.getState().sesion
-  if (s0?.fresca && window.localStorage.getItem(claveDemo(s0.email)) == null) {
-    useDemoStore.setState({ ...ESTADO_CUENTA_NUEVA })
+  if (s0 && window.localStorage.getItem(claveDemo(s0.email)) == null) {
+    activarCuentaDemo(s0)
   }
   let emailPrev = s0?.email ?? null
   useSesionStore.subscribe((st) => {
@@ -1455,6 +1765,14 @@ if (typeof window !== 'undefined') {
     if (email === emailPrev) return
     emailPrev = email
     activarCuentaDemo(st.sesion)
+  })
+  // Multi-pestaña: si OTRA pestaña escribe el mundo común, esta se rehidrata
+  // (con debounce: varias escrituras seguidas → una sola recarga del estado).
+  let tMundo: ReturnType<typeof setTimeout> | null = null
+  window.addEventListener('storage', (e) => {
+    if (e.key !== CLAVE_MUNDO) return
+    if (tMundo) clearTimeout(tMundo)
+    tMundo = setTimeout(() => { useDemoStore.persist.rehydrate() }, 250)
   })
 }
 

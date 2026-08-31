@@ -77,7 +77,10 @@ async function login(page, email) {
   await page.getByRole('link', { name: /calendario del local/i }).click(); await page.waitForTimeout(1500)
   ok(page.url().includes('/local/gamba'), `«Pedir fecha» lleva a la página del local (${page.url()})`)
   ok(await page.getByText('Calendario · pide tu fecha').count() > 0, 'con su CALENDARIO de reservas (vista de TO)')
-  // Pedir un día libre → formulario con reparto base 80/20
+  // Pedir un día libre → formulario con reparto base 80/20. A fin de mes el
+  // único día futuro puede tener ya reserva (su title es el torneo): saltar
+  // al mes siguiente garantiza días libres pedibles sea cual sea la fecha.
+  await page.getByLabel('Mes siguiente').click(); await page.waitForTimeout(400)
   await page.getByTitle(/toca para pedir fecha/i).first().click(); await page.waitForTimeout(500)
   ok(await page.getByText('Local 80% · TO 20%').count() > 0, 'el reparto parte de 80% local / 20% TO')
   await page.getByRole('button', { name: /Enviar petición a Gamba/ }).click(); await page.waitForTimeout(700)
