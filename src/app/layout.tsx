@@ -53,19 +53,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        {/* Purga de sesiones ZOMBI de Supabase (Rumbo): el proyecto ya no existe
-            y cualquier cookie/token guardado provocaba reintentos de refresh
-            contra un host muerto en cada página («la app va super lenta»).
-            Corre ANTES de cualquier bundle para que ningún cliente Supabase
-            arranque con esa sesión. Quitar cuando exista el Supabase nuevo. */}
+        {/* Purga de sesiones ZOMBI de Supabase del proyecto MUERTO de Rumbo
+            (cyeunxszrivubdexirul): cualquier token suyo provocaba reintentos de
+            refresh contra un host inexistente en cada página («la app va super
+            lenta»). SOLO purga las claves de ese proyecto: las sesiones del
+            Supabase NUEVO de Torneum (fase A del backend, 31-08) se respetan. */}
         <script dangerouslySetInnerHTML={{ __html: `
           try {
+            var MUERTO = 'sb-cyeunxszrivubdexirul';
             document.cookie.split(';').forEach(function (c) {
               var n = c.split('=')[0]; if (n) n = n.trim();
-              if (n && n.indexOf('sb-') === 0) document.cookie = n + '=; Max-Age=0; path=/';
+              if (n && n.indexOf(MUERTO) === 0) document.cookie = n + '=; Max-Age=0; path=/';
             });
             Object.keys(localStorage).forEach(function (k) {
-              if (k.indexOf('sb-') === 0) localStorage.removeItem(k);
+              if (k.indexOf(MUERTO) === 0) localStorage.removeItem(k);
             });
           } catch (e) {}
         ` }} />

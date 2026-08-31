@@ -1,9 +1,8 @@
 'use client'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSesionStore, rutaInicial, CUENTAS_DEMO, type CuentaDemo } from '@/lib/stores/useSesionStore'
-import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { getCookieConsent } from '@/components/ui/CookieBanner'
 import { useT, type ClaveI18n } from '@/lib/i18n'
 import { Eye, EyeOff, KeyRound, User, Megaphone, Store, ShieldCheck } from '@/components/todh/iconosTorneum'
@@ -28,40 +27,77 @@ const GRUPOS: {
   { labelKey: 'ctas.admin', descKey: 'ctas.adminDesc', icon: ShieldCheck, filtro: c => c.rol === 'admin' },
 ]
 
+const suscribirNada = () => () => {}
+const suscribirConsent = (cb: () => void) => {
+  window.addEventListener('pm:cookie-consent', cb)
+  return () => window.removeEventListener('pm:cookie-consent', cb)
+}
+
 function LoginDemo() {
   const { t: tr } = useT()
   const router = useRouter()
   const params = useSearchParams()
   const sesion = useSesionStore(s => s.sesion)
   const login = useSesionStore(s => s.login)
+  const loginReal = useSesionStore(s => s.loginReal)
+  const registrarReal = useSesionStore(s => s.registrarReal)
+  // Cuentas REALES (fase A backend): el mismo formulario entra a demo y a
+  // Supabase Auth; «Crear cuenta» registra una nueva de verdad.
+  const [modo, setModo] = useState<'entrar' | 'crear'>('entrar')
+  const [nombre, setNombre] = useState('')
+  const [aviso, setAviso] = useState('')
+  const [cargando, setCargando] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [verPass, setVerPass] = useState(false)
   const [error, setError] = useState('')
-  const [hidratado, setHidratado] = useState(false)
-  useEffect(() => setHidratado(true), [])
-
+  // Montaje y banner de cookies SIN setState-en-efecto (regla react-hooks):
+  // useSyncExternalStore da false en SSR y el valor vivo en cliente.
+  const hidratado = useSyncExternalStore(suscribirNada, () => true, () => false)
   // Primera visita: el banner de cookies (fixed abajo) tapaba las cuentas demo
   // en móvil. Mientras el banner esté abierto, la columna reserva su hueco.
-  const [conBannerCookies, setConBannerCookies] = useState(false)
-  useEffect(() => {
-    setConBannerCookies(getCookieConsent() === null)
-    const decidido = () => setConBannerCookies(false)
-    window.addEventListener('pm:cookie-consent', decidido)
-    return () => window.removeEventListener('pm:cookie-consent', decidido)
-  }, [])
+  const conBannerCookies = useSyncExternalStore(suscribirConsent, () => getCookieConsent() === null, () => false)
 
   // Ya con sesión → a su panel (el login no se enseña dos veces)
   useEffect(() => {
     if (hidratado && sesion) router.replace(rutaInicial(sesion))
   }, [hidratado, sesion, router])
 
-  const entrar = (em = email, pw = password) => {
-    const s = login(em, pw)
-    if (!s) { setError(tr('login.error')); return }
-    // El TO entra con su capa de organizador activa; el resto, como jugador
+  const irDentro = (s: { rol: 'jugador' | 'admin' | 'local'; to?: boolean; orgId?: string; localId?: string; email: string; nombre: string }) => {
     const next = params.get('next')
     router.replace(next && next.startsWith('/') ? next : rutaInicial(s))
+  }
+
+  const entrar = async (em = email, pw = password) => {
+    setAviso('')
+    // Demo primero (botones y cuentas de muestra); si no existe, Supabase Auth.
+    const s = login(em, pw)
+    if (s) { irDentro(s); return }
+    if (!em.trim() || !pw) { setError(tr('login.error')); return }
+    setCargando(true)
+    const r = await loginReal(em, pw)
+    setCargando(false)
+    if ('error' in r) { setError(r.error === 'sin-backend' ? tr('login.error') : tr('login.errorReal')); return }
+    irDentro(r)
+  }
+
+  const crear = async () => {
+    setAviso(''); setError('')
+    if (!nombre.trim() || !email.trim() || password.length < 8) { setError(tr('login.crearRequisitos')); return }
+    setCargando(true)
+    const r = await registrarReal(nombre, email, password)
+    setCargando(false)
+    if ('confirmar' in r && r.confirmar) { setAviso(tr('login.confirmaCorreo')); setModo('entrar'); return }
+    if ('error' in r && r.error) {
+      // Errores de Supabase traducidos a mensajes de persona
+      const e = r.error
+      setError(e.includes('already') ? tr('login.yaExiste')
+        : e.includes('invalid') ? tr('login.correoInvalido')
+        : e.includes('rate limit') ? tr('login.rateLimit')
+        : e)
+      return
+    }
+    if ('email' in r) irDentro(r)
   }
 
   return (
@@ -76,8 +112,18 @@ function LoginDemo() {
         </div>
 
         <div className="card-premium p-5">
-          <h1 className="text-xl font-bold text-white text-display">{tr('login.titulo')}</h1>
-          <p className="mt-1 text-[13px] text-[#8B8BA8]">{tr('login.sub')}</p>
+          <h1 className="text-xl font-bold text-white text-display">{modo === 'crear' ? tr('login.crearTitulo') : tr('login.titulo')}</h1>
+          <p className="mt-1 text-[13px] text-[#8B8BA8]">{modo === 'crear' ? tr('login.crearSub') : tr('login.sub')}</p>
+
+          {aviso && <p className="mt-3 rounded-xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/10 px-3 py-2.5 text-[12px] font-semibold text-[#B6FF3A]">{aviso}</p>}
+
+          {modo === 'crear' && (
+            <>
+              <label className="block mt-4 text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('login.nombre')}</label>
+              <input value={nombre} onChange={e => { setNombre(e.target.value); setError('') }} autoComplete="nickname" placeholder={tr('login.nombrePh')}
+                className="w-full h-12 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none" />
+            </>
+          )}
 
           <label className="block mt-4 text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('login.correo')}</label>
           <input value={email} onChange={e => { setEmail(e.target.value); setError('') }} type="email" autoComplete="email" placeholder={tr('login.emailPh')}
@@ -96,8 +142,15 @@ function LoginDemo() {
 
           {error && <p className="mt-2.5 text-[12px] font-semibold text-[#FF8A8A]">{error}</p>}
 
-          <button onClick={() => entrar()} className="mt-4 w-full h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold flex items-center justify-center gap-2 glow-lime active:scale-[0.98] transition-transform">
-            <LogIn size={16} /> {tr('login.entrar')}
+          <button onClick={() => (modo === 'crear' ? crear() : entrar())} disabled={cargando}
+            className="mt-4 w-full h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold flex items-center justify-center gap-2 glow-lime active:scale-[0.98] transition-transform disabled:opacity-60">
+            <LogIn size={16} /> {cargando ? '…' : modo === 'crear' ? tr('login.crearBtn') : tr('login.entrar')}
+          </button>
+
+          {/* Cuentas reales (fase A backend): registro con correo y contraseña */}
+          <button onClick={() => { setModo(m => m === 'crear' ? 'entrar' : 'crear'); setError(''); setAviso('') }}
+            className="mt-3 w-full text-center text-[12px] font-semibold text-[#8B8BA8] hover:text-white transition-colors">
+            {modo === 'crear' ? tr('login.yaTengo') : tr('login.crearCta')}
           </button>
         </div>
 

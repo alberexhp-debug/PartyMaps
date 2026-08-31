@@ -642,3 +642,38 @@ ON CONFLICT (id) DO UPDATE SET nombre = EXCLUDED.nombre, corto = EXCLUDED.corto,
 INSERT INTO temporadas (id, nombre, inicio, fin, activa) VALUES
   ('2026-s2', 'Temporada 2026 · Split 2', '2026-07-01', '2026-12-31', true)
 ON CONFLICT (id) DO NOTHING;
+
+-- =============================================================================
+-- AUTH (fase A del backend real, 31-08): alta automática de usuarios
+-- =============================================================================
+
+-- La fila de usuarios muere con su cuenta de auth.
+ALTER TABLE usuarios DROP CONSTRAINT IF EXISTS usuarios_auth_fk;
+ALTER TABLE usuarios ADD CONSTRAINT usuarios_auth_fk
+  FOREIGN KEY (auth_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- Cada usuario nuevo de Supabase Auth estrena su fila en usuarios con un tag
+-- único #XABCD (dígito 1-9 + 4 letras, el formato de la demo).
+CREATE OR REPLACE FUNCTION handle_new_user() RETURNS trigger
+SECURITY DEFINER SET search_path = public LANGUAGE plpgsql AS $$
+DECLARE
+  t TEXT;
+  creado UUID;
+BEGIN
+  FOR i IN 1..25 LOOP
+    t := (floor(random()*9)+1)::int::text
+      || chr(65 + floor(random()*26)::int) || chr(65 + floor(random()*26)::int)
+      || chr(65 + floor(random()*26)::int) || chr(65 + floor(random()*26)::int);
+    INSERT INTO usuarios (auth_id, email, nombre, tag)
+    VALUES (NEW.id, NEW.email,
+            COALESCE(NULLIF(trim(NEW.raw_user_meta_data->>'nombre'), ''), split_part(NEW.email, '@', 1)),
+            t)
+    ON CONFLICT (tag) DO NOTHING
+    RETURNING id INTO creado;
+    EXIT WHEN creado IS NOT NULL;
+  END LOOP;
+  RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();

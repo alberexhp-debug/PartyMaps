@@ -1,9 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabaseTorneum } from '@/lib/supabase/torneum'
 
-// Sesión de la DEMO: la app entera entra por login con cuentas de muestra.
-// Cada rol ve solo su panel; el guard (RequireSesion) redirige al resto.
-// Cuando llegue el backend real esto se sustituye por Supabase Auth.
+// Sesión de la app. Dos vías de entrada que CONVIVEN (fase A del backend real):
+// · Cuentas DEMO de muestra (botones del login) — para enseñar y para las suites.
+// · Cuentas REALES contra Supabase Auth (registro/login con correo y contraseña):
+//   sesion.real = true, empiezan vacías (fresca) en su propio namespace demo y
+//   su PERFIL vive en la tabla usuarios (PerfilRealSync lo sincroniza).
 
 export type RolSesion = 'jugador' | 'admin' | 'local'
 export type Sesion = {
@@ -21,6 +24,9 @@ export type Sesion = {
   // Cuenta VACÍA que empieza desde cero (30-08): sin el escaparate fijo de Álex
   // (historial, valoraciones, stats, logros…) — sus vistas enseñan empty-states.
   fresca?: boolean
+  // Cuenta REAL de Supabase Auth (fase A backend): su perfil persiste en la
+  // tabla usuarios y sobrevive a dispositivos y navegadores.
+  real?: boolean
 }
 
 export type CuentaDemo = Sesion & {
@@ -88,12 +94,15 @@ export function rutaInicial(s: Sesion): string {
 interface SesionState {
   sesion: Sesion | null
   login: (email: string, password: string) => Sesion | null
+  // Cuentas REALES (Supabase Auth). Devuelven la sesión o un error legible.
+  loginReal: (email: string, password: string) => Promise<Sesion | { error: string }>
+  registrarReal: (nombre: string, email: string, password: string) => Promise<Sesion | { error?: string; confirmar?: boolean }>
   logout: () => void
 }
 
 export const useSesionStore = create<SesionState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       sesion: null,
       login: (email, password) => {
         const c = CUENTAS_DEMO.find(x => x.email.toLowerCase() === email.trim().toLowerCase())
@@ -106,7 +115,36 @@ export const useSesionStore = create<SesionState>()(
         set({ sesion })
         return sesion
       },
-      logout: () => set({ sesion: null }),
+      loginReal: async (email, password) => {
+        const sb = supabaseTorneum()
+        if (!sb) return { error: 'sin-backend' }
+        const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password })
+        if (error || !data.user) return { error: error?.message ?? 'login' }
+        const sesion: Sesion = {
+          email: (data.user.email ?? email).toLowerCase(),
+          nombre: (data.user.user_metadata?.nombre as string) || email.split('@')[0],
+          rol: 'jugador', fresca: true, real: true,
+        }
+        set({ sesion })
+        return sesion
+      },
+      registrarReal: async (nombre, email, password) => {
+        const sb = supabaseTorneum()
+        if (!sb) return { error: 'sin-backend' }
+        const { data, error } = await sb.auth.signUp({
+          email: email.trim(), password, options: { data: { nombre: nombre.trim() } },
+        })
+        if (error) return { error: error.message }
+        // Con la confirmación por correo activada no hay sesión todavía.
+        if (!data.session) return { confirmar: true }
+        const sesion: Sesion = { email: email.trim().toLowerCase(), nombre: nombre.trim(), rol: 'jugador', fresca: true, real: true }
+        set({ sesion })
+        return sesion
+      },
+      logout: () => {
+        if (get().sesion?.real) supabaseTorneum()?.auth.signOut().catch(() => { /* sin red: la sesión local se cierra igual */ })
+        set({ sesion: null })
+      },
     }),
     { name: 'todh-sesion' }
   )

@@ -4,6 +4,7 @@ import { PWAInstallPrompt } from '@/components/user/PWAInstallPrompt'
 import { AvisoMiMesa } from '@/components/todh/AvisoMiMesa'
 import { AvisoInactividad } from '@/components/todh/AvisoInactividad'
 import { BuzonCuenta } from '@/components/todh/BuzonCuenta'
+import { PerfilRealSync } from '@/components/todh/PerfilRealSync'
 import { RequireSesion } from '@/components/todh/RequireSesion'
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
@@ -28,6 +29,8 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       <AvisoInactividad />
       {/* Buzón cruzado: entrega lo que otras cuentas dejaron a tu nombre */}
       <BuzonCuenta />
+      {/* Perfil de cuentas REALES sincronizado con Supabase (fase A backend) */}
+      <PerfilRealSync />
       <UserBottomNav />
     </div>
     </RequireSesion>

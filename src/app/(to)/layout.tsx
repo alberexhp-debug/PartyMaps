@@ -5,6 +5,7 @@ import { UserSideNav } from '@/components/user/UserSideNav'
 import { UserBottomNav } from '@/components/user/UserBottomNav'
 import { AltaTOSheet } from '@/components/todh/PerfilDualCard'
 import { BuzonCuenta } from '@/components/todh/BuzonCuenta'
+import { PerfilRealSync } from '@/components/todh/PerfilRealSync'
 import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
 import { RequireSesion } from '@/components/todh/RequireSesion'
 import { useT } from '@/lib/i18n'
@@ -39,6 +40,8 @@ function PuertaTO({ children }: { children: React.ReactNode }) {
       </main>
       {/* Buzón cruzado: el TO también recibe avisos de otras cuentas aquí */}
       <BuzonCuenta />
+      {/* Perfil de cuentas REALES sincronizado con Supabase (fase A backend) */}
+      <PerfilRealSync />
       <UserBottomNav />
     </div>
   )
