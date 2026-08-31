@@ -12,7 +12,8 @@ import { GameIcon } from '@/components/todh/GameIcon'
 import { CrewTag } from '@/components/todh/CrewTag'
 import { CountUp } from '@/components/ui/CountUp'
 import { cn } from '@/lib/utils'
-import { Globe, MapPin, Crown, ChevronUp, ChevronDown, Minus, Trophy, CalendarClock, Check, X } from 'lucide-react'
+import { MapPin, Crown, ChevronUp, ChevronDown, Minus, Trophy, CalendarClock, Check, X } from '@/components/todh/iconosTorneum'
+import { Globe } from 'lucide-react'
 
 // RANKING TORNEUM: solo puntúan los torneos jugados en Torneum (nunca start.gg
 // u otras plataformas — así no hay desajustes con sus puntuaciones).

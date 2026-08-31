@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { MapPin, Loader2, Check } from 'lucide-react'
+import { MapPin, Check } from '@/components/todh/iconosTorneum'
+import { Loader2 } from 'lucide-react'
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 

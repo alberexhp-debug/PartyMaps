@@ -6,7 +6,8 @@ import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore, useOrgId } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { CabeceraConsola } from '@/components/todh/CabeceraConsola'
-import { Users, TrendingUp, Star, Megaphone, Radio, ChevronRight, Check, Trophy, UsersRound } from 'lucide-react'
+import { Users, TrendingUp, Star, Megaphone, Radio, ChevronRight, Check, Trophy } from '@/components/todh/iconosTorneum'
+import { UsersRound } from 'lucide-react'
 
 // Comunidad del TO (spec Consola punto 5): grupos y amigos REALES del store,
 // difusión de la página de eventos (un clic → enlace copiado), los dos

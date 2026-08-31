@@ -5,7 +5,8 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { supabase } from '@/lib/supabase/client'
 import type { Local, TipoLocal } from '@/types'
 import { aforoVisible, getLabelTipoLocal, formatearPrecio } from '@/lib/utils'
-import { X, MapPin, Handshake, Check, Clock, Crosshair } from 'lucide-react'
+import { X, MapPin, Check, Clock } from '@/components/todh/iconosTorneum'
+import { Handshake, Crosshair } from 'lucide-react'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 

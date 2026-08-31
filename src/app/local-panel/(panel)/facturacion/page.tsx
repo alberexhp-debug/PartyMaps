@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase/client'
 import { formatearPrecio, cn } from '@/lib/utils'
-import {
-  Check, Sparkles, Star, Zap, Eye, CreditCard, TrendingDown, FileText, Printer, X,
-} from 'lucide-react'
+import { Check, Sparkles, Star, Zap, Eye, X } from '@/components/todh/iconosTorneum'
+import { CreditCard, TrendingDown, FileText, Printer } from 'lucide-react'
 import type { TierLocal } from '@/types'
 
 interface Tier {

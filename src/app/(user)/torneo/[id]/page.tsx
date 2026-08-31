@@ -28,10 +28,8 @@ import { topePuntos, puntosPorPuesto, CATEGORIAS } from '@/lib/torneos/puntos'
 import { puedeCancelarConDevolucion } from '@/lib/torneos/cancelacion'
 import { useT, conParams } from '@/lib/i18n'
 import type { Jugador } from '@/lib/torneos/sample'
-import {
-  ArrowLeft, Calendar, MapPin, Trophy, Users, Lock, Radio, Share2, ListTree,
-  Check, Star, Coins, Wifi, X,
-} from 'lucide-react'
+import { ArrowLeft, Calendar, MapPin, Trophy, Users, Lock, Radio, ListTree, Check, Star, X } from '@/components/todh/iconosTorneum'
+import { Share2, Coins, Wifi } from 'lucide-react'
 
 // Comisión de plataforma por tramo (la paga el jugador encima del precio)
 // Comisión variable de la reunión 5-jul: crece con el tamaño (más difícil de

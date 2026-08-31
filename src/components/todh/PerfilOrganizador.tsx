@@ -3,9 +3,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { JUEGOS, organizadorEfectivo } from '@/lib/torneos/sample'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
+import { fondoBanner } from '@/components/todh/bannerPresets'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Star, Users, Trophy, Check, Calendar, Award, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Star, Users, Trophy, Check, Calendar, ChevronRight } from '@/components/todh/iconosTorneum'
+import { Award } from 'lucide-react'
 import { TorneoArt } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { useT } from '@/lib/i18n'
@@ -32,7 +34,8 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
   return (
     <div className="relative min-h-screen pb-10 max-w-xl mx-auto lg:max-w-none lg:mx-0">
       <div className="relative h-36 overflow-hidden lg:rounded-3xl">
-        <div className="absolute inset-0" style={{ background: `radial-gradient(125% 130% at 0% 0%, ${to.color} 0%, ${to.color}55 30%, transparent 70%), #0D0F15` }} />
+        {/* Banner personalizado del TO (preset o imagen); sin él, el radial de marca */}
+        <div className="absolute inset-0" style={{ background: to.banner ? fondoBanner(to.banner) : `radial-gradient(125% 130% at 0% 0%, ${to.color} 0%, ${to.color}55 30%, transparent 70%), #0D0F15` }} />
         <div className="absolute inset-0 opacity-[0.14] mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, #fff .6px, transparent 1.2px), radial-gradient(circle at 75% 65%, #fff .5px, transparent 1px)', backgroundSize: '9px 9px, 13px 13px' }} />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 45%, #0D0F15)' }} />
         <div className="relative flex items-center px-4 pt-5 safe-top">
@@ -42,7 +45,10 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
 
       <div className="relative px-5 -mt-10">
         <div className="flex items-end gap-4">
-          <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] border-4 border-[#0D0F15] shrink-0" style={{ background: to.color }}>{to.nombre[0]}</span>
+          {to.foto
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={to.foto} alt="" className="w-20 h-20 rounded-2xl object-cover border-4 border-[#0D0F15] shrink-0" />
+            : <span className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-3xl font-black text-[#0A0A0F] border-4 border-[#0D0F15] shrink-0" style={{ background: to.color }}>{to.nombre[0]}</span>}
           {backButton ? (
             <button onClick={() => alternarSeguir(to.id, to.nombre)}
               className={cn('ml-auto mb-1 h-10 px-5 rounded-xl text-sm font-bold transition-all',

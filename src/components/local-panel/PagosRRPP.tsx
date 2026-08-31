@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { Wallet, Check, Clock } from 'lucide-react'
+import { Wallet, Check, Clock } from '@/components/todh/iconosTorneum'
 import { SectionCard, SectionTitle } from '@/components/local-panel/ui'
 
 type Liq = {

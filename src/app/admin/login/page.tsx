@@ -6,7 +6,8 @@ import { useAdminStore } from '@/lib/stores/useAdminStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
-import { Mail, Lock, Shield, Briefcase } from 'lucide-react'
+import { Mail, Lock, Shield } from '@/components/todh/iconosTorneum'
+import { Briefcase } from 'lucide-react'
 import Link from 'next/link'
 
 export default function AdminLoginPage() {

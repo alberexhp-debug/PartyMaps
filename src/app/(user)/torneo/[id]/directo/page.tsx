@@ -9,7 +9,7 @@ import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameBadge, GameIcon } from '@/components/todh/GameIcon'
 import { VideoEmbed } from '@/components/todh/VideoEmbed'
-import { ArrowLeft, Radio, Send, ListTree, Eye, Play } from 'lucide-react'
+import { ArrowLeft, Radio, Send, ListTree, Eye, Play } from '@/components/todh/iconosTorneum'
 
 const CHAT0 = [
   { u: 'Kaze', m: 'GGs en cuartos 🔥', mio: false, color: '#E63E54' },

@@ -1,11 +1,14 @@
 'use client'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, BadgeCheck, Check, ExternalLink, MapPin } from 'lucide-react'
+import { ArrowLeft, Check, ExternalLink, MapPin, Trash2 } from '@/components/todh/iconosTorneum'
+import { BadgeCheck, ImagePlus } from 'lucide-react'
 import { useDemoStore, useEsTO, useOrgId } from '@/lib/stores/useDemoStore'
 import { organizadorEfectivo, JUEGOS_LIST } from '@/lib/torneos/sample'
 import { GameIcon } from '@/components/todh/GameIcon'
+import { comprimirImagen } from '@/components/todh/EditarPerfilSheet'
+import { BANNERS_PRESET, fondoBanner } from '@/components/todh/bannerPresets'
 import { useToast } from '@/components/ui/Toast'
 import { useT } from '@/lib/i18n'
 
@@ -51,8 +54,24 @@ function EditorPerfilOrg({ orgId }: { orgId: string }) {
   const [bio, setBio] = useState(inicial.bio ?? '')
   const [color, setColor] = useState(inicial.color)
   const [juegos, setJuegos] = useState<string[]>(inicial.juegos)
+  // Personalización (31-08): foto propia y banner (preset o subida)
+  const [foto, setFoto] = useState<string | null>(inicial.foto ?? null)
+  const [banner, setBanner] = useState<string | null>(inicial.banner ?? null)
+  const inputFoto = useRef<HTMLInputElement>(null)
+  const inputBanner = useRef<HTMLInputElement>(null)
 
   const org = organizadorEfectivo(orgId)
+
+  const cargar = async (file: File | undefined, destino: 'foto' | 'banner') => {
+    if (!file) return
+    try {
+      const dataUrl = await comprimirImagen(file, 512, 200)
+      if (destino === 'foto') setFoto(dataUrl)
+      else setBanner(dataUrl)
+    } catch {
+      toast.error(tr('pfl.errorImagen'))
+    }
+  }
 
   const guardar = () => {
     // Ojo: `@${…}` nunca es falsy — el fallback va sobre el handle limpio.
@@ -64,6 +83,8 @@ function EditorPerfilOrg({ orgId }: { orgId: string }) {
       bio: bio.trim().slice(0, 200),
       color,
       juegos,
+      foto,
+      banner,
     })
     toast.success(`${tr('pfo.guardado')} · ${tr('pfo.guardadoSub')}`)
   }
@@ -87,9 +108,15 @@ function EditorPerfilOrg({ orgId }: { orgId: string }) {
         <p className="text-[13px] text-[#8B8BA8]">{tr('pfo.sub')}</p>
 
         {/* Vista previa: la identidad tal y como la pinta la página pública */}
-        <div className="card-premium p-4">
+        <div className="card-premium overflow-hidden">
+          {/* Banner de la página pública (preset o imagen subida) */}
+          <div aria-hidden className="h-16" style={{ background: banner ? fondoBanner(banner) : `radial-gradient(125% 130% at 0% 0%, ${color} 0%, ${color}55 30%, transparent 70%), #12161F` }} />
+          <div className="p-4 -mt-9">
           <div className="flex items-center gap-3.5">
-            <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl text-xl font-black text-[#0A0A0F] shrink-0" style={{ background: color }}>{(nombre.trim() || org.nombre)[0]}</span>
+            {foto
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={foto} alt="" className="w-14 h-14 rounded-2xl object-cover border-2 border-[#12161F] shrink-0" />
+              : <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl text-xl font-black text-[#0A0A0F] border-2 border-[#12161F] shrink-0" style={{ background: color }}>{(nombre.trim() || org.nombre)[0]}</span>}
             <div className="min-w-0">
               <p className="text-base font-bold text-white text-display leading-tight inline-flex items-center gap-1.5">
                 {nombre.trim() || org.nombre}
@@ -100,9 +127,30 @@ function EditorPerfilOrg({ orgId }: { orgId: string }) {
             </div>
           </div>
           {bio.trim() && <p className="mt-3 text-[13px] text-[#B8B8CC] leading-relaxed">{bio.trim()}</p>}
+          </div>
         </div>
 
         <div className="card-premium p-4">
+          {/* Foto y banner (31-08): misma mecánica que el perfil de jugador */}
+          <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('pfo.lblFoto')}</label>
+          <div className="flex items-center gap-2">
+            <input ref={inputFoto} type="file" accept="image/*" className="hidden" onChange={e => cargar(e.target.files?.[0], 'foto')} />
+            <button onClick={() => inputFoto.current?.click()} className="h-10 px-3.5 rounded-xl bg-white/6 border border-white/12 text-[13px] font-bold text-white inline-flex items-center gap-2"><ImagePlus size={15} /> {tr('pfo.subir')}</button>
+            {foto && <button onClick={() => setFoto(null)} aria-label={tr('pfo.quitarFoto')} className="h-10 w-10 rounded-xl bg-white/6 border border-white/12 text-[#8B8BA8] hover:text-[#FF8A8A] inline-flex items-center justify-center"><Trash2 size={15} /></button>}
+          </div>
+
+          <label className="block mt-4 text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('pfo.lblBanner')}</label>
+          <div className="flex flex-wrap items-center gap-2">
+            {BANNERS_PRESET.map(b => (
+              <button key={b.id} onClick={() => setBanner(b.css)} aria-label={b.nombre} title={b.nombre}
+                className={`h-9 w-14 rounded-lg transition-all ${banner === b.css ? 'ring-2 ring-white ring-offset-2 ring-offset-[#12161F]' : 'opacity-80 hover:opacity-100'}`}
+                style={{ background: b.css }} />
+            ))}
+            <input ref={inputBanner} type="file" accept="image/*" className="hidden" onChange={e => cargar(e.target.files?.[0], 'banner')} />
+            <button onClick={() => inputBanner.current?.click()} className="h-9 px-3 rounded-lg bg-white/6 border border-white/12 text-[12px] font-bold text-white inline-flex items-center gap-1.5"><ImagePlus size={14} /> {tr('pfo.subir')}</button>
+            {banner && <button onClick={() => setBanner(null)} aria-label={tr('pfo.quitarBanner')} className="h-9 w-9 rounded-lg bg-white/6 border border-white/12 text-[#8B8BA8] hover:text-[#FF8A8A] inline-flex items-center justify-center"><Trash2 size={14} /></button>}
+          </div>
+          <div className="mt-4 h-px bg-white/8" />
           <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('pfo.lblNombre')}</label>
           <input value={nombre} onChange={e => setNombre(e.target.value)} maxLength={40}
             className="w-full h-11 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none" />

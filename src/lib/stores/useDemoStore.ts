@@ -271,6 +271,14 @@ interface DemoState {
   esperasCuentas: Record<string, string[]>
   // (E) Chat directo entre cuentas amigas, por clave de pareja (claveAmigos).
   chatsAmigos: Record<string, MensajeAmigos[]>
+  // Sets EN JUEGO (pedido 31-08): epoch ms del «todo listo» por torneo→combate.
+  // MUNDO: el crono del set se ve en la bracket en tiempo real desde cualquier
+  // cuenta; se limpia al escribirse el resultado (gestionConResultado/disputa).
+  setsEnJuego: Record<string, Record<string, number>>
+  // Página pública editable de cada SEDE (pedido 31-08): logo, banner, galería,
+  // consolas/equipo con cantidad y ajuste fino de juegos disponibles. MUNDO:
+  // lo que edita la sede lo ven jugadores y TOs en /local/[id] y MiniLocal.
+  perfilesSede: Record<string, PerfilSede>
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string, crewId?: string) => void
   desinscribir: (torneoId: string, nombreTorneo: string) => void
@@ -371,6 +379,22 @@ interface DemoState {
   drenarBuzon: () => void
   // (E) Mensaje directo a una cuenta amiga (persiste en el mundo común).
   enviarMensajeAmigo: (email: string, texto: string) => void
+  // Arranca el crono del set cuando ambos jugadores dan «Todo listo» (idempotente:
+  // si el rival ya lo arrancó, ambos comparten el mismo inicio).
+  iniciarSetEnJuego: (torneoId: string, mid: string) => void
+  editarPerfilSede: (localId: string, patch: Partial<PerfilSede>) => void
+}
+
+// Personalización de la página pública de una sede (31-08). `equipos` es
+// catálogo fijo (EQUIPOS_SEDE en PerfilSedeEditor) → cantidad; los juegos
+// disponibles parten de juegosJugables() y aquí se AÑADEN o QUITAN a mano.
+export type PerfilSede = {
+  foto?: string | null      // logo del local (dataURL comprimido)
+  banner?: string | null    // CSS de preset o dataURL (pintar con fondoBanner)
+  galeria?: string[]        // hasta 6 imágenes del local (dataURL)
+  equipos?: Record<string, number>   // id de equipo → cantidad (0 = no tiene)
+  juegosExtra?: string[]    // juegos añadidos a mano sobre los derivados
+  juegosQuitados?: string[] // juegos quitados a mano de los derivados
 }
 
 let nid = 0
@@ -382,7 +406,7 @@ const nextId = () => `n${Date.now().toString(36)}${nid++}`
 function gestionConResultado(
   s: DemoState, torneoId: string, mid: string,
   puntos: { a: number; b: number }, lado?: 'a' | 'b',
-): Pick<DemoState, 'gestion'> {
+): Pick<DemoState, 'gestion'> & Partial<Pick<DemoState, 'setsEnJuego'>> {
   const ganador: 'a' | 'b' = lado ?? (puntos.a > puntos.b ? 'a' : 'b')
   return {
     gestion: {
@@ -393,7 +417,19 @@ function gestionConResultado(
         puntos: { ...(s.gestion[torneoId]?.puntos ?? {}), [mid]: puntos },
       },
     },
+    // Con resultado escrito el set deja de estar EN JUEGO: su crono sale de la
+    // bracket (única vía de escritura → única vía de apagado).
+    ...sinSetEnJuego(s, torneoId, mid),
   }
+}
+
+// Quita el crono de un set (si estaba corriendo) del mapa del mundo.
+function sinSetEnJuego(s: DemoState, torneoId: string, mid: string): Partial<Pick<DemoState, 'setsEnJuego'>> {
+  const enJuego = s.setsEnJuego[torneoId]
+  if (!enJuego?.[mid]) return {}
+  const resto = { ...enJuego }
+  delete resto[mid]
+  return { setsEnJuego: { ...s.setsEnJuego, [torneoId]: resto } }
 }
 
 // La noti de bienvenida vive aparte: es la ÚNICA que estrena una cuenta nueva.
@@ -666,6 +702,8 @@ const DATOS_INICIALES: DatosDemo = {
       buzonCuentas: {},
       esperasCuentas: {},
       chatsAmigos: {},
+      setsEnJuego: {},
+      perfilesSede: {},
 }
 
 // ── Mundo compartido (30-08): clasificación WORLD/PERSONAL de las claves ──
@@ -683,7 +721,7 @@ export const CLAVES_MUNDO = [
   'usuariosSuspendidos', 'betaCerrada', 'codigosBeta',
   'crews', 'crewTorneo',
   'amistadesCuentas', 'perfilesCuentas', 'inscripcionesCuentas', 'perfilesOrg',
-  'buzonCuentas', 'esperasCuentas', 'chatsAmigos',
+  'buzonCuentas', 'esperasCuentas', 'chatsAmigos', 'setsEnJuego', 'perfilesSede',
 ] as const satisfies readonly (keyof DatosDemo)[]
 export type ClaveMundo = (typeof CLAVES_MUNDO)[number]
 export type DatosPersonales = Omit<DatosDemo, ClaveMundo>
@@ -1256,6 +1294,8 @@ export const useDemoStore = create<DemoState>()(
           ...base,
           disputas: [...s.disputas, { id: nextId(), torneoId, mesa: ctx.mesa, a: ctx.a, b: ctx.b, mid: matchId }],
           notificaciones: [noti, ...s.notificaciones],
+          // En disputa el set ya no está jugándose: el crono se apaga.
+          ...sinSetEnJuego(s, torneoId, matchId),
         }
       }),
 
@@ -1396,6 +1436,16 @@ export const useDemoStore = create<DemoState>()(
           } }]) } : {}),
         }
       }),
+      // Crono del set (pedido 31-08): arranca con el «todo listo» y es
+      // idempotente — si el rival ya lo arrancó, se comparte el mismo inicio.
+      iniciarSetEnJuego: (torneoId, mid) => set((s) => {
+        if (s.setsEnJuego[torneoId]?.[mid]) return s
+        return { setsEnJuego: { ...s.setsEnJuego, [torneoId]: { ...s.setsEnJuego[torneoId], [mid]: Date.now() } } }
+      }),
+      // Página pública de la sede (31-08): cada control guarda al momento.
+      editarPerfilSede: (localId, patch) => set((s) => ({
+        perfilesSede: { ...s.perfilesSede, [localId]: { ...s.perfilesSede[localId], ...patch } },
+      })),
       // El tag de usuario #XABCD se genera al primer uso y queda fijo. Se
       // re-publica también en el perfil público del mundo (búsqueda exacta).
       asegurarUserTag: () => set((s) => s.userTag ? s : conPerfilCuenta(s, { userTag: generarTagUsuario() })),

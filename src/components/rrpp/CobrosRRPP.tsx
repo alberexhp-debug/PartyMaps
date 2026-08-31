@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Wallet, Check, AlertTriangle } from 'lucide-react'
+import { Wallet, Check, AlertTriangle } from '@/components/todh/iconosTorneum'
 import { SectionCard, SectionTitle } from '@/components/local-panel/ui'
 
 export type Liquidacion = {

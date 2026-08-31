@@ -8,14 +8,13 @@ import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore, useLocalId } from '@/lib/stores/useDemoStore'
 import { MiniLocal } from '@/components/todh/MiniLocal'
 import { useT, type ClaveI18n } from '@/lib/i18n'
-import { QrCode } from 'lucide-react'
+import { QrCode } from '@/components/todh/iconosTorneum'
 import { MapaMesas, PisoTabs, pisosDe, mesasDePiso, nombrePiso } from '@/components/todh/MapaMesas'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { DisponibilidadSede, resumenDispo } from '@/components/todh/DispoSede'
-import {
-  LogOut, Monitor, Wallet, Star, CalendarClock, Check, X, ChevronRight,
-  Users, Trophy, Trash2, Inbox, CalendarDays,
-} from 'lucide-react'
+import { PerfilSedeEditor } from '@/components/todh/PerfilSedeEditor'
+import { LogOut, Wallet, Star, CalendarClock, Check, X, ChevronRight, Users, Trophy, Trash2 } from '@/components/todh/iconosTorneum'
+import { Monitor, Inbox, CalendarDays } from 'lucide-react'
 
 const FORMAS: { id: MesaForma; clave: ClaveI18n }[] = [
   { id: 'cuadrada', clave: 'sede.formaCuadrada' }, { id: 'redonda', clave: 'sede.formaRedonda' }, { id: 'alargada', clave: 'sede.formaAlargada' },
@@ -35,16 +34,17 @@ const SETUPS: Setup[] = [
 // Cada apartado del panel es una RUTA (/sede, /sede/plano…): así el menú
 // lateral de la app los muestra directamente, como las herramientas de un TO.
 // La puerta de sesión y el shell (rail + barra inferior) viven en el layout.
-type Seccion = 'resumen' | 'solicitudes' | 'plano' | 'dispo' | 'torneos'
+type Seccion = 'resumen' | 'solicitudes' | 'plano' | 'dispo' | 'torneos' | 'pagina'
 const SECCIONES: { id: Seccion; clave: ClaveI18n; ruta: string }[] = [
   { id: 'resumen', clave: 'sede.secResumen', ruta: '/sede' },
   { id: 'solicitudes', clave: 'sede.secSolicitudes', ruta: '/sede/solicitudes' },
   { id: 'plano', clave: 'sede.secPlano', ruta: '/sede/plano' },
   { id: 'dispo', clave: 'sede.secDispo', ruta: '/sede/disponibilidad' },
   { id: 'torneos', clave: 'sede.secTorneos', ruta: '/sede/torneos' },
+  { id: 'pagina', clave: 'sp.secPagina', ruta: '/sede/pagina' },
 ]
 const SECCION_POR_URL: Record<string, Seccion> = {
-  solicitudes: 'solicitudes', plano: 'plano', disponibilidad: 'dispo', torneos: 'torneos',
+  solicitudes: 'solicitudes', plano: 'plano', disponibilidad: 'dispo', torneos: 'torneos', pagina: 'pagina',
 }
 
 export default function SedePage() {
@@ -295,6 +295,8 @@ export default function SedePage() {
             </div>
           </div>
         )}
+
+        {seccion === 'pagina' && <PerfilSedeEditor local={local} />}
 
         {seccion === 'dispo' && <DisponibilidadSede local={local} />}
 

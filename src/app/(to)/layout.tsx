@@ -8,7 +8,7 @@ import { BuzonCuenta } from '@/components/todh/BuzonCuenta'
 import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
 import { RequireSesion } from '@/components/todh/RequireSesion'
 import { useT } from '@/lib/i18n'
-import { Megaphone, Clock, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { Megaphone, Clock, ArrowLeft, ShieldCheck } from '@/components/todh/iconosTorneum'
 
 // Shell del PANEL DEL TO con puerta doble: primero la sesión (solo JUGADOR —
 // las sedes son solo sedes, sin perfil de organizador) y después la capa de

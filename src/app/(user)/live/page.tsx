@@ -6,7 +6,7 @@ import { TorneoArt } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { JUEGOS } from '@/lib/torneos/sample'
 import { useT } from '@/lib/i18n'
-import { Radio, CalendarClock, ChevronRight, Ticket } from 'lucide-react'
+import { Radio, CalendarClock, ChevronRight, Ticket } from '@/components/todh/iconosTorneum'
 
 // LIVE: tus salas de torneo en tiempo real. Un recuadro por torneo INSCRITO;
 // la sala se abre cuando el organizador la activa (directo o bracket generado),

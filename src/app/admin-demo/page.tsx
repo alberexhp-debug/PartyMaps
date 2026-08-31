@@ -1,4 +1,5 @@
 'use client'
+import type { IconoTorneum } from '@/components/todh/iconosTorneum'
 import { useMemo, useState } from 'react'
 import { AnimatedValue } from '@/components/ui/CountUp'
 import { useRouter } from 'next/navigation'
@@ -10,12 +11,8 @@ import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { RequireSesion } from '@/components/todh/RequireSesion'
 import { useT, type ClaveI18n } from '@/lib/i18n'
-import {
-  Gamepad2, Users, Store, Trophy, Wallet, BadgeCheck, ShieldAlert, LayoutDashboard,
-  Plus, Check, X, KeyRound, Copy, LogOut, Star, Ban, MessageSquareWarning, Pencil,
-  MessagesSquare, VolumeX, ChevronRight, FileText, Mail, Phone, MapPin, Landmark,
-  UserRound, ShieldCheck, RotateCcw,
-} from 'lucide-react'
+import { Users, Store, Trophy, Wallet, LayoutDashboard, Plus, Check, X, KeyRound, Copy, LogOut, Star, Pencil, ChevronRight, Mail, MapPin, ShieldCheck, RotateCcw } from '@/components/todh/iconosTorneum'
+import { Gamepad2, BadgeCheck, ShieldAlert, Ban, MessageSquareWarning, MessagesSquare, VolumeX, FileText, Phone, Landmark, UserRound } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PANEL ADMIN de Torneum — organizado por secciones, como un backoffice real.
@@ -25,7 +22,7 @@ import {
 
 type Seccion = 'resumen' | 'verificacion' | 'torneos' | 'sedes' | 'usuarios' | 'juegos' | 'incidencias' | 'acceso'
 
-const SECCIONES: { id: Seccion; clave: ClaveI18n; icon: typeof Users }[] = [
+const SECCIONES: { id: Seccion; clave: ClaveI18n; icon: IconoTorneum }[] = [
   { id: 'resumen', clave: 'adm.secResumen', icon: LayoutDashboard },
   { id: 'verificacion', clave: 'adm.secVerificacion', icon: BadgeCheck },
   { id: 'torneos', clave: 'adm.secTorneos', icon: Trophy },

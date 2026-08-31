@@ -8,10 +8,7 @@ import { useDemoStore, useOrgId } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon, GameChip, GameBadge } from '@/components/todh/GameIcon'
-import {
-  Plus, Radio, Trophy, Users, Wallet, AlertTriangle, Calendar,
-  TrendingUp, ChevronRight, Megaphone, CalendarClock, Check, UserPlus,
-} from 'lucide-react'
+import { Plus, Radio, Trophy, Users, Wallet, AlertTriangle, Calendar, TrendingUp, ChevronRight, Megaphone, CalendarClock, Check, UserPlus } from '@/components/todh/iconosTorneum'
 
 // Consola del TO: el hub de la capa de organizador. Banda compacta de título,
 // las tres acciones del día a día, el menú interno (fuente única en

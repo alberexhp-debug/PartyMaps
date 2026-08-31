@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
-import { Lock, Eye, EyeOff, ShieldCheck, Copy, Check } from 'lucide-react'
+import { Lock, Eye, EyeOff, ShieldCheck, Copy, Check } from '@/components/todh/iconosTorneum'
 
 export default function RrppPrimerAccesoPage() {
   const router = useRouter()

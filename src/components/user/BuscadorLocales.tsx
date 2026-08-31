@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { LocalConAforo } from '@/types'
 import { Input } from '@/components/ui/Input'
-import { Search, X } from 'lucide-react'
+import { Search, X } from '@/components/todh/iconosTorneum'
 import { getLabelTipoLocal, getColorTemperatura } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 

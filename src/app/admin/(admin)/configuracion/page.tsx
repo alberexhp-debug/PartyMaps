@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { ConfiguracionSistema } from '@/types'
-import { Settings, Save } from 'lucide-react'
+import { Settings, Save } from '@/components/todh/iconosTorneum'
 import { registrarAuditoria } from '@/lib/auditoria'
 
 export default function ConfiguracionPage() {

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { PageHeader } from '@/components/local-panel/ui'
-import { Plus, Store, ChevronDown, Ticket, X, Power, Lock } from 'lucide-react'
+import { Plus, Store, ChevronDown, Ticket, X, Power, Lock } from '@/components/todh/iconosTorneum'
 import { cn } from '@/lib/utils'
 
 type LocalMin = { id: string; nombre: string; ciudad: string; tier?: string }

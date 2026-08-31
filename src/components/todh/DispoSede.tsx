@@ -7,7 +7,7 @@ import { SETUP_LABEL } from '@/lib/torneos/plantillas'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { useT, traducir, conParams, mesCorto, mesLargo, diaCorto, diaLetra, type Idioma, type ClaveI18n } from '@/lib/i18n'
-import { Check, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, ShieldCheck } from '@/components/todh/iconosTorneum'
 
 // Meses en ES SOLO para parsear fechaLabel persistida ('Sáb 28 jun'): es formato
 // de dato, no de vista. Los meses/días que se PINTAN salen de i18n (mesCorto…).
@@ -86,10 +86,23 @@ export function juegosJugables(dispo: DispoSede | undefined, mesas: Mesa[]): Jue
   return juegosSugeridos(dispo, mesas)
 }
 
+// Juegos jugables EFECTIVOS (31-08): sobre los jugables (selección de la sede
+// o sugerencia por mesas), la página de la sede puede AÑADIR juegos a mano
+// (juegosExtra) y QUITAR otros (juegosQuitados). Sin perfil → jugables tal cual.
+export function juegosJugablesEfectivos(
+  dispo: DispoSede | undefined, mesas: Mesa[],
+  perfil?: { juegosExtra?: string[]; juegosQuitados?: string[] },
+): Juego[] {
+  const base = juegosJugables(dispo, mesas)
+  const extra = JUEGOS_LIST.filter(j => perfil?.juegosExtra?.includes(j.id) && !base.some(b => b.id === j.id))
+  const quitados = new Set(perfil?.juegosQuitados ?? [])
+  return [...base, ...extra].filter(j => !quitados.has(j.id))
+}
+
 // Chips de juegos jugables para las fichas públicas (solo los activos), con el
 // arte oficial de cada juego (keyart) en vez de emojis.
-export function JuegosPosibles({ dispo, mesas }: { dispo: DispoSede | undefined; mesas: Mesa[] }) {
-  const juegos = juegosJugables(dispo, mesas)
+export function JuegosPosibles({ dispo, mesas, perfil }: { dispo: DispoSede | undefined; mesas: Mesa[]; perfil?: { juegosExtra?: string[]; juegosQuitados?: string[] } }) {
+  const juegos = juegosJugablesEfectivos(dispo, mesas, perfil)
   if (juegos.length === 0) return null
   return (
     <div className="flex flex-wrap gap-1 mt-1.5">

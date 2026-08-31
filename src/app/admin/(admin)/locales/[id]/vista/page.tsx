@@ -6,10 +6,8 @@ import { getLabelTipoLocal } from '@/lib/utils'
 import { ROL_LABEL } from '@/lib/permisosLocal'
 import type { RolLocal } from '@/types'
 import { cn } from '@/lib/utils'
-import {
-  ArrowLeft, Eye, Users, Megaphone, Calendar, LifeBuoy, Store, AtSign,
-  CreditCard, UserCog, Boxes,
-} from 'lucide-react'
+import { ArrowLeft, Eye, Users, Megaphone, Calendar, Store, AtSign } from '@/components/todh/iconosTorneum'
+import { LifeBuoy, CreditCard, UserCog, Boxes } from 'lucide-react'
 
 type Vista = {
   local: {

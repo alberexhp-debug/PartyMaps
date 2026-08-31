@@ -1,6 +1,7 @@
 'use client'
 import { useRef, useState } from 'react'
-import { X, Upload, RefreshCw, Trash2 } from 'lucide-react'
+import { X, RefreshCw, Trash2 } from '@/components/todh/iconosTorneum'
+import { Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { claveDemoActual } from '@/lib/stores/useSesionStore'
@@ -19,7 +20,8 @@ import { useT } from '@/lib/i18n'
 
 // Reduce la imagen a maxPx de lado mayor y baja calidad JPEG hasta ~maxKB.
 // (longitud de dataURL ≈ bytes × 4/3, de ahí el factor 1.37 del corte)
-async function comprimirImagen(file: File, maxPx: number, maxKB: number): Promise<string> {
+// Exportada: la reutilizan el editor de perfil de organizador y el panel de sede.
+export async function comprimirImagen(file: File, maxPx: number, maxKB: number): Promise<string> {
   const url = URL.createObjectURL(file)
   try {
     const img = await new Promise<HTMLImageElement>((res, rej) => {

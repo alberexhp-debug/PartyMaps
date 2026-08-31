@@ -1,6 +1,6 @@
 'use client'
 import { useMemo, useState } from 'react'
-import { X, Check } from 'lucide-react'
+import { X, Check } from '@/components/todh/iconosTorneum'
 import { cn } from '@/lib/utils'
 import { JUEGOS_LIST } from '@/lib/torneos/sample'
 import { useDemoStore } from '@/lib/stores/useDemoStore'

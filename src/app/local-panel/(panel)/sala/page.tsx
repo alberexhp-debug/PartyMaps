@@ -9,7 +9,8 @@ import { PlanoEditor } from '@/components/local-panel/sala/PlanoEditor'
 import { SalaEnVivo } from '@/components/local-panel/sala/SalaEnVivo'
 import { ReservasPanel } from '@/components/local-panel/sala/ReservasPanel'
 import { cn } from '@/lib/utils'
-import { LayoutGrid, PencilRuler, CalendarClock, QrCode } from 'lucide-react'
+import { CalendarClock, QrCode } from '@/components/todh/iconosTorneum'
+import { LayoutGrid, PencilRuler } from 'lucide-react'
 
 type Tab = 'vivo' | 'plano' | 'reservas'
 

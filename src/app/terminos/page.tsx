@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from '@/components/todh/iconosTorneum'
 
 export default function TerminosPage() {
   return (

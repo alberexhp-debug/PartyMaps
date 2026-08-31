@@ -4,7 +4,8 @@ import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { useDemoStore, useOrgId } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { CabeceraConsola } from '@/components/todh/CabeceraConsola'
-import { CreditCard, Wallet, ShieldCheck } from 'lucide-react'
+import { Wallet, ShieldCheck } from '@/components/todh/iconosTorneum'
+import { CreditCard } from 'lucide-react'
 
 // Facturación del TO: qué generan sus torneos (bruto = inscritos × precio, el
 // mismo cálculo que el KPI de la consola) y la parte de suscripción/pago.

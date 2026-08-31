@@ -1,5 +1,6 @@
 'use client'
-import { AlertCircle, RotateCcw, WifiOff } from 'lucide-react'
+import { AlertCircle, RotateCcw } from '@/components/todh/iconosTorneum'
+import { WifiOff } from 'lucide-react'
 import { Button } from './Button'
 import { useT } from '@/lib/i18n'
 

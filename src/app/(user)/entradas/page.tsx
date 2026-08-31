@@ -9,7 +9,7 @@ import { useT } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameBadge } from '@/components/todh/GameIcon'
 import { TicketModal } from '@/components/todh/TicketModal'
-import { QrCode, Calendar, MapPin, Trophy } from 'lucide-react'
+import { QrCode, Calendar, MapPin, Trophy } from '@/components/todh/iconosTorneum'
 
 type Insc = { t: TorneoSample; estado: 'proximo' | 'jugado'; puesto?: string; espectador?: boolean; cancelado?: boolean }
 const pick = (id: string) => TORNEOS_SAMPLE.find(x => x.id === id)!
@@ -139,13 +139,15 @@ function TicketCard({ insc, onQr }: { insc: Insc; onQr: () => void }) {
   const { t, estado, puesto, espectador, cancelado } = insc
   return (
     <div className={`ring-grad card-premium relative overflow-hidden rounded-2xl flex items-stretch ${cancelado ? 'opacity-75' : ''}`}>
-      <Link href={`/torneo/${t.id}`} className="flex items-stretch flex-1 min-w-0 card-int">
+      {/* Un torneo JUGADO lleva a su clasificación final, no a la ficha (31-08) */}
+      <Link href={estado === 'jugado' && !cancelado ? `/torneo/${t.id}/resultados` : `/torneo/${t.id}`} className="flex items-stretch flex-1 min-w-0 card-int">
         <GameKeyart juegoId={t.juego} className="w-[72px] shrink-0" />
         <div className="flex-1 p-4 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
             <GameBadge juegoId={t.juego} />
             {espectador && <span className="px-1.5 h-5 inline-flex items-center rounded-md text-[9px] font-black uppercase tracking-wider bg-[#9B82FF]/15 text-[#9B82FF] border border-[#9B82FF]/40">Espectador</span>}
             {cancelado && <span className="px-1.5 h-5 inline-flex items-center rounded-md text-[9px] font-black uppercase tracking-wider bg-[#FF6B6B]/15 text-[#FF8A8A] border border-[#FF6B6B]/40">{tr('tk.cancelado')}</span>}
+            {estado === 'jugado' && !cancelado && <span className="px-1.5 h-5 inline-flex items-center rounded-md text-[9px] font-black uppercase tracking-wider bg-[#B6FF3A]/12 text-[#B6FF3A] border border-[#B6FF3A]/35">{tr('tk.finalizado')}</span>}
             {estado === 'jugado' && puesto && <span className="ml-auto text-[11px] font-bold text-[#E0BE63]">🏆 {puesto}</span>}
           </div>
           <p className="font-bold text-white text-display tracking-tight leading-snug truncate">{t.nombre}</p>

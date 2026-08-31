@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle } from '@/components/todh/iconosTorneum'
 import { cn } from '@/lib/utils'
 
 interface Resumen {

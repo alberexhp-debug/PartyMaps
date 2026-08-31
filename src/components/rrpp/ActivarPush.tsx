@@ -1,5 +1,6 @@
 'use client'
-import { Bell, BellOff, BellRing } from 'lucide-react'
+import { Bell } from '@/components/todh/iconosTorneum'
+import { BellOff, BellRing } from 'lucide-react'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 import { SectionCard, SectionTitle } from '@/components/local-panel/ui'
 

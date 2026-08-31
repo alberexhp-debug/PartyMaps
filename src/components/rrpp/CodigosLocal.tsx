@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { QrCode, Plus, X, Copy, Check, Download, Share2, User, Clock, Power } from 'lucide-react'
+import { QrCode, Plus, X, Copy, Check, Download, User, Clock, Power } from '@/components/todh/iconosTorneum'
+import { Share2 } from 'lucide-react'
 import { LABEL_CATEGORIA, CATEGORIAS_DESCUENTO, type CategoriaDescuento } from '@/lib/rrppCodigos'
 
 export type Codigo = {

@@ -5,7 +5,8 @@ import { JUEGOS, JUEGOS_LIST, type Local } from '@/lib/torneos/sample'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { parseFechaLabel } from '@/components/todh/DispoSede'
 import { useT, conParams, mesLargo, diaLetra } from '@/lib/i18n'
-import { Check, ChevronLeft, ChevronRight, Clock, ArrowLeftRight, CalendarClock, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Clock, CalendarClock, X } from '@/components/todh/iconosTorneum'
+import { ArrowLeftRight } from 'lucide-react'
 import { GameIcon } from '@/components/todh/GameIcon'
 
 // CALENDARIO DE RESERVAS del local, para organizadores: la vista que se abre al

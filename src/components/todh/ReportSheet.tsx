@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
-import { Flag, Check } from 'lucide-react'
+import { Check } from '@/components/todh/iconosTorneum'
+import { Flag } from 'lucide-react'
 import { useT, conParams } from '@/lib/i18n'
 
 // Botón rojo de Report (reunión 5-jul): el jugador reporta bracket o seeding

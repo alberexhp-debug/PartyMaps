@@ -1,4 +1,4 @@
-import type { ReactNode, SVGProps } from 'react'
+import type { ComponentType, ReactNode, SVGProps } from 'react'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ICONOS TORNEUM — set propio general (rediseño 30-08, decisión Albert #4).
@@ -25,7 +25,11 @@ export type IconoTorneumProps = Omit<SVGProps<SVGSVGElement>, 'strokeWidth'> & {
   strokeWidth?: number | string
 }
 
-function icono(nombre: string, contenido: ReactNode) {
+// Tipo NOMBRADO del componente (sin displayName obligatorio): así un
+// `typeof X` en registros de iconos admite mezclar propios y lucide.
+export type IconoTorneum = ComponentType<IconoTorneumProps>
+
+function icono(nombre: string, contenido: ReactNode): IconoTorneum {
   function Icono({ size = 24, strokeWidth = 2, className = '', ...resto }: IconoTorneumProps) {
     return (
       <svg

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
 import { JUEGOS_LIST } from '@/lib/torneos/sample'
 import { GameIcon } from '@/components/todh/GameIcon'
-import { Megaphone, Check, Clock, ChevronRight } from 'lucide-react'
+import { Megaphone, Check, Clock, ChevronRight } from '@/components/todh/iconosTorneum'
 import { useT } from '@/lib/i18n'
 
 // Rol de organizador en el perfil. Ya NO hay perfil conmutable ni panel aparte:

@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Printer } from 'lucide-react'
+import { ArrowLeft } from '@/components/todh/iconosTorneum'
+import { Printer } from 'lucide-react'
 
 type MesaQR = { id: string; codigo: string; tipo: string; zona: string | null; qr_token: string }
 

@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useGestorStore } from '@/lib/stores/useGestorStore'
-import { Store, Megaphone, Tag, Ticket, Wallet, ChevronRight, TrendingUp, BarChart3 } from 'lucide-react'
+import { Store, Megaphone, Ticket, Wallet, ChevronRight, TrendingUp } from '@/components/todh/iconosTorneum'
+import { Tag, BarChart3 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts'

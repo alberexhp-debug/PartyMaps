@@ -1,6 +1,8 @@
 'use client'
+import type { IconoTorneum } from '@/components/todh/iconosTorneum'
 import Link from 'next/link'
-import { MapPin, Handshake, Monitor, Wallet, Star, ShieldCheck, ArrowRight, Check } from 'lucide-react'
+import { MapPin, Wallet, Star, ShieldCheck, ArrowRight, Check } from '@/components/todh/iconosTorneum'
+import { Handshake, Monitor } from 'lucide-react'
 import { useT, type ClaveI18n, type Idioma } from '@/lib/i18n'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 
@@ -10,7 +12,7 @@ import { useDemoStore } from '@/lib/stores/useDemoStore'
 // lleva su propio selector de idioma en la cabecera; el elegido persiste en el
 // store de demo y acompaña al visitante si luego entra en la app.
 
-const MODULOS: { icon: typeof MapPin; titulo: ClaveI18n; texto: ClaveI18n }[] = [
+const MODULOS: { icon: IconoTorneum; titulo: ClaveI18n; texto: ClaveI18n }[] = [
   { icon: MapPin, titulo: 'pl.mod1T', texto: 'pl.mod1X' },
   { icon: Handshake, titulo: 'pl.mod2T', texto: 'pl.mod2X' },
   { icon: Monitor, titulo: 'pl.mod3T', texto: 'pl.mod3X' },

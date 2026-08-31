@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { Local, EstadoLocal, TierLocal } from '@/types'
 import { getLabelTipoLocal, formatearFecha } from '@/lib/utils'
-import { Search, Check, X, AlertCircle, ChevronDown, Pencil } from 'lucide-react'
+import { Search, Check, X, AlertCircle, ChevronDown, Pencil } from '@/components/todh/iconosTorneum'
 import { cn } from '@/lib/utils'
 import { registrarAuditoria } from '@/lib/auditoria'
 

@@ -1,7 +1,9 @@
 'use client'
+import type { IconoTorneum } from '@/components/todh/iconosTorneum'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, Compass, Trophy, User, LayoutDashboard, Radio, Inbox, LayoutGrid, CalendarDays, MessagesSquare } from 'lucide-react'
+import { Trophy, User, LayoutDashboard, Radio } from '@/components/todh/iconosTorneum'
+import { Map, Compass, Inbox, LayoutGrid, CalendarDays, MessagesSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
@@ -10,7 +12,7 @@ import { useT, type ClaveI18n } from '@/lib/i18n'
 
 // Paquete Chat (30-08): Entradas sale del nav (la ruta sigue viva, se llega
 // desde la fila Entradas del perfil) y entra Chat → /amigos.
-const tabs: { href: string; icon: typeof Compass; label: ClaveI18n }[] = [
+const tabs: { href: string; icon: IconoTorneum; label: ClaveI18n }[] = [
   { href: '/explorar', icon: Compass,        label: 'nav.explorar' },
   { href: '/mapa',     icon: Map,            label: 'nav.mapa' },
   { href: '/ranking',  icon: Trophy,         label: 'nav.ranking' },
@@ -39,7 +41,7 @@ export function UserBottomNav() {
 
   // La sede navega directa a sus apartados (sin Explorar/Mapa); es SOLO sede,
   // sin capa de organizador.
-  const items: { href: string; icon: typeof Compass; texto: string; to?: boolean; badge?: number }[] = esSede
+  const items: { href: string; icon: IconoTorneum; texto: string; to?: boolean; badge?: number }[] = esSede
     ? [
         { href: '/sede', icon: LayoutDashboard, texto: 'Resumen' },
         { href: '/sede/solicitudes', icon: Inbox, texto: 'Solicitudes' },

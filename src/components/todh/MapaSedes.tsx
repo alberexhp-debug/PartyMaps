@@ -9,7 +9,8 @@ import { resumenDispo } from '@/components/todh/DispoSede'
 import { MiniLocal } from '@/components/todh/MiniLocal'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { useT, conParams, type ClaveI18n } from '@/lib/i18n'
-import { X, Star, Ruler, Monitor, Users, Wallet, Check, CalendarClock, Eye, Clock } from 'lucide-react'
+import { X, Star, Users, Wallet, Check, CalendarClock, Eye, Clock } from '@/components/todh/iconosTorneum'
+import { Ruler, Monitor } from 'lucide-react'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 

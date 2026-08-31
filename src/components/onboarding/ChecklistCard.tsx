@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Star, ArrowRight } from 'lucide-react'
+import { Star, ArrowRight } from '@/components/todh/iconosTorneum'
 
 interface Paso { id: string; titulo: string; motivo: string; ruta: string; tipo: 'obligatorio' | 'recomendado'; estado: 'hecho' | 'pendiente' }
 interface Resumen { pasos: Paso[]; pct: number; obligatoriosPendientes: number }

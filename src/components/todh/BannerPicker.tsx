@@ -1,7 +1,8 @@
 'use client'
 import { useRef, useState } from 'react'
 import { GameKeyart } from '@/components/todh/GameKeyart'
-import { Upload, Link2, X, Check, ImageIcon } from 'lucide-react'
+import { X, Check } from '@/components/todh/iconosTorneum'
+import { Upload, Link2, ImageIcon } from 'lucide-react'
 
 // Selector de imagen/banner del torneo: galería de muestra, URL propia o SUBIDA
 // desde el dispositivo (reescalada a ≤1280px JPEG para caber en el estado demo).

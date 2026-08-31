@@ -4,10 +4,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { supabase } from '@/lib/supabase/client'
-import {
-  Bell, Sun, Moon, ChevronDown, LogOut, Settings, Users, CreditCard,
-  LifeBuoy, ListChecks, LayoutDashboard, ArrowLeft,
-} from 'lucide-react'
+import { Bell, ChevronDown, LogOut, Settings, Users, LayoutDashboard, ArrowLeft } from '@/components/todh/iconosTorneum'
+import { Sun, Moon, CreditCard, LifeBuoy, ListChecks } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROL_LABEL, homeDeRol, zonasDeTrabajador, homeDeTrabajador, type ZonaPanel } from '@/lib/permisosLocal'
 import { BadgePuestaAPunto } from '@/components/local-panel/BadgePuestaAPunto'

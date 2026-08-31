@@ -12,7 +12,8 @@ import { BannerPicker } from '@/components/todh/BannerPicker'
 import { topePuntos, CATEGORIAS } from '@/lib/torneos/puntos'
 import { ORGANIZADORES } from '@/lib/torneos/sample'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Calendar, Users, Lock, MapPin, Globe, Check, Eye, Plus, Search, X, Star, Map as MapIcon, ImagePlus, ListTree } from 'lucide-react'
+import { ArrowLeft, Calendar, Users, Lock, MapPin, Check, Eye, Plus, Search, X, Star, ListTree } from '@/components/todh/iconosTorneum'
+import { Globe, Map as MapIcon, ImagePlus } from 'lucide-react'
 
 let creadoSeq = 0
 

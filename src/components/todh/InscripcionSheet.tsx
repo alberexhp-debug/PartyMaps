@@ -5,7 +5,8 @@ import type { Crew } from '@/lib/torneos/crews'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { useT, conParams } from '@/lib/i18n'
-import { X, CreditCard, Check, ShieldCheck, Clock } from 'lucide-react'
+import { X, Check, ShieldCheck, Clock } from '@/components/todh/iconosTorneum'
+import { CreditCard } from 'lucide-react'
 
 type Props = {
   torneo: TorneoSample

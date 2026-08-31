@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { PageHeader, SectionCard } from '@/components/local-panel/ui'
 import { useToast } from '@/components/ui/Toast'
-import { Banknote, CreditCard, Smartphone, Check, Plus, Minus, User, RotateCcw, Download, Coffee } from 'lucide-react'
+import { Check, Plus, Minus, User, RotateCcw, Download } from '@/components/todh/iconosTorneum'
+import { Banknote, CreditCard, Smartphone, Coffee } from 'lucide-react'
 
 type Evento = { id: string; nombre: string; fecha_inicio: string; precio_base: number | null }
 type EntradaCreada = { id: string; qr_code: string; precio_total: number }

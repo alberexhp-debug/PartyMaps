@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { TORNEOS_SAMPLE, JUEGOS } from '@/lib/torneos/sample'
 import { useT, type ClaveI18n } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
-import { ArrowRight, Trophy, MapPin, Calendar } from 'lucide-react'
+import { ArrowRight, Trophy, MapPin, Calendar } from '@/components/todh/iconosTorneum'
 
 const PASOS: { Ic: typeof MapPin; tK: ClaveI18n; dK: ClaveI18n }[] = [
   { Ic: MapPin, tK: 'inicio.paso1t', dK: 'inicio.paso1d' },

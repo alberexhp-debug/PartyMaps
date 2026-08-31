@@ -5,7 +5,8 @@ import { useOrgId } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { CabeceraConsola } from '@/components/todh/CabeceraConsola'
 import { GameIcon } from '@/components/todh/GameIcon'
-import { Star, MapPin, BadgeCheck, Megaphone, ChevronRight, Trophy, Users, Pencil } from 'lucide-react'
+import { Star, MapPin, Megaphone, ChevronRight, Trophy, Users, Pencil } from '@/components/todh/iconosTorneum'
+import { BadgeCheck } from 'lucide-react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 
 // Perfil del TO dentro de la consola: la cara del organizador (la identidad
@@ -27,7 +28,10 @@ export default function PerfilTOPage() {
         {/* Identidad: lo que antes encabezaba la consola */}
         <div className="card-premium p-4 mt-5">
           <div className="flex items-center gap-3.5">
-            <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-2xl font-black text-[#0A0A0F] shrink-0" style={{ background: org.color }}>{org.nombre[0]}</span>
+            {org.foto
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={org.foto} alt="" className="w-16 h-16 rounded-2xl object-cover shrink-0" />
+              : <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-2xl font-black text-[#0A0A0F] shrink-0" style={{ background: org.color }}>{org.nombre[0]}</span>}
             <div className="min-w-0 flex-1">
               <p className="text-lg font-bold text-white text-display leading-tight inline-flex items-center gap-1.5">
                 {org.nombre}

@@ -9,10 +9,8 @@ import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 import { UsuarioLocal, RolLocal } from '@/types'
 import { ROLES_PERMISOS, ZONAS_ASIGNABLES, ZONA_LABEL, zonasDeTrabajador, type ZonaPanel } from '@/lib/permisosLocal'
-import {
-  ArrowLeft, Shield, Gift, MessageSquare, KeyRound, ShieldCheck, ShieldAlert,
-  Save, Trash2, Power, AtSign, Calendar,
-} from 'lucide-react'
+import { ArrowLeft, Shield, MessageSquare, KeyRound, ShieldCheck, Save, Trash2, Power, AtSign, Calendar } from '@/components/todh/iconosTorneum'
+import { Gift, ShieldAlert } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { CortesiasModal } from '@/components/local-panel/CortesiasModal'

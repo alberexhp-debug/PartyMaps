@@ -9,11 +9,8 @@ import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
-import {
-  Star, Bell, Shield, LogOut, ChevronRight,
-  Users, Trophy, Edit3, Camera, Award, Medal, Globe2, Lock, Swords,
-  Ticket, Copy, Check,
-} from 'lucide-react'
+import { Star, Bell, Shield, LogOut, ChevronRight, Users, Trophy, Lock, Swords, Ticket, Copy, Check } from '@/components/todh/iconosTorneum'
+import { Edit3, Camera, Award, Medal, Globe2 } from 'lucide-react'
 import { CREW_USUARIO, nivelCrew, puntuacionCrew } from '@/lib/torneos/crews'
 import { CrewEmblema } from '@/components/todh/CrewEmblema'
 import { EditarPerfilSheet } from '@/components/todh/EditarPerfilSheet'

@@ -5,7 +5,8 @@ import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { formatearPrecio, cn } from '@/lib/utils'
-import { Users, Plus, Minus, X, Clock, Armchair } from 'lucide-react'
+import { Users, Plus, Minus, X, Clock } from '@/components/todh/iconosTorneum'
+import { Armchair } from 'lucide-react'
 
 type Mesa = {
   id: string; codigo: string; tipo: string; zona: string | null; capacidad: number

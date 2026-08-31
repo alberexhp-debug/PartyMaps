@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { PageHeader, EmptyState, StatCard } from '@/components/local-panel/ui'
 import { getLabelTipoLocal } from '@/lib/utils'
-import { Store, Users, Wallet } from 'lucide-react'
+import { Store, Users, Wallet } from '@/components/todh/iconosTorneum'
 
 type LocalGrupo = {
   id: string; nombre: string; ciudad: string; tipo_local: string; tier: string; estado: string

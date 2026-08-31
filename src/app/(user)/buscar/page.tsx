@@ -11,7 +11,8 @@ import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { useT } from '@/lib/i18n'
-import { ArrowLeft, Search, Trophy, Store, MapPin, Star, Verified } from 'lucide-react'
+import { ArrowLeft, Search, Trophy, Store, MapPin, Star } from '@/components/todh/iconosTorneum'
+import { Verified } from 'lucide-react'
 
 const TODOS_JUGADORES: Jugador[] = JUEGOS_LIST.flatMap(j => rankingPorJuego(j.id))
 

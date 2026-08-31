@@ -2,7 +2,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { HeroBanner, SectionCard, SectionTitle, EmptyState } from '@/components/local-panel/ui'
 import { CATEGORIAS_DESCUENTO, LABEL_CATEGORIA, type CategoriaDescuento } from '@/lib/rrppCodigos'
-import { Megaphone, Store, Percent, X } from 'lucide-react'
+import { Megaphone, Store, X } from '@/components/todh/iconosTorneum'
+import { Percent } from 'lucide-react'
 
 type RrppRel = {
   rrpp_venue_id: string; comision_pct: number; descuentos: Record<string, number>

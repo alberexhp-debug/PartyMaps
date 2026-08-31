@@ -8,7 +8,8 @@ import { GameKeyart } from './GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { CountUp } from '@/components/ui/CountUp'
 import { PersonajeIcon } from '@/components/todh/PersonajeChip'
-import { Pencil, X, Check, TrendingDown } from 'lucide-react'
+import { Pencil, X, Check } from '@/components/todh/iconosTorneum'
+import { TrendingDown } from 'lucide-react'
 import { RangoChip, RangoProgreso } from '@/components/todh/RangoChip'
 import { useT } from '@/lib/i18n'
 
@@ -112,17 +113,16 @@ export function CompetitiveCard() {
 
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <span className="text-[10px] text-[#8B8BA8] uppercase tracking-wider font-semibold">Mains</span>
+          {/* Sin contador de partidas: el main se enseña limpio (pedido 31-08) */}
           {mains.map(m => (
             <span key={m} className="pl-1 pr-2.5 h-6 inline-flex items-center gap-1 rounded-full text-[11px] font-semibold bg-white/6 border border-white/10 text-[#D4D4E4]">
               <PersonajeIcon juegoId={juego} nombre={m} px={17} /> {m}
-              {!!jugados?.[m] && <span className="text-[10px] text-[#8B8BA8] font-mono-num" title={`${jugados[m]} partidas verificadas`}>×{jugados[m]}</span>}
             </span>
           ))}
           {/* Jugados de verdad (reportes verificados) que no son mains elegidos */}
           {extras.map(m => (
             <span key={m} className="pl-1 pr-2.5 h-6 inline-flex items-center gap-1 rounded-full text-[11px] font-semibold bg-white/4 border border-dashed border-white/12 text-[#9A9AAE]">
               <PersonajeIcon juegoId={juego} nombre={m} px={17} /> {m}
-              <span className="text-[10px] text-[#8B8BA8] font-mono-num" title={`${jugados?.[m]} partidas verificadas`}>×{jugados?.[m]}</span>
             </span>
           ))}
           {/* Sin mains todavía (cuenta nueva): CTA explícita para elegirlos */}

@@ -17,7 +17,7 @@ type TorneoReal = {
   juego: string; nombre: string; url: string; ciudad: string; sede: string
   fecha: number | null; asistentes: number; lat: number; lng: number
 }
-import { Calendar, Users, X, Star, ChevronRight } from 'lucide-react'
+import { Calendar, Users, X, Star, ChevronRight } from '@/components/todh/iconosTorneum'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 

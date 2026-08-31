@@ -1,5 +1,5 @@
 'use client'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle } from '@/components/todh/iconosTorneum'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import type { FaltanteObligatorio } from '@/lib/onboarding/gate'

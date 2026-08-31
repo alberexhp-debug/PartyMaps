@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Send, X } from 'lucide-react'
+import { Send, X } from '@/components/todh/iconosTorneum'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 

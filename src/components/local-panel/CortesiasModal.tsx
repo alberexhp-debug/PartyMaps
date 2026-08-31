@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import type { UsuarioLocal, TierLocal } from '@/types'
-import { Lock, Check, X } from 'lucide-react'
+import { Lock, Check, X } from '@/components/todh/iconosTorneum'
 import { cn } from '@/lib/utils'
 import { CORTESIA_LABEL, cortesiaPermitidaPorPlan, NIVELES_CORTESIA, type PermisosCortesia } from '@/lib/cortesias'
 

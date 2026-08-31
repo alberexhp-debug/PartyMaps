@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase/client'
 import { useGestorStore } from '@/lib/stores/useGestorStore'
-import { Mail, Lock, Briefcase } from 'lucide-react'
+import { Mail, Lock } from '@/components/todh/iconosTorneum'
+import { Briefcase } from 'lucide-react'
 
 export default function GestorLoginPage() {
   const router = useRouter()

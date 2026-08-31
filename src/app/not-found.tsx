@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Trophy } from 'lucide-react'
+import { Trophy } from '@/components/todh/iconosTorneum'
 
 export default function NotFound() {
   return (

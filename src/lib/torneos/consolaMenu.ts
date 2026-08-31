@@ -1,4 +1,6 @@
-import { Trophy, MapPin, UserRound, Wallet, Users, type LucideIcon } from 'lucide-react'
+import { Trophy, MapPin, Wallet, Users } from '@/components/todh/iconosTorneum'
+import { UserRound } from 'lucide-react'
+import type { IconoTorneum } from '@/components/todh/iconosTorneum'
 import type { ClaveI18n } from '@/lib/i18n'
 
 // Fuente ÚNICA del menú interno de la consola del TO: la sidebar ya solo tiene
@@ -7,7 +9,7 @@ import type { ClaveI18n } from '@/lib/i18n'
 // (perfil, facturación, comunidad). Las páginas destino viven en (to)/.
 export type ItemConsola = {
   href: string
-  icon: LucideIcon
+  icon: IconoTorneum
   labelKey: ClaveI18n
   descKey: ClaveI18n
 }

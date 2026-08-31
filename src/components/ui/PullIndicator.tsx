@@ -1,5 +1,5 @@
 'use client'
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw } from '@/components/todh/iconosTorneum'
 import { cn } from '@/lib/utils'
 
 interface PullIndicatorProps {

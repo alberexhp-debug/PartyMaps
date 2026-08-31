@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from '@/components/todh/iconosTorneum'
 import { useT } from '@/lib/i18n'
 
 // Cabecera compacta de las secciones de la consola del TO: enlace sutil de

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { ArrowLeft, Download, Trash2, Shield, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Download, Trash2, Shield, AlertTriangle } from '@/components/todh/iconosTorneum'
 import { useT } from '@/lib/i18n'
 
 export default function PrivacidadPage() {

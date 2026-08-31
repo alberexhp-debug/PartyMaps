@@ -4,7 +4,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useGestorStore } from '@/lib/stores/useGestorStore'
 import { supabase } from '@/lib/supabase/client'
-import { LayoutDashboard, Store, Megaphone, MessageSquare, Tag, Ticket, LogOut } from 'lucide-react'
+import { LayoutDashboard, Store, Megaphone, MessageSquare, Ticket, LogOut } from '@/components/todh/iconosTorneum'
+import { Tag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [

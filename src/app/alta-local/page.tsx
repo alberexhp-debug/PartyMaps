@@ -3,7 +3,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT, type ClaveI18n } from '@/lib/i18n'
-import { ArrowLeft, Check, Store, FileText } from 'lucide-react'
+import { ArrowLeft, Check, Store } from '@/components/todh/iconosTorneum'
+import { FileText } from 'lucide-react'
 
 // Alta self-service de una SEDE: el local rellena su expediente (contacto,
 // fiscal, espacio, documentación) y el admin lo resuelve en Verificación.

@@ -7,7 +7,8 @@ import { useToast } from '@/components/ui/Toast'
 import { PageHeader, EmptyState } from '@/components/local-panel/ui'
 import { CORTESIA_LABEL, cortesiaPermitidaPorPlan } from '@/lib/cortesias'
 import type { TipoCortesia } from '@/types'
-import { Gift, Percent, GlassWater, Ticket, Check, Plus, Lock, User } from 'lucide-react'
+import { Ticket, Check, Plus, Lock, User } from '@/components/todh/iconosTorneum'
+import { Gift, Percent, GlassWater } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const TIPOS: TipoCortesia[] = ['consumicion', 'descuento', 'entrada_gratis']

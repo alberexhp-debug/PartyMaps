@@ -10,7 +10,8 @@ import { estadoDeLocal } from '@/lib/estado-local'
 import { LocalBottomSheet } from './LocalBottomSheet'
 import { FiltrosMapa } from './FiltrosMapa'
 import { BuscadorLocales } from './BuscadorLocales'
-import { Search, SlidersHorizontal, Crosshair, Layers } from 'lucide-react'
+import { Search } from '@/components/todh/iconosTorneum'
+import { SlidersHorizontal, Crosshair, Layers } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!

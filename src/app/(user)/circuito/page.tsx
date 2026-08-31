@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { JUEGOS, JUEGOS_LIST, rankingPorJuego } from '@/lib/torneos/sample'
 import { PersonajeIcon } from '@/components/todh/PersonajeChip'
 import { GameIcon } from '@/components/todh/GameIcon'
-import { ArrowLeft, Trophy, CalendarClock, MapPin, Ticket, Crown, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Trophy, CalendarClock, MapPin, Ticket, Crown, ChevronRight } from '@/components/todh/iconosTorneum'
 import { useT } from '@/lib/i18n'
 
 // Página del CIRCUITO OFICIAL TORNEUM: los torneos Oficiales reparten puntos

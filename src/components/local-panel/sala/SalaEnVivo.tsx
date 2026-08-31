@@ -5,7 +5,8 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { Planta, Mesa, Reserva } from '@/types'
-import { Users, Beer, Check, X, LogIn, RotateCcw, Plus, Minus, Clock, Armchair } from 'lucide-react'
+import { Users, Check, X, RotateCcw, Plus, Minus, Clock } from '@/components/todh/iconosTorneum'
+import { Beer, LogIn, Armchair } from 'lucide-react'
 
 interface Props {
   localId: string

@@ -3,7 +3,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { CountUp } from '@/components/ui/CountUp'
-import { ArrowLeft, Check, Share2, Zap, Ticket, Trophy, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Check, Zap, Ticket, Trophy, ChevronUp } from '@/components/todh/iconosTorneum'
+import { Share2 } from 'lucide-react'
 
 // Landing de preregistro del lanzamiento (plan §4.2): lista de espera viral —
 // tu posición es visible y compartir tu enlace te sube puestos. Beneficios de

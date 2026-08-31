@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MapPin } from 'lucide-react'
+import { MapPin } from '@/components/todh/iconosTorneum'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'

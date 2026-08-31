@@ -5,11 +5,8 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { PageHeader, SectionCard, StatCard, EmptyState } from '@/components/local-panel/ui'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
-import {
-  Users, Repeat, Coins, AlertCircle, Search, Star, X, Ticket, Beer, Wallet, Clock,
-  Phone, Save, Lock, Mail, Download, ChevronRight, Plus, Send, Trash2, ArrowLeft,
-  ShieldCheck, FileText, Upload, MessageCircle, Copy,
-} from 'lucide-react'
+import { Users, AlertCircle, Search, Star, X, Ticket, Wallet, Clock, Save, Lock, Mail, Download, ChevronRight, Plus, Send, Trash2, ArrowLeft, ShieldCheck, Copy } from '@/components/todh/iconosTorneum'
+import { Repeat, Coins, Beer, Phone, FileText, Upload, MessageCircle } from 'lucide-react'
 import type { ClienteCRM as Cliente } from '@/lib/crm/clientes'
 import {
   aplicarSegmento, contarSegmento, SEGMENTOS_PRECREADOS, CAMPOS_FILTRO, LABEL_OP,

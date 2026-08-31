@@ -5,7 +5,8 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { Planta, Mesa, LocalConAforo } from '@/types'
-import { X, Users, Sofa } from 'lucide-react'
+import { X, Users } from '@/components/todh/iconosTorneum'
+import { Sofa } from 'lucide-react'
 
 interface Props {
   local: LocalConAforo

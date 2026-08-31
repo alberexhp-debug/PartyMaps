@@ -7,7 +7,8 @@ import { useDemoStore, useOrgId } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { LOCALES } from '@/lib/torneos/sample'
 import { GameChip } from '@/components/todh/GameIcon'
-import { ArrowLeft, Clock, Check, X, ArrowLeftRight, Star } from 'lucide-react'
+import { ArrowLeft, Clock, Check, X, Star } from '@/components/todh/iconosTorneum'
+import { ArrowLeftRight } from 'lucide-react'
 
 const MapaSedes = dynamic(() => import('@/components/todh/MapaSedes'), {
   ssr: false,

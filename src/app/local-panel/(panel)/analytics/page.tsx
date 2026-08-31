@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { formatearPrecio, calcularEdad } from '@/lib/utils'
-import { TrendingUp, Users, Ticket, Star, Calendar, UserCircle, Beer, Wallet } from 'lucide-react'
+import { TrendingUp, Users, Ticket, Star, Calendar, Wallet } from '@/components/todh/iconosTorneum'
+import { UserCircle, Beer } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, LineChart, Line,

@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
 import type { TorneoSample } from '@/lib/torneos/sample'
-import { ShieldCheck, ChevronDown, ScrollText } from 'lucide-react'
+import { ShieldCheck, ChevronDown } from '@/components/todh/iconosTorneum'
+import { ScrollText } from 'lucide-react'
 import { useT } from '@/lib/i18n'
 
 // Reglas del torneo en un DESPLEGABLE: el reglamento lo escribe el TO al crear

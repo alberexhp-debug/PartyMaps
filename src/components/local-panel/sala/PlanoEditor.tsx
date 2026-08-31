@@ -5,7 +5,8 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { Planta, Mesa, TipoMesa, FormaMesa } from '@/types'
-import { Plus, Minus, Trash2, Pencil, Move, Maximize2, Save } from 'lucide-react'
+import { Plus, Minus, Trash2, Pencil, Save } from '@/components/todh/iconosTorneum'
+import { Move, Maximize2 } from 'lucide-react'
 
 const ZOOM_MIN = 0.6
 const ZOOM_MAX = 4

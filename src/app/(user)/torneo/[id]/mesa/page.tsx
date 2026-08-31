@@ -10,7 +10,8 @@ import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { MapaMesas, mesasDePiso, nombrePiso, pisosDe } from '@/components/todh/MapaMesas'
 import { GameIcon } from '@/components/todh/GameIcon'
-import { ArrowLeft, Vibrate, Check, ListTree, MapPin, Users, Swords, Hourglass, X } from 'lucide-react'
+import { ArrowLeft, Check, ListTree, MapPin, Users, Swords, X } from '@/components/todh/iconosTorneum'
+import { Vibrate, Hourglass } from 'lucide-react'
 
 // Vista "te toca" del jugador: el plano del local con SU mesa resaltada y el móvil
 // vibrando hasta que confirme que va de camino. Pensada para enterarse aunque tenga
@@ -82,12 +83,21 @@ function MesaContent() {
     return boDeRonda(ri, total, { ...b, desde: normalizarDesde(b.desde) })
   }, [gestion?.bo, gestion?.seeds, mid])
 
-  // El rival demo confirma que está sentado a los ~2 s del «Voy» → todo listo
+  // El rival demo confirma que está sentado a los ~2 s del «Voy» → todo listo.
+  // El inicio se PUBLICA en el mundo (setsEnJuego): la bracket enseña el crono
+  // del set en tiempo real y ambos jugadores comparten el mismo reloj.
+  const iniciarSetEnJuego = useDemoStore(s => s.iniciarSetEnJuego)
   useEffect(() => {
     if (!confirmado || !puedeReportar || rivalListo || !!miReporte || verificado || enDisputa) return
-    const timer = setTimeout(() => { setRivalListo(true); setInicio(Date.now()) }, 1700)
+    const timer = setTimeout(() => {
+      setRivalListo(true)
+      if (mid) {
+        iniciarSetEnJuego(id, mid)
+        setInicio(useDemoStore.getState().setsEnJuego[id]?.[mid] ?? Date.now())
+      } else setInicio(Date.now())
+    }, 1700)
     return () => clearTimeout(timer)
-  }, [confirmado, puedeReportar, rivalListo, miReporte, verificado, enDisputa])
+  }, [confirmado, puedeReportar, rivalListo, miReporte, verificado, enDisputa, mid, id, iniciarSetEnJuego])
 
   // Cronómetro del combate (desde el «todo listo» hasta que reportas)
   useEffect(() => {

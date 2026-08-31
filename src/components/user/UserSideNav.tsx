@@ -1,7 +1,9 @@
 'use client'
+import type { IconoTorneum } from '@/components/todh/iconosTorneum'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, Compass, Trophy, User, Search, Bell, LayoutDashboard, Radio, Inbox, LayoutGrid, CalendarDays, MessagesSquare } from 'lucide-react'
+import { Trophy, User, Search, Bell, LayoutDashboard, Radio } from '@/components/todh/iconosTorneum'
+import { Map, Compass, Inbox, LayoutGrid, CalendarDays, MessagesSquare } from 'lucide-react'
 // (Radio también da icono a la nueva sección Live del jugador)
 import { cn } from '@/lib/utils'
 import { useDemoStore, useEsTO, useLocalId } from '@/lib/stores/useDemoStore'
@@ -11,7 +13,7 @@ import { useT, type ClaveI18n } from '@/lib/i18n'
 // Paquete Chat (30-08): la pestaña Entradas sale del nav — su hueco lo ocupa
 // Chat (/amigos: amigos, grupos, crews y difusión). La ruta /entradas SIGUE
 // existiendo: se llega desde la fila Entradas del perfil.
-const tabsJugador: { href: string; icon: typeof Compass; label: ClaveI18n }[] = [
+const tabsJugador: { href: string; icon: IconoTorneum; label: ClaveI18n }[] = [
   { href: '/explorar', icon: Compass,        label: 'nav.explorar' },
   { href: '/mapa',     icon: Map,            label: 'nav.mapa' },
   { href: '/ranking',  icon: Trophy,         label: 'nav.ranking' },
@@ -22,7 +24,7 @@ const tabsJugador: { href: string; icon: typeof Compass; label: ClaveI18n }[] = 
 // Sección del TO en el MISMO rail: si tu cuenta tiene el perfil de organizador,
 // el menú se expande debajo de lo de jugador con UNA sola entrada — la Consola
 // TO — y desde ella se llega a todo (crear, directo, sedes, página, torneos…).
-const tabsTO: { href: string; icon: typeof LayoutDashboard; label: ClaveI18n; match: string[] }[] = [
+const tabsTO: { href: string; icon: IconoTorneum; label: ClaveI18n; match: string[] }[] = [
   { href: '/consola', icon: LayoutDashboard, label: 'to.consola', match: ['/consola', '/crear-torneo', '/modo-directo', '/sedes', '/mi-pagina', '/gestionar'] },
 ]
 
@@ -52,7 +54,7 @@ export function UserSideNav() {
   const pendientesSede = useDemoStore(s => esSede ? s.solicitudesSede.filter(x => x.localId === localId && x.estado === 'pendiente').length : 0)
   // La sede ya no concentra todo en «Mi sede»: sus apartados salen directos en
   // el menú (sin Explorar/Mapa, que no necesita) y debajo su capa de organizador.
-  const itemsPrimarios: { href: string; icon: typeof Compass; texto: string; badge?: number }[] = esSede
+  const itemsPrimarios: { href: string; icon: IconoTorneum; texto: string; badge?: number }[] = esSede
     ? [
         { href: '/sede', icon: LayoutDashboard, texto: t('sede.secResumen') },
         { href: '/sede/solicitudes', icon: Inbox, texto: t('sede.secSolicitudes'), badge: pendientesSede },
@@ -62,7 +64,7 @@ export function UserSideNav() {
       ]
     : (() => {
         // Live va entre Mapa y Ranking: tus salas de torneo en tiempo real.
-        const items: { href: string; icon: typeof Compass; texto: string; badge?: number }[] =
+        const items: { href: string; icon: IconoTorneum; texto: string; badge?: number }[] =
           tabsJugador.map(x => ({ href: x.href, icon: x.icon, texto: t(x.label), ...(x.href === '/amigos' ? { badge: pendAmistad } : {}) }))
         items.splice(2, 0, { href: '/live', icon: Radio, texto: t('nav.live') })
         return items

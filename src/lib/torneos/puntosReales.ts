@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { construirRondas, standingsDe } from '@/lib/torneos/bracket'
 import { topePuntos, puntosPorPuesto, paisDe, type CategoriaTorneo, type FilaRankingTorneum } from '@/lib/torneos/puntos'
+import { ID_CUENTA_PREFIJO } from '@/lib/stores/useDemoStore'
 import type { TorneoSample, Jugador } from '@/lib/torneos/sample'
 
 // Lo mínimo que necesitamos de GestionTorneo (evita importar el store aquí).
@@ -69,6 +70,9 @@ export type PuntosJugador = {
   puntos: number
   torneos: number
   mejor: number
+  // Las CUENTAS se identifican por id ('cuenta-{email}'), nunca por nombre:
+  // una cuenta llamada como un jugador de muestra NO suma con él (fleco F).
+  esCuenta: boolean
 }
 
 // Agregado por jugador para un juego × modalidad (o el Circuito: solo
@@ -86,7 +90,10 @@ export function puntosPorJugador(
       if (tp.categoria === 'comunidad') continue
     } else if ((tp.online ? 'online' : 'presencial') !== modalidad) continue
     for (const f of tp.filas) {
-      const clave = f.jugador.nombre.trim().toLowerCase()
+      const esCuenta = f.jugador.id.startsWith(ID_CUENTA_PREFIJO)
+      // Cuentas por id (identidad real); jugadores de muestra por nombre (su
+      // fila del ranking de muestra ES la misma persona y debe sumar).
+      const clave = esCuenta ? f.jugador.id : f.jugador.nombre.trim().toLowerCase()
       const prev = m.get(clave)
       if (prev) {
         prev.puntos += f.puntos
@@ -102,6 +109,7 @@ export function puntosPorJugador(
           puntos: f.puntos,
           torneos: 1,
           mejor: f.puesto,
+          esCuenta,
         })
       }
     }
@@ -120,7 +128,9 @@ export function fusionarRanking(
   const filas = base.map(f => ({ ...f }))
   for (const [clave, pj] of reales) {
     if (ambitoPais && pj.pais !== ambitoPais) continue
-    const fila = filas.find(f => f.nombre.trim().toLowerCase() === clave)
+    // Una CUENTA nunca se funde con una fila de muestra aunque se llame igual
+    // (fleco F): entra siempre con su propia fila, identificada por su id.
+    const fila = pj.esCuenta ? undefined : filas.find(f => f.nombre.trim().toLowerCase() === clave)
     if (fila) {
       fila.puntos += pj.puntos
       fila.torneos += pj.torneos

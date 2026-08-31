@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Cookie, Settings, X } from 'lucide-react'
+import { Settings, X } from '@/components/todh/iconosTorneum'
+import { Cookie } from 'lucide-react'
 import { Button } from './Button'
 import { cn } from '@/lib/utils'
 

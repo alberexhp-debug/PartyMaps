@@ -2,7 +2,8 @@
 import { useState } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useT, type ClaveI18n } from '@/lib/i18n'
-import { Gift, Copy, Check, Lock } from 'lucide-react'
+import { Copy, Check, Lock } from '@/components/todh/iconosTorneum'
+import { Gift } from 'lucide-react'
 
 // Invita y gana (plan de lanzamiento): escalones 1/3/5 con anti-fraude —
 // un referido solo cuenta cuando JUEGA su primer torneo, no al registrarse.

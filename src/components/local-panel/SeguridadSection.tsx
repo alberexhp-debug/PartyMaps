@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
-import { ShieldCheck, ShieldAlert, Copy } from 'lucide-react'
+import { ShieldCheck, Copy } from '@/components/todh/iconosTorneum'
+import { ShieldAlert } from 'lucide-react'
 
 /**
  * Verificación en dos pasos (2FA) OPCIONAL para la cuenta del local (§2.4).

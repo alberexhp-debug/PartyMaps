@@ -13,10 +13,8 @@ import { getLabelTipoLocal, formatearPrecio, youtubeId } from '@/lib/utils'
 import { PrecioDinamicoEditor } from '@/components/local-panel/PrecioDinamicoEditor'
 import { AforoSemanal } from '@/components/local-panel/AforoSemanal'
 import { SeguridadSection } from '@/components/local-panel/SeguridadSection'
-import {
-  Save, Plus, Trash2, Eye, EyeOff, Edit3, AtSign,
-  Image as ImageIcon, Clock, Ticket, ShoppingBag, AlertCircle, Zap,
-} from 'lucide-react'
+import { Save, Plus, Trash2, Eye, EyeOff, AtSign, Clock, Ticket, AlertCircle, Zap } from '@/components/todh/iconosTorneum'
+import { Edit3, Image as ImageIcon, ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { estadoApertura, textoEstadoFicha, type EstadoApertura } from '@/lib/horarios'
 

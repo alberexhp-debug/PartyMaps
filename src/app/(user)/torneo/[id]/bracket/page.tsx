@@ -8,10 +8,11 @@ import { construirRondas, nombreRonda, boDeRonda } from '@/lib/torneos/bracket'
 import { useDemoStore, resolverSeeds, type BoDesde } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { ReportButton } from '@/components/todh/ReportSheet'
+import { CronoSet } from '@/components/todh/CronoSet'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Crown, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Crown, ShieldCheck } from '@/components/todh/iconosTorneum'
 
 export default function BracketPage() {
   const { t: tr, idioma } = useT()
@@ -32,6 +33,9 @@ export default function BracketPage() {
   // Bracket OFICIAL: si el TO lo generó en /gestionar, el público ve el cuadro
   // real (seeds congelados + ganadores + marcadores de sets), no el de muestra.
   const real = !!gestion?.generado
+  // Sets EN JUEGO (mundo): el «todo listo» de la mesa publica el inicio y la
+  // bracket enseña el crono del set en tiempo real.
+  const setsEnJuego = useDemoStore(s => s.setsEnJuego[id])
   const rondasReales = useMemo<RondaSample[] | null>(() => {
     if (!real || !t) return null
     // resolverSeeds: pool de muestra + cuentas demo inscritas ('cuenta-{email}')
@@ -43,16 +47,18 @@ export default function BracketPage() {
       nombre: `${nombreRonda(matches.length, idioma)} · Bo${boDeRonda(ri, rb.length, bo)}`,
       matches: matches.map(m => {
         const pts = puntos[m.id]
+        const inicioSet = m.ganador ? undefined : setsEnJuego?.[m.id]
         return {
           id: m.id,
           a: m.a?.nombre ?? '—', b: m.b?.nombre ?? '—',
           scoreA: pts?.a ?? null, scoreB: pts?.b ?? null,
-          estado: m.ganador ? 'jugado' : pts && (pts.a > 0 || pts.b > 0) ? 'en-juego' : 'pendiente',
+          estado: m.ganador ? 'jugado' : (pts && (pts.a > 0 || pts.b > 0)) || inicioSet ? 'en-juego' : 'pendiente',
           ganador: m.ganador ?? undefined,
-        } as MatchSample
+          inicioSet,
+        } as MatchSample & { inicioSet?: number }
       }),
     }))
-  }, [real, t, gestion, idioma, perfilesCuentas])
+  }, [real, t, gestion, idioma, perfilesCuentas, setsEnJuego])
 
   const esDoble = !real && t?.formato === 'Doble eliminación'
   const esTabla = !real && (t?.formato === 'Suizo' || t?.formato === 'Round robin')
@@ -199,7 +205,7 @@ function BracketGrid({ rondas, color, onPick, pj, juegoId }: { rondas: RondaSamp
   )
 }
 
-function MatchCard({ m, color, onPick, pj, juegoId }: { m: MatchSample; color: string; onPick: (n: string) => void; pj?: { A: string[]; B: string[] }; juegoId?: string }) {
+function MatchCard({ m, color, onPick, pj, juegoId }: { m: MatchSample & { inicioSet?: number }; color: string; onPick: (n: string) => void; pj?: { A: string[]; B: string[] }; juegoId?: string }) {
   const { t: tr } = useT()
   const live = m.estado === 'en-juego'
   const done = m.estado === 'jugado'
@@ -215,7 +221,7 @@ function MatchCard({ m, color, onPick, pj, juegoId }: { m: MatchSample; color: s
       <Row name={m.a} score={m.scoreA} win={winA} champ={winA} onPick={onPick} show={done || live} pers={pjA} juegoId={juegoId} />
       <div className="h-px bg-white/8" />
       <Row name={m.b} score={m.scoreB} win={winB} champ={winB} onPick={onPick} show={done || live} pers={pjB} juegoId={juegoId} />
-      {live && <div className="text-[9px] text-center font-bold uppercase tracking-wider py-1 flex items-center justify-center gap-1" style={{ color, background: `${color}14` }}><span className="dot-live" style={{ width: 5, height: 5 }} /> {tr('em.ocupada')}{m.setup ? ` · ${m.setup}` : ''}</div>}
+      {live && <div className="text-[9px] text-center font-bold uppercase tracking-wider py-1 flex items-center justify-center gap-1.5" style={{ color, background: `${color}14` }}><span className="dot-live" style={{ width: 5, height: 5 }} /> {tr('em.ocupada')}{m.setup ? ` · ${m.setup}` : ''}{m.inicioSet && <CronoSet inicio={m.inicioSet} />}</div>}
       {m.estado === 'pendiente' && <div className="text-[9px] text-center font-semibold uppercase tracking-wider py-1 text-[#6B6B85] bg-white/[0.02]">{tr('bracket.porJugar')}</div>}
     </div>
   )

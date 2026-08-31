@@ -6,7 +6,8 @@ import {
   ESTADO_LABEL, ESTADO_BADGE, CATEGORIA_LABEL, PRIORIDAD_LABEL, PRIORIDAD_COLOR, ESTADOS,
   haceTiempo, type EstadoTicket, type CategoriaTicket, type PrioridadTicket,
 } from '@/lib/soporte'
-import { LifeBuoy, X, Send, Store, ExternalLink, Settings } from 'lucide-react'
+import { X, Send, Store, ExternalLink, Settings } from '@/components/todh/iconosTorneum'
+import { LifeBuoy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 

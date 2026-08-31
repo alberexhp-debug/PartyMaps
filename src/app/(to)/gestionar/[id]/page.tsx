@@ -16,10 +16,8 @@ import { PersonajeChip, PersonajesDeLado } from '@/components/todh/PersonajeChip
 import { CrewTag } from '@/components/todh/CrewTag'
 import { BannerPicker } from '@/components/todh/BannerPicker'
 import { Flag } from 'lucide-react'
-import {
-  ArrowLeft, Search, Check, Users, ListTree, Radio, Lock, UserCheck, UserPlus,
-  Trophy, Share2, Zap, CircleDot, Ban, RotateCcw, Megaphone, X, ArrowRightLeft,
-} from 'lucide-react'
+import { ArrowLeft, Search, Check, Users, ListTree, Radio, Lock, UserPlus, Trophy, Zap, RotateCcw, Megaphone, X } from '@/components/todh/iconosTorneum'
+import { UserCheck, Share2, CircleDot, Ban, ArrowRightLeft } from 'lucide-react'
 import type { MatchB } from '@/lib/torneos/bracket'
 
 const SIN_ENTRADOS: string[] = []   // default estable (nada de [] dentro del selector)

@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { X, AtSign } from 'lucide-react'
+import { X, AtSign } from '@/components/todh/iconosTorneum'
 import { PhotoUpload } from '@/components/ui/PhotoUpload'
 
 type RRPP = {

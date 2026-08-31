@@ -7,7 +7,8 @@ import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { sonidoMensaje, sonidoMensajesActivo, setSonidoMensajes } from '@/lib/sonido'
-import { LifeBuoy, MessageSquare, ChevronRight, Volume2, VolumeX, Pin, PinOff, Bell, BellOff, Archive, ArchiveRestore, MoreVertical, X } from 'lucide-react'
+import { MessageSquare, ChevronRight, Bell, X } from '@/components/todh/iconosTorneum'
+import { LifeBuoy, Volume2, VolumeX, Pin, PinOff, BellOff, Archive, ArchiveRestore, MoreVertical } from 'lucide-react'
 
 type Tipo = 'rrpp' | 'empleado' | 'local' | 'gestor'
 type Conversacion = {

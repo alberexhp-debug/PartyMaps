@@ -1,5 +1,5 @@
 'use client'
-import { Star } from 'lucide-react'
+import { Star } from '@/components/todh/iconosTorneum'
 import { cn } from '@/lib/utils'
 
 interface StarRatingProps {

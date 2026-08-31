@@ -3,7 +3,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { RrppNav } from '@/components/rrpp/RrppNav'
 import { HeroBanner } from '@/components/local-panel/ui'
-import { ClipboardList, Plus, X, Store, Calendar, Users, UserPlus, Check } from 'lucide-react'
+import { Plus, X, Store, Calendar, Users, UserPlus, Check } from '@/components/todh/iconosTorneum'
+import { ClipboardList } from 'lucide-react'
 
 type Venue = { local_id: string; estado: string; locales?: { id: string; nombre: string } | null }
 type Lista = {

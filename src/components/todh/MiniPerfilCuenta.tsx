@@ -1,5 +1,6 @@
 'use client'
-import { X, UserRound } from 'lucide-react'
+import { X } from '@/components/todh/iconosTorneum'
+import { UserRound } from 'lucide-react'
 import { useDemoStore, nombreCuentaDemo, tagCuentaDemo } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 

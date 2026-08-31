@@ -2,7 +2,8 @@
 import { useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Award, Lock, Users, Crown, LogOut, Pencil, X, UserPlus, UserMinus, ShieldCheck, Search } from 'lucide-react'
+import { ArrowLeft, Lock, Users, Crown, LogOut, Pencil, X, UserPlus, ShieldCheck, Search } from '@/components/todh/iconosTorneum'
+import { Award, UserMinus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDemoStore, type Crew } from '@/lib/stores/useDemoStore'
 import {

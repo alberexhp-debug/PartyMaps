@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/Badge'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
-import { X, Bell, ChevronRight, Ticket, Sparkles, MapPin, Music2 } from 'lucide-react'
+import { X, Bell, ChevronRight, Ticket, Sparkles, MapPin } from '@/components/todh/iconosTorneum'
+import { Music2 } from 'lucide-react'
 import { LocalImagen } from '@/components/ui/LocalImagen'
 import {
   getLabelTipoLocal, getColorTemperatura, getLabelTemperatura,

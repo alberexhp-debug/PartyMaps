@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
-import { X, Send } from 'lucide-react'
+import { X, Send } from '@/components/todh/iconosTorneum'
 import { useT } from '@/lib/i18n'
 
 // Chat del torneo (reunión 5-jul): sala por torneo para inscritos y espectadores.

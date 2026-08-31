@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
-import { ArrowLeft, Check, Crown } from 'lucide-react'
+import { ArrowLeft, Check, Crown } from '@/components/todh/iconosTorneum'
 import { useT, conParams } from '@/lib/i18n'
 
 // Tiers de usuario (reunión 5-jul): se pagan (4,99/7,99/9,99) o se regalan por

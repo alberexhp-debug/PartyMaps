@@ -11,16 +11,14 @@ import { TorneoArt } from '@/components/todh/GameKeyart'
 import { VideoEmbed } from '@/components/todh/VideoEmbed'
 import { ReglasTorneo } from '@/components/todh/ReglasTorneo'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
+import { MiniPerfilCuenta } from '@/components/todh/MiniPerfilCuenta'
 import { ChatTorneoSheet } from '@/components/todh/ChatTorneo'
 import { RangoChip } from '@/components/todh/RangoChip'
 import { PersonajeChip } from '@/components/todh/PersonajeChip'
 import { ScoutingSheet } from '@/components/todh/ScoutingSheet'
 import { TierSheet, tieneAcceso } from '@/components/todh/TierSheet'
 import { useT, conParams } from '@/lib/i18n'
-import {
-  ArrowLeft, Radio, CalendarClock, MapPin, Trophy, Users, ListTree,
-  MessageSquare, Swords, Calendar, Search,
-} from 'lucide-react'
+import { ArrowLeft, Radio, CalendarClock, MapPin, Trophy, Users, ListTree, MessageSquare, Swords, Calendar, Search } from '@/components/todh/iconosTorneum'
 
 // Mi partida en el bracket real (backlog A): TS no rastrea las asignaciones
 // dentro del forEach, de ahí los tipos nombrados + aserción en el return.
@@ -44,6 +42,14 @@ export default function SalaLivePage() {
   const tierUsuario = useDemoStore(s => s.tierUsuario)
   const [chatAbierto, setChatAbierto] = useState(false)
   const [selJugador, setSelJugador] = useState<Jugador | null>(null)
+  // (D) Un rival de CUENTA abre su perfil público REAL (MiniPerfilCuenta), no
+  // el mini-perfil de muestra con stats inventadas; y sin rango fabricado.
+  const [verCuenta, setVerCuenta] = useState<string | null>(null)
+  const esCuentaJugador = (j: Jugador) => j.id.startsWith(ID_CUENTA_PREFIJO)
+  const abrirJugador = (j: Jugador) => {
+    if (esCuentaJugador(j)) setVerCuenta(j.id.slice(ID_CUENTA_PREFIJO.length))
+    else setSelJugador(j)
+  }
   // Scouting v1: «Estudiar a {rival}» junto al próximo rival. Acceso contextual
   // desde la sala Live = Platino; sin él, el botón abre el TierSheet y, si el
   // usuario activa el tier ahí mismo, el scouting pendiente se abre al cerrar.
@@ -292,13 +298,15 @@ export default function SalaLivePage() {
               <div className="rounded-2xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.07] p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#B6FF3A] flex items-center gap-2"><span className="dot-live" /> {tr('lv.tuCuadro')}</p>
                 {rivalCuadro && (
-                  <button onClick={() => setSelJugador(rivalCuadro)} className="mt-2.5 w-full flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-left hover:bg-white/[0.08] transition-colors">
+                  <button onClick={() => abrirJugador(rivalCuadro)} className="mt-2.5 w-full flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-left hover:bg-white/[0.08] transition-colors">
                     <Swords size={18} className="text-[#B6FF3A] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-white">{tr('lv.ahoraTuVs')} {rivalCuadro.nombre} {rivalCuadro.bandera}</p>
                       <p className="text-[11px] text-[#8B8BA8] flex items-center gap-1.5">{rondaCuadro} · {tr('adm.mesa')} {mesaCuadro}{rivalCuadro.main && <> · <PersonajeChip juegoId={t.juego} nombre={rivalCuadro.main} /></>}</p>
                     </div>
-                    <RangoChip rating={rivalCuadro.rating} />
+                    {esCuentaJugador(rivalCuadro)
+                      ? <span className="px-2 h-6 inline-flex items-center rounded-full text-[10px] font-bold bg-white/8 text-[#B8B8CC] border border-white/15 shrink-0">{tr('lv.nuevo')}</span>
+                      : <RangoChip rating={rivalCuadro.rating} />}
                   </button>
                 )}
                 {rivalCuadro && (
@@ -312,7 +320,7 @@ export default function SalaLivePage() {
                     <p className="text-[10px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('lv.despuesCruzas')}</p>
                     <div className="grid grid-cols-2 gap-2">
                       {[{ p: parCandidatos[0], prob: pA }, { p: parCandidatos[1], prob: 100 - pA }].map(({ p, prob }) => (
-                        <button key={p.id} onClick={() => setSelJugador(p)} className="rounded-xl bg-white/5 border border-white/10 p-3 text-left hover:bg-white/[0.08] transition-colors">
+                        <button key={p.id} onClick={() => abrirJugador(p)} className="rounded-xl bg-white/5 border border-white/10 p-3 text-left hover:bg-white/[0.08] transition-colors">
                           <div className="flex items-center justify-between gap-1">
                             <p className="text-[13px] font-bold text-white truncate">{p.nombre} {p.bandera}</p>
                             <span className="text-[12px] font-bold text-[#B6FF3A] font-mono-num shrink-0">{prob}%</span>
@@ -383,6 +391,7 @@ export default function SalaLivePage() {
 
       {chatAbierto && <ChatTorneoSheet torneoId={t.id} torneoNombre={t.nombre} onClose={() => setChatAbierto(false)} />}
       {selJugador && <MiniPerfil jugador={selJugador} onClose={() => setSelJugador(null)} />}
+      {verCuenta && <MiniPerfilCuenta email={verCuenta} onClose={() => setVerCuenta(null)} />}
       {scout && <ScoutingSheet nombre={scout} juego={t.juego} onClose={() => setScout(null)} />}
       {tierScout && (
         <TierSheet requerido="Platino" onClose={() => {

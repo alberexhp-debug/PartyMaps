@@ -5,7 +5,7 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { NotificacionEnviada } from '@/types'
-import { Bell, Send, Users, Eye, Clock, Zap } from 'lucide-react'
+import { Bell, Send, Users, Eye, Clock, Zap } from '@/components/todh/iconosTorneum'
 import { formatearFecha } from '@/lib/utils'
 import { PageHeader } from '@/components/local-panel/ui'
 

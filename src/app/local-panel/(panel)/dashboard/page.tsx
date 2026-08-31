@@ -7,10 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { formatearPrecio, getColorTemperatura, getTemperaturaAforo, aforoVisible } from '@/lib/utils'
 import { zonasDeTrabajador, type ZonaPanel } from '@/lib/permisosLocal'
-import {
-  Gauge, TicketPlus, LayoutGrid, Gift, MessagesSquare, Calendar, Sparkles,
-  Bell, Contact, BarChart3, Star, MessageSquare, ChevronRight, Check, DoorClosed, MoonStar,
-} from 'lucide-react'
+import { Calendar, Sparkles, Bell, Star, MessageSquare, ChevronRight, Check } from '@/components/todh/iconosTorneum'
+import { Gauge, TicketPlus, LayoutGrid, Gift, MessagesSquare, Contact, BarChart3, DoorClosed, MoonStar } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface SerieDia { dia: string; ingresos: number; entradas: number; pedidos: number }

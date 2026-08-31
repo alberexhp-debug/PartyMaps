@@ -1,7 +1,8 @@
 import { createAdminSupabaseClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, CalendarDays } from 'lucide-react'
+import { MapPin } from '@/components/todh/iconosTorneum'
+import { CalendarDays } from 'lucide-react'
 import type { Metadata } from 'next'
 
 // Página pública del RRPP. Server component — SEO indexable, sin JS de cliente.

@@ -1,7 +1,8 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, MapPinned, Ticket, ClipboardList } from 'lucide-react'
+import { Ticket } from '@/components/todh/iconosTorneum'
+import { Home, MapPinned, ClipboardList } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const ITEMS = [

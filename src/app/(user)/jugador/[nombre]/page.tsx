@@ -10,7 +10,8 @@ import { CountUp } from '@/components/ui/CountUp'
 import { RangoChip } from '@/components/todh/RangoChip'
 import { ScoutingPanel } from '@/components/todh/ScoutingSheet'
 import { useT } from '@/lib/i18n'
-import { ArrowLeft, Star, Swords, TrendingUp, Trophy, UserPlus, Check, Calendar, ChevronRight, Medal, Search } from 'lucide-react'
+import { ArrowLeft, Star, Swords, TrendingUp, Trophy, UserPlus, Check, Calendar, ChevronRight, Search } from '@/components/todh/iconosTorneum'
+import { Medal } from 'lucide-react'
 
 const TIER_COLOR: Record<string, string> = { Platino: '#67E8F9', Diamante: '#A78BFA', Oro: '#E0BE63' }
 

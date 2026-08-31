@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation'
 import { RrppNav } from '@/components/rrpp/RrppNav'
 import { HeroBanner } from '@/components/local-panel/ui'
 import { LABEL_CATEGORIA, CATEGORIAS_DESCUENTO, type CategoriaDescuento } from '@/lib/rrppCodigos'
-import { Ticket, Plus, X, Copy, Check, Power, Store, QrCode, Clock, Download, Share2, User } from 'lucide-react'
+import { Ticket, Plus, X, Copy, Check, Power, Store, QrCode, Clock, Download, User } from '@/components/todh/iconosTorneum'
+import { Share2 } from 'lucide-react'
 
 type Venue = { local_id: string; estado: string; locales?: { id: string; nombre: string } | null }
 type Codigo = {

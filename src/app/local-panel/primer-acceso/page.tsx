@@ -6,7 +6,7 @@ import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
-import { Lock, Eye, EyeOff, ShieldCheck, Copy, Check } from 'lucide-react'
+import { Lock, Eye, EyeOff, ShieldCheck, Copy, Check } from '@/components/todh/iconosTorneum'
 import type { UsuarioLocal, Local } from '@/types'
 
 type TrabajadorConLocal = UsuarioLocal & { locales: Local }

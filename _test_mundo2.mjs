@@ -177,6 +177,13 @@ ok(await page.getByText('¡Ve ya a tu mesa!').count() > 0, '(A) el torneo está 
 const hrefMesa = await page.locator('a[href*="/mesa?"]').first().getAttribute('href').catch(() => null)
 ok(!!hrefMesa && hrefMesa.includes('mid='), `(A) «Ver mi mesa» lleva el combate real (${hrefMesa?.slice(-60)})`)
 ok(await page.getByText('Carmen').count() > 0 && await page.getByText('Álvaro').count() > 0, '(A) el siguiente cruce enseña a Carmen y Álvaro')
+// (D) Sin rangos inventados para cuentas: chip «Nuevo», y al tocar al rival se
+// abre su perfil público REAL (MiniPerfilCuenta), no el de muestra.
+ok(await page.getByText('Nuevo', { exact: true }).count() > 0, '(D) el rival de cuenta lleva chip «Nuevo», sin rango inventado')
+await page.getByText(/Ahora: tú vs Lucía/).first().click(); await page.waitForTimeout(900)
+ok(await page.getByText('Cuenta Torneum').count() > 0, '(D) tocar al rival abre su perfil de CUENTA real')
+ok(await page.getByText('Sin historial todavía').count() > 0 || await page.getByText(/sin historial/i).count() > 0, '(D) sin stats inventadas: historial vacío honesto')
+await page.locator('button[aria-label="Cerrar"]').first().click().catch(() => {}); await page.waitForTimeout(400)
 await page.screenshot({ path: `${OUT}/2-live-marcos.png` })
 // La otra punta del MISMO match: Lucía ve a Marcos como rival
 await logout()

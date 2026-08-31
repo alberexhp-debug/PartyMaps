@@ -1,6 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Award, Lock } from 'lucide-react'
+import { ArrowLeft, Lock } from '@/components/todh/iconosTorneum'
+import { Award } from 'lucide-react'
 import { useT } from '@/lib/i18n'
 import { LOGROS_USUARIO, LOGROS_DESBLOQUEADOS, LOGROS_BLOQUEADOS } from '@/lib/torneos/logros'
 import { useEsCuentaFresca } from '@/lib/stores/useSesionStore'

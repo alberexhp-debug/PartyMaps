@@ -224,6 +224,10 @@ export type Organizador = {
   tier: Tier
   juegos: string[]
   insignias: string[]
+  // Personalización del TO (31-08): foto de perfil (dataURL comprimido) y
+  // banner (CSS de preset o dataURL; pintar con fondoBanner()).
+  foto?: string | null
+  banner?: string | null
   fundador?: boolean  // TO Fundador (programa de lanzamiento)
 }
 
@@ -276,7 +280,7 @@ export function getOrganizador(id: string): Organizador | undefined {
 // edita su perfil desde el apartado Perfil). Viven en el store demo como clave
 // de MUNDO — las demás cuentas ven lo editado en /organizador/[id]. El store
 // registra aquí su lector porque useDemoStore importa este módulo (sin ciclo).
-export type PerfilOrgOverride = Partial<Pick<Organizador, 'nombre' | 'handle' | 'bio' | 'ciudad' | 'color' | 'juegos'>>
+export type PerfilOrgOverride = Partial<Pick<Organizador, 'nombre' | 'handle' | 'bio' | 'ciudad' | 'color' | 'juegos' | 'foto' | 'banner'>>
 let leerPerfilOrg: ((id: string) => PerfilOrgOverride | undefined) | null = null
 export function registrarLectorPerfilOrg(fn: (id: string) => PerfilOrgOverride | undefined) { leerPerfilOrg = fn }
 

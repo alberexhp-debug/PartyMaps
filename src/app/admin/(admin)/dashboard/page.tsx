@@ -3,10 +3,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { formatearPrecio } from '@/lib/utils'
-import {
-  Store, Users, Ticket, TrendingUp, AlertCircle, ChevronRight,
-  ArrowUpRight, Activity, BarChart3, Star,
-} from 'lucide-react'
+import { Store, Users, Ticket, TrendingUp, AlertCircle, ChevronRight, Star } from '@/components/todh/iconosTorneum'
+import { ArrowUpRight, Activity, BarChart3 } from 'lucide-react'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { cn } from '@/lib/utils'
 import { HeroBanner } from '@/components/local-panel/ui'

@@ -1,7 +1,8 @@
 'use client'
 import { useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import { Camera, Upload, X, Loader2 } from 'lucide-react'
+import { X } from '@/components/todh/iconosTorneum'
+import { Camera, Upload, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type Bucket = 'reviews' | 'perfiles' | 'locales' | 'eventos'

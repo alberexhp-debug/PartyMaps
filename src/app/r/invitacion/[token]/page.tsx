@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sparkles, MapPin } from 'lucide-react'
+import { Sparkles, MapPin } from '@/components/todh/iconosTorneum'
 
 type Invitacion = {
   id: string; email: string; nombre: string | null; telefono: string | null;

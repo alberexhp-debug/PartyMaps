@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useMapStore } from '@/lib/stores/useMapStore'
-import { Moon, X } from 'lucide-react'
+import { X } from '@/components/todh/iconosTorneum'
+import { Moon } from 'lucide-react'
 
 /**
  * Aviso proactivo de madrugada: en horas de cierre sugiere ver los sitios y

@@ -1,6 +1,7 @@
 'use client'
 import { cn } from '@/lib/utils'
-import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
+import { AlertTriangle, X } from '@/components/todh/iconosTorneum'
+import { CheckCircle, XCircle, Info } from 'lucide-react'
 import { createContext, useCallback, useContext, useState } from 'react'
 
 type ToastType = 'success' | 'error' | 'warning' | 'info'

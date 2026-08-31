@@ -3,10 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import {
-  UserPlus, Users, Share2, Check, X, Trash2, Plus, Crown, ArrowLeft,
-  MessagesSquare, Send, Search, Swords, ChevronRight, Megaphone, BellPlus,
-} from 'lucide-react'
+import { UserPlus, Users, Check, X, Trash2, Plus, Crown, ArrowLeft, Send, Search, Swords, ChevronRight, Megaphone } from '@/components/todh/iconosTorneum'
+import { Share2, MessagesSquare, BellPlus } from 'lucide-react'
 import { JUEGOS, JUEGOS_LIST, ORGANIZADORES, rankingPorJuego, plantillaDe, type Jugador } from '@/lib/torneos/sample'
 import { useDemoStore, nombreCuentaDemo, tagCuentaDemo, claveAmigos, type GrupoChat, type MensajeGrupo, type MensajeAmigos } from '@/lib/stores/useDemoStore'
 import { useSesionStore, CUENTAS_DIRECTORIO } from '@/lib/stores/useSesionStore'

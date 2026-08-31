@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Sparkles, UserPlus, Search, Copy, Check, ShieldOff, Shield, EyeOff, Eye, ExternalLink, Mail, KeyRound, RotateCcw } from 'lucide-react'
+import { Sparkles, UserPlus, Search, Copy, Check, Shield, EyeOff, Eye, ExternalLink, Mail, KeyRound, RotateCcw } from '@/components/todh/iconosTorneum'
+import { ShieldOff } from 'lucide-react'
 import { CredencialesModal } from '@/components/local-panel/CredencialesModal'
 import { normalizarUsername, esUsernameValido } from '@/lib/equipo'
 

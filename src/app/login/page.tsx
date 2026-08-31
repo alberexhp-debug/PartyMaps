@@ -6,7 +6,8 @@ import { useSesionStore, rutaInicial, CUENTAS_DEMO, type CuentaDemo } from '@/li
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { getCookieConsent } from '@/components/ui/CookieBanner'
 import { useT, type ClaveI18n } from '@/lib/i18n'
-import { Eye, EyeOff, LogIn, KeyRound, User, Megaphone, Store, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, KeyRound, User, Megaphone, Store, ShieldCheck } from '@/components/todh/iconosTorneum'
+import { LogIn } from 'lucide-react'
 
 // Login de la DEMO: toda la app entra por aquí. Los accesos de un toque son la
 // puerta de testeo: 6 jugadores vacíos, 1 jugador+TO (David), 3 sedes y el

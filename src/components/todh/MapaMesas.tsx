@@ -2,7 +2,8 @@
 import { useMemo, useState } from 'react'
 import type { Mesa } from '@/lib/torneos/sample'
 import { useT, conParams, type ClaveI18n } from '@/lib/i18n'
-import { Monitor, Tv, Gamepad2, Joystick, Grid2x2, Plus, Minus, X } from 'lucide-react'
+import { Plus, Minus, X } from '@/components/todh/iconosTorneum'
+import { Monitor, Tv, Gamepad2, Joystick, Grid2x2 } from 'lucide-react'
 
 // Plano de mesas del local, compartido por: el TO en modo directo (estados en vivo),
 // el jugador cuando le toca (su mesa resaltada y vibrando) y la sede (editor).

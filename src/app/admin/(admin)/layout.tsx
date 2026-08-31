@@ -3,10 +3,8 @@ import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useAdminStore } from '@/lib/stores/useAdminStore'
-import {
-  LayoutDashboard, Store, Users, Shield, Star,
-  Settings, LogOut, FileText, Megaphone, LifeBuoy,
-} from 'lucide-react'
+import { LayoutDashboard, Store, Users, Shield, Star, Settings, LogOut, Megaphone } from '@/components/todh/iconosTorneum'
+import { FileText, LifeBuoy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [

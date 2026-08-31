@@ -9,8 +9,10 @@ import { CrewTag } from '@/components/todh/CrewTag'
 import { construirRondas, nombreRonda, normalizarDesde, opcionesDesde, etiquetaDesde, type MatchB } from '@/lib/torneos/bracket'
 import { useDemoStore, useOrgId, resolverSeeds } from '@/lib/stores/useDemoStore'
 import { useT, conParams, type ClaveI18n } from '@/lib/i18n'
+import { CronoSet } from '@/components/todh/CronoSet'
 import { MapaMesas, LeyendaMesas, ESTADO_MESA, PisoTabs, pisosDe, mesasDePiso, type EstadoMesa } from '@/components/todh/MapaMesas'
-import { ArrowLeft, Radio, Pause, Play, AlertTriangle, Tv, Clock, Check, RotateCcw, Flag, ListTree, Map as MapIcon, List, CalendarClock, Plus, X, ClipboardList, Undo2 } from 'lucide-react'
+import { ArrowLeft, Radio, Play, AlertTriangle, Clock, Check, RotateCcw, ListTree, CalendarClock, Plus, X } from '@/components/todh/iconosTorneum'
+import { Pause, Tv, Flag, Map as MapIcon, List, ClipboardList, Undo2 } from 'lucide-react'
 
 type Estado = 'ocupado' | 'libre' | 'caido'
 // `tipo` es una CLAVE i18n (F9): se pinta con tr() en el idioma activo.
@@ -91,6 +93,9 @@ export default function ModoDirectoPage() {
   // antes que los setups porque el estado de sala arranca fusionando la prep.
   const torneo = getTorneo(torneoId) ?? creados.find(c => c.id === torneoId)
   const enDirecto = !!torneo?.enDirecto
+  // Sets en juego del torneo activo (mundo): el crono que arrancan los
+  // jugadores desde su mesa se ve también aquí, en el bracket en directo.
+  const setsVivos = useDemoStore(s => s.setsEnJuego[torneoId])
   // Plano de mesas del local que acoge el torneo (el que edita la sede en su panel).
   const local = getLocal(torneo?.localId ?? 'gamba')
   const mesasOverride = useDemoStore(s => s.mesasSede[local?.id ?? ''])
@@ -608,7 +613,7 @@ export default function ModoDirectoPage() {
               {torneo && <Link href={`/gestionar/${torneo.id}`} className="h-9 px-3.5 rounded-lg bg-[#B6FF3A] text-[#0A0A0F] text-[12px] font-bold flex items-center shrink-0">{tr('ges.generarBracket')}</Link>}
             </div>
           ) : (
-            <BracketVivo rondas={rondasVivas} puntos={gestion?.puntos ?? {}} setups={setups}
+            <BracketVivo rondas={rondasVivas} puntos={gestion?.puntos ?? {}} setups={setups} enJuego={setsVivos}
               disputaMids={disputasTorneo.map(d => d.mid).filter(Boolean) as string[]}
               pj={pjVivo} juegoId={juegoTorneo} />
           )}
@@ -734,11 +739,13 @@ function ResultadoSheet({ r, boMax, onGuardar, onCerrar }: {
 // Bracket EN DIRECTO del modo directo: columnas por ronda; cada combate marca
 // su estado real — jugándose en una mesa (con nº), en disputa, jugado (con
 // marcador y ganador), listo para asignar o esperando rival de la ronda previa.
-function BracketVivo({ rondas, puntos, setups, disputaMids, pj, juegoId }: {
+function BracketVivo({ rondas, puntos, setups, disputaMids, pj, juegoId, enJuego }: {
   rondas: MatchB[][]
   puntos: Record<string, { a: number; b: number }>
   setups: Setup[]
   disputaMids: string[]
+  // Sets arrancados desde la MESA por los jugadores (mundo): crono en vivo
+  enJuego?: Record<string, number>
   pj?: Record<string, { A: string[]; B: string[] }>
   juegoId?: string
 }) {
@@ -755,6 +762,7 @@ function BracketVivo({ rondas, puntos, setups, disputaMids, pj, juegoId }: {
                 const p = puntos[m.id]
                 const disputado = disputaMids.includes(m.id)
                 const jugado = !!m.ganador
+                const iniSet = !jugado && !disputado && !enMesa ? enJuego?.[m.id] : undefined
                 const listo = !!m.a && !!m.b && !jugado
                 return (
                   <div key={m.id}
@@ -762,10 +770,11 @@ function BracketVivo({ rondas, puntos, setups, disputaMids, pj, juegoId }: {
                     <div className="flex items-center justify-between gap-2 mb-1">
                       {disputado ? <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-[#FF6076]"><AlertTriangle size={9} /> {tr('em.disputa')}</span>
                         : enMesa ? <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-[#B6FF3A]"><span className="dot-live" /> {tr('md.jugandose')} {enMesa.n}</span>
+                        : iniSet ? <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-[#B6FF3A]"><span className="dot-live" /> {tr('md.jugandose')}</span>
                         : jugado ? <span className="text-[9px] font-black uppercase tracking-wider text-[#8B8BA8]">{tr('md.jugado')}</span>
                         : listo ? <span className="text-[9px] font-black uppercase tracking-wider text-[#6FB0FF]">{tr('md.enColaTag')}</span>
                         : <span className="text-[9px] font-black uppercase tracking-wider text-[#6B6B85]">{tr('md.esperandoRival')}</span>}
-                      {enMesa?.seg != null && <span className="text-[10px] font-mono-num text-[#B6FF3A]">{fmt(enMesa.seg)}</span>}
+                      {enMesa?.seg != null ? <span className="text-[10px] font-mono-num text-[#B6FF3A]">{fmt(enMesa.seg)}</span> : iniSet ? <CronoSet inicio={iniSet} /> : null}
                     </div>
                     {(['a', 'b'] as const).map(lado => {
                       const jug = m[lado]

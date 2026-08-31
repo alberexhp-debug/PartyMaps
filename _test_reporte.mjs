@@ -101,7 +101,8 @@ async function hastaHoja(page, url) {
 
   // Perfil: el contador real se fusiona con los mains elegidos
   await page.goto(`${BASE}/perfil`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
-  ok(await page.getByText('×3').count() > 0, 'el main Pikachu enseña sus partidas verificadas (×3 de seed)')
+  // Pedido 31-08: el main se enseña LIMPIO, sin contador de partidas
+  ok(await page.getByText('×3').count() === 0, 'el main ya no enseña contador de partidas (×N fuera)')
   ok(await page.locator('img[alt="Joker"]').count() > 0, 'Joker (jugado de verdad, no main) aparece en la tarjeta')
   await page.screenshot({ path: `${OUT}/1-perfil-mains.png` })
   await ctx.close()
@@ -142,6 +143,41 @@ async function hastaHoja(page, url) {
   ok(await page.getByText('Resultado verificado').count() > 0, 'el consenso funciona igual sin personajes')
   ok(await page.locator('img[alt="Joker"]').count() === 0, 'y no se cuela ningún personaje')
   await page.screenshot({ path: `${OUT}/3-magic-sin-personajes.png` })
+  await ctx.close()
+}
+
+// ── 4. Crono del set EN JUEGO (31-08): el «todo listo» publica el inicio en el
+// mundo y la BRACKET pública enseña el crono en tiempo real; al reportarse el
+// resultado el crono se apaga (el set sale de setsEnJuego).
+{
+  const { ctx, page } = await nuevaPagina(seedGestion)
+  console.log('— crono en vivo en la bracket')
+  await login(page, 'jugador@torneum.com')
+  await page.goto(`${BASE}/torneo/t1/mesa?n=2&vs=${encodeURIComponent('Kaze vs Aqua')}&mid=r0m0`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  await page.getByRole('button', { name: /Confirmo, voy de camino/ }).first().click()
+  await page.waitForTimeout(2400) // el rival confirma → todo listo → inicio publicado
+  const enJuego = await page.evaluate(() => {
+    const w = JSON.parse(localStorage.getItem('todh-mundo') || localStorage.getItem('todh-demo') || 'null')
+    return w?.state?.setsEnJuego?.t1?.r0m0 ?? null
+  })
+  ok(typeof enJuego === 'number' && enJuego > 0, 'el «todo listo» publica el inicio del set en el mundo')
+  // La bracket pública (otra pestaña del mismo mundo) enseña el crono del set
+  const p2 = await ctx.newPage()
+  await p2.goto(`${BASE}/torneo/t1/bracket`, { waitUntil: 'networkidle' }); await p2.waitForTimeout(1800)
+  ok(await p2.getByText(/\d{2}:\d{2}/).count() > 0, 'la bracket enseña el crono del set en tiempo real')
+  await p2.screenshot({ path: `${OUT}/4-crono-bracket.png` })
+  // GG + reporte (mismos pasos que la sección 1) → consenso → crono apagado
+  await page.getByRole('button', { name: /GG · Reportar resultado/ }).click(); await page.waitForTimeout(500)
+  await page.getByRole('button', { name: 'Kaze', exact: true }).click()
+  await page.getByRole('button', { name: /^2–0$/ }).click()
+  await page.locator('button[title="Joker"]').click().catch(() => {})
+  await page.getByRole('button', { name: /Enviar mi reporte/ }).click()
+  await page.waitForTimeout(3200) // rival demo reporta → consenso
+  const apagado = await page.evaluate(() => {
+    const w = JSON.parse(localStorage.getItem('todh-mundo') || localStorage.getItem('todh-demo') || 'null')
+    return w?.state?.setsEnJuego?.t1?.r0m0 ?? null
+  })
+  ok(apagado === null, 'con el resultado escrito, el crono se apaga (sale de setsEnJuego)')
   await ctx.close()
 }
 

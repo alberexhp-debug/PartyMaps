@@ -8,7 +8,8 @@ import {
   ESTADO_LABEL, ESTADO_BADGE, CATEGORIA_LABEL, PRIORIDAD_LABEL, CATEGORIAS, PRIORIDADES,
   haceTiempo, type EstadoTicket, type CategoriaTicket, type PrioridadTicket,
 } from '@/lib/soporte'
-import { LifeBuoy, Plus, X, Send, ChevronRight } from 'lucide-react'
+import { Plus, X, Send, ChevronRight } from '@/components/todh/iconosTorneum'
+import { LifeBuoy } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 type Ticket = {

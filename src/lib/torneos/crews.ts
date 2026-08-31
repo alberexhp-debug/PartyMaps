@@ -1,4 +1,5 @@
-import { Flag, Medal, Gem, Crown } from 'lucide-react'
+import { Crown } from '@/components/todh/iconosTorneum'
+import { Flag, Medal, Gem } from 'lucide-react'
 import { rankingPorJuego, usuarioStatDe } from '@/lib/torneos/sample'
 import { nivelPorPuntuacion, UMBRALES_NIVEL_CREW, type NivelCrew } from '@/components/todh/CrewEmblema'
 import type { ClaveI18n } from '@/lib/i18n'

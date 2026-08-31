@@ -7,10 +7,8 @@ import { useToast } from '@/components/ui/Toast'
 import { PageHeader } from '@/components/local-panel/ui'
 import { getLabelTipoLocal } from '@/lib/utils'
 import type { TipoLocal, EstadoLocal } from '@/types'
-import {
-  Store, Plus, MapPin, Building2, Mail, User, Hash,
-  Check, Copy, X, KeyRound,
-} from 'lucide-react'
+import { Store, Plus, MapPin, Mail, User, Check, Copy, X, KeyRound } from '@/components/todh/iconosTorneum'
+import { Building2, Hash } from 'lucide-react'
 
 type LocalCartera = {
   id: string

@@ -7,7 +7,10 @@ import { type Local } from '@/lib/torneos/sample'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { resumenDispo, JuegosPosibles } from '@/components/todh/DispoSede'
-import { X, Star, Ruler, Monitor, Users, Wallet, CalendarClock, ChevronRight, Megaphone } from 'lucide-react'
+import { EQUIPOS_SEDE } from '@/components/todh/PerfilSedeEditor'
+import { fondoBanner } from '@/components/todh/bannerPresets'
+import { X, Star, Users, Wallet, CalendarClock, ChevronRight, Megaphone } from '@/components/todh/iconosTorneum'
+import { Ruler, Monitor } from 'lucide-react'
 import { useState } from 'react'
 
 // Mini-ficha pública de la sede (modal), simétrica al MiniPerfil de jugador.
@@ -25,6 +28,8 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
   const esTO = useEsTO()
   // Disponibilidad publicada por la sede desde su panel: visible en su ficha
   const dispo = useDemoStore(s => s.dispoSedes[local.id])
+  // Página personalizada por la sede: banner, logo, galería y equipos
+  const perfilSede = useDemoStore(s => s.perfilesSede[local.id])
   // Precio unificado: dispo publicada > ficha del admin > tarifa de muestra
   const precioNoche = usePrecioNoche(local.id)
   const [pisoVista, setPisoVista] = useState(0)
@@ -38,12 +43,15 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
       {/* En PC la ficha se abre ANCHA y a dos columnas (antes era una columna
           vertical estrecha); en móvil sigue siendo una hoja deslizante. */}
       <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-3xl bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl overflow-hidden animate-slide-up-sm sm:animate-pop max-h-[88vh] overflow-y-auto">
-        <div className="relative h-24" style={{ background: `radial-gradient(120% 140% at 0% 0%, ${local.color} 0%, ${local.color}55 40%, transparent 75%), #0E1119` }}>
+        <div className="relative h-24" data-banner={perfilSede?.banner ? '1' : undefined} style={{ background: perfilSede?.banner ? fondoBanner(perfilSede.banner) : `radial-gradient(120% 140% at 0% 0%, ${local.color} 0%, ${local.color}55 40%, transparent 75%), #0E1119` }}>
           <button onClick={onClose} aria-label="Cerrar" className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/30 flex items-center justify-center text-white"><X size={16} /></button>
         </div>
         <div className="px-5 lg:px-6 pb-6 -mt-10">
           <div className="flex items-end gap-3">
-            <span className="inline-flex items-center justify-center rounded-2xl font-black text-[#0A0A0F] border-4 border-[#141822]" style={{ width: 72, height: 72, background: local.color, fontSize: 30 }}>{local.nombre[0]}</span>
+            {perfilSede?.foto
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={perfilSede.foto} alt="" className="rounded-2xl object-cover border-4 border-[#141822]" style={{ width: 72, height: 72 }} />
+              : <span className="inline-flex items-center justify-center rounded-2xl font-black text-[#0A0A0F] border-4 border-[#141822]" style={{ width: 72, height: 72, background: local.color, fontSize: 30 }}>{local.nombre[0]}</span>}
             <div className="pb-1 min-w-0 flex-1">
               <p className="text-lg font-bold text-white text-display leading-tight truncate">{local.nombre}</p>
               <p className="text-xs text-[#8B8BA8]">{local.zona} · {local.ciudad}</p>
@@ -59,7 +67,21 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
             {local.tiposSetup.map(ts => (
               <span key={ts} className="px-2.5 h-7 inline-flex items-center rounded-full text-[11px] font-semibold bg-white/6 border border-white/10 text-[#D4D4E4]">{ts}</span>
             ))}
+            {/* Consolas y equipo declarados por la sede, con cantidad */}
+            {EQUIPOS_SEDE.filter(eq => (perfilSede?.equipos?.[eq.id] ?? 0) > 0).map(eq => (
+              <span key={eq.id} className="px-2.5 h-7 inline-flex items-center gap-1 rounded-full text-[11px] font-bold bg-[#B6FF3A]/10 border border-[#B6FF3A]/30 text-[#B6FF3A]">{eq.emoji} {tr(eq.clave)} ×{perfilSede!.equipos![eq.id]}</span>
+            ))}
           </div>
+
+          {/* Galería subida por la sede (tira compacta) */}
+          {(perfilSede?.galeria?.length ?? 0) > 0 && (
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+              {perfilSede!.galeria!.map((img, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={i} src={img} alt="" className="h-20 rounded-lg object-cover border border-white/10 shrink-0" />
+              ))}
+            </div>
+          )}
 
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
           <div>
@@ -77,7 +99,7 @@ export function MiniLocal({ local, onClose }: { local: Local; onClose: () => voi
               <div className="min-w-0">
                 <p className="text-xs text-[#8B8BA8] font-semibold uppercase tracking-wider">{tr('ml.disponible')}</p>
                 <p className="text-sm font-bold text-white">{resumenDispo(dispo, idioma)}{esTO ? ` · ${dispo.setups} setups · ${conParams(tr('ml.maxPers'), { n: dispo.aforoMax ?? local.aforo })} · ${dispo.precioNoche}€/${tr('ml.noche')}` : ''}</p>
-                <JuegosPosibles dispo={dispo} mesas={mesas} />
+                <JuegosPosibles dispo={dispo} mesas={mesas} perfil={perfilSede} />
                 {esTO && dispo.notas && <p className="mt-1.5 text-[11px] text-[#8B8BA8]">📌 {dispo.notas}</p>}
               </div>
             </div>

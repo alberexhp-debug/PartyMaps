@@ -5,7 +5,7 @@ import { PAISES } from '@/lib/torneos/puntos'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
-import { Check } from 'lucide-react'
+import { Check } from '@/components/todh/iconosTorneum'
 import { useT, conParams } from '@/lib/i18n'
 
 // Onboarding de primera visita: eliges tus juegos y TU PAÍS competitivo.

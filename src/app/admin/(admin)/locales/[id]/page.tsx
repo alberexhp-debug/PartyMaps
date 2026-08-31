@@ -10,10 +10,8 @@ import { useAdminStore } from '@/lib/stores/useAdminStore'
 import { Local, TierLocal, EstadoLocal, TipoLocal, TipoMusica, HorarioLocal } from '@/types'
 import { getLabelTipoLocal } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import {
-  ArrowLeft, Save, Store, MapPin, Clock, Image, Settings, AtSign,
-  Ticket, Check, X, AlertCircle, Trash2, Plus, ChevronDown, KeyRound, ShieldOff, Eye,
-} from 'lucide-react'
+import { ArrowLeft, Save, Store, MapPin, Clock, Settings, AtSign, Ticket, Check, X, AlertCircle, Trash2, Plus, ChevronDown, KeyRound, Eye } from '@/components/todh/iconosTorneum'
+import { Image, ShieldOff } from 'lucide-react'
 
 const TIPOS_LOCAL: TipoLocal[] = ['discoteca', 'bar_copas', 'rooftop', 'sala_conciertos', 'bar_cocteleria', 'otro']
 const TIPOS_MUSICA: TipoMusica[] = ['techno', 'house', 'reggaeton', 'pop', 'hip_hop', 'indie', 'electronica', 'flamenco', 'otro']

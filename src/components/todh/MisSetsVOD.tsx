@@ -1,5 +1,6 @@
 'use client'
-import { Play, Tv } from 'lucide-react'
+import { Play } from '@/components/todh/iconosTorneum'
+import { Tv } from 'lucide-react'
 import { useT } from '@/lib/i18n'
 import { urlConTiempo, formatoTiempo } from '@/lib/torneos/video'
 import type { SetEnVOD } from '@/lib/torneos/sample'

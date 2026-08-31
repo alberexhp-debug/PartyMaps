@@ -1,6 +1,6 @@
 'use client'
 import { cn } from '@/lib/utils'
-import { X } from 'lucide-react'
+import { X } from '@/components/todh/iconosTorneum'
 import { useEffect, useRef } from 'react'
 
 interface ModalProps {

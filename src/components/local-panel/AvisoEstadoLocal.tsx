@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
-import { Clock, ShieldAlert } from 'lucide-react'
+import { Clock } from '@/components/todh/iconosTorneum'
+import { ShieldAlert } from 'lucide-react'
 import type { EstadoLocal } from '@/types'
 
 /**

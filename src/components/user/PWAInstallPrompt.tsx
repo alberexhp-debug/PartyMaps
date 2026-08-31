@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Download, Share, Plus, X } from 'lucide-react'
+import { Download, Plus, X } from '@/components/todh/iconosTorneum'
+import { Share } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useT } from '@/lib/i18n'
 

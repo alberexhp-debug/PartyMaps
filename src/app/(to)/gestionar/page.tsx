@@ -7,7 +7,7 @@ import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { useT } from '@/lib/i18n'
 import { CabeceraConsola } from '@/components/todh/CabeceraConsola'
 import { GameIcon, GameChip } from '@/components/todh/GameIcon'
-import { Trophy, Plus } from 'lucide-react'
+import { Trophy, Plus } from '@/components/todh/iconosTorneum'
 
 // Índice de /gestionar: TODOS los torneos del TO en una lista (la agenda de la
 // consola, completa) — cada fila abre su panel de gestión /gestionar/[id].

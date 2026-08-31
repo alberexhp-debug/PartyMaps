@@ -1,7 +1,5 @@
-import {
-  Crown, Flame, Target, Sunrise, Handshake,
-  Trophy, Globe2, Gem, Layers, Megaphone, Medal,
-} from 'lucide-react'
+import { Crown, Trophy, Megaphone } from '@/components/todh/iconosTorneum'
+import { Flame, Target, Sunrise, Handshake, Globe2, Gem, Layers, Medal } from 'lucide-react'
 import type { ClaveI18n } from '@/lib/i18n'
 
 // ─────────────────────────────────────────────────────────────────────────────

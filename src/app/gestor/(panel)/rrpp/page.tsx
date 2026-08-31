@@ -5,10 +5,8 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { PageHeader } from '@/components/local-panel/ui'
-import {
-  Megaphone, Plus, Search, Mail, Store, ChevronDown,
-  Check, Copy, X, AtSign, Percent, Pause, Play, UserPlus, KeyRound, RotateCcw,
-} from 'lucide-react'
+import { Megaphone, Plus, Search, Mail, Store, ChevronDown, Check, Copy, X, AtSign, Play, UserPlus, KeyRound, RotateCcw } from '@/components/todh/iconosTorneum'
+import { Percent, Pause } from 'lucide-react'
 import { normalizarUsername, esUsernameValido } from '@/lib/equipo'
 import { CredencialesModal } from '@/components/local-panel/CredencialesModal'
 

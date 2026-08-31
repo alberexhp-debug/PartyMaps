@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 import { PageHeader, SectionCard, EmptyState } from '@/components/local-panel/ui'
-import { Users, Plus, X, Mail, Check, Copy, ShieldOff, Crown, Power, Trash2 } from 'lucide-react'
+import { Users, Plus, X, Mail, Check, Copy, Crown, Power, Trash2 } from '@/components/todh/iconosTorneum'
+import { ShieldOff } from 'lucide-react'
 
 type LocalMin = { id: string; nombre: string }
 type Miembro = {

@@ -12,9 +12,8 @@ import { useT, type ClaveI18n } from '@/lib/i18n'
 import { TorneoArt, GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon, GameChip, GameBadge } from '@/components/todh/GameIcon'
 import { FillBar } from '@/components/ui/CountUp'
-import {
-  Search, Lock, Trophy, Calendar, MapPin, Users, Check, ArrowUpDown, Bell, SlidersHorizontal, X, Eye,
-} from 'lucide-react'
+import { Search, Lock, Trophy, Calendar, MapPin, Users, Check, Bell, X, Eye } from '@/components/todh/iconosTorneum'
+import { ArrowUpDown, SlidersHorizontal } from 'lucide-react'
 
 
 type Orden = 'popularidad' | 'fecha' | 'precio'

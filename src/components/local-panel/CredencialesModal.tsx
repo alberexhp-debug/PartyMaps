@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { X, Copy, KeyRound, ShieldCheck } from 'lucide-react'
+import { X, Copy, KeyRound, ShieldCheck } from '@/components/todh/iconosTorneum'
 
 /**
  * Muestra las credenciales (usuario + contraseña por defecto) para entregarlas

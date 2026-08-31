@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { X, MessageCircle, MapPin, Users, Ticket, Calendar, Beer, Percent, Sparkles } from 'lucide-react'
+import { X, MapPin, Users, Ticket, Calendar, Sparkles } from '@/components/todh/iconosTorneum'
+import { MessageCircle, Beer, Percent } from 'lucide-react'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { CodigosLocal } from '@/components/rrpp/CodigosLocal'
 import { LABEL_CATEGORIA, CATEGORIAS_DESCUENTO, type CategoriaDescuento } from '@/lib/rrppCodigos'

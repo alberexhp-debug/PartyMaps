@@ -4,7 +4,8 @@ import { PageHeader } from '@/components/local-panel/ui'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { supabase } from '@/lib/supabase/client'
 import { sonidoMensaje, sonidoMensajesActivo, setSonidoMensajes } from '@/lib/sonido'
-import { MessageSquare, Volume2, VolumeX, Store } from 'lucide-react'
+import { MessageSquare, Store } from '@/components/todh/iconosTorneum'
+import { Volume2, VolumeX } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type Conversacion = {

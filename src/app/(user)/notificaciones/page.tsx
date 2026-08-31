@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 import { useT, conParams, type ClaveI18n } from '@/lib/i18n'
-import { ArrowLeft, Swords, AlertTriangle, Users, Trophy, Bell, BellOff, Ticket, CheckCheck, TrendingDown, Trash2, X } from 'lucide-react'
+import { ArrowLeft, Swords, AlertTriangle, Users, Trophy, Bell, Ticket, Trash2, X } from '@/components/todh/iconosTorneum'
+import { BellOff, CheckCheck, TrendingDown } from 'lucide-react'
 
 const ICONO: Record<NotiTipo, { icon: React.ElementType; color: string }> = {
   combate:      { icon: Swords, color: '#B6FF3A' },

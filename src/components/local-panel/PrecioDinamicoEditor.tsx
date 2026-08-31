@@ -1,6 +1,6 @@
 'use client'
 import { useMemo } from 'react'
-import { Plus, Trash2, Zap } from 'lucide-react'
+import { Plus, Trash2, Zap } from '@/components/todh/iconosTorneum'
 import { PrecioDinamicoConfig, TramoPrecio } from '@/types'
 import { calcularPrecioDinamico, formatearPrecio } from '@/lib/utils'
 

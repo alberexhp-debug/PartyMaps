@@ -5,7 +5,8 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { Mesa, Reserva, EstadoReserva } from '@/types'
-import { Check, X, LogIn, Users, Calendar, Phone, Euro, Wallet } from 'lucide-react'
+import { Check, X, Users, Calendar, Wallet } from '@/components/todh/iconosTorneum'
+import { LogIn, Phone, Euro } from 'lucide-react'
 
 /** Reserva con los campos VIP de la migración 034 (opcionales hasta aplicarla). */
 type ReservaVip = Reserva & { minimo_consumo?: number | null; deposito?: number | null; deposito_pagado?: boolean }

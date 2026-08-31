@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Sparkles, UserPlus, Pause, Play, Archive, ExternalLink, Search, Mail, Copy, Check, MessageCircle, Percent, Handshake, X, KeyRound, RotateCcw } from 'lucide-react'
+import { Sparkles, UserPlus, Play, ExternalLink, Search, Mail, Copy, Check, X, KeyRound, RotateCcw } from '@/components/todh/iconosTorneum'
+import { Pause, Archive, MessageCircle, Percent, Handshake } from 'lucide-react'
 import { ChatRrpp } from '@/components/chat/ChatRrpp'
 import { PagosRRPP } from '@/components/local-panel/PagosRRPP'
 import { CredencialesModal } from '@/components/local-panel/CredencialesModal'

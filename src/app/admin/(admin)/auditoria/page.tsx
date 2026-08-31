@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { FileText, Filter, RefreshCw, User } from 'lucide-react'
+import { RefreshCw, User } from '@/components/todh/iconosTorneum'
+import { FileText, Filter } from 'lucide-react'
 import { tiempoRelativo } from '@/lib/utils'
 
 interface Entry {

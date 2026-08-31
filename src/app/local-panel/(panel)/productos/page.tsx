@@ -8,9 +8,8 @@ import { Badge } from '@/components/ui/Badge'
 import { useLocalPanelStore } from '@/lib/stores/useLocalPanelStore'
 import { ProductoLocal, CategoriaProducto } from '@/types'
 import { formatearPrecio, cn } from '@/lib/utils'
-import {
-  Plus, Edit3, Trash2, Eye, EyeOff, ShoppingBag, AlertCircle,
-} from 'lucide-react'
+import { Plus, Trash2, Eye, EyeOff, AlertCircle } from '@/components/todh/iconosTorneum'
+import { Edit3, ShoppingBag } from 'lucide-react'
 
 const CATEGORIAS: { value: CategoriaProducto; label: string }[] = [
   { value: 'cerveza', label: 'Bebida' }, { value: 'cubata', label: 'Bebida' },
