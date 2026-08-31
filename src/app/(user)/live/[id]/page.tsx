@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, rankingPorJuego, bracketDe, type Jugador } from '@/lib/torneos/sample'
 import { construirRondas, nombreRonda } from '@/lib/torneos/bracket'
 import { torneosEfectivos } from '@/lib/torneos/efectivos'
-import { useDemoStore, resolverSeeds } from '@/lib/stores/useDemoStore'
+import { useDemoStore, resolverSeeds, ID_CUENTA_PREFIJO } from '@/lib/stores/useDemoStore'
+import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { TorneoArt } from '@/components/todh/GameKeyart'
 import { VideoEmbed } from '@/components/todh/VideoEmbed'
 import { ReglasTorneo } from '@/components/todh/ReglasTorneo'
@@ -20,6 +21,11 @@ import {
   ArrowLeft, Radio, CalendarClock, MapPin, Trophy, Users, ListTree,
   MessageSquare, Swords, Calendar, Search,
 } from 'lucide-react'
+
+// Mi partida en el bracket real (backlog A): TS no rastrea las asignaciones
+// dentro del forEach, de ahí los tipos nombrados + aserción en el return.
+type MiMatchActual = { rival: Jugador | null; ronda: string; mid: string; nMesa: number; vsParam: string }
+type MiUltimoSet = { rival: Jugador; gane: boolean; yo: number; el: number }
 
 // SALA LIVE de un torneo (para inscritos): antes de abrir enseña detalles y
 // reglas; cuando el TO la abre (directo o bracket generado) enseña el bracket
@@ -51,6 +57,48 @@ export default function SalaLivePage() {
 
   const t = torneosEfectivos(creados, editados, cancelados, { conCancelados: true }).find(x => x.id === id) ?? getTorneo(id)
   const pool = useMemo(() => (t ? rankingPorJuego(t.juego) : []), [t])
+  const miEmail = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
+
+  // (A, 31-08) MI PARTIDA REAL: si mi cuenta está en los seeds del bracket del
+  // mundo, la sala deja la maqueta y pinta MI estado — último set con marcador,
+  // match actual (rival + ronda reales, con enlace a la mesa con mid para el
+  // doble reporte) y el siguiente cruce (los vivos del match hermano). La mesa
+  // es pseudo-asignada (índice del match): la real la reparte el modo directo.
+  const vistaReal = useMemo(() => {
+    if (!t || !gestion?.generado || !miEmail) return null
+    const miId = ID_CUENTA_PREFIJO + miEmail
+    if (!(gestion.seeds ?? []).includes(miId)) return null
+    const seeds = resolverSeeds(gestion.seeds ?? [], pool, t.juego, perfilesCuentas)
+    const rondas = construirRondas(seeds, gestion.winners ?? {})
+    let actual: MiMatchActual | null = null
+    let ultimo: MiUltimoSet | null = null
+    let eliminado = false
+    let candidatos: Jugador[] = []
+    rondas.forEach((matches) => matches.forEach((m, mi) => {
+      const lado = m.a?.id === miId ? 'a' : m.b?.id === miId ? 'b' : null
+      if (!lado) return
+      const rival = lado === 'a' ? m.b : m.a
+      if (m.ganador) {
+        const p = gestion.puntos?.[m.id]
+        const gane = m.ganador === lado
+        if (rival) ultimo = { rival, gane, yo: lado === 'a' ? (p?.a ?? 0) : (p?.b ?? 0), el: lado === 'a' ? (p?.b ?? 0) : (p?.a ?? 0) }
+        if (!gane) eliminado = true
+      } else {
+        actual = {
+          rival: rival ?? null,
+          ronda: nombreRonda(matches.length, idioma),
+          mid: m.id,
+          nMesa: (mi % 8) + 1,
+          vsParam: `${m.a?.nombre ?? '—'} vs ${m.b?.nombre ?? '—'}`,
+        }
+        const hermano = matches[mi % 2 === 0 ? mi + 1 : mi - 1]
+        if (hermano) candidatos = [hermano.a, hermano.b].filter(Boolean) as Jugador[]
+      }
+    }))
+    const final = rondas[rondas.length - 1]?.[0]
+    const campeon = !!final?.ganador && (final.ganador === 'a' ? final.a : final.b)?.id === miId
+    return { actual: actual as MiMatchActual | null, ultimo: ultimo as MiUltimoSet | null, candidatos, campeon, eliminado }
+  }, [t, gestion, miEmail, pool, perfilesCuentas, idioma])
 
   // Marcadores en vivo: del bracket REAL si el TO lo generó; si no, muestra.
   const marcadores = useMemo(() => {
@@ -87,7 +135,16 @@ export default function SalaLivePage() {
   const ultimoRival = pool[4]
   const candA = pool[2]
   const candB = pool[3]
-  const pA = candA && candB ? Math.round((candA.rating / (candA.rating + candB.rating)) * 100) : 50
+
+  // Bloque «tu cuadro»: datos REALES si mi cuenta juega este bracket; maqueta
+  // de muestra si no (torneos sembrados donde el usuario no está en los seeds).
+  const rivalCuadro = vistaReal ? (vistaReal.actual?.rival ?? null) : rivalActual
+  const rondaCuadro = vistaReal ? (vistaReal.actual?.ronda ?? '') : nombreRonda(4, idioma)
+  const mesaCuadro = vistaReal ? (vistaReal.actual?.nMesa ?? 0) : 3
+  const parCandidatos: [Jugador, Jugador] | null = vistaReal
+    ? (vistaReal.candidatos.length === 2 ? [vistaReal.candidatos[0], vistaReal.candidatos[1]] : null)
+    : (candA && candB ? [candA, candB] : null)
+  const pA = parCandidatos ? Math.round((parCandidatos[0].rating / (parCandidatos[0].rating + parCandidatos[1].rating)) * 100) : 50
 
   return (
     <div className="relative min-h-screen pb-16 max-w-xl mx-auto lg:max-w-none lg:mx-0">
@@ -143,66 +200,125 @@ export default function SalaLivePage() {
             <div className="space-y-4">
               {/* Tu combate + próximos rivales con probabilidad */}
               {/* TUS MESAS, en grande: la última jugada y la siguiente — con la
-                  orden clara de si te toca IR YA o esperar a que te avisen. */}
+                  orden clara de si te toca IR YA o esperar a que te avisen.
+                  Con cuenta en el bracket real (vistaReal) los datos son TUYOS;
+                  sin bracket real, la maqueta de siempre. */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8B8BA8]">{tr('lv.ultimaMesa')}</p>
-                  <p className="mt-1 text-4xl lg:text-5xl font-bold text-white text-display leading-none">M1</p>
-                  {ultimoRival && (
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8B8BA8]">{vistaReal ? tr('lv.tuUltimoSet') : tr('lv.ultimaMesa')}</p>
+                  {vistaReal ? (
+                    vistaReal.ultimo ? (
+                      <>
+                        <p className="mt-1 text-3xl lg:text-4xl font-bold text-white text-display leading-none font-mono-num">{vistaReal.ultimo.yo}–{vistaReal.ultimo.el}</p>
+                        <p className="mt-2 text-[13px] text-[#B8B8CC]">vs <span className="text-white font-bold">{vistaReal.ultimo.rival.nombre}</span></p>
+                        <p className={`mt-0.5 text-sm font-bold font-mono-num ${vistaReal.ultimo.gane ? 'text-[#2ED47A]' : 'text-[#FF8A8A]'}`}>{vistaReal.ultimo.gane ? tr('lv.ganaste') : tr('lv.perdiste')}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mt-1 text-4xl lg:text-5xl font-bold text-[#5B5B70] text-display leading-none">—</p>
+                        <p className="mt-2 text-[12px] text-[#8B8BA8]">{tr('lv.sinSets')}</p>
+                      </>
+                    )
+                  ) : (
                     <>
-                      <p className="mt-2 text-[13px] text-[#B8B8CC]">vs <span className="text-white font-bold">{ultimoRival.nombre}</span></p>
-                      <p className="mt-0.5 text-sm font-bold text-[#2ED47A] font-mono-num">{tr('lv.ganaste')} 2–0</p>
+                      <p className="mt-1 text-4xl lg:text-5xl font-bold text-white text-display leading-none">M1</p>
+                      {ultimoRival && (
+                        <>
+                          <p className="mt-2 text-[13px] text-[#B8B8CC]">vs <span className="text-white font-bold">{ultimoRival.nombre}</span></p>
+                          <p className="mt-0.5 text-sm font-bold text-[#2ED47A] font-mono-num">{tr('lv.ganaste')} 2–0</p>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
-                <div className={`rounded-2xl border p-4 text-center ${t.enDirecto ? 'border-[#B6FF3A]/60 bg-[#B6FF3A]/[0.09]' : 'border-[#FF8A5C]/40 bg-[#FF8A5C]/[0.06]'}`}>
-                  <p className={`text-[10px] font-bold uppercase tracking-[0.14em] ${t.enDirecto ? 'text-[#B6FF3A]' : 'text-[#FF8A5C]'}`}>{tr('lv.siguienteMesa')}</p>
-                  <p className="mt-1 text-4xl lg:text-5xl font-bold text-white text-display leading-none">{t.enDirecto ? 'M3' : '—'}</p>
-                  {rivalActual && <p className="mt-2 text-[13px] text-[#B8B8CC]">vs <span className="text-white font-bold">{rivalActual.nombre}</span> · {nombreRonda(4, idioma)}</p>}
-                  {t.enDirecto ? (
-                    <p className="mt-0.5 text-sm font-black uppercase tracking-wide text-[#B6FF3A] animate-pulse-heat">{tr('lv.veYa')}</p>
-                  ) : (
-                    <p className="mt-0.5 text-[12px] font-bold text-[#FF8A5C]">{tr('lv.esperaAviso')}</p>
-                  )}
-                </div>
+                {vistaReal?.campeon ? (
+                  <div className="rounded-2xl border border-[#E0BE63]/60 bg-[#E0BE63]/[0.1] p-4 text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#E0BE63]">{tr('lv.siguienteMesa')}</p>
+                    <p className="mt-1 text-3xl lg:text-4xl font-bold text-[#E0BE63] text-display leading-none">🏆</p>
+                    <p className="mt-2 text-sm font-black uppercase tracking-wide text-[#E0BE63]">{tr('lv.campeonTu')}</p>
+                    <p className="mt-0.5 text-[11px] text-[#D9C58A]">{tr('lv.campeonSub')}</p>
+                  </div>
+                ) : vistaReal?.eliminado ? (
+                  <div className="rounded-2xl border border-white/12 bg-white/[0.03] p-4 text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8B8BA8]">{tr('lv.siguienteMesa')}</p>
+                    <p className="mt-1 text-3xl lg:text-4xl font-bold text-[#8B8BA8] text-display leading-none">✕</p>
+                    <p className="mt-2 text-sm font-bold text-[#B8B8CC]">{tr('lv.eliminadoTu')}</p>
+                    <p className="mt-0.5 text-[11px] text-[#8B8BA8]">{tr('lv.eliminadoSub')}</p>
+                  </div>
+                ) : (
+                  <div className={`rounded-2xl border p-4 text-center ${t.enDirecto ? 'border-[#B6FF3A]/60 bg-[#B6FF3A]/[0.09]' : 'border-[#FF8A5C]/40 bg-[#FF8A5C]/[0.06]'}`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-[0.14em] ${t.enDirecto ? 'text-[#B6FF3A]' : 'text-[#FF8A5C]'}`}>{tr('lv.siguienteMesa')}</p>
+                    {vistaReal ? (
+                      <>
+                        <p className="mt-1 text-2xl lg:text-3xl font-bold text-white text-display leading-tight">{vistaReal.actual ? vistaReal.actual.ronda.replace('Semifinales', 'Semis') : '—'}</p>
+                        {vistaReal.actual?.rival
+                          ? <p className="mt-2 text-[13px] text-[#B8B8CC]">vs <span className="text-white font-bold">{vistaReal.actual.rival.nombre}</span> · {tr('adm.mesa')} {vistaReal.actual.nMesa}</p>
+                          : vistaReal.actual && <p className="mt-2 text-[12px] text-[#B8B8CC]">{tr('lv.esperandoCruce')}</p>}
+                        {t.enDirecto && vistaReal.actual?.rival ? (
+                          <p className="mt-0.5 text-sm font-black uppercase tracking-wide text-[#B6FF3A] animate-pulse-heat">{tr('lv.veYa')}</p>
+                        ) : (
+                          <p className="mt-0.5 text-[12px] font-bold text-[#FF8A5C]">{tr('lv.esperaAviso')}</p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="mt-1 text-4xl lg:text-5xl font-bold text-white text-display leading-none">{t.enDirecto ? 'M3' : '—'}</p>
+                        {rivalActual && <p className="mt-2 text-[13px] text-[#B8B8CC]">vs <span className="text-white font-bold">{rivalActual.nombre}</span> · {nombreRonda(4, idioma)}</p>}
+                        {t.enDirecto ? (
+                          <p className="mt-0.5 text-sm font-black uppercase tracking-wide text-[#B6FF3A] animate-pulse-heat">{tr('lv.veYa')}</p>
+                        ) : (
+                          <p className="mt-0.5 text-[12px] font-bold text-[#FF8A5C]">{tr('lv.esperaAviso')}</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
-              {t.enDirecto && (
-                <Link href={`/torneo/${t.id}/mesa?n=3&vs=${encodeURIComponent(`Cuartos vs ${rivalActual?.nombre ?? 'rival'}`)}`}
-                  className="h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-sm flex items-center justify-center gap-2">
-                  <MapPin size={16} /> {tr('lv.verMiMesa')}
-                </Link>
-              )}
+              {t.enDirecto && (vistaReal
+                ? (vistaReal.actual?.rival && (
+                  <Link href={`/torneo/${t.id}/mesa?n=${vistaReal.actual.nMesa}&vs=${encodeURIComponent(vistaReal.actual.vsParam)}&mid=${vistaReal.actual.mid}`}
+                    className="h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-sm flex items-center justify-center gap-2">
+                    <MapPin size={16} /> {tr('lv.verMiMesa')}
+                  </Link>
+                ))
+                : (
+                  <Link href={`/torneo/${t.id}/mesa?n=3&vs=${encodeURIComponent(`Cuartos vs ${rivalActual?.nombre ?? 'rival'}`)}`}
+                    className="h-12 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] font-bold text-sm flex items-center justify-center gap-2">
+                    <MapPin size={16} /> {tr('lv.verMiMesa')}
+                  </Link>
+                ))}
 
+              {(!vistaReal || rivalCuadro) && (
               <div className="rounded-2xl border border-[#B6FF3A]/40 bg-[#B6FF3A]/[0.07] p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#B6FF3A] flex items-center gap-2"><span className="dot-live" /> {tr('lv.tuCuadro')}</p>
-                {rivalActual && (
-                  <button onClick={() => setSelJugador(rivalActual)} className="mt-2.5 w-full flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-left hover:bg-white/[0.08] transition-colors">
+                {rivalCuadro && (
+                  <button onClick={() => setSelJugador(rivalCuadro)} className="mt-2.5 w-full flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-left hover:bg-white/[0.08] transition-colors">
                     <Swords size={18} className="text-[#B6FF3A] shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white">{tr('lv.ahoraTuVs')} {rivalActual.nombre} {rivalActual.bandera}</p>
-                      <p className="text-[11px] text-[#8B8BA8] flex items-center gap-1.5">{nombreRonda(4, idioma)} · {tr('adm.mesa')} 3 · <PersonajeChip juegoId={t.juego} nombre={rivalActual.main} /></p>
+                      <p className="text-sm font-bold text-white">{tr('lv.ahoraTuVs')} {rivalCuadro.nombre} {rivalCuadro.bandera}</p>
+                      <p className="text-[11px] text-[#8B8BA8] flex items-center gap-1.5">{rondaCuadro} · {tr('adm.mesa')} {mesaCuadro}{rivalCuadro.main && <> · <PersonajeChip juegoId={t.juego} nombre={rivalCuadro.main} /></>}</p>
                     </div>
-                    <RangoChip rating={rivalActual.rating} />
+                    <RangoChip rating={rivalCuadro.rating} />
                   </button>
                 )}
-                {rivalActual && (
-                  <button onClick={() => estudiar(rivalActual.nombre)}
+                {rivalCuadro && (
+                  <button onClick={() => estudiar(rivalCuadro.nombre)}
                     className="mt-2 w-full h-9 rounded-xl border border-[#67E8F9]/35 bg-[#67E8F9]/[0.08] text-[#67E8F9] text-[12px] font-bold flex items-center justify-center gap-1.5 hover:bg-[#67E8F9]/[0.14] transition-colors">
-                    <Search size={13} /> {conParams(tr('sc.estudiar'), { rival: rivalActual.nombre })}
+                    <Search size={13} /> {conParams(tr('sc.estudiar'), { rival: rivalCuadro.nombre })}
                   </button>
                 )}
-                {candA && candB && (
+                {parCandidatos && (
                   <div className="mt-2.5">
                     <p className="text-[10px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('lv.despuesCruzas')}</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {[{ p: candA, prob: pA }, { p: candB, prob: 100 - pA }].map(({ p, prob }) => (
+                      {[{ p: parCandidatos[0], prob: pA }, { p: parCandidatos[1], prob: 100 - pA }].map(({ p, prob }) => (
                         <button key={p.id} onClick={() => setSelJugador(p)} className="rounded-xl bg-white/5 border border-white/10 p-3 text-left hover:bg-white/[0.08] transition-colors">
                           <div className="flex items-center justify-between gap-1">
                             <p className="text-[13px] font-bold text-white truncate">{p.nombre} {p.bandera}</p>
                             <span className="text-[12px] font-bold text-[#B6FF3A] font-mono-num shrink-0">{prob}%</span>
                           </div>
                           <div className="mt-1.5 h-1.5 rounded-full bg-white/8 overflow-hidden"><div className="h-full rounded-full bg-[#B6FF3A]" style={{ width: `${prob}%` }} /></div>
-                          <p className="mt-1.5 text-[10px] text-[#8B8BA8] flex items-center gap-1"><PersonajeChip juegoId={t.juego} nombre={p.main} /> · {p.victorias}V-{p.derrotas}D</p>
+                          <p className="mt-1.5 text-[10px] text-[#8B8BA8] flex items-center gap-1">{p.main && <><PersonajeChip juegoId={t.juego} nombre={p.main} /> · </>}{p.victorias}V-{p.derrotas}D</p>
                         </button>
                       ))}
                     </div>
@@ -210,6 +326,7 @@ export default function SalaLivePage() {
                   </div>
                 )}
               </div>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <Link href={`/torneo/${t.id}/bracket`} className="h-11 rounded-xl bg-white/6 border border-white/10 text-white text-sm font-semibold flex items-center justify-center gap-2"><ListTree size={15} className="text-[#9B82FF]" /> {tr('lv.bracketCompleto')}</Link>

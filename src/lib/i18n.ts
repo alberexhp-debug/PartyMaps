@@ -1761,6 +1761,15 @@ const D = {
   'bz.liveT': ['🔴 «{torneo}» ha empezado', '🔴 "{torneo}" has started'],
   'bz.liveC': ['El torneo está EN DIRECTO. Entra a tu sala live para seguirlo.', 'The tournament is LIVE. Open your live room to follow it.'],
   'bz.msjT': ['💬 Mensaje de {nombre}', '💬 Message from {nombre}'],
+  // Sala live con la partida REAL de la cuenta (backlog A, 31-08)
+  'lv.tuUltimoSet': ['Tu último set', 'Your last set'],
+  'lv.perdiste': ['Perdiste', 'You lost'],
+  'lv.sinSets': ['Aún sin sets jugados', 'No sets played yet'],
+  'lv.esperandoCruce': ['Esperando al ganador del cruce anterior', 'Waiting for the previous match winner'],
+  'lv.campeonTu': ['¡CAMPEÓN!', 'CHAMPION!'],
+  'lv.campeonSub': ['Has ganado el torneo.', 'You won the tournament.'],
+  'lv.eliminadoTu': ['Eliminado', 'Eliminated'],
+  'lv.eliminadoSub': ['El torneo sigue: mira el bracket y la emisión.', 'The tournament goes on: watch the bracket and the stream.'],
   'ma.escribe': ['Escríbele a {nombre}…', 'Write to {nombre}…'],
   'ma.vacio': ['Aún no hay mensajes. ¡Rompe el hielo!', 'No messages yet. Break the ice!'],
   // Perfil de organizador editable (/perfil/organizador, decisión 30-08)

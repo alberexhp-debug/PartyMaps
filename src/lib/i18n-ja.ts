@@ -1749,6 +1749,15 @@ export const JA: Record<string, string> = {
   'bz.liveT': '🔴 「{torneo}」が始まりました',
   'bz.liveC': '大会はライブ中です。ライブルームで観戦しましょう。',
   'bz.msjT': '💬 {nombre}からのメッセージ',
+  // Sala live con la partida real de la cuenta (backlog A)
+  'lv.tuUltimoSet': '直近のセット',
+  'lv.perdiste': '敗北',
+  'lv.sinSets': 'まだセットはありません',
+  'lv.esperandoCruce': '前の試合の勝者を待っています',
+  'lv.campeonTu': '優勝！',
+  'lv.campeonSub': '大会に優勝しました。',
+  'lv.eliminadoTu': '敗退',
+  'lv.eliminadoSub': '大会は続行中：トーナメント表と配信をチェック。',
   'ma.escribe': '{nombre}にメッセージを送る…',
   'ma.vacio': 'まだメッセージはありません。話しかけてみましょう！',
   // Perfil de organizador editable (/perfil/organizador)
