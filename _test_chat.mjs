@@ -84,7 +84,7 @@ function tagUsuarioDe(nombre) {
   await login(page)
   await page.goto(`${BASE}/amigos`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
   ok(await page.locator('h1', { hasText: 'Chat' }).count() > 0, 'la página se titula «Chat»')
-  for (const t of ['Amigos', 'Grupos', 'Crews', 'Difusión']) {
+  for (const t of ['Amigos', 'Grupos y crews', 'Difusión']) {
     ok(await page.getByRole('button', { name: new RegExp(`^${t}`) }).count() > 0, `pestaña «${t}» presente`)
   }
   await page.getByRole('button', { name: /^Difusión$/ }).click(); await page.waitForTimeout(500)

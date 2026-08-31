@@ -244,6 +244,10 @@ interface DemoState {
   amigos: string[]                         // amigos agregados (nombres del pool de jugadores)
   solicitudesAmistad: string[]             // solicitudes de amistad recibidas, pendientes
   gruposChat: GrupoChat[]                  // grupos de chat con amigos (persisten mensajes)
+  // No-leídos estilo WhatsApp (pedido 31-08): por conversación, cuántos
+  // mensajes llevaba el hilo la última vez que lo abriste. PERSONAL: cada
+  // cuenta lleva su propia lectura. Claves: 'amigo:{email}' · 'grupo:{id}'.
+  leidosChat: Record<string, number>
   crews: Crew[]                            // crews (F6): en orden de creación — la 1ª coincidencia representa al jugador
   crewTorneo: Record<string, CupoCrew>     // por torneo: inscripción por equipos abierta (crew + quién pagó ya)
   usuariosSuspendidos: string[]            // ids de cuentas suspendidas por el admin
@@ -275,6 +279,12 @@ interface DemoState {
   // MUNDO: el crono del set se ve en la bracket en tiempo real desde cualquier
   // cuenta; se limpia al escribirse el resultado (gestionConResultado/disputa).
   setsEnJuego: Record<string, Record<string, number>>
+  // Espectadores del MUNDO por torneo (emails de cuentas, pedido 31-08): el
+  // cupo de espectador es aparte del de competidor y lo abre/cierra el TO.
+  espectadoresCuentas: Record<string, string[]>
+  // Torneos PRIVADOS (31-08): emails invitados por el TO — solo ellos pueden
+  // inscribirse; el torneo se publica con candado «Solo con invitación».
+  invitadosTorneo: Record<string, string[]>
   // Página pública editable de cada SEDE (pedido 31-08): logo, banner, galería,
   // consolas/equipo con cantidad y ajuste fino de juegos disponibles. MUNDO:
   // lo que edita la sede lo ven jugadores y TOs en /local/[id] y MiniLocal.
@@ -356,6 +366,7 @@ interface DemoState {
   quitarAmigo: (nombre: string) => void
   responderAmistad: (nombre: string, acepta: boolean) => void
   crearGrupoChat: (nombre: string, emoji: string, miembros: string[]) => void
+  marcarChatLeido: (clave: string, total: number) => void
   enviarChatGrupo: (grupoId: string, texto: string) => void
   salirGrupoChat: (grupoId: string) => void
   crearCrew: (c: { nombre: string; tag: string; juego: string; emoji?: string; color?: string; miembros: string[] }) => void
@@ -383,6 +394,7 @@ interface DemoState {
   // si el rival ya lo arrancó, ambos comparten el mismo inicio).
   iniciarSetEnJuego: (torneoId: string, mid: string) => void
   editarPerfilSede: (localId: string, patch: Partial<PerfilSede>) => void
+  invitarATorneo: (torneoId: string, nombreTorneo: string, email: string) => void
 }
 
 // Personalización de la página pública de una sede (31-08). `equipos` es
@@ -703,8 +715,15 @@ const DATOS_INICIALES: DatosDemo = {
       esperasCuentas: {},
       chatsAmigos: {},
       setsEnJuego: {},
+      espectadoresCuentas: {},
+      invitadosTorneo: {},
+      leidosChat: {},  // se re-siembra tras DATOS_INICIALES (grupos seed nacen leídos)
       perfilesSede: {},
 }
+
+// Los grupos de muestra empiezan LEÍDOS: las burbujas de no-leídos solo
+// cuentan mensajes que lleguen después (convocatorias, chats del mundo…).
+DATOS_INICIALES.leidosChat = Object.fromEntries(DATOS_INICIALES.gruposChat.map(g => [`grupo:${g.id}`, g.mensajes.length]))
 
 // ── Mundo compartido (30-08): clasificación WORLD/PERSONAL de las claves ──
 // Criterio: describe el mundo u otros actores → MUNDO (clave 'todh-mundo',
@@ -722,6 +741,7 @@ export const CLAVES_MUNDO = [
   'crews', 'crewTorneo',
   'amistadesCuentas', 'perfilesCuentas', 'inscripcionesCuentas', 'perfilesOrg',
   'buzonCuentas', 'esperasCuentas', 'chatsAmigos', 'setsEnJuego', 'perfilesSede',
+  'espectadoresCuentas', 'invitadosTorneo',
 ] as const satisfies readonly (keyof DatosDemo)[]
 export type ClaveMundo = (typeof CLAVES_MUNDO)[number]
 export type DatosPersonales = Omit<DatosDemo, ClaveMundo>
@@ -1442,6 +1462,21 @@ export const useDemoStore = create<DemoState>()(
         if (s.setsEnJuego[torneoId]?.[mid]) return s
         return { setsEnJuego: { ...s.setsEnJuego, [torneoId]: { ...s.setsEnJuego[torneoId], [mid]: Date.now() } } }
       }),
+      // Torneo PRIVADO (31-08): el TO invita a una cuenta — queda en la lista
+      // del mundo y el invitado se entera por su buzón al entrar.
+      invitarATorneo: (torneoId, nombreTorneo, email) => set((s) => {
+        const el = email.toLowerCase()
+        const lista = s.invitadosTorneo[torneoId] ?? []
+        if (lista.includes(el)) return s
+        return {
+          invitadosTorneo: { ...s.invitadosTorneo, [torneoId]: [...lista, el] },
+          buzonCuentas: buzonConEntregas(s, [{ email: el, noti: {
+            tipo: 'inscripcion', titulo: `🎟️ Invitación a «${nombreTorneo}»`,
+            cuerpo: 'El organizador te ha invitado a su torneo privado. Tu plaza te espera: entra a la ficha e inscríbete.',
+            tituloKey: 'pv.invT', cuerpoKey: 'pv.invC', params: { torneo: nombreTorneo }, href: `/torneo/${torneoId}`,
+          } }]),
+        }
+      }),
       // Página pública de la sede (31-08): cada control guarda al momento.
       editarPerfilSede: (localId, patch) => set((s) => ({
         perfilesSede: { ...s.perfilesSede, [localId]: { ...s.perfilesSede[localId], ...patch } },
@@ -1457,8 +1492,19 @@ export const useDemoStore = create<DemoState>()(
       setIdioma: (idioma) => set({ idioma }),
       inscribirEspectador: (id, nombre) => set((s) => {
         if (s.entradasEspectador.includes(id)) return s
+        // Cupo de espectador (31-08): cerrado por el TO o lleno → no entra.
+        const base = getTorneo(id) || s.creados.find(c => c.id === id)
+        const t = base ? { ...base, ...(s.editados[id] || {}) } : undefined
+        if (t?.verCerrado) return s
+        const lista = s.espectadoresCuentas[id] ?? []
+        if (t?.plazasVer != null && t.plazasVer > 0 && lista.length >= t.plazasVer) return s
         const n: Notificacion = { id: nextId(), tipo: 'inscripcion', titulo: 'Entrada de espectador', cuerpo: `Ya tienes tu entrada para ver «${nombre}». Enséñala en la puerta.`, tituloKey: 'ntf.espectadorT', cuerpoKey: 'ntf.espectadorC', params: { torneo: nombre }, cuando: 'ahora', leida: false, href: '/entradas' }
-        return { entradasEspectador: [...s.entradasEspectador, id], notificaciones: [n, ...s.notificaciones] }
+        // Mundo compartido: el cupo de espectadores se comparte entre cuentas.
+        const email = emailMundoInscripciones()
+        const conMundo = email && !lista.includes(email)
+          ? { espectadoresCuentas: { ...s.espectadoresCuentas, [id]: [...lista, email] } }
+          : {}
+        return { entradasEspectador: [...s.entradasEspectador, id], notificaciones: [n, ...s.notificaciones], ...conMundo }
       }),
       canjearReferido: (nivel) => set((s) => {
         if (s.referidos.canjeados.includes(nivel) || s.referidos.jugados < nivel) return s
@@ -1663,6 +1709,11 @@ export const useDemoStore = create<DemoState>()(
           gruposChat: [{ id: nextId(), nombre, emoji, miembros, mensajes: [], propio: true }, ...s.gruposChat],
           notificaciones: [n, ...s.notificaciones],
         }
+      }),
+      // Marca una conversación como leída hasta `total` (nunca retrocede).
+      marcarChatLeido: (clave, total) => set((s) => {
+        if ((s.leidosChat[clave] ?? 0) >= total) return s
+        return { leidosChat: { ...s.leidosChat, [clave]: total } }
       }),
       enviarChatGrupo: (grupoId, texto) => set((s) => ({
         gruposChat: s.gruposChat.map(g => g.id === grupoId
@@ -2039,6 +2090,30 @@ export const usePrecioNoche = (localId: string): number => {
   const dispoSedes = useDemoStore(s => s.dispoSedes)
   const fichasSede = useDemoStore(s => s.fichasSede)
   return precioNocheEfectivo(localId, dispoSedes, fichasSede)
+}
+
+// No-leídos de Chat (estilo WhatsApp, 31-08): total de mensajes de OTROS sin
+// leer en DMs de cuentas amigas y en grupos/crews. Los propios no cuentan.
+export function noLeidosDe(hilo: { de?: string; autor?: string }[] | undefined, leidos: number, yo?: string | null): number {
+  if (!hilo || hilo.length <= leidos) return 0
+  return hilo.slice(leidos).filter(m => (m.de ? m.de !== yo : m.autor !== 'Tú')).length
+}
+export const useNoLeidosChat = (): number => {
+  const chatsAmigos = useDemoStore(s => s.chatsAmigos)
+  const grupos = useDemoStore(s => s.gruposChat)
+  const leidos = useDemoStore(s => s.leidosChat)
+  const amistades = useDemoStore(s => s.amistadesCuentas)
+  const yo = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
+  let n = 0
+  if (yo) {
+    for (const a of amistades) {
+      if (a.estado !== 'aceptada' || (a.de !== yo && a.a !== yo)) continue
+      const otro = a.de === yo ? a.a : a.de
+      n += noLeidosDe(chatsAmigos[claveAmigos(yo, otro)], leidos[`amigo:${otro}`] ?? 0, yo)
+    }
+  }
+  for (const g of grupos) n += noLeidosDe(g.mensajes, leidos[`grupo:${g.id}`] ?? 0, yo)
+  return n
 }
 
 // organizadorEfectivo() (sample.ts) aplica los overrides editados del perfil de

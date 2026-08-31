@@ -54,6 +54,10 @@ export default function CrearTorneoPage() {
   const [hora, setHora] = useState('18:00')
   const [plazas, setPlazas] = useState(32)
   const [precio, setPrecio] = useState(8)
+  // Cupo de espectadores aparte (31-08): 0 = sin entrada de espectador
+  const [plazasVer, setPlazasVer] = useState(64)
+  // Torneo privado por invitación (31-08)
+  const [privado, setPrivado] = useState(false)
   const [acceso, setAcceso] = useState<typeof ACCESOS[number]['id']>('abierto')
   const [sala, setSala] = useState<'local' | 'online'>('local')
   const [sedeId, setSedeId] = useState<string | null>(null)
@@ -105,6 +109,7 @@ export default function CrearTorneoPage() {
       ciudad: sala === 'online' ? 'Online' : sede!.ciudad, distanciaKm: sala === 'online' ? 0 : (DIST_KM[sede!.id] ?? 2),
       inscritos: 0, plazas, precio, bote: precio > 0 ? Math.round(plazas * precio * 0.8) : 0,
       enDirecto: false, vip: vipMap[acceso], organizadorId: orgId, popularidad: 50,
+      plazasVer, verCerrado: false, privado: privado || undefined,
       bestOf: plantilla.bestOf, descripcion: `Torneo de ${j.nombre}. Formato: ${formato.trim() || 'por anunciar'}. Cierre de inscripciones: ${cierre.toLowerCase()}.`,
       reglas: reglas.trim() || undefined,
       comentarios: comentarios.trim() || undefined,
@@ -310,6 +315,23 @@ export default function CrearTorneoPage() {
               </div>
             </Field>
           </div>
+          <Field label={tr('espv.plazas')}>
+            <div className="flex items-center gap-2">
+              <Stepper value={plazasVer} onDec={() => setPlazasVer(v => Math.max(0, v - 8))} onInc={() => setPlazasVer(v => v + 8)} icon={<Eye size={14} />} suffix={plazasVer === 0 ? tr('espv.sinEntrada') : undefined} gratis={plazasVer === 0} />
+            </div>
+          </Field>
+          {/* Privado: se publica con candado y solo inscriben los invitados */}
+          <button onClick={() => setPrivado(v => !v)} aria-pressed={privado}
+            className={`w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${privado ? 'border-[#E0BE63]/50 bg-[#E0BE63]/[0.08]' : 'border-white/10 bg-white/[0.03]'}`}>
+            <Lock size={16} className={privado ? 'text-[#E0BE63]' : 'text-[#8B8BA8]'} />
+            <span className="flex-1 min-w-0">
+              <span className={`block text-sm font-bold ${privado ? 'text-[#E0BE63]' : 'text-white'}`}>{tr('pv.privado')}</span>
+              <span className="block text-[11px] text-[#8B8BA8]">{tr('pv.ayuda')}</span>
+            </span>
+            <span className={`h-6 w-11 rounded-full relative transition-colors shrink-0 ${privado ? 'bg-[#E0BE63]' : 'bg-white/12'}`}>
+              <span className={`absolute top-0.5 h-5 w-5 bg-white rounded-full transition-all ${privado ? 'left-[22px]' : 'left-0.5'}`} />
+            </span>
+          </button>
           <p className="text-[11px] text-[#8B8BA8]">{tr('ct.comision')}</p>
         </Section>
 

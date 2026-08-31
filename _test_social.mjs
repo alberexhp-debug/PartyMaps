@@ -104,14 +104,14 @@ async function login(page, email) {
   await page.getByRole('button', { name: /Agregar/ }).first().click(); await page.waitForTimeout(600)
   ok(await page.getByText(/\(7\)/).count() > 0, 'agregar a Rei desde el buscador funciona')
   // Grupos: abrir chat, escribir y comprobar persistencia
-  await page.getByRole('button', { name: /^Grupos$/ }).click(); await page.waitForTimeout(500)
+  await page.getByRole('button', { name: /^Grupos y crews$/ }).click(); await page.waitForTimeout(500)
   ok(await page.getByText('Club Gamba').count() > 0, 'los grupos sembrados están')
   await page.getByText('Club Gamba').first().click(); await page.waitForTimeout(600)
   await page.getByPlaceholder('Escribe al grupo…').fill('Nos vemos en el Weekly 🎮')
   await page.keyboard.press('Enter'); await page.waitForTimeout(500)
   ok(await page.getByText('Nos vemos en el Weekly 🎮').count() > 0, 'el mensaje sale en el chat del grupo')
   await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
-  await page.getByRole('button', { name: /^Grupos$/ }).click(); await page.waitForTimeout(500)
+  await page.getByRole('button', { name: /^Grupos y crews$/ }).click(); await page.waitForTimeout(500)
   ok(await page.getByText('Nos vemos en el Weekly 🎮').count() > 0, 'y PERSISTE tras recargar (preview del grupo)')
   // Crear un grupo nuevo
   await page.getByRole('button', { name: /Crear un grupo de chat/ }).click(); await page.waitForTimeout(500)

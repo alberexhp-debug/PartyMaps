@@ -45,7 +45,7 @@ async function login(page, email = 'jugador@torneum.com') {
   await login(page)
   await page.goto(`${BASE}/amigos`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
   ok(await page.getByText('#NOCT').count() === 0, 'la pestaña Amigos NO enseña tags de crew (spec: solo torneo y ranking)')
-  await page.getByRole('button', { name: /^Crews$/ }).click(); await page.waitForTimeout(500)
+  await page.getByRole('button', { name: /^Grupos y crews$/ }).click(); await page.waitForTimeout(500)
   ok(await page.getByText('Nocturna').count() > 0, 'las crews sembradas del usuario están (Nocturna)')
   ok(await page.getByText('#VNDL').count() > 0, 'y Vandalia #VNDL (juego de equipos)')
 
@@ -87,8 +87,11 @@ async function login(page, email = 'jugador@torneum.com') {
   console.log('— vista de crew (emblema + media + logros)')
   await login(page)
   await page.goto(`${BASE}/amigos`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1000)
-  await page.getByRole('button', { name: /^Crews$/ }).click(); await page.waitForTimeout(400)
-  await page.getByText('Nocturna').first().click(); await page.waitForTimeout(1500)
+  await page.getByRole('button', { name: /^Grupos y crews$/ }).click(); await page.waitForTimeout(400)
+  await page.getByText('Nocturna').first().click(); await page.waitForTimeout(800)
+  // Vista unificada (31-08): la fila abre el CHAT con detalles al lado; la
+  // página completa de la crew se abre desde «Ver crew» del panel de detalles.
+  await page.getByRole('link', { name: /Ver crew/ }).click(); await page.waitForTimeout(1500)
   ok(page.url().includes('/crew/crew-nox'), `la crew abre su vista (${page.url()})`)
   ok(await page.getByText('#NOCT').count() > 0, 'con el #TAG en la cabecera')
   ok(await page.getByText('Puntuación de la crew').count() > 0, 'el bloque de puntuación está')
@@ -159,7 +162,7 @@ async function login(page, email = 'jugador@torneum.com') {
 
   // La convocatoria cayó en el grupo de chat de la crew, con estado y enlace
   await page.goto(`${BASE}/amigos`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
-  await page.getByRole('button', { name: /^Grupos$/ }).click(); await page.waitForTimeout(500)
+  await page.getByRole('button', { name: /^Grupos y crews$/ }).click(); await page.waitForTimeout(500)
   await page.getByText('Vandalia').first().click(); await page.waitForTimeout(600)
   ok(await page.getByText(/He abierto la inscripción de Vandalia #VNDL/).count() > 0, 'el grupo de la crew recibió el MENSAJE AUTOMÁTICO de la convocatoria')
   ok(await page.getByText(/5 plazas\. Entra y paga tu plaza/).count() > 0, 'con el cupo de plazas y la orden clara')

@@ -6,7 +6,7 @@ import { getTorneo, JUEGOS, rankingPorJuego, plantillaDe, esperaDe, type Jugador
 import { descargarCSV } from '@/lib/torneos/exportar'
 import { construirRondas, nombreRonda, boDeRonda, paraGanar, normalizarDesde, opcionesDesde, etiquetaDesde } from '@/lib/torneos/bracket'
 import { useDemoStore, useOrgId, ESPERA_USUARIO, jugadorDeCuenta, resolverSeeds, tagCuentaDemo, nombreCuentaDemo, ID_CUENTA_PREFIJO, type BoDesde } from '@/lib/stores/useDemoStore'
-import { useSesionStore } from '@/lib/stores/useSesionStore'
+import { useSesionStore, CUENTAS_DIRECTORIO } from '@/lib/stores/useSesionStore'
 import { MiniPerfilCuenta, AvatarCuenta } from '@/components/todh/MiniPerfilCuenta'
 import { useT, conParams } from '@/lib/i18n'
 import { GameKeyart } from '@/components/todh/GameKeyart'
@@ -35,6 +35,9 @@ export default function GestionarTorneoPage() {
   const override = useDemoStore(s => s.editados[id])
   const cancelado = useDemoStore(s => s.cancelados.includes(id))
   const editarTorneo = useDemoStore(s => s.editarTorneo)
+  const invitarATorneo = useDemoStore(s => s.invitarATorneo)
+  const invitadosRaw = useDemoStore(s => s.invitadosTorneo[id])
+  const [qInv, setQInv] = useState('')
   const cancelarTorneo = useDemoStore(s => s.cancelarTorneo)
   const pushNoti = useDemoStore(s => s.pushNoti)
   const gestion = useDemoStore(s => s.gestion[id])
@@ -66,7 +69,7 @@ export default function GestionarTorneoPage() {
   const [avisoTexto, setAvisoTexto] = useState('')
   const [avisoEnviado, setAvisoEnviado] = useState(false)
   const [sel, setSel] = useState<Jugador | null>(null)
-  const [form, setForm] = useState<{ nombre: string; plazas: number; precio: number; formato: string; fechaLabel: string; videoUrl: string; vodUrlFinal: string; banner?: string } | null>(null)
+  const [form, setForm] = useState<{ nombre: string; plazas: number; precio: number; plazasVer: number; formato: string; fechaLabel: string; videoUrl: string; vodUrlFinal: string; banner?: string } | null>(null)
   const [guardado, setGuardado] = useState(false)
   // Edición manual del bracket: tocas un jugador y luego otro → se intercambian
   // sus posiciones (swap de seeds + reconstrucción determinista del cuadro).
@@ -253,11 +256,11 @@ export default function GestionarTorneoPage() {
     for (const k of Object.keys(p)) if (rondaDe(k) > ri) delete p[k]
     setGestion(id, { winners: w, puntos: p })
   }
-  const f = form ?? { nombre: t.nombre, plazas: t.plazas, precio: t.precio, formato: t.formato as string, fechaLabel: t.fechaLabel, videoUrl: t.videoUrl ?? '', vodUrlFinal: t.vodUrlFinal ?? '', banner: t.banner }
+  const f = form ?? { nombre: t.nombre, plazas: t.plazas, precio: t.precio, plazasVer: t.plazasVer ?? 0, formato: t.formato as string, fechaLabel: t.fechaLabel, videoUrl: t.videoUrl ?? '', vodUrlFinal: t.vodUrlFinal ?? '', banner: t.banner }
   const setF = (patch: Partial<typeof f>) => { setForm({ ...f, ...patch }); setGuardado(false) }
   const guardar = () => {
     editarTorneo(t.id, {
-      nombre: f.nombre.trim() || t.nombre, plazas: f.plazas, precio: f.precio, formato: f.formato.trim() || t.formato, fechaLabel: f.fechaLabel, videoUrl: f.videoUrl.trim() || undefined, vodUrlFinal: f.vodUrlFinal.trim() || undefined, banner: f.banner,
+      nombre: f.nombre.trim() || t.nombre, plazas: f.plazas, precio: f.precio, plazasVer: f.plazasVer, formato: f.formato.trim() || t.formato, fechaLabel: f.fechaLabel, videoUrl: f.videoUrl.trim() || undefined, vodUrlFinal: f.vodUrlFinal.trim() || undefined, banner: f.banner,
     })
     setGuardado(true)
     pushNoti({
@@ -765,6 +768,61 @@ export default function GestionarTorneoPage() {
                   </div>
                 </div>
               </div>
+              {/* Espectadores (31-08): cupo aparte + abrir/cerrar al instante */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('espv.plazas')}</label>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setF({ plazasVer: Math.max(0, f.plazasVer - 8) })} disabled={cancelado} aria-label="Menos plazas de espectador" className="h-12 w-11 rounded-xl bg-white/8 text-white text-lg disabled:opacity-50">−</button>
+                    <span className="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white font-bold font-mono-num text-sm">{f.plazasVer === 0 ? tr('espv.sinEntrada') : f.plazasVer}</span>
+                    <button onClick={() => setF({ plazasVer: f.plazasVer + 8 })} disabled={cancelado} aria-label="Más plazas de espectador" className="h-12 w-11 rounded-xl bg-white/8 text-white text-lg disabled:opacity-50">+</button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">&nbsp;</label>
+                  <button onClick={() => editarTorneo(t.id, { verCerrado: !t.verCerrado })} disabled={cancelado}
+                    className={`w-full h-12 rounded-xl text-sm font-bold border transition-all disabled:opacity-50 ${t.verCerrado ? 'bg-[#B6FF3A]/12 text-[#B6FF3A] border-[#B6FF3A]/40' : 'bg-[#FF8A5C]/10 text-[#FF8A5C] border-[#FF8A5C]/40'}`}>
+                    {t.verCerrado ? tr('espv.abrir') : tr('espv.cerrar')}
+                  </button>
+                </div>
+              </div>
+              {/* Invitaciones (torneo PRIVADO): el TO mete a la gente a dedo */}
+              {t.privado && (
+                <div className="rounded-2xl border border-[#E0BE63]/30 bg-[#E0BE63]/[0.05] p-4">
+                  <p className="text-[11px] uppercase tracking-wider text-[#E0BE63] font-bold mb-2 flex items-center gap-1.5"><Lock size={12} /> {tr('pv.invitaciones')} · {(invitadosRaw ?? []).length}</p>
+                  <input value={qInv} onChange={e => setQInv(e.target.value)} placeholder={tr('pv.buscarPh')}
+                    className="w-full h-11 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#E0BE63]/60 outline-none" />
+                  <div className="mt-2 space-y-1.5">
+                    {qInv.trim() && CUENTAS_DIRECTORIO
+                      .map(c => ({ email: c.email.toLowerCase(), nombre: nombreCuentaDemo(c.email.toLowerCase(), perfilesCuentas), tag: tagCuentaDemo(c.email.toLowerCase(), perfilesCuentas) }))
+                      .filter(c => c.email !== miEmail)
+                      .filter(c => {
+                        const q = qInv.trim().toLowerCase()
+                        return c.nombre.toLowerCase().includes(q) || `${c.nombre.toLowerCase()}#${c.tag.toLowerCase()}` === q
+                      })
+                      .slice(0, 5)
+                      .map(c => {
+                        const ya = (invitadosRaw ?? []).includes(c.email)
+                        return (
+                          <div key={c.email} className="flex items-center gap-2.5 rounded-xl bg-white/[0.04] border border-white/8 px-3 py-2">
+                            <span className="flex-1 min-w-0 text-sm font-bold text-white truncate">{c.nombre} <span className="text-[11px] text-[#8B8BA8] font-mono-num">#{c.tag}</span></span>
+                            {ya
+                              ? <span className="text-[11px] font-bold text-[#B6FF3A]">{tr('pv.invitado')} ✓</span>
+                              : <button onClick={() => invitarATorneo(t.id, t.nombre, c.email)} aria-label={`Invitar a ${c.nombre}`}
+                                  className="h-8 px-3 rounded-lg bg-[#E0BE63] text-[#0A0A0F] text-xs font-bold">{tr('pv.invitar')}</button>}
+                          </div>
+                        )
+                      })}
+                    {(invitadosRaw ?? []).length > 0 && !qInv.trim() && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {(invitadosRaw ?? []).map(e => (
+                          <span key={e} className="px-2.5 h-7 inline-flex items-center rounded-full text-[11px] font-bold bg-white/6 border border-white/12 text-[#D4D4E4]">{nombreCuentaDemo(e, perfilesCuentas)}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-[11px] uppercase tracking-wider text-[#8B8BA8] font-semibold mb-1.5">{tr('ges.lblFormato')}</label>
                 <input value={f.formato} onChange={e => setF({ formato: e.target.value })} disabled={cancelado} placeholder={tr('ges.formatoPh')}

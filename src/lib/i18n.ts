@@ -1772,6 +1772,12 @@ const D = {
   'lv.eliminadoSub': ['El torneo sigue: mira el bracket y la emisión.', 'The tournament goes on: watch the bracket and the stream.'],
   'lv.nuevo': ['Nuevo', 'New'],
   'tk.finalizado': ['Finalizado', 'Finished'],
+  // Chat unificado + no-leídos (31-08)
+  'am.tabGrupos': ['Grupos y crews', 'Groups & crews'],
+  'ch.detalles': ['Detalles', 'Details'],
+  'ch.verDetalles': ['Ver detalles', 'View details'],
+  'ch.puntuacion': ['Puntuación', 'Score'],
+  'ch.creadorEtq': ['Creador', 'Creator'],
   'ma.escribe': ['Escríbele a {nombre}…', 'Write to {nombre}…'],
   'ma.vacio': ['Aún no hay mensajes. ¡Rompe el hielo!', 'No messages yet. Break the ice!'],
   // Perfil de organizador editable (/perfil/organizador, decisión 30-08)
@@ -1818,6 +1824,23 @@ const D = {
   'sp.eqXbox': ['Xbox', 'Xbox'],
   'sp.eqMonitor': ['Monitor', 'Monitor'],
   'sp.eqStream': ['Kit stream', 'Stream kit'],
+  // Espectadores con cupo + torneos privados (31-08)
+  'espv.plazas': ['Plazas de espectador', 'Spectator seats'],
+  'espv.lleno': ['Aforo de espectadores completo', 'Spectator seats sold out'],
+  'espv.cerrado': ['Espectadores cerrados por el organizador', 'Spectators closed by the organizer'],
+  'espv.abrir': ['Abrir espectadores', 'Open to spectators'],
+  'espv.cerrar': ['Cerrar espectadores', 'Close to spectators'],
+  'espv.sinEntrada': ['Sin entrada de espectador', 'No spectator tickets'],
+  'pv.privado': ['Torneo privado (solo con invitación)', 'Private tournament (invite only)'],
+  'pv.ayuda': ['Se publica con candado: nadie puede inscribirse sin tu invitación.', 'Published with a lock: nobody can register without your invitation.'],
+  'pv.candado': ['Solo con invitación', 'Invite only'],
+  'pv.candadoCta': ['Torneo privado: solo con invitación del organizador', 'Private tournament: organizer invitation required'],
+  'pv.invitaciones': ['Invitaciones', 'Invitations'],
+  'pv.invitar': ['Invitar', 'Invite'],
+  'pv.invitado': ['Invitado', 'Invited'],
+  'pv.buscarPh': ['Busca por alias o alias#tag…', 'Search by alias or alias#tag…'],
+  'pv.invT': ['🎟️ Invitación a «{torneo}»', '🎟️ Invitation to “{torneo}”'],
+  'pv.invC': ['El organizador te ha invitado a su torneo privado. Tu plaza te espera: entra a la ficha e inscríbete.', 'The organizer invited you to their private tournament. Your spot awaits: open the page and register.'],
 } as const
 
 export type ClaveI18n = keyof typeof D

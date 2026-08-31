@@ -6,7 +6,7 @@ import { Trophy, User, Search, Bell, LayoutDashboard, Radio } from '@/components
 import { Map, Compass, Inbox, LayoutGrid, CalendarDays, MessagesSquare } from 'lucide-react'
 // (Radio también da icono a la nueva sección Live del jugador)
 import { cn } from '@/lib/utils'
-import { useDemoStore, useEsTO, useLocalId } from '@/lib/stores/useDemoStore'
+import { useDemoStore, useEsTO, useLocalId, useNoLeidosChat } from '@/lib/stores/useDemoStore'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { useT, type ClaveI18n } from '@/lib/i18n'
 
@@ -48,6 +48,8 @@ export function UserSideNav() {
   const pendAmistad = useDemoStore(s =>
     s.solicitudesAmistad.length +
     (emailSesion ? s.amistadesCuentas.filter(a => a.a === emailSesion && a.estado === 'pendiente').length : 0))
+  // + mensajes sin leer (WhatsApp-style, 31-08): DMs y grupos/crews
+  const noLeidos = useNoLeidosChat()
   const { t } = useT()
   // Solicitudes pendientes de la sede: badge en su menú (como las notis)
   const localId = useLocalId()
@@ -65,7 +67,7 @@ export function UserSideNav() {
     : (() => {
         // Live va entre Mapa y Ranking: tus salas de torneo en tiempo real.
         const items: { href: string; icon: IconoTorneum; texto: string; badge?: number }[] =
-          tabsJugador.map(x => ({ href: x.href, icon: x.icon, texto: t(x.label), ...(x.href === '/amigos' ? { badge: pendAmistad } : {}) }))
+          tabsJugador.map(x => ({ href: x.href, icon: x.icon, texto: t(x.label), ...(x.href === '/amigos' ? { badge: pendAmistad + noLeidos } : {}) }))
         items.splice(2, 0, { href: '/live', icon: Radio, texto: t('nav.live') })
         return items
       })()

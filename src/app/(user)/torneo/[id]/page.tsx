@@ -8,7 +8,7 @@ import {
 } from '@/lib/torneos/sample'
 import { CREW_USUARIO, puntuacionCrew, nivelCrew } from '@/lib/torneos/crews'
 import { CrewEmblema } from '@/components/todh/CrewEmblema'
-import { useDemoStore, nombreCuentaDemo, tagCuentaDemo } from '@/lib/stores/useDemoStore'
+import { useDemoStore, useOrgId, nombreCuentaDemo, tagCuentaDemo } from '@/lib/stores/useDemoStore'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { MiniPerfilCuenta, AvatarCuenta } from '@/components/todh/MiniPerfilCuenta'
 import { GameKeyart } from '@/components/todh/GameKeyart'
@@ -72,6 +72,10 @@ export default function TorneoDetallePage() {
   // sin la propia — la propia ya cuenta como `inscrito`). Suman en el contador,
   // en el «lleno» y salen como participantes con su perfil público.
   const inscCuentasRaw = useDemoStore(s => s.inscripcionesCuentas[id])
+  // Privados + espectadores con cupo (31-08)
+  const invitadosRaw = useDemoStore(s => s.invitadosTorneo[id])
+  const espectadoresRaw = useDemoStore(s => s.espectadoresCuentas[id])
+  const orgIdSesion = useOrgId()
   const perfilesCuentas = useDemoStore(s => s.perfilesCuentas)
   const miEmail = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
   const cuentasInscritas = (inscCuentasRaw ?? []).filter(e => e !== miEmail)
@@ -144,6 +148,14 @@ export default function TorneoDetallePage() {
   const com = comision(t.precio, t.inscritos)
   const totalJugador = t.precio + com.importe
   const pVer = precioEspectador(t)
+  // Torneo PRIVADO: solo invitados (o su propio TO) pueden inscribirse.
+  const soyElTO = !!t.organizadorId && t.organizadorId === orgIdSesion
+  const invitado = !t.privado || soyElTO || !!(miEmail && (invitadosRaw ?? []).includes(miEmail))
+  // Cupo de espectadores del mundo (el TO lo abre/cierra y tiene tope propio)
+  const listaVer = espectadoresRaw ?? []
+  const verOcupadas = listaVer.length + (esEspectador && !(miEmail && listaVer.includes(miEmail)) ? 1 : 0)
+  const verLleno = t.plazasVer != null && t.plazasVer > 0 && verOcupadas >= t.plazasVer
+  const sinEntradaVer = t.plazasVer === 0
   // ── Crews (F6): un torneo de un juego con plantilla 'equipos' ofrece la
   // inscripción desde una crew del usuario de ESE juego. El cupo son las
   // plazas del equipo (tamGrupo de la plantilla).
@@ -191,15 +203,23 @@ export default function TorneoDetallePage() {
 
   // Botón de inscripción, reutilizado en la barra fija (móvil) y en la columna
   // lateral sticky (escritorio).
-  const ctaEspectador = esSede ? null : !cancelado && pVer !== null && !inscrito ? (
+  const ctaEspectador = esSede ? null : !cancelado && pVer !== null && !sinEntradaVer && !inscrito ? (
     esEspectador ? (
       <Link href="/entradas" className="mt-2 w-full h-10 rounded-xl bg-white/6 border border-white/12 text-[#B8B8CC] text-[13px] font-semibold flex items-center justify-center gap-1.5">
         <Check size={14} className="text-[#B6FF3A]" /> {tr('esp.enCartera')}
       </Link>
+    ) : t.verCerrado ? (
+      <div className="mt-2 w-full h-10 rounded-xl bg-white/5 border border-white/10 text-[#8B8BA8] text-[12px] font-semibold flex items-center justify-center gap-1.5">
+        <Lock size={13} /> {tr('espv.cerrado')}
+      </div>
+    ) : verLleno ? (
+      <div className="mt-2 w-full h-10 rounded-xl bg-[#FF8A5C]/10 border border-[#FF8A5C]/35 text-[#FF8A5C] text-[12px] font-semibold flex items-center justify-center gap-1.5">
+        👀 {tr('espv.lleno')}
+      </div>
     ) : (
       <button onClick={() => abrirSheet('ver')}
         className="mt-2 w-full h-10 rounded-xl bg-white/6 border border-white/12 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors">
-        👀 {tr('esp.soloVerlo')} · {pVer === 0 ? tr('torneo.gratis') : `${pVer}€`}
+        👀 {tr('esp.soloVerlo')} · {pVer === 0 ? tr('torneo.gratis') : `${pVer}€`}{t.plazasVer != null && t.plazasVer > 0 ? <span className="text-[11px] text-[#8B8BA8] font-mono-num">· {verOcupadas}/{t.plazasVer}</span> : null}
       </button>
     )
   ) : null
@@ -223,6 +243,11 @@ export default function TorneoDetallePage() {
       <p className="text-[#FF8A5C] font-bold text-sm flex items-center gap-1.5">⏳ {tr('espera.enLista')} · {tr('espera.puesto')} {puestoEspera}</p>
       <p className="mt-1 text-[11px] text-[#B8B8CC] leading-relaxed">{tr('espera.aviso')}</p>
       <button onClick={() => salirEspera(t!.id)} className="mt-2 text-[11px] text-[#8B8BA8] font-semibold hover:text-white transition-colors">{tr('espera.salir')}</button>
+    </div>
+  ) : t.privado && !invitado ? (
+    // Torneo PRIVADO sin invitación: candado en vez de inscripción (31-08)
+    <div className="w-full h-14 rounded-2xl bg-[#E0BE63]/10 border border-[#E0BE63]/40 text-[#E0BE63] font-bold text-[14px] flex items-center justify-center gap-2">
+      <Lock size={16} /> {tr('pv.candadoCta')}
     </div>
   ) : t.vip && !tieneAcceso(tierUsuario, t.vip) ? (
     <button onClick={() => setTierSheet(true)} className="w-full h-14 rounded-2xl bg-white/8 border border-[#D4A84B]/40 text-[#E0BE63] font-bold flex items-center justify-center gap-2 hover:bg-white/12 transition-colors">
@@ -293,6 +318,9 @@ export default function TorneoDetallePage() {
         <div className="relative flex items-center justify-between px-4 pt-5 safe-top">
           <button onClick={() => router.back()} aria-label="Volver" className="h-10 w-10 rounded-xl glass-strong flex items-center justify-center text-white"><ArrowLeft size={18} /></button>
           <div className="flex gap-2">
+            {t.privado && (
+              <span className="inline-flex items-center gap-1 px-2.5 h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#E0BE63]/90 text-[#0A0A0F]"><Lock size={12} /> {tr('pv.candado')}</span>
+            )}
             {t.enDirecto && (esSede
               ? <span className="inline-flex items-center gap-1 px-2.5 h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#E63E54] text-white"><Radio size={12} className="animate-pulse-heat" /> {tr('tf.enDirecto')}</span>
               : <Link href={`/torneo/${t.id}/directo`} className="inline-flex items-center gap-1 px-2.5 h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#E63E54] text-white"><Radio size={12} className="animate-pulse-heat" /> {tr('tf.enDirecto')}</Link>)}

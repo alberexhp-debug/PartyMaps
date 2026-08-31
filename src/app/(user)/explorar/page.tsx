@@ -393,7 +393,7 @@ function CardTorneo({ t, i = 0 }: { t: TorneoSample; i?: number }) {
             )}
           </div>
 
-          <p className="font-bold text-white text-display tracking-tight text-[15px] leading-snug truncate">{t.nombre}</p>
+          <p className="font-bold text-white text-display tracking-tight text-[15px] leading-snug truncate">{t.privado && <Lock size={12} className="inline mr-1 -mt-0.5 text-[#E0BE63]" aria-label="Solo con invitación" />}{t.nombre}</p>
 
           <div className="mt-1.5 flex items-center gap-2 text-[11px] text-[#A0A0B8] min-w-0">
             <span className="inline-flex items-center gap-1 text-white shrink-0"><Calendar size={11} className="text-[#B6FF3A]" /> {t.fechaLabel}</span>

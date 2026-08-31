@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Trophy, User, LayoutDashboard, Radio } from '@/components/todh/iconosTorneum'
 import { Map, Compass, Inbox, LayoutGrid, CalendarDays, MessagesSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
+import { useDemoStore, useEsTO, useNoLeidosChat } from '@/lib/stores/useDemoStore'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
 
 import { useT, type ClaveI18n } from '@/lib/i18n'
@@ -38,6 +38,8 @@ export function UserBottomNav() {
   const pendAmistad = useDemoStore(s =>
     s.solicitudesAmistad.length +
     (emailSesion ? s.amistadesCuentas.filter(a => a.a === emailSesion && a.estado === 'pendiente').length : 0))
+  // + mensajes sin leer (WhatsApp-style, 31-08): DMs y grupos/crews
+  const noLeidos = useNoLeidosChat()
 
   // La sede navega directa a sus apartados (sin Explorar/Mapa); es SOLO sede,
   // sin capa de organizador.
@@ -51,7 +53,7 @@ export function UserBottomNav() {
       ]
     : (() => {
         // Live entre Mapa y Ranking (mismo orden que el rail de escritorio)
-        const base = tabs.map(x => ({ href: x.href, icon: x.icon, texto: t(x.label), ...(x.href === '/amigos' ? { badge: pendAmistad } : {}) }))
+        const base = tabs.map(x => ({ href: x.href, icon: x.icon, texto: t(x.label), ...(x.href === '/amigos' ? { badge: pendAmistad + noLeidos } : {}) }))
         base.splice(2, 0, { href: '/live', icon: Radio, texto: t('nav.live') })
         return [...base, ...(esTO ? [{ href: '/consola', icon: LayoutDashboard, texto: t('nav.consola'), to: true }] : [])]
       })()

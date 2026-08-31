@@ -75,6 +75,12 @@ export type TorneoSample = {
   // Categoría de puntuación (ver lib/torneos/puntos.ts). Sin ella = comunidad.
   // 'oficial' y 'supermajor' los asigna Torneum, no el TO.
   categoria?: CategoriaTorneo
+  // Cupo de ESPECTADORES aparte del de competidores (31-08): lo fija el TO y
+  // puede abrirlo/cerrarlo cuando quiera. Sin plazasVer = sin límite (seeds).
+  plazasVer?: number
+  verCerrado?: boolean
+  // Torneo PRIVADO (31-08): se publica con candado; solo inscriben invitados.
+  privado?: boolean
 }
 
 export const TORNEOS_SAMPLE: TorneoSample[] = [

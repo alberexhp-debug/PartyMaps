@@ -126,30 +126,50 @@ function NotiItem({ n, i, onDescartar, descartarLabel }: { n: Notificacion; i: n
   const cuerpoTr = n.cuerpoKey ? tr(n.cuerpoKey as ClaveI18n) : null
   const titulo = tituloTr && tituloTr !== n.tituloKey ? conParams(tituloTr, n.params) : n.titulo
   const cuerpo = cuerpoTr && cuerpoTr !== n.cuerpoKey ? conParams(cuerpoTr, n.params) : n.cuerpo
+
+  // ── Swipe NATIVO (pedido 31-08, estilo iPhone/Android): la tarjeta acompaña
+  // al dedo (o al ratón) revelando un fondo rojo con papelera; al pasar el
+  // umbral sale deslizándose, se desvanece y el hueco se COLAPSA suave.
+  // Pointer Events + touch-action pan-y: el navegador se queda el scroll
+  // vertical y nos deja el gesto horizontal (los touch events de React son
+  // pasivos y en móvil real la tarjeta no llegaba a moverse).
   const [dx, setDx] = useState(0)
   const [saliendo, setSaliendo] = useState(false)
-  const gesto = useRef<{ x: number; y: number; eje: 'h' | 'v' | null } | null>(null)
-  // El desplazamiento vive también en un ref: touchend puede llegar antes del
-  // re-render y el estado `dx` de su closure estaría desfasado.
+  const [colapsando, setColapsando] = useState(false)
+  const gesto = useRef<{ id: number; x: number; y: number; eje: 'h' | 'v' | null } | null>(null)
   const dxRef = useRef(0)
+  const cajaRef = useRef<HTMLDivElement>(null)
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    gesto.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, eje: null }
+  const descartar = (dir: 1 | -1) => {
+    setSaliendo(true)
+    setDx(dir * 560)
+    // Fase 2: colapsar la altura para que la lista se cierre como en nativo
+    setTimeout(() => setColapsando(true), 160)
+    setTimeout(onDescartar, 380)
   }
-  const onTouchMove = (e: React.TouchEvent) => {
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (saliendo) return
+    gesto.current = { id: e.pointerId, x: e.clientX, y: e.clientY, eje: null }
+  }
+  const onPointerMove = (e: React.PointerEvent) => {
     const g = gesto.current
-    if (!g) return
-    const mx = e.touches[0].clientX - g.x
-    const my = e.touches[0].clientY - g.y
-    if (g.eje === null && (Math.abs(mx) > 8 || Math.abs(my) > 8)) g.eje = Math.abs(mx) > Math.abs(my) ? 'h' : 'v'
+    if (!g || g.id !== e.pointerId) return
+    const mx = e.clientX - g.x
+    const my = e.clientY - g.y
+    if (g.eje === null && (Math.abs(mx) > 8 || Math.abs(my) > 8)) {
+      g.eje = Math.abs(mx) > Math.abs(my) ? 'h' : 'v'
+      if (g.eje === 'h') {
+        try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch { /* puntero sintético (tests) */ }
+      }
+    }
     if (g.eje === 'h') { dxRef.current = mx; setDx(mx) }
   }
-  const onTouchEnd = () => {
+  const soltar = () => {
     const g = gesto.current
     gesto.current = null
     if (g?.eje === 'h' && Math.abs(dxRef.current) > 90) {
-      setSaliendo(true)
-      setTimeout(onDescartar, 180)
+      descartar(dxRef.current < 0 ? -1 : 1)
     } else {
       dxRef.current = 0
       setDx(0)
@@ -157,37 +177,46 @@ function NotiItem({ n, i, onDescartar, descartarLabel }: { n: Notificacion; i: n
   }
 
   const arrastrando = gesto.current?.eje === 'h'
+  const progreso = Math.min(Math.abs(dx) / 120, 1)
   const inner = (
-    <div
-      data-noti={n.id}
-      onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
-      className={`group relative flex items-start gap-3 rounded-2xl border px-4 py-3 transition-colors stagger-item ${n.href ? 'card-int' : ''} ${n.leida ? 'bg-white/[0.03] border-white/8' : 'bg-white/[0.06] border-white/12'}`}
-      style={{
-        ['--delay' as string]: `${Math.min(i, 10) * 55}ms`,
-        transform: `translateX(${saliendo ? (dx < 0 ? -560 : 560) : dx}px)`,
-        opacity: saliendo ? 0 : 1 - Math.min(Math.abs(dx) / 280, 0.6),
-        transition: arrastrando ? 'none' : 'transform .18s ease, opacity .18s ease',
-        touchAction: 'pan-y',
-      }}
-    >
-      <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl shrink-0 mt-0.5" style={{ background: `${color}1F`, color, border: `1px solid ${color}40` }}><Icon size={18} /></span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-bold text-white truncate">{titulo}</p>
-          {!n.leida && <span className="w-2 h-2 rounded-full bg-[#B6FF3A] shrink-0" />}
-        </div>
-        <p className="text-[13px] text-[#B8B8CC] mt-0.5 leading-snug">{cuerpo}</p>
-        <p className="text-[11px] text-[#6B6B85] mt-1">{n.cuando}</p>
+    <div ref={cajaRef} className="relative overflow-hidden rounded-2xl transition-all duration-200 ease-out"
+      style={colapsando ? { maxHeight: 0, opacity: 0, marginBottom: -8 } : { maxHeight: 200 }}>
+      {/* Fondo rojo con papelera que se revela al arrastrar (nativo) */}
+      <div aria-hidden className={`absolute inset-0 rounded-2xl bg-[#E63E54] flex items-center px-5 ${dx < 0 ? 'justify-end' : 'justify-start'}`}
+        style={{ opacity: arrastrando || saliendo ? Math.max(progreso, 0.25) : 0, transition: arrastrando ? 'none' : 'opacity .18s ease' }}>
+        <Trash2 size={20} className="text-white" style={{ transform: `scale(${0.7 + progreso * 0.5})` }} />
       </div>
-      {/* X de descarte en PC: aparece al pasar el ratón */}
-      <button
-        onClick={e => { e.preventDefault(); e.stopPropagation(); setSaliendo(true); setTimeout(onDescartar, 160) }}
-        aria-label={descartarLabel}
-        className="absolute top-2 right-2 z-10 hidden sm:flex h-7 w-7 rounded-full bg-white/8 border border-white/10 items-center justify-center text-[#8B8BA8] hover:text-white hover:bg-white/15 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity"
+      <div
+        data-noti={n.id}
+        onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={soltar} onPointerCancel={soltar}
+        className={`group relative flex items-start gap-3 rounded-2xl border px-4 py-3 transition-colors stagger-item ${n.href ? 'card-int' : ''} ${n.leida ? 'bg-[#141822] border-white/8' : 'bg-[#1A2030] border-white/12'}`}
+        style={{
+          ['--delay' as string]: `${Math.min(i, 10) * 55}ms`,
+          transform: `translateX(${dx}px)`,
+          opacity: saliendo ? 0 : 1 - Math.min(Math.abs(dx) / 400, 0.35),
+          transition: arrastrando ? 'none' : 'transform .22s ease, opacity .22s ease',
+          touchAction: 'pan-y',
+        }}
       >
-        <X size={13} />
-      </button>
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl shrink-0 mt-0.5" style={{ background: `${color}1F`, color, border: `1px solid ${color}40` }}><Icon size={18} /></span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold text-white truncate">{titulo}</p>
+            {!n.leida && <span className="w-2 h-2 rounded-full bg-[#B6FF3A] shrink-0" />}
+          </div>
+          <p className="text-[13px] text-[#B8B8CC] mt-0.5 leading-snug">{cuerpo}</p>
+          <p className="text-[11px] text-[#6B6B85] mt-1">{n.cuando}</p>
+        </div>
+        {/* X de descarte en PC: aparece al pasar el ratón */}
+        <button
+          onClick={e => { e.preventDefault(); e.stopPropagation(); descartar(1) }}
+          aria-label={descartarLabel}
+          className="absolute top-2 right-2 z-10 hidden sm:flex h-7 w-7 rounded-full bg-white/8 border border-white/10 items-center justify-center text-[#8B8BA8] hover:text-white hover:bg-white/15 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity"
+        >
+          <X size={13} />
+        </button>
+      </div>
     </div>
   )
-  return n.href ? <Link href={n.href} className="block">{inner}</Link> : inner
+  return n.href ? <Link href={n.href} className="block" draggable={false} onClick={e => { if (Math.abs(dxRef.current) > 8) e.preventDefault() }}>{inner}</Link> : inner
 }

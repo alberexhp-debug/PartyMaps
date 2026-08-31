@@ -177,14 +177,10 @@ async function login(page, email) {
   const antes = await page.locator('[data-noti]').count()
   await page.evaluate(async () => {
     const el = document.querySelector('[data-noti]')
-    const toque = (x) => new Touch({ identifier: 1, target: el, clientX: x, clientY: 300 })
-    const fire = (tipo, x, fin = false) => el.dispatchEvent(new TouchEvent(tipo, {
-      bubbles: true, cancelable: true,
-      touches: fin ? [] : [toque(x)], targetTouches: fin ? [] : [toque(x)], changedTouches: [toque(x)],
-    }))
-    fire('touchstart', 220)
-    for (const x of [200, 160, 110, 60]) { fire('touchmove', x); await new Promise(r => setTimeout(r, 50)) }
-    fire('touchend', 60, true)
+    const fire = (tipo, x) => el.dispatchEvent(new PointerEvent(tipo, { clientX: x, clientY: 300, pointerId: 7, bubbles: true }))
+    fire('pointerdown', 220)
+    for (const x of [200, 160, 110, 60]) { fire('pointermove', x); await new Promise(r => setTimeout(r, 50)) }
+    fire('pointerup', 60)
   })
   await page.waitForTimeout(900)
   ok(await page.locator('[data-noti]').count() === antes - 1, `el swipe descarta la notificación (${antes} → ${antes - 1})`)
