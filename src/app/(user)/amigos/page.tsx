@@ -8,7 +8,7 @@ import {
   MessagesSquare, Send, Search, Swords, ChevronRight, Megaphone, BellPlus,
 } from 'lucide-react'
 import { JUEGOS, JUEGOS_LIST, ORGANIZADORES, rankingPorJuego, plantillaDe, type Jugador } from '@/lib/torneos/sample'
-import { useDemoStore, nombreCuentaDemo, tagCuentaDemo, type GrupoChat, type MensajeGrupo } from '@/lib/stores/useDemoStore'
+import { useDemoStore, nombreCuentaDemo, tagCuentaDemo, claveAmigos, type GrupoChat, type MensajeGrupo, type MensajeAmigos } from '@/lib/stores/useDemoStore'
 import { useSesionStore, CUENTAS_DIRECTORIO } from '@/lib/stores/useSesionStore'
 import { MiniPerfilCuenta, AvatarCuenta } from '@/components/todh/MiniPerfilCuenta'
 import { CREW_USUARIO, nivelCrew, puntuacionCrew } from '@/lib/torneos/crews'
@@ -96,6 +96,8 @@ export default function AmigosPage() {
   const [verJugador, setVerJugador] = useState<Jugador | null>(null)
   const [verCuenta, setVerCuenta] = useState<string | null>(null)
   const [chatDe, setChatDe] = useState<string | null>(null)
+  // (E) Chat directo con una cuenta amiga (hilo en el mundo común)
+  const [chatCuenta, setChatCuenta] = useState<string | null>(null)
   const grupoChat = grupos.find(g => g.id === chatDe) ?? null
 
   // Directorio de cuentas buscables (visibles, rol jugador, sin la propia):
@@ -267,6 +269,7 @@ export default function AmigosPage() {
                       <span className="text-[11px] text-[#B6FF3A] font-semibold">{tr('mc.cuentaTorneum')}</span>
                     </span>
                   </button>
+                  <button onClick={() => setChatCuenta(email)} aria-label={`Chatear con ${nombre}`} className="flex h-9 w-9 items-center justify-center rounded-xl text-[#B6FF3A] hover:bg-[#B6FF3A]/10"><MessagesSquare size={16} /></button>
                   <button onClick={() => quitarCuenta(email)} aria-label={`Quitar a ${nombre}`} className="flex h-9 w-9 items-center justify-center rounded-xl text-[#6B6B85] hover:text-[#FF8A8A]"><Trash2 size={16} /></button>
                 </div>
               )
@@ -373,6 +376,7 @@ export default function AmigosPage() {
       {crear && <CrearGrupoModal amigos={amigos} onClose={() => setCrear(false)} />}
       {crearCrew && <CrearCrewSheet onClose={() => setCrearCrew(false)} />}
       {grupoChat && <GrupoChatSheet grupo={grupoChat} onSalir={() => { salirGrupo(grupoChat.id); setChatDe(null) }} onClose={() => setChatDe(null)} />}
+      {chatCuenta && <ChatAmigoSheet email={chatCuenta} onClose={() => setChatCuenta(null)} />}
       {verJugador && <MiniPerfil jugador={verJugador} onClose={() => setVerJugador(null)} />}
       {verCuenta && <MiniPerfilCuenta email={verCuenta} onClose={() => setVerCuenta(null)} />}
     </div>
@@ -380,6 +384,66 @@ export default function AmigosPage() {
 }
 
 // Chat del grupo (persistido en el store): la sala del grupo.
+// (Backlog E, 31-08) Chat directo entre dos cuentas amigas: el hilo vive en el
+// mundo común (chatsAmigos, clave de pareja) — cada uno lo ve con su cuenta y
+// el otro recibe un aviso en su buzón al entrar.
+const SIN_MENSAJES: MensajeAmigos[] = []
+function ChatAmigoSheet({ email, onClose }: { email: string; onClose: () => void }) {
+  const { t: tr } = useT()
+  const miEmail = useSesionStore(s => s.sesion?.email?.toLowerCase() ?? null)
+  const perfiles = useDemoStore(s => s.perfilesCuentas)
+  const chats = useDemoStore(s => s.chatsAmigos)
+  const enviar = useDemoStore(s => s.enviarMensajeAmigo)
+  const [texto, setTexto] = useState('')
+  const endRef = useRef<HTMLDivElement>(null)
+  const mensajes = miEmail ? (chats[claveAmigos(miEmail, email)] ?? SIN_MENSAJES) : SIN_MENSAJES
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [mensajes.length])
+  const nombre = nombreCuentaDemo(email, perfiles)
+
+  const mandar = () => {
+    const t = texto.trim()
+    if (!t) return
+    enviar(email, t)
+    setTexto('')
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-[#141822] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl animate-slide-up-sm sm:animate-pop flex flex-col" style={{ height: 'min(72vh, 640px)' }}>
+        <div className="px-4 pt-4 pb-3 border-b border-white/8 flex items-center gap-3">
+          <AvatarCuenta email={email} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-bold text-white truncate">{nombre}</p>
+            <p className="text-[11px] text-[#8B8BA8] truncate font-mono-num">#{tagCuentaDemo(email, perfiles)}</p>
+          </div>
+          <button onClick={onClose} aria-label="Cerrar" className="h-8 w-8 rounded-full bg-white/8 flex items-center justify-center text-[#B8B8CC] shrink-0"><X size={15} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
+          {mensajes.length === 0 && <p className="text-center text-sm text-[#8B8BA8] py-6">{tr('ma.vacio')}</p>}
+          {mensajes.map((m, i) => {
+            const esMio = m.de === miEmail
+            return (
+              <div key={i} className={`flex ${esMio ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[82%] rounded-2xl px-3 py-2 ${esMio ? 'bg-[#B6FF3A]/14 border border-[#B6FF3A]/30' : 'bg-white/[0.05] border border-white/8'}`}>
+                  <p className="text-[13px] text-white leading-snug">{m.texto}</p>
+                  <p className="mt-0.5 text-right text-[9px] text-[#6B6B85] font-mono-num">{m.hora}</p>
+                </div>
+              </div>
+            )
+          })}
+          <div ref={endRef} />
+        </div>
+        <div className="p-3 border-t border-white/8 flex gap-2">
+          <input value={texto} onChange={e => setTexto(e.target.value)} onKeyDown={e => e.key === 'Enter' && mandar()}
+            placeholder={conParams(tr('ma.escribe'), { nombre })} className="flex-1 h-11 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-[#7B7B92] focus:border-[#B6FF3A]/60 outline-none" />
+          <button onClick={mandar} aria-label="Enviar" className="h-11 w-11 rounded-xl bg-[#B6FF3A] text-[#0A0A0F] flex items-center justify-center"><Send size={16} /></button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function GrupoChatSheet({ grupo, onSalir, onClose }: { grupo: GrupoChat; onSalir: () => void; onClose: () => void }) {
   const { t: tr } = useT()
   const enviar = useDemoStore(s => s.enviarChatGrupo)

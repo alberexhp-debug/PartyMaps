@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { UserSideNav } from '@/components/user/UserSideNav'
 import { UserBottomNav } from '@/components/user/UserBottomNav'
 import { AltaTOSheet } from '@/components/todh/PerfilDualCard'
+import { BuzonCuenta } from '@/components/todh/BuzonCuenta'
 import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
 import { RequireSesion } from '@/components/todh/RequireSesion'
 import { useT } from '@/lib/i18n'
@@ -36,6 +37,8 @@ function PuertaTO({ children }: { children: React.ReactNode }) {
       <main className="w-full pb-20 lg:pb-8 lg:pt-5 lg:px-8 relative">
         {children}
       </main>
+      {/* Buzón cruzado: el TO también recibe avisos de otras cuentas aquí */}
+      <BuzonCuenta />
       <UserBottomNav />
     </div>
   )

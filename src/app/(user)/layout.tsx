@@ -3,6 +3,7 @@ import { UserSideNav } from '@/components/user/UserSideNav'
 import { PWAInstallPrompt } from '@/components/user/PWAInstallPrompt'
 import { AvisoMiMesa } from '@/components/todh/AvisoMiMesa'
 import { AvisoInactividad } from '@/components/todh/AvisoInactividad'
+import { BuzonCuenta } from '@/components/todh/BuzonCuenta'
 import { RequireSesion } from '@/components/todh/RequireSesion'
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,8 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       <AvisoMiMesa />
       {/* Vigía de inactividad: deja el aviso de pérdida de puntos en el buzón */}
       <AvisoInactividad />
+      {/* Buzón cruzado: entrega lo que otras cuentas dejaron a tu nombre */}
+      <BuzonCuenta />
       <UserBottomNav />
     </div>
     </RequireSesion>

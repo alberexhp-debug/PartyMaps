@@ -1753,6 +1753,16 @@ const D = {
   'mc.ntfAmigosC': ['Solicitud aceptada: os veis en vuestras listas de amigos.', 'Request accepted: you now appear in each other\'s friend lists.'],
   'mc.ntfLiveT': ['🔴 Torneo en directo', '🔴 Tournament is live'],
   'mc.ntfLiveC': ['Has iniciado «{torneo}»: ya está EN DIRECTO para todos y las inscripciones quedan cerradas.', 'You started "{torneo}": it is now LIVE for everyone and registrations are closed.'],
+  // Buzón cruzado entre cuentas (backlog B, 31-08)
+  'bz.solT': ['Nueva solicitud de amistad', 'New friend request'],
+  'bz.solC': ['{nombre} quiere ser tu amigo. Acéptala en Chat.', '{nombre} wants to be your friend. Accept it in Chat.'],
+  'bz.acepT': ['{nombre} aceptó tu solicitud', '{nombre} accepted your request'],
+  'bz.acepC': ['Ya sois amigos: os veis en vuestras listas y podéis chatear.', 'You are now friends: you appear in each other\'s lists and can chat.'],
+  'bz.liveT': ['🔴 «{torneo}» ha empezado', '🔴 "{torneo}" has started'],
+  'bz.liveC': ['El torneo está EN DIRECTO. Entra a tu sala live para seguirlo.', 'The tournament is LIVE. Open your live room to follow it.'],
+  'bz.msjT': ['💬 Mensaje de {nombre}', '💬 Message from {nombre}'],
+  'ma.escribe': ['Escríbele a {nombre}…', 'Write to {nombre}…'],
+  'ma.vacio': ['Aún no hay mensajes. ¡Rompe el hielo!', 'No messages yet. Break the ice!'],
   // Perfil de organizador editable (/perfil/organizador, decisión 30-08)
   'pfo.titulo': ['Perfil de organizador', 'Organizer profile'],
   'pfo.sub': ['Así te ven los jugadores en tu página pública y en tus torneos.', 'This is how players see you on your public page and tournaments.'],

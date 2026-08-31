@@ -170,6 +170,12 @@ export type AmistadCuenta = { de: string; a: string; estado: 'pendiente' | 'acep
 // mini-perfil. Sin stats falsas: una cuenta nueva no tiene historial.
 export type PerfilCuenta = { nombre: string; tag: string; foto?: string | null; bio?: string }
 
+// Mensaje del chat directo entre dos cuentas amigas (backlog E): `de` es el
+// email del autor; el nombre lo resuelve la UI con el perfil público.
+export type MensajeAmigos = { de: string; texto: string; hora: string }
+// La conversación de una pareja vive bajo una clave estable (emails ordenados).
+export const claveAmigos = (a: string, b: string) => [a.toLowerCase(), b.toLowerCase()].sort().join('|')
+
 export type Notificacion = {
   id: string
   tipo: NotiTipo
@@ -256,6 +262,15 @@ interface DemoState {
   // Perfil de organizador editado por su dueño desde /perfil/organizador
   // (decisión Albert 30-08). Clave de MUNDO: todas las cuentas lo ven.
   perfilesOrg: Record<string, PerfilOrgOverride>
+  // ── Backlog mundo compartido 31-08 (B/C/E) ──
+  // (B) Buzón cruzado: notis destinadas a OTRA cuenta, por email. Se entregan
+  // (pasan al buzón personal) cuando esa cuenta entra — drenarBuzon del layout.
+  buzonCuentas: Record<string, Notificacion[]>
+  // (C) Cola de espera del MUNDO por torneo (emails de cuentas, orden FIFO):
+  // el TO ve y promociona esperas de otras cuentas desde /gestionar.
+  esperasCuentas: Record<string, string[]>
+  // (E) Chat directo entre cuentas amigas, por clave de pareja (claveAmigos).
+  chatsAmigos: Record<string, MensajeAmigos[]>
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string, crewId?: string) => void
   desinscribir: (torneoId: string, nombreTorneo: string) => void
@@ -351,6 +366,11 @@ interface DemoState {
   // fecha): lo pone EN DIRECTO para TODAS las cuentas y cierra inscripciones.
   iniciarTorneo: (id: string, nombre: string) => void
   editarPerfilOrg: (orgId: string, patch: PerfilOrgOverride) => void
+  // (B) Vuelca las notis del buzón del mundo destinadas a MI cuenta en mi
+  // buzón personal (lo llama el layout al montar; idempotente).
+  drenarBuzon: () => void
+  // (E) Mensaje directo a una cuenta amiga (persiste en el mundo común).
+  enviarMensajeAmigo: (email: string, texto: string) => void
 }
 
 let nid = 0
@@ -419,8 +439,36 @@ function promoverUnoDeEspera(s: DemoState, torneoId: string, nombreTorneo: strin
   const entrados = s.entradosEspera[torneoId] ?? []
   const pendientes = cola.filter(n => !entrados.includes(n))
   const usuarioEspera = s.listaEspera.includes(torneoId)
-  const objetivo = quien ?? pendientes[0] ?? (usuarioEspera ? ESPERA_USUARIO : undefined)
+  // (C) Cola del mundo: cuentas en espera (quien = 'cuenta-{email}').
+  const colaCuentas = s.esperasCuentas[torneoId] ?? []
+  const objetivo = quien
+    ?? pendientes[0]
+    ?? (colaCuentas[0] ? ID_CUENTA_PREFIJO + colaCuentas[0] : undefined)
+    ?? (usuarioEspera ? ESPERA_USUARIO : undefined)
   if (!objetivo) return null
+  if (objetivo.startsWith(ID_CUENTA_PREFIJO)) {
+    const emailCuenta = objetivo.slice(ID_CUENTA_PREFIJO.length)
+    if (!colaCuentas.includes(emailCuenta)) return null
+    const nombre = nombreCuentaDemo(emailCuenta, s.perfilesCuentas)
+    const notiTO: Notificacion = {
+      id: nextId(), tipo: 'sistema', titulo: `¡${nombre} está dentro!`,
+      cuerpo: `Se liberó una plaza en «${nombreTorneo}» y el organizador se la ha dado desde la lista de espera.`,
+      tituloKey: 'ntf.dentroOtroT', cuerpoKey: 'ntf.dentroOtroC', params: { nombre, torneo: nombreTorneo },
+      cuando: 'ahora', leida: false, href: `/torneo/${torneoId}`,
+    }
+    return {
+      plazasPendientes: { ...s.plazasPendientes, [torneoId]: Math.max(0, (s.plazasPendientes[torneoId] ?? 0) - 1) },
+      esperasCuentas: { ...s.esperasCuentas, [torneoId]: colaCuentas.filter(e => e !== emailCuenta) },
+      inscripcionesCuentas: { ...s.inscripcionesCuentas, [torneoId]: [...(s.inscripcionesCuentas[torneoId] ?? []), emailCuenta] },
+      notificaciones: [notiTO, ...s.notificaciones],
+      // (B) La cuenta promocionada se entera al entrar: está dentro.
+      buzonCuentas: buzonConEntregas(s, [{ email: emailCuenta, noti: {
+        tipo: 'inscripcion', titulo: '🎟️ ¡Estás dentro! Plaza liberada',
+        cuerpo: `Se liberó una plaza en «${nombreTorneo}» y el organizador te la ha dado desde la lista de espera. Pago procesado: tu entrada ya está en la cartera.`,
+        tituloKey: 'ntf.dentroT', cuerpoKey: 'ntf.dentroC', params: { torneo: nombreTorneo }, href: '/entradas',
+      } }]),
+    }
+  }
   const menosPendiente = {
     plazasPendientes: { ...s.plazasPendientes, [torneoId]: Math.max(0, (s.plazasPendientes[torneoId] ?? 0) - 1) },
   }
@@ -615,6 +663,9 @@ const DATOS_INICIALES: DatosDemo = {
       perfilesCuentas: {},
       inscripcionesCuentas: {},
       perfilesOrg: {},
+      buzonCuentas: {},
+      esperasCuentas: {},
+      chatsAmigos: {},
 }
 
 // ── Mundo compartido (30-08): clasificación WORLD/PERSONAL de las claves ──
@@ -632,6 +683,7 @@ export const CLAVES_MUNDO = [
   'usuariosSuspendidos', 'betaCerrada', 'codigosBeta',
   'crews', 'crewTorneo',
   'amistadesCuentas', 'perfilesCuentas', 'inscripcionesCuentas', 'perfilesOrg',
+  'buzonCuentas', 'esperasCuentas', 'chatsAmigos',
 ] as const satisfies readonly (keyof DatosDemo)[]
 export type ClaveMundo = (typeof CLAVES_MUNDO)[number]
 export type DatosPersonales = Omit<DatosDemo, ClaveMundo>
@@ -656,6 +708,31 @@ function emailSesionJugador(): string | null {
 function emailMundoInscripciones(): string | null {
   const e = emailSesionJugador()
   return e && !EMAILS_LEGACY.has(e) ? e : null
+}
+
+// (B) Buzón cruzado: deja notis en el buzón del MUNDO de otras cuentas — se
+// entregan cuando esa cuenta entra (drenarBuzon). Solo cuentas reales: nunca a
+// uno mismo ni a las legacy (comparten blob personal y ya se ven las notis).
+type Entrega = { email?: string | null; noti: Omit<Notificacion, 'id' | 'cuando' | 'leida'> }
+function buzonConEntregas(s: DemoState, entregas: Entrega[]): Record<string, Notificacion[]> {
+  const yo = useSesionStore.getState().sesion?.email?.toLowerCase()
+  let buzon: Record<string, Notificacion[]> | null = null
+  for (const { email, noti } of entregas) {
+    const el = email?.toLowerCase()
+    if (!el || el === yo || EMAILS_LEGACY.has(el)) continue
+    buzon ??= { ...s.buzonCuentas }
+    buzon[el] = [{ ...noti, id: nextId(), cuando: 'ahora', leida: false }, ...(buzon[el] ?? [])]
+  }
+  return buzon ?? s.buzonCuentas
+}
+
+// Email de la CUENTA (no legacy) dueña de un organizadorId, para avisos al TO.
+// Un org de muestra sin cuenta (lima…) devuelve null: se mantiene el
+// comportamiento legacy (la noti se queda en el blob compartido y ya la ve).
+function emailDeOrgCuenta(organizadorId?: string): string | null {
+  if (!organizadorId) return null
+  const email = CUENTAS_DEMO.find(x => x.orgId === organizadorId)?.email.toLowerCase() ?? null
+  return email && !EMAILS_LEGACY.has(email) ? email : null
 }
 
 // El perfil público de la cuenta activa se re-publica en el mundo cada vez que
@@ -958,10 +1035,18 @@ export const useDemoStore = create<DemoState>()(
         const sinMundo = email && s.inscripcionesCuentas[torneoId]?.includes(email)
           ? { inscripcionesCuentas: { ...s.inscripcionesCuentas, [torneoId]: s.inscripcionesCuentas[torneoId].filter(e => e !== email) } }
           : {}
+        // (B) Si el torneo es de una CUENTA, la alerta va a su buzón del mundo
+        // (la verá el TO en la suya); con orgs de muestra el blob compartido
+        // legacy ya la enseña, así que se queda en las notis propias como hoy.
+        const emailTO = emailDeOrgCuenta(t?.organizadorId)
         return {
           inscritos: s.inscritos.filter(id => id !== torneoId),
           plazasPendientes: { ...s.plazasPendientes, [torneoId]: (s.plazasPendientes[torneoId] ?? 0) + 1 },
-          notificaciones: [notiJugador, notiTO, ...s.notificaciones],
+          notificaciones: emailTO ? [notiJugador, ...s.notificaciones] : [notiJugador, notiTO, ...s.notificaciones],
+          ...(emailTO ? { buzonCuentas: buzonConEntregas(s, [{ email: emailTO, noti: {
+            tipo: 'sistema', titulo: notiTO.titulo, cuerpo: notiTO.cuerpo,
+            tituloKey: notiTO.tituloKey, cuerpoKey: notiTO.cuerpoKey, params: notiTO.params, href: notiTO.href,
+          } }]) } : {}),
           ...sinMiPlaza,
           ...sinMundo,
         }
@@ -974,9 +1059,22 @@ export const useDemoStore = create<DemoState>()(
           tituloKey: 'ntf.esperaT', cuerpoKey: 'ntf.esperaC', params: { puesto, torneo: nombreTorneo },
           cuando: 'ahora', leida: false, href: '/entradas',
         }
-        return { listaEspera: [...s.listaEspera, torneoId], notificaciones: [noti, ...s.notificaciones] }
+        // (C) La espera de una CUENTA vive también en el mundo: el TO la ve
+        // en su cola de /gestionar y puede meterla cuando se libere plaza.
+        const emailEspera = emailMundoInscripciones()
+        const colaMundo = s.esperasCuentas[torneoId] ?? []
+        const conMundo = emailEspera && !colaMundo.includes(emailEspera)
+          ? { esperasCuentas: { ...s.esperasCuentas, [torneoId]: [...colaMundo, emailEspera] } }
+          : {}
+        return { listaEspera: [...s.listaEspera, torneoId], notificaciones: [noti, ...s.notificaciones], ...conMundo }
       }),
-      salirEspera: (torneoId) => set((s) => ({ listaEspera: s.listaEspera.filter(id => id !== torneoId) })),
+      salirEspera: (torneoId) => set((s) => {
+        const emailEspera = emailMundoInscripciones()
+        const conMundo = emailEspera && s.esperasCuentas[torneoId]?.includes(emailEspera)
+          ? { esperasCuentas: { ...s.esperasCuentas, [torneoId]: s.esperasCuentas[torneoId].filter(e => e !== emailEspera) } }
+          : {}
+        return { listaEspera: s.listaEspera.filter(id => id !== torneoId), ...conMundo }
+      }),
       // Acción EXPLÍCITA del TO (ampliar plazas o dar de baja a un inscrito):
       // la cola entra sola por orden (FIFO), n veces, vía la promoción única.
       liberarPlazas: (torneoId, nombreTorneo, n) => set((s) => {
@@ -1260,6 +1358,44 @@ export const useDemoStore = create<DemoState>()(
       editarPerfilOrg: (orgId, patch) => set((s) => ({
         perfilesOrg: { ...s.perfilesOrg, [orgId]: { ...s.perfilesOrg[orgId], ...patch } },
       })),
+      // (B) Entrega del buzón cruzado + reconciliación con el mundo. Al entrar
+      // una cuenta: sus notis pendientes pasan al buzón personal, y las
+      // inscripciones hechas EN SU NOMBRE por el TO (promoción desde la cola)
+      // entran a su cartera — el TO no puede escribir el blob personal ajeno.
+      drenarBuzon: () => set((s) => {
+        const email = useSesionStore.getState().sesion?.email?.toLowerCase()
+        if (!email || EMAILS_LEGACY.has(email)) return s
+        const pendientes = s.buzonCuentas[email] ?? []
+        const delMundo = Object.keys(s.inscripcionesCuentas).filter(tid => s.inscripcionesCuentas[tid].includes(email))
+        const nuevas = delMundo.filter(tid => !s.inscritos.includes(tid))
+        if (pendientes.length === 0 && nuevas.length === 0) return s
+        const buzon = { ...s.buzonCuentas }
+        delete buzon[email]
+        return {
+          ...(pendientes.length ? { notificaciones: [...pendientes, ...s.notificaciones], buzonCuentas: buzon } : {}),
+          ...(nuevas.length ? { inscritos: [...s.inscritos, ...nuevas], listaEspera: s.listaEspera.filter(id => !nuevas.includes(id)) } : {}),
+        }
+      }),
+      // (E) Chat directo entre cuentas amigas: persiste en el mundo común y el
+      // amigo recibe además un aviso en su buzón (solo del primer mensaje
+      // seguido, para no inundar de notis una conversación).
+      enviarMensajeAmigo: (email, texto) => set((s) => {
+        const yo = emailSesionJugador()
+        const el = email.toLowerCase()
+        const limpio = texto.trim()
+        if (!yo || yo === el || !limpio) return s
+        const clave = claveAmigos(yo, el)
+        const hilo = s.chatsAmigos[clave] ?? []
+        const miNombre = s.perfilesCuentas[yo]?.nombre ?? useSesionStore.getState().sesion?.nombre ?? yo
+        const avisar = hilo[hilo.length - 1]?.de !== yo
+        return {
+          chatsAmigos: { ...s.chatsAmigos, [clave]: [...hilo, { de: yo, texto: limpio.slice(0, 500), hora: 'ahora' }] },
+          ...(avisar ? { buzonCuentas: buzonConEntregas(s, [{ email: el, noti: {
+            tipo: 'sistema', titulo: `💬 Mensaje de ${miNombre}`,
+            cuerpo: limpio.slice(0, 120), tituloKey: 'bz.msjT', params: { nombre: miNombre }, href: '/amigos',
+          } }]) } : {}),
+        }
+      }),
       // El tag de usuario #XABCD se genera al primer uso y queda fijo. Se
       // re-publica también en el perfil público del mundo (búsqueda exacta).
       asegurarUserTag: () => set((s) => s.userTag ? s : conPerfilCuenta(s, { userTag: generarTagUsuario() })),
@@ -1629,9 +1765,16 @@ export const useDemoStore = create<DemoState>()(
           tituloKey: 'mc.ntfSolT', cuerpoKey: 'mc.ntfSolC', params: { nombre },
           cuando: 'ahora', leida: false, href: '/amigos',
         }
+        // (B) El destinatario se entera en SU cuenta: buzón cruzado del mundo.
+        const miNombre = s.perfilesCuentas[yo]?.nombre ?? useSesionStore.getState().sesion?.nombre ?? yo
         return conPerfilCuenta(s, {
           amistadesCuentas: [...s.amistadesCuentas, { de: yo, a: el, estado: 'pendiente' as const }],
           notificaciones: [noti, ...s.notificaciones],
+          buzonCuentas: buzonConEntregas(s, [{ email: el, noti: {
+            tipo: 'sistema', titulo: 'Nueva solicitud de amistad',
+            cuerpo: `${miNombre} quiere ser tu amigo. Acéptala en Chat.`,
+            tituloKey: 'bz.solT', cuerpoKey: 'bz.solC', params: { nombre: miNombre }, href: '/amigos',
+          } }]),
         })
       }),
       responderAmistadCuenta: (email, acepta) => set((s) => {
@@ -1651,9 +1794,16 @@ export const useDemoStore = create<DemoState>()(
           tituloKey: 'mc.ntfAmigosT', cuerpoKey: 'mc.ntfAmigosC', params: { nombre },
           cuando: 'ahora', leida: false, href: '/amigos',
         }
+        // (B) Quien pidió la amistad se entera de la aceptación en SU cuenta.
+        const miNombre = s.perfilesCuentas[yo]?.nombre ?? useSesionStore.getState().sesion?.nombre ?? yo
         return conPerfilCuenta(s, {
           amistadesCuentas: s.amistadesCuentas.map(a => a === sol ? { ...a, estado: 'aceptada' as const } : a),
           notificaciones: [noti, ...s.notificaciones],
+          buzonCuentas: buzonConEntregas(s, [{ email: el, noti: {
+            tipo: 'sistema', titulo: `${miNombre} aceptó tu solicitud`,
+            cuerpo: 'Ya sois amigos: os veis en vuestras listas y podéis chatear.',
+            tituloKey: 'bz.acepT', cuerpoKey: 'bz.acepC', params: { nombre: miNombre }, href: '/amigos',
+          } }]),
         })
       }),
       quitarAmigoCuenta: (email) => set((s) => {
@@ -1673,10 +1823,17 @@ export const useDemoStore = create<DemoState>()(
           tituloKey: 'mc.ntfLiveT', cuerpoKey: 'mc.ntfLiveC', params: { torneo: nombre },
           cuando: 'ahora', leida: false, href: '/modo-directo',
         }
+        // (B) Cada cuenta inscrita se entera al entrar: su torneo ha empezado.
+        const notiInscrito: Omit<Notificacion, 'id' | 'cuando' | 'leida'> = {
+          tipo: 'combate', titulo: `🔴 «${nombre}» ha empezado`,
+          cuerpo: 'El torneo está EN DIRECTO. Entra a tu sala live para seguirlo.',
+          tituloKey: 'bz.liveT', cuerpoKey: 'bz.liveC', params: { torneo: nombre }, href: `/torneo/${id}/directo`,
+        }
         return {
           editados: { ...s.editados, [id]: { ...s.editados[id], enDirecto: true } },
           creados: s.creados.map(c => c.id === id ? { ...c, enDirecto: true } : c),
           notificaciones: [noti, ...s.notificaciones],
+          buzonCuentas: buzonConEntregas(s, (s.inscripcionesCuentas[id] ?? []).map(email => ({ email, noti: notiInscrito }))),
         }
       }),
       solicitarTO: () => set((s) => {

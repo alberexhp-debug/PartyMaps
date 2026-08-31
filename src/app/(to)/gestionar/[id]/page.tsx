@@ -5,7 +5,7 @@ import { useMemo, useRef, useState } from 'react'
 import { getTorneo, JUEGOS, rankingPorJuego, plantillaDe, esperaDe, type Jugador } from '@/lib/torneos/sample'
 import { descargarCSV } from '@/lib/torneos/exportar'
 import { construirRondas, nombreRonda, boDeRonda, paraGanar, normalizarDesde, opcionesDesde, etiquetaDesde } from '@/lib/torneos/bracket'
-import { useDemoStore, useOrgId, ESPERA_USUARIO, jugadorDeCuenta, resolverSeeds, tagCuentaDemo, ID_CUENTA_PREFIJO, type BoDesde } from '@/lib/stores/useDemoStore'
+import { useDemoStore, useOrgId, ESPERA_USUARIO, jugadorDeCuenta, resolverSeeds, tagCuentaDemo, nombreCuentaDemo, ID_CUENTA_PREFIJO, type BoDesde } from '@/lib/stores/useDemoStore'
 import { useSesionStore } from '@/lib/stores/useSesionStore'
 import { MiniPerfilCuenta, AvatarCuenta } from '@/components/todh/MiniPerfilCuenta'
 import { useT, conParams } from '@/lib/i18n'
@@ -46,6 +46,8 @@ export default function GestionarTorneoPage() {
   const entradosRaw = useDemoStore(s => s.entradosEspera[id])
   const plazasPend = useDemoStore(s => s.plazasPendientes[id] ?? 0)
   const usuarioEnEspera = useDemoStore(s => s.listaEspera.includes(id))
+  // (C) Cola del MUNDO: cuentas de otros jugadores en espera de este torneo
+  const esperasCuentasRaw = useDemoStore(s => s.esperasCuentas[id])
   const usuarioInscrito = useDemoStore(s => s.inscritos.includes(id))
   const checkinUsuario = useDemoStore(s => s.checkinsJugador.includes(id))
   const liberarPlazas = useDemoStore(s => s.liberarPlazas)
@@ -127,6 +129,8 @@ export default function GestionarTorneoPage() {
   const cola = t ? esperaDe(t) : []
   const entraron = entradosRaw ?? SIN_ENTRADOS        // entraron desde la cola (orden de entrada)
   const colaPendiente = cola.filter(n => !entraron.includes(n))  // siguen esperando
+  // (C) Cuentas en espera (emails del mundo), con su nombre público resuelto
+  const colaCuentas = (esperasCuentasRaw ?? []).map(email => ({ email, nombre: nombreCuentaDemo(email, perfilesCuentas) }))
   // El usuario de la app cuenta como un inscrito más: el TO lo ve en su lista
   const nOcupadas = inscritos.length + entraron.length + (usuarioInscrito ? 1 : 0)
 
@@ -408,7 +412,7 @@ export default function GestionarTorneoPage() {
               <button onClick={checkAll} className="h-11 px-3.5 rounded-xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] text-sm font-bold whitespace-nowrap flex items-center gap-1.5">
                 <UserCheck size={15} /> {tr('ges.checkinMasivo')}
               </button>
-          {(t.inscritos - bajas.size + entraron.length >= t.plazas || colaPendiente.length > 0 || usuarioEnEspera) && (
+          {(t.inscritos - bajas.size + entraron.length >= t.plazas || colaPendiente.length > 0 || colaCuentas.length > 0 || usuarioEnEspera) && (
             <button onClick={() => {
               editarTorneo(t.id, { plazas: t.plazas + 16 })
               // Al abrir hueco, la cola entra sola por orden (FIFO)
@@ -512,18 +516,18 @@ export default function GestionarTorneoPage() {
             {/* Lista de espera (F7): al ampliar plazas la cola entra sola (FIFO);
                 una plaza liberada por la cancelación de un jugador la decide el
                 TO — mete al siguiente, elige a uno concreto o la deja libre. */}
-            {(plazasPend > 0 || colaPendiente.length > 0 || usuarioEnEspera) && (
+            {(plazasPend > 0 || colaPendiente.length > 0 || colaCuentas.length > 0 || usuarioEnEspera) && (
               <div className="mt-5">
-                <p className="eyebrow eyebrow-muted mb-2">⏳ {tr('card.listaEspera')} · {colaPendiente.length + (usuarioEnEspera ? 1 : 0)}</p>
+                <p className="eyebrow eyebrow-muted mb-2">⏳ {tr('card.listaEspera')} · {colaPendiente.length + colaCuentas.length + (usuarioEnEspera ? 1 : 0)}</p>
                 {plazasPend > 0 && (
                   <div className="mb-2.5 rounded-2xl border border-[#E0BE63]/50 bg-[#E0BE63]/[0.08] p-3.5">
                     <div className="flex items-center gap-2.5 flex-wrap">
                       <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#E0BE63]/15 text-[#E0BE63] shrink-0"><UserPlus size={17} /></span>
                       <div className="flex-1 min-w-40">
                         <p className="text-sm font-bold text-white">{plazasPend === 1 ? tr('canc.avisoUna') : `${plazasPend} ${tr('canc.avisoVarias')}`}</p>
-                        <p className="text-[11px] text-[#D9C58A]">{colaPendiente.length > 0 || usuarioEnEspera ? tr('canc.decideQuien') : tr('canc.colaVacia')}</p>
+                        <p className="text-[11px] text-[#D9C58A]">{colaPendiente.length > 0 || colaCuentas.length > 0 || usuarioEnEspera ? tr('canc.decideQuien') : tr('canc.colaVacia')}</p>
                       </div>
-                      {colaPendiente.length > 0 || usuarioEnEspera ? (
+                      {colaPendiente.length > 0 || colaCuentas.length > 0 || usuarioEnEspera ? (
                         <button onClick={() => promoverDeEspera(id, t.nombre)}
                           className="h-10 px-3.5 rounded-xl bg-[#E0BE63] text-[#0A0A0F] text-[13px] font-bold shrink-0">{tr('canc.meterSiguiente')}</button>
                       ) : (
@@ -546,9 +550,21 @@ export default function GestionarTorneoPage() {
                       )}
                     </div>
                   ))}
+                  {/* (C) Cuentas de otros jugadores en espera (cola del mundo) */}
+                  {colaCuentas.map(({ email, nombre }, i) => (
+                    <div key={`espc-${email}`} className="flex items-center gap-3 card-premium p-2.5 border border-[#B6FF3A]/20">
+                      <span className="w-7 text-center text-xs font-bold text-[#FF8A5C] font-mono-num">{colaPendiente.length + i + 1}º</span>
+                      <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#B6FF3A]/12 text-[#B6FF3A] font-black shrink-0">{nombre[0]}</span>
+                      <p className="flex-1 text-sm font-bold text-white truncate">{nombre} <span className="text-[11px] text-[#8B8BA8] font-semibold">{tagCuentaDemo(email, perfilesCuentas)}</span></p>
+                      {plazasPend > 0 && (
+                        <button onClick={() => promoverDeEspera(id, t.nombre, ID_CUENTA_PREFIJO + email)} aria-label={`Meter a ${nombre}`}
+                          className="h-8 px-3 rounded-lg bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] text-xs font-bold shrink-0 hover:bg-[#B6FF3A]/25 transition-colors">{tr('canc.meter')}</button>
+                      )}
+                    </div>
+                  ))}
                   {usuarioEnEspera && (
                     <div className="flex items-center gap-3 card-premium p-2.5 border border-[#FF8A5C]/30">
-                      <span className="w-7 text-center text-xs font-bold text-[#FF8A5C] font-mono-num">{colaPendiente.length + 1}º</span>
+                      <span className="w-7 text-center text-xs font-bold text-[#FF8A5C] font-mono-num">{colaPendiente.length + colaCuentas.length + 1}º</span>
                       <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#FF8A5C]/15 text-[#FF8A5C] font-black shrink-0">T</span>
                       <p className="flex-1 text-sm font-bold text-white truncate">{tr('crew.tu')} <span className="text-[11px] text-[#8B8BA8] font-semibold">{tr('ges.jugadorDemo')}</span></p>
                       {plazasPend > 0 && (

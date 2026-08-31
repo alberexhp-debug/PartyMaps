@@ -1741,6 +1741,16 @@ export const JA: Record<string, string> = {
   'mc.ntfAmigosC': '申請が承認され、お互いのフレンドリストに表示されます。',
   'mc.ntfLiveT': '🔴 大会がライブ中',
   'mc.ntfLiveC': '「{torneo}」を開始しました：全員にライブ配信中で、参加受付は締め切りです。',
+  // Buzón cruzado entre cuentas (backlog B)
+  'bz.solT': '新しいフレンド申請',
+  'bz.solC': '{nombre}がフレンドになりたがっています。チャットで承認しましょう。',
+  'bz.acepT': '{nombre}が申請を承認しました',
+  'bz.acepC': 'フレンドになりました。お互いのリストに表示され、チャットもできます。',
+  'bz.liveT': '🔴 「{torneo}」が始まりました',
+  'bz.liveC': '大会はライブ中です。ライブルームで観戦しましょう。',
+  'bz.msjT': '💬 {nombre}からのメッセージ',
+  'ma.escribe': '{nombre}にメッセージを送る…',
+  'ma.vacio': 'まだメッセージはありません。話しかけてみましょう！',
   // Perfil de organizador editable (/perfil/organizador)
   'pfo.titulo': '主催者プロフィール',
   'pfo.sub': '公開ページや大会でプレイヤーに見える情報です。',
