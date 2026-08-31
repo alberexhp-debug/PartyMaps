@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useDemoStore, useEsTO } from '@/lib/stores/useDemoStore'
 import { JUEGOS_LIST } from '@/lib/torneos/sample'
 import { GameIcon } from '@/components/todh/GameIcon'
@@ -16,8 +17,21 @@ export function PerfilDualCard() {
   const esTO = useEsTO()
   const [alta, setAlta] = useState(false)
 
-  // Con el rol activo la tarjeta sobra: la consola ya está en la navegación.
-  if (esTO) return null
+  // Con el rol activo, la fila lleva al perfil de ORGANIZADOR editable
+  // (decisión Albert 30-08: se edita desde Perfil, no desde la consola).
+  // No es un shortcut de consola: es identidad, como el resto del apartado.
+  if (esTO) {
+    return (
+      <Link href="/perfil/organizador" className="w-full card-premium p-3.5 flex items-center gap-2.5 hover:bg-white/[0.06] transition-colors">
+        <span className="h-8 w-8 rounded-lg bg-[#E0BE63]/12 flex items-center justify-center"><Megaphone size={15} className="text-[#E0BE63]" /></span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[12px] font-bold text-white leading-tight">{tr('pfo.titulo')}</p>
+          <p className="text-[10px] text-[#8B8BA8]">{tr('pfo.rolCardSub')}</p>
+        </div>
+        <ChevronRight size={15} className="text-[#8B8BA8]" />
+      </Link>
+    )
+  }
 
   if (perfilTO === 'pendiente') {
     return (

@@ -191,6 +191,40 @@ async function login(page, email) {
   await ctx.close()
 }
 
+// ── 8. Perfil de organizador EDITABLE desde Perfil (decisión Albert 30-08):
+// fila en /perfil solo para TOs → editor /perfil/organizador → lo editado se ve
+// en /mi-pagina, /consola/perfil y desde OTRAS cuentas (clave de mundo).
+{
+  const { ctx, page } = await nuevaPagina(true)
+  console.log('— Perfil de organizador editable (David, jugador+TO)')
+  await login(page, 'david@torneum.com')
+  await page.goto(`${BASE}/perfil`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  ok(await page.getByText('Perfil de organizador').count() > 0, 'el perfil de David tiene la fila «Perfil de organizador»')
+  await page.getByText('Perfil de organizador').first().click(); await page.waitForTimeout(1500)
+  ok(page.url().includes('/perfil/organizador'), 'la fila lleva al editor')
+  const nombreInput = page.locator('input').first()
+  ok((await nombreInput.inputValue()) === 'David', 'el formulario arranca con su nombre efectivo')
+  await nombreInput.fill('Dojo David')
+  await page.locator('textarea').fill('Semanales de Smash en Madrid, todos los jueves.')
+  await page.getByRole('button', { name: 'Guardar cambios' }).click(); await page.waitForTimeout(800)
+  ok(await page.getByText('Perfil guardado').count() > 0, 'guardar confirma con toast')
+  await page.goto(`${BASE}/mi-pagina`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  ok(await page.getByText('Dojo David').count() > 0, '/mi-pagina pinta el nombre editado')
+  ok(await page.getByText('Semanales de Smash').count() > 0, 'y la bio editada')
+  await page.goto(`${BASE}/consola/perfil`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  ok(await page.getByText('Dojo David').count() > 0, '/consola/perfil refleja el nombre editado')
+  ok(await page.getByLabel('Editar perfil de organizador').count() > 0, 'y tiene el lápiz hacia el editor')
+  // Mundo compartido: otra cuenta ve el perfil editado; y sin rol no hay editor
+  await login(page, 'javier@torneum.com')
+  await page.goto(`${BASE}/organizador/david-to`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
+  ok(await page.getByText('Dojo David').count() > 0, 'Javier ve el perfil de organizador editado (mundo común)')
+  await page.goto(`${BASE}/perfil`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1000)
+  ok(await page.getByText('Perfil de organizador').count() === 0, 'Javier no ve la fila (no es TO)')
+  await page.goto(`${BASE}/perfil/organizador`, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500)
+  ok(!page.url().includes('/perfil/organizador'), 'el editor rebota a /perfil para no-TOs')
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fallos === 0 ? '\nTODO OK' : `\n${fallos} FALLOS`)
 process.exit(fallos === 0 ? 0 : 1)

@@ -5,15 +5,18 @@ import { useOrgId } from '@/lib/stores/useDemoStore'
 import { useT } from '@/lib/i18n'
 import { CabeceraConsola } from '@/components/todh/CabeceraConsola'
 import { GameIcon } from '@/components/todh/GameIcon'
-import { Star, MapPin, BadgeCheck, Megaphone, ChevronRight, Trophy, Users } from 'lucide-react'
+import { Star, MapPin, BadgeCheck, Megaphone, ChevronRight, Trophy, Users, Pencil } from 'lucide-react'
+import { useDemoStore } from '@/lib/stores/useDemoStore'
 
 // Perfil del TO dentro de la consola: la cara del organizador (la identidad
-// que antes encabezaba la consola vive aquí). Los datos salen del perfil
-// efectivo de la cuenta; sin edición inline — no hay overrides de organizador
-// en el store demo y no inventamos persistencia nueva (llegará con backend).
+// que antes encabezaba la consola vive aquí). Se EDITA desde el apartado
+// Perfil (/perfil/organizador, decisión Albert 30-08); aquí solo se consulta
+// y se enlaza el editor.
 export default function PerfilTOPage() {
   const { t: tr } = useT()
   const orgId = useOrgId()
+  // Suscripción a los overrides editables: la vista refresca al guardar.
+  useDemoStore(s => s.perfilesOrg)
   const org = organizadorEfectivo(orgId)
 
   return (
@@ -25,7 +28,7 @@ export default function PerfilTOPage() {
         <div className="card-premium p-4 mt-5">
           <div className="flex items-center gap-3.5">
             <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-2xl font-black text-[#0A0A0F] shrink-0" style={{ background: org.color }}>{org.nombre[0]}</span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-lg font-bold text-white text-display leading-tight inline-flex items-center gap-1.5">
                 {org.nombre}
                 {org.verificado && <BadgeCheck size={16} className="text-[#4F8EF7] shrink-0" />}
@@ -35,6 +38,10 @@ export default function PerfilTOPage() {
                 <Star size={11} className="text-[#E0BE63]" /> {org.rating} · {org.tier} · {org.seguidores.toLocaleString('es')} {tr('to.seguidores').toLowerCase()}
               </p>
             </div>
+            <Link href="/perfil/organizador" aria-label={tr('pfo.editar')} title={tr('pfo.editar')}
+              className="h-9 w-9 rounded-xl glass-strong flex items-center justify-center text-[#B8B8CC] hover:text-white transition-colors shrink-0">
+              <Pencil size={15} />
+            </Link>
           </div>
           {org.bio && <p className="mt-3 text-[13px] text-[#B8B8CC] leading-relaxed">{org.bio}</p>}
           <p className="mt-2 text-[11px] text-[#8B8BA8] inline-flex items-center gap-1"><MapPin size={11} /> {org.ciudad}</p>

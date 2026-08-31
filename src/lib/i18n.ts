@@ -120,7 +120,6 @@ const D = {
   'perfil.notis': ['Notificaciones', 'Notifications'],
   'perfil.privacidad': ['Privacidad y datos', 'Privacy & data'],
   'priv.volver': ['Volver', 'Back'],
-  'priv.noActualiza': ['No se pudo actualizar', 'Could not update'],
   'priv.descargaIniciada': ['Descarga iniciada', 'Download started'],
   'priv.errorDescarga': ['No se pudieron descargar los datos', 'The data could not be downloaded'],
   'priv.errorEliminar': ['No se pudo eliminar la cuenta', 'The account could not be deleted'],
@@ -128,8 +127,6 @@ const D = {
   'priv.descargarTitulo': ['Descargar mis datos', 'Download my data'],
   'priv.descargarTexto': ['Descarga un archivo con toda la información que tenemos de ti: perfil, inscripciones, torneos, ranking, reseñas y más (derecho de acceso y portabilidad, RGPD).', 'Download a file with all the information we hold about you: profile, registrations, tournaments, ranking, reviews and more (right of access and portability, GDPR).'],
   'priv.descargarBtn': ['Descargar (JSON)', 'Download (JSON)'],
-  'priv.localesTitulo': ['Locales que me pueden contactar', 'Venues that can contact me'],
-  'priv.localesTexto': ['Activa o desactiva las promociones y eventos que cada local puede enviarte. Es independiente para cada local.', 'Turn on or off the promotions and events each venue can send you. It is independent per venue.'],
   'priv.eliminarTitulo': ['Eliminar mi cuenta', 'Delete my account'],
   'priv.eliminarTexto': ['Anonimizamos tus datos personales (nombre, foto, teléfono) y desactivamos tu cuenta. Es', 'We anonymize your personal data (name, photo, phone) and deactivate your account. It is'],
   'priv.irreversible': ['irreversible', 'irreversible'],
@@ -1756,6 +1753,21 @@ const D = {
   'mc.ntfAmigosC': ['Solicitud aceptada: os veis en vuestras listas de amigos.', 'Request accepted: you now appear in each other\'s friend lists.'],
   'mc.ntfLiveT': ['🔴 Torneo en directo', '🔴 Tournament is live'],
   'mc.ntfLiveC': ['Has iniciado «{torneo}»: ya está EN DIRECTO para todos y las inscripciones quedan cerradas.', 'You started "{torneo}": it is now LIVE for everyone and registrations are closed.'],
+  // Perfil de organizador editable (/perfil/organizador, decisión 30-08)
+  'pfo.titulo': ['Perfil de organizador', 'Organizer profile'],
+  'pfo.sub': ['Así te ven los jugadores en tu página pública y en tus torneos.', 'This is how players see you on your public page and tournaments.'],
+  'pfo.rolCardSub': ['Edita cómo te ven los jugadores', 'Edit how players see you'],
+  'pfo.lblNombre': ['Nombre público', 'Public name'],
+  'pfo.lblHandle': ['Identificador', 'Handle'],
+  'pfo.lblCiudad': ['Ciudad', 'City'],
+  'pfo.lblBio': ['Presentación', 'About'],
+  'pfo.bioPh': ['Cuenta a los jugadores qué organizas y cómo.', 'Tell players what you run and how you run it.'],
+  'pfo.lblColor': ['Color de marca', 'Brand color'],
+  'pfo.lblJuegos': ['Juegos que organizas', 'Games you run'],
+  'pfo.guardar': ['Guardar cambios', 'Save changes'],
+  'pfo.guardado': ['Perfil guardado', 'Profile saved'],
+  'pfo.guardadoSub': ['Los cambios ya se ven en tu página pública.', 'Your public page now shows the changes.'],
+  'pfo.editar': ['Editar perfil de organizador', 'Edit organizer profile'],
 } as const
 
 export type ClaveI18n = keyof typeof D

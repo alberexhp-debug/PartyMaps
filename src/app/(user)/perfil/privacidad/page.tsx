@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
-import { ArrowLeft, Download, Trash2, Shield, AlertTriangle, Mail } from 'lucide-react'
+import { ArrowLeft, Download, Trash2, Shield, AlertTriangle } from 'lucide-react'
 import { useT } from '@/lib/i18n'
 
 export default function PrivacidadPage() {
@@ -16,32 +16,11 @@ export default function PrivacidadPage() {
   const [descargando, setDescargando] = useState(false)
   const [confirmar, setConfirmar] = useState(false)
   const [eliminando, setEliminando] = useState(false)
-  const [consentLocales, setConsentLocales] = useState<{ id: string; nombre: string; acepta: boolean }[]>([])
 
   useEffect(() => {
     if (isLoading) return            // esperar a que AuthProvider resuelva la sesión
     if (!usuario) router.push('/login')
   }, [usuario, isLoading, router])
-
-  useEffect(() => {
-    if (!usuario) return
-    fetch('/api/perfil/consentimientos')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.locales) setConsentLocales(d.locales) })
-      .catch(() => {})
-  }, [usuario])
-
-  const toggleConsent = async (localId: string, acepta: boolean) => {
-    setConsentLocales(prev => prev.map(l => l.id === localId ? { ...l, acepta } : l))
-    const res = await fetch('/api/perfil/consentimientos', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ local_id: localId, acepta }),
-    })
-    if (!res.ok) {
-      setConsentLocales(prev => prev.map(l => l.id === localId ? { ...l, acepta: !acepta } : l))
-      toast.error(tr('priv.noActualiza'))
-    }
-  }
 
   if (!usuario) return null
 
@@ -99,30 +78,8 @@ export default function PrivacidadPage() {
         </Button>
       </div>
 
-      {/* Locales que me pueden contactar (consentimiento de marketing por local) */}
-      {consentLocales.length > 0 && (
-        <div className="card-premium p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Mail size={18} className="text-[#4F8EF7]" />
-            <h2 className="font-semibold text-white">{tr('priv.localesTitulo')}</h2>
-          </div>
-          <p className="text-sm text-[#A0A0B8]">
-            {tr('priv.localesTexto')}
-          </p>
-          <div className="space-y-2">
-            {consentLocales.map(l => (
-              <div key={l.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/5 px-3.5 py-2.5">
-                <span className="truncate text-sm text-white">{l.nombre}</span>
-                <button type="button" onClick={() => toggleConsent(l.id, !l.acepta)}
-                  aria-label={`${l.acepta ? 'Desactivar' : 'Activar'} contacto de ${l.nombre}`}
-                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${l.acepta ? 'bg-[#27AE60]' : 'bg-white/15'}`}>
-                  <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${l.acepta ? 'left-[22px]' : 'left-0.5'}`} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* El consentimiento de «marketing por local» era del paradigma nocturno
+          (promos de discotecas): eliminado en Torneum — limpieza 31-08. */}
 
       {/* Eliminar cuenta */}
       <div className="rounded-2xl border border-[#B6FF3A]/25 bg-[#B6FF3A]/[0.05] p-5 space-y-3">

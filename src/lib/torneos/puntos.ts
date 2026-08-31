@@ -148,7 +148,8 @@ export const PLATAFORMAS: Record<string, PlataformaJuego> = {
   tft:     { nombre: 'lolchess.gg', etiqueta: 'Ladder competitiva de lolchess', color: '#4F8EF7' },
   valorant:{ nombre: 'VLR.gg',      etiqueta: 'Circuito Challengers · VLR', color: '#FF4655' },
   lol:     { nombre: 'OP.GG',       etiqueta: 'Ladder competitiva de OP.GG', color: '#0AC8B9' },
-  cod:     { nombre: 'GameBattles', etiqueta: 'Escalera competitiva de GameBattles', color: '#E8913A' },
+  // GameBattles cerró el 15-01-2024; la escena competitiva de CoD vive en FACEIT
+  cod:     { nombre: 'FACEIT', etiqueta: 'Escalera competitiva de FACEIT', color: '#FF5500' },
 }
 export const PLATAFORMA_GENERICA: PlataformaJuego = { nombre: 'start.gg', etiqueta: 'Circuito global de start.gg', color: '#CB333B' }
 export function plataformaDe(juegoId: string): PlataformaJuego {

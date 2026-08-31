@@ -272,13 +272,22 @@ export function getOrganizador(id: string): Organizador | undefined {
   return ORGANIZADORES[id]
 }
 
+// Overrides EDITABLES del perfil de organizador (decisión Albert 30-08: el TO
+// edita su perfil desde el apartado Perfil). Viven en el store demo como clave
+// de MUNDO — las demás cuentas ven lo editado en /organizador/[id]. El store
+// registra aquí su lector porque useDemoStore importa este módulo (sin ciclo).
+export type PerfilOrgOverride = Partial<Pick<Organizador, 'nombre' | 'handle' | 'bio' | 'ciudad' | 'color' | 'juegos'>>
+let leerPerfilOrg: ((id: string) => PerfilOrgOverride | undefined) | null = null
+export function registrarLectorPerfilOrg(fn: (id: string) => PerfilOrgOverride | undefined) { leerPerfilOrg = fn }
+
 // Perfil de organizador para CUALQUIER identidad de sesión, sin asumir «lima»:
 // los de muestra salen tal cual; una cuenta recién aprobada estrena perfil sin
 // historial — la reputación se construye dentro de la app. (Las sedes NO
 // organizan torneos desde el 28-08: aquí no hay rama por id de local.)
 export function organizadorEfectivo(id: string): Organizador {
+  const extra = typeof window !== 'undefined' ? leerPerfilOrg?.(id) : undefined
   const o = ORGANIZADORES[id]
-  if (o) return o
+  if (o) return extra ? { ...o, ...extra } : o
   // El perfil «Organizador nuevo» toma el NOMBRE de la sesión activa (David,
   // un jugador aprobado…) en vez de asumir «Álex»; sin sesión (SSR o demo
   // suelta) se mantiene el fallback histórico.
@@ -288,6 +297,7 @@ export function organizadorEfectivo(id: string): Organizador {
     bio: 'Organizador nuevo en Torneum. La reputación se gana torneo a torneo.',
     rating: 0, valoraciones: 0, torneosOrg: 0, seguidores: 0,
     verificado: false, tier: 'Oro', juegos: [], insignias: ['Organizador nuevo'],
+    ...extra,
   }
 }
 

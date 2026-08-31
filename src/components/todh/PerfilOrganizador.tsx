@@ -19,6 +19,8 @@ export function PerfilOrganizador({ id, backButton = true }: { id: string; backB
   const router = useRouter()
   // Identidad por cuenta: resuelve organizadores de muestra, sedes que
   // organizan y cuentas recién aprobadas (antes cualquier id caía en «lima»).
+  // La suscripción a perfilesOrg refresca la página al editar el perfil.
+  useDemoStore(s => s.perfilesOrg)
   const to = organizadorEfectivo(id)
   const siguiendo = useDemoStore(s => s.seguidos.includes(to.id))
   const alternarSeguir = useDemoStore(s => s.alternarSeguir)

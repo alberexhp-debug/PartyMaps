@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware'
-import { JUEGOS, LOCALES, getTorneo, esperaDe, plantillaDe, type TorneoSample, type Juego, type Jugador, type Mesa, type MesaTipo } from '@/lib/torneos/sample'
+import { JUEGOS, LOCALES, getTorneo, esperaDe, plantillaDe, registrarLectorPerfilOrg, type PerfilOrgOverride, type TorneoSample, type Juego, type Jugador, type Mesa, type MesaTipo } from '@/lib/torneos/sample'
 import { puedeCancelarConDevolucion } from '@/lib/torneos/cancelacion'
 import { CREW_USUARIO, TAG_RE, MAX_CREWS_POR_JUEGO, type Crew } from '@/lib/torneos/crews'
 import { generarTagUsuario, tagUsuarioDe } from '@/lib/torneos/tags'
@@ -253,6 +253,9 @@ interface DemoState {
   amistadesCuentas: AmistadCuenta[]              // solicitudes/amistades entre cuentas (ids = emails)
   perfilesCuentas: Record<string, PerfilCuenta>  // perfil público de cada cuenta, por email
   inscripcionesCuentas: Record<string, string[]> // por torneo: emails de cuentas inscritas (no legacy)
+  // Perfil de organizador editado por su dueño desde /perfil/organizador
+  // (decisión Albert 30-08). Clave de MUNDO: todas las cuentas lo ven.
+  perfilesOrg: Record<string, PerfilOrgOverride>
   // acciones
   inscribir: (torneoId: string, nombreTorneo: string, crewId?: string) => void
   desinscribir: (torneoId: string, nombreTorneo: string) => void
@@ -347,6 +350,7 @@ interface DemoState {
   // El TO inicia el torneo cuando quiere (aunque no esté lleno ni sea la
   // fecha): lo pone EN DIRECTO para TODAS las cuentas y cierra inscripciones.
   iniciarTorneo: (id: string, nombre: string) => void
+  editarPerfilOrg: (orgId: string, patch: PerfilOrgOverride) => void
 }
 
 let nid = 0
@@ -610,6 +614,7 @@ const DATOS_INICIALES: DatosDemo = {
       amistadesCuentas: [],
       perfilesCuentas: {},
       inscripcionesCuentas: {},
+      perfilesOrg: {},
 }
 
 // ── Mundo compartido (30-08): clasificación WORLD/PERSONAL de las claves ──
@@ -626,7 +631,7 @@ export const CLAVES_MUNDO = [
   'valoracionesSedes', 'valoracionesTO',
   'usuariosSuspendidos', 'betaCerrada', 'codigosBeta',
   'crews', 'crewTorneo',
-  'amistadesCuentas', 'perfilesCuentas', 'inscripcionesCuentas',
+  'amistadesCuentas', 'perfilesCuentas', 'inscripcionesCuentas', 'perfilesOrg',
 ] as const satisfies readonly (keyof DatosDemo)[]
 export type ClaveMundo = (typeof CLAVES_MUNDO)[number]
 export type DatosPersonales = Omit<DatosDemo, ClaveMundo>
@@ -1250,6 +1255,11 @@ export const useDemoStore = create<DemoState>()(
       setFotoPerfil: (fotoPerfil) => set((s) => conPerfilCuenta(s, { fotoPerfil })),
       setBannerPerfil: (bannerPerfil) => set({ bannerPerfil }),
       setBioPerfil: (bio) => set((s) => conPerfilCuenta(s, { bioPerfil: bio.slice(0, 160) })),
+      // Perfil de organizador editable desde /perfil/organizador (decisión
+      // 30-08). organizadorEfectivo() lo funde vía el lector registrado abajo.
+      editarPerfilOrg: (orgId, patch) => set((s) => ({
+        perfilesOrg: { ...s.perfilesOrg, [orgId]: { ...s.perfilesOrg[orgId], ...patch } },
+      })),
       // El tag de usuario #XABCD se genera al primer uso y queda fijo. Se
       // re-publica también en el perfil público del mundo (búsqueda exacta).
       asegurarUserTag: () => set((s) => s.userTag ? s : conPerfilCuenta(s, { userTag: generarTagUsuario() })),
@@ -1823,3 +1833,8 @@ export const usePrecioNoche = (localId: string): number => {
   const fichasSede = useDemoStore(s => s.fichasSede)
   return precioNocheEfectivo(localId, dispoSedes, fichasSede)
 }
+
+// organizadorEfectivo() (sample.ts) aplica los overrides editados del perfil de
+// organizador leyéndolos de aquí — registro en runtime para no crear el ciclo
+// de imports sample ↔ useDemoStore.
+registrarLectorPerfilOrg((id) => useDemoStore.getState().perfilesOrg?.[id])
