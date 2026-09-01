@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getTorneo, JUEGOS, bracketDe, bracketDobleDe, standingsSuizoDe, rankingPorJuego, plantillaDe, type MatchSample, type RondaSample, type Jugador } from '@/lib/torneos/sample'
 import { PersonajesDeLado } from '@/components/todh/PersonajeChip'
+import { personajesDelSet, type ParPersonajes } from '@/lib/torneos/personajesBracket'
 import { CrewTag } from '@/components/todh/CrewTag'
 import { construirRondas, nombreRonda, boDeRonda } from '@/lib/torneos/bracket'
 import { useDemoStore, resolverSeeds, type BoDesde } from '@/lib/stores/useDemoStore'
@@ -182,7 +183,7 @@ function BracketGrid({ rondas, color, onPick, pj, juegoId }: { rondas: RondaSamp
                 {ronda.matches.map(m => (
                   <div key={m.id} className="bkt-cell">
                     <div className={cn('w-full', ri > 0 && 'bkt-stub-in')}>
-                      <MatchCard m={m} color={color} onPick={onPick} pj={pj?.[m.id]} juegoId={juegoId} />
+                      <MatchCard m={m} color={color} onPick={onPick} pj={personajesDelSet(juegoId, m.id, m.a, m.b, pj?.[m.id])} juegoId={juegoId} />
                     </div>
                   </div>
                 ))}
@@ -205,7 +206,7 @@ function BracketGrid({ rondas, color, onPick, pj, juegoId }: { rondas: RondaSamp
   )
 }
 
-function MatchCard({ m, color, onPick, pj, juegoId }: { m: MatchSample & { inicioSet?: number }; color: string; onPick: (n: string) => void; pj?: { A: string[]; B: string[] }; juegoId?: string }) {
+function MatchCard({ m, color, onPick, pj, juegoId }: { m: MatchSample & { inicioSet?: number }; color: string; onPick: (n: string) => void; pj?: ParPersonajes; juegoId?: string }) {
   const { t: tr } = useT()
   const live = m.estado === 'en-juego'
   const done = m.estado === 'jugado'

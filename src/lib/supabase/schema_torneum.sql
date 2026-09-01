@@ -705,3 +705,14 @@ CREATE POLICY mundo_lee ON estado_mundo FOR SELECT USING (auth.uid() IS NOT NULL
 DROP POLICY IF EXISTS mundo_escribe ON estado_mundo;
 CREATE POLICY mundo_escribe ON estado_mundo FOR ALL
   USING (auth.uid() IS NOT NULL) WITH CHECK (id = 'mundo' AND auth.uid() IS NOT NULL);
+
+-- Salas de demo multi-dispositivo (01-09): filas 'sala:{codigo}' accesibles de
+-- forma ANÓNIMA (las cuentas demo no tienen auth.uid()). La fila global
+-- 'mundo' sigue siendo solo de usuarios reales (policies de arriba).
+-- Aplicadas en producción el 01-09-2026.
+DROP POLICY IF EXISTS sala_lee ON estado_mundo;
+CREATE POLICY sala_lee ON estado_mundo FOR SELECT TO anon, authenticated USING (id LIKE 'sala:%');
+DROP POLICY IF EXISTS sala_escribe ON estado_mundo;
+CREATE POLICY sala_escribe ON estado_mundo FOR INSERT TO anon, authenticated WITH CHECK (id LIKE 'sala:%');
+DROP POLICY IF EXISTS sala_actualiza ON estado_mundo;
+CREATE POLICY sala_actualiza ON estado_mundo FOR UPDATE TO anon, authenticated USING (id LIKE 'sala:%') WITH CHECK (id LIKE 'sala:%');

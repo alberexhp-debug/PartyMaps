@@ -13,6 +13,7 @@ import { GameKeyart } from '@/components/todh/GameKeyart'
 import { GameIcon } from '@/components/todh/GameIcon'
 import { MiniPerfil } from '@/components/todh/MiniPerfil'
 import { PersonajeChip, PersonajesDeLado } from '@/components/todh/PersonajeChip'
+import { personajesDelSet } from '@/lib/torneos/personajesBracket'
 import { CrewTag } from '@/components/todh/CrewTag'
 import { BannerPicker } from '@/components/todh/BannerPicker'
 import { Flag } from 'lucide-react'
@@ -716,8 +717,9 @@ export default function GestionarTorneoPage() {
                                           <span className="truncate">{pl.nombre} <span className="text-[10px]">{pl.bandera}</span></span>
                                           {/* Tag de crew (F6): solo en torneo y ranking */}
                                           <CrewTag nombre={pl.nombre} juego={t.juego} />
-                                          {!!m.ganador && plantillaDe(t.juego).personajes &&
-                                            <PersonajesDeLado juegoId={t.juego} nombres={pjTorneo?.[m.id]?.[lado === 'a' ? 'A' : 'B']} px={14} />}
+                                          {!!m.ganador &&
+                                            <PersonajesDeLado juegoId={t.juego} px={14}
+                                              nombres={personajesDelSet(t.juego, m.id, m.a?.nombre ?? '—', m.b?.nombre ?? '—', pjTorneo?.[m.id])?.[lado === 'a' ? 'A' : 'B']} />}
                                         </span>
                                         {win && <Check size={15} className="text-[#B6FF3A] shrink-0" />}
                                         {editBracket && <ArrowRightLeft size={12} className={`shrink-0 ${selSwap ? 'text-[#E0BE63]' : 'text-[#8B8BA8]'}`} />}

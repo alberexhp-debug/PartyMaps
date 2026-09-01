@@ -65,7 +65,8 @@ await ctx.close()
 // ── La nube tiene ambos blobs (los de ESTE usuario; puede haber residuos)
 const filaU = await (await admin(`/rest/v1/usuarios?auth_id=eq.${alta.id}&select=id`)).json()
 const ec = await (await admin(`/rest/v1/estado_cuenta?usuario_id=eq.${filaU[0]?.id}&select=usuario_id`)).json()
-const em = await (await admin('/rest/v1/estado_mundo?select=id')).json()
+// Solo la fila GLOBAL: las filas 'sala:%' (demo multi-dispositivo) son aparte
+const em = await (await admin('/rest/v1/estado_mundo?id=eq.mundo&select=id')).json()
 ok(ec.length === 1, 'estado_cuenta guardado en la nube')
 ok(em.length === 1, 'estado_mundo guardado en la nube')
 
@@ -89,8 +90,12 @@ for (const u of (lista.users ?? [])) {
   if (/^(e2e-|dbg)/.test(u.email ?? '')) await admin(`/auth/v1/admin/users/${u.id}`, { method: 'DELETE' })
 }
 await admin(`/rest/v1/estado_mundo?id=eq.mundo`, { method: 'DELETE' })
-const quedan = await (await admin('/rest/v1/estado_cuenta?select=usuario_id')).json()
-ok(quedan.length === 0 && (await (await admin('/rest/v1/estado_mundo?select=id')).json()).length === 0, 'limpieza de la nube completa')
+// Solo se comprueba lo que ESTA suite crea: usuarios e2e-/dbg y la fila global
+// del mundo. Antes se exigía `estado_cuenta` VACÍA del todo, y eso daba rojo en
+// cuanto existía una cuenta real de usuario (que es lo normal desde la fase A).
+const e2eVivos = await (await admin('/rest/v1/usuarios?email=like.e2e-*&select=id')).json()
+const mundoVivo = await (await admin('/rest/v1/estado_mundo?id=eq.mundo&select=id')).json()
+ok(e2eVivos.length === 0 && mundoVivo.length === 0, 'limpieza de la nube completa (usuarios e2e y mundo global)')
 
 await browser.close()
 console.log(fallos === 0 ? '\nTODO OK' : `\n${fallos} FALLOS`)

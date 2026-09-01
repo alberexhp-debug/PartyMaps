@@ -1,8 +1,9 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useDemoStore } from '@/lib/stores/useDemoStore'
 import { useSesionStore, claveDemo } from '@/lib/stores/useSesionStore'
 import { supabaseTorneum } from '@/lib/supabase/torneum'
+import { salaActual, suscribirSala } from '@/lib/supabase/sala'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FASE A.5 (31-08): TODO tu estado te sigue. Con cuenta REAL, el blob personal
@@ -36,6 +37,53 @@ export function NubeDemoSync() {
   const sesion = useSesionStore(s => s.sesion)
   const listo = useRef<string | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timerSala = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // La sala se lee en vivo sin setState-en-efecto (null en SSR)
+  const sala = useSyncExternalStore(suscribirSala, salaActual, () => null)
+
+  // ── SALA multi-dispositivo (01-09): el MUNDO se comparte por código TAMBIÉN
+  // para cuentas demo (fila 'sala:{codigo}' de estado_mundo, policies anon).
+  // Poll de 5 s + push debounced con guarda anti-eco (no re-subir lo que se
+  // acaba de aplicar de la nube). Último-en-escribir-gana, como el mundo real.
+  useEffect(() => {
+    if (!sala) return
+    const sb = supabaseTorneum()
+    if (!sb) return
+    const fila = `sala:${sala}`
+    const marca = `todh-nube-rev-${fila}`
+    let parar = false
+    const tirar = async () => {
+      const { data } = await sb.from('estado_mundo').select('estado,updated_at').eq('id', fila).maybeSingle()
+      if (parar) return
+      if (data?.estado) {
+        if (data.updated_at !== leerMarca(marca)) {
+          const texto = JSON.stringify(data.estado)
+          try { window.localStorage.setItem(CLAVE_MUNDO, texto) } catch { /* cuota */ }
+          ultimoBlobSala = texto
+          ponerMarca(marca, data.updated_at)
+          useDemoStore.persist.rehydrate()
+        }
+      } else {
+        // Sala virgen: este navegador la funda con su mundo actual
+        await empujarSala(fila, marca)
+      }
+    }
+    tirar()
+    const intervalo = setInterval(tirar, 5000)
+    const alVisible = () => { if (document.visibilityState === 'visible') tirar() }
+    document.addEventListener('visibilitychange', alVisible)
+    const unsub = useDemoStore.subscribe(() => {
+      if (timerSala.current) clearTimeout(timerSala.current)
+      timerSala.current = setTimeout(() => { if (!parar) empujarSala(fila, marca) }, 800)
+    })
+    return () => {
+      parar = true
+      clearInterval(intervalo)
+      document.removeEventListener('visibilitychange', alVisible)
+      unsub()
+      if (timerSala.current) clearTimeout(timerSala.current)
+    }
+  }, [sala])
 
   // PULL al entrar con cuenta real: solo aplica revisiones que no hayamos visto
   useEffect(() => {
@@ -102,10 +150,30 @@ async function empujar(email: string) {
       .select('updated_at').single()
     if (!error && data?.updated_at) ponerMarca(marcaCuenta(email), data.updated_at)
   }
-  if (mundo) {
+  // Con una SALA activa el mundo viaja por la fila de la sala (efecto de
+  // arriba), nunca por la global: jamás dos escritores del mismo blob.
+  if (mundo && !salaActual()) {
     const { data, error } = await sb.from('estado_mundo')
       .upsert({ id: 'mundo', estado: mundo, updated_at: ahora })
       .select('updated_at').single()
     if (!error && data?.updated_at) ponerMarca(MARCA_MUNDO, data.updated_at)
   }
+}
+
+// ── Push del mundo a la fila de la SALA (sin auth: policies anon de 'sala:%').
+// Guarda anti-eco: si el blob local es idéntico al último aplicado/subido, no
+// se sube — evita el ping-pong de revisiones entre dispositivos en reposo.
+let ultimoBlobSala: string | null = null
+async function empujarSala(fila: string, marca: string) {
+  const sb = supabaseTorneum()
+  if (!sb) return
+  let raw: string | null = null
+  try { raw = window.localStorage.getItem(CLAVE_MUNDO) } catch { return }
+  if (!raw || raw === ultimoBlobSala) return
+  let estado: unknown
+  try { estado = JSON.parse(raw) } catch { return }
+  const { data, error } = await sb.from('estado_mundo')
+    .upsert({ id: fila, estado, updated_at: new Date().toISOString() })
+    .select('updated_at').single()
+  if (!error && data?.updated_at) { ponerMarca(marca, data.updated_at); ultimoBlobSala = raw }
 }

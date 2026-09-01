@@ -1855,6 +1855,13 @@ export const JA: Record<string, string> = {
   'pv.buscarPh': '名前または名前#タグで検索…',
   'pv.invT': '🎟️ 「{torneo}」への招待',
   'pv.invC': '主催者からプライベート大会に招待されました。ページを開いてエントリーしましょう。',
+  // Sala multi-dispositivo (01-09)
+  'sala.titulo': '複数デバイスでデモ',
+  'sala.texto': '他のデバイスでも同じコードを入力すると、大会・フレンド・チャットなどの世界が共有されます。?sala=コード 付きのURLでもOK。',
+  'sala.ph': 'コード（例: albert）',
+  'sala.conectar': '接続',
+  'sala.conectada': 'ルーム接続中',
+  'sala.salir': '切断',
   // ── Directo público con bracket real (QA 01-09)
   'dx.finalizado': '大会終了',
   'dx.campeon': '優勝',

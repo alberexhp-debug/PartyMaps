@@ -451,14 +451,25 @@ export type Jugador = {
   main?: string
   tendencia: number   // +/- puestos
   online?: boolean
+  genero?: 'F' | 'M'  // escena femenina representada en el pool (01-09)
 }
 
 // Generador determinista de ranking por juego (sin Math.random para SSR estable)
+// Pool del ranking. El ORDEN es el ranking (rating y stats derivan del índice)
+// y los ids `{juego}-p{i}` se usan como seeds: NO reordenar ni renombrar los 16
+// primeros — hay suites y siembras que dependen de ellos.
+// 4º campo: género ('F' jugadora / 'M' jugador), para que la escena femenina
+// esté representada de verdad y con los mismos datos que el resto (01-09).
 const NOMBRES_POOL = [
-  ['Kaze', 'ES', '🇪🇸'], ['Sora', 'ES', '🇪🇸'], ['Nyx', 'FR', '🇫🇷'], ['Volt', 'ES', '🇪🇸'],
-  ['Rei', 'JP', '🇯🇵'], ['Mist', 'PT', '🇵🇹'], ['Zen', 'ES', '🇪🇸'], ['Aqua', 'IT', '🇮🇹'],
-  ['Drako', 'ES', '🇪🇸'], ['Pyra', 'DE', '🇩🇪'], ['Lux', 'ES', '🇪🇸'], ['Onyx', 'GB', '🇬🇧'],
-  ['Vega', 'ES', '🇪🇸'], ['Kira', 'ES', '🇪🇸'], ['Faze', 'NL', '🇳🇱'], ['Riven', 'ES', '🇪🇸'],
+  ['Kaze', 'ES', '🇪🇸', 'M'], ['Sora', 'ES', '🇪🇸', 'F'], ['Nyx', 'FR', '🇫🇷', 'F'], ['Volt', 'ES', '🇪🇸', 'M'],
+  ['Rei', 'JP', '🇯🇵', 'F'], ['Mist', 'PT', '🇵🇹', 'M'], ['Zen', 'ES', '🇪🇸', 'M'], ['Aqua', 'IT', '🇮🇹', 'F'],
+  ['Drako', 'ES', '🇪🇸', 'M'], ['Pyra', 'DE', '🇩🇪', 'F'], ['Lux', 'ES', '🇪🇸', 'F'], ['Onyx', 'GB', '🇬🇧', 'M'],
+  ['Vega', 'ES', '🇪🇸', 'F'], ['Kira', 'ES', '🇪🇸', 'F'], ['Faze', 'NL', '🇳🇱', 'M'], ['Riven', 'ES', '🇪🇸', 'F'],
+  // Jugadoras de la escena (01-09): entran al pool con historial, puntuación,
+  // récord y mains como cualquier otra fila — nada de perfiles a medias.
+  ['Alba', 'ES', '🇪🇸', 'F'], ['Nerea', 'ES', '🇪🇸', 'F'], ['Vera', 'ES', '🇪🇸', 'F'], ['Iris', 'PT', '🇵🇹', 'F'],
+  ['Noa', 'ES', '🇪🇸', 'F'], ['Marta', 'ES', '🇪🇸', 'F'], ['Sara', 'FR', '🇫🇷', 'F'], ['Luna', 'ES', '🇪🇸', 'F'],
+  ['Aria', 'IT', '🇮🇹', 'F'], ['Yuki', 'JP', '🇯🇵', 'F'],
 ]
 const MAINS: Record<string, string[]> = {
   smash: ['Joker', 'Steve', 'Fox', 'Pikachu', 'Cloud', 'Roy', 'Pyra/Mythra', 'Sonic'],
@@ -481,8 +492,14 @@ export function rankingPorJuego(juegoId: string): Jugador[] {
       id: `${juegoId}-p${i}`,
       nombre: n[0], handle: `@${n[0].toLowerCase()}`, pais: n[1], bandera: n[2],
       juego: juegoId, rating, tier,
-      victorias: 120 - i * 6 + (i % 3) * 4, derrotas: 18 + i * 3,
-      torneosJugados: 40 - i,
+      // Récord: baja con el puesto pero SIEMPRE plausible. La fórmula lineal
+      // vieja (120 - i*6 · 18 + i*3) se iba a victorias negativas pasado el
+      // puesto 20 y dejaba a la cola del pool con winrates del 30% — con el
+      // pool ampliado eso pintaba perfiles de perdedor. Ahora: ~88% arriba,
+      // ~50% abajo, y nadie con números imposibles.
+      victorias: Math.max(46, 120 - i * 3), derrotas: 16 + Math.min(i, 14) * 2,
+      torneosJugados: Math.max(14, 40 - i),
+      genero: n[3] === 'F' ? 'F' : 'M',
       mejorPuesto: i === 0 ? '🥇 1º' : i === 1 ? '🥈 2º' : i < 4 ? 'Top 4' : 'Top 8',
       main: mains[i % (mains.length || 1)],
       tendencia: ((i * 7 + juegoId.length) % 5) - 2,

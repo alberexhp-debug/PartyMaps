@@ -1867,6 +1867,13 @@ const D = {
   'pv.buscarPh': ['Busca por alias o alias#tag…', 'Search by alias or alias#tag…'],
   'pv.invT': ['🎟️ Invitación a «{torneo}»', '🎟️ Invitation to “{torneo}”'],
   'pv.invC': ['El organizador te ha invitado a su torneo privado. Tu plaza te espera: entra a la ficha e inscríbete.', 'The organizer invited you to their private tournament. Your spot awaits: open the page and register.'],
+  // Sala multi-dispositivo (01-09)
+  'sala.titulo': ['Demo en varios dispositivos', 'Demo on multiple devices'],
+  'sala.texto': ['Pon el mismo código aquí y en tus otros dispositivos: compartirán el mundo (torneos, amigos, chats…). También vale abrir la web con ?sala=tucodigo.', 'Enter the same code here and on your other devices: they will share the world (tournaments, friends, chats…). Opening the site with ?sala=yourcode also works.'],
+  'sala.ph': ['código (p. ej. albert)', 'code (e.g. albert)'],
+  'sala.conectar': ['Conectar', 'Connect'],
+  'sala.conectada': ['Sala conectada', 'Room connected'],
+  'sala.salir': ['Salir', 'Leave'],
   // ── Directo público con bracket real (QA 01-09): la emisión deja la maqueta
   'dx.finalizado': ['Torneo finalizado', 'Tournament finished'],
   'dx.campeon': ['Campeón', 'Champion'],

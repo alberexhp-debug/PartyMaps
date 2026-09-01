@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useSesionStore, rutaInicial, CUENTAS_DEMO, type CuentaDemo } from '@/lib/stores/useSesionStore'
 import { getCookieConsent } from '@/components/ui/CookieBanner'
 import { useT, type ClaveI18n } from '@/lib/i18n'
-import { Eye, EyeOff, KeyRound, User, Megaphone, Store, ShieldCheck } from '@/components/todh/iconosTorneum'
+import { Eye, EyeOff, KeyRound, User, Megaphone, Store, ShieldCheck, Radio } from '@/components/todh/iconosTorneum'
 import { LogIn } from 'lucide-react'
+import { salaActual, setSala, normalizarSala, suscribirSala } from '@/lib/supabase/sala'
 
 // Login de la DEMO: toda la app entra por aquí. Los accesos de un toque son la
 // puerta de testeo: 6 jugadores vacíos, 1 jugador+TO (David), 3 sedes y el
@@ -53,6 +54,10 @@ function LoginDemo() {
   const [password, setPassword] = useState('')
   const [verPass, setVerPass] = useState(false)
   const [error, setError] = useState('')
+  // Sala multi-dispositivo (01-09): mismo código en cada dispositivo = mismo
+  // mundo. Lectura viva sin setState-en-efecto (null en SSR).
+  const salaUI = useSyncExternalStore(suscribirSala, salaActual, () => null)
+  const [codigoSala, setCodigoSala] = useState('')
   // Montaje y banner de cookies SIN setState-en-efecto (regla react-hooks):
   // useSyncExternalStore da false en SSR y el valor vivo en cliente.
   const hidratado = useSyncExternalStore(suscribirNada, () => true, () => false)
@@ -195,6 +200,29 @@ function LoginDemo() {
               </div>
             )
           })}
+        </div>
+
+        {/* Sala multi-dispositivo (01-09): el mundo de la demo se comparte por
+            código entre navegadores y dispositivos (también en incógnito). */}
+        <div className="mt-4 card-premium p-4">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-[#8B8BA8] font-bold flex items-center gap-1.5"><Radio size={12} /> {tr('sala.titulo')}</p>
+          {salaUI ? (
+            <div className="mt-2.5 flex items-center gap-2">
+              <span className="flex-1 min-w-0 truncate text-[13px] font-bold text-[#B6FF3A]">{tr('sala.conectada')} · <span className="font-mono-num">{salaUI}</span></span>
+              <button onClick={() => setSala(null)}
+                className="h-9 px-3 rounded-lg bg-white/6 text-[12px] font-bold text-[#8B8BA8] hover:text-white transition-colors shrink-0">{tr('sala.salir')}</button>
+            </div>
+          ) : (
+            <>
+              <p className="mt-1.5 text-[11px] text-[#8B8BA8] leading-relaxed">{tr('sala.texto')}</p>
+              <div className="mt-2 flex gap-2">
+                <input value={codigoSala} onChange={e => setCodigoSala(e.target.value)} placeholder={tr('sala.ph')}
+                  className="flex-1 min-w-0 h-10 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-[#B6FF3A]/60 outline-none" />
+                <button onClick={() => { const c = normalizarSala(codigoSala); if (!c) return; setSala(c); setCodigoSala('') }}
+                  className="h-10 px-3.5 rounded-xl bg-[#B6FF3A]/15 border border-[#B6FF3A]/40 text-[#B6FF3A] text-[13px] font-bold shrink-0">{tr('sala.conectar')}</button>
+              </div>
+            </>
+          )}
         </div>
 
         <p className="mt-5 text-center">

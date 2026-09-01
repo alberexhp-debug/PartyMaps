@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { getTorneo, getLocal, rankingPorJuego, plantillaDe, TORNEOS_SAMPLE, type Jugador, type Mesa } from '@/lib/torneos/sample'
 import { PersonajesDeLado } from '@/components/todh/PersonajeChip'
+import { personajesDelSet } from '@/lib/torneos/personajesBracket'
 import { CrewTag } from '@/components/todh/CrewTag'
 import { construirRondas, nombreRonda, normalizarDesde, opcionesDesde, etiquetaDesde, type MatchB } from '@/lib/torneos/bracket'
 import { useDemoStore, useOrgId, resolverSeeds } from '@/lib/stores/useDemoStore'
@@ -789,7 +790,9 @@ function BracketVivo({ rondas, puntos, setups, disputaMids, pj, juegoId, enJuego
                     {(['a', 'b'] as const).map(lado => {
                       const jug = m[lado]
                       const gana = m.ganador === lado
-                      const pers = jugado && juegoId ? pj?.[m.id]?.[lado === 'a' ? 'A' : 'B'] : undefined
+                      const pers = jugado
+                        ? personajesDelSet(juegoId, m.id, m.a?.nombre ?? '—', m.b?.nombre ?? '—', pj?.[m.id])?.[lado === 'a' ? 'A' : 'B']
+                        : undefined
                       return (
                         <div key={lado} className="flex items-center justify-between gap-2">
                           <span className={`min-w-0 flex items-center gap-1 text-[13px] ${gana ? 'font-bold text-[#B6FF3A]' : jug ? 'text-white font-semibold' : 'text-[#6B6B85]'}`}>

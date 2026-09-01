@@ -99,10 +99,23 @@ export type FilaRankingTorneum = {
   tendencia: number  // +/- puestos vs. semana pasada
 }
 
+// OJO: filasDe recorre esta lista en pasos de 7 (`(seed + i*7) % NICKS.length`)
+// y la longitud debe ser COPRIMA con 7 o la tabla repetiría pocos nicks. NO
+// cambiar su tamaño: cambia la tabla entera y saca del top a los nicks que
+// llevan tag de crew (Kaze/Sora/Volt son Nocturna y hay suites que lo miran).
 const NICKS = [
   'Kaze', 'Sora', 'Volt', 'Zen', 'Drako', 'Lux', 'Vega', 'Kira', 'Riven', 'Nyx',
   'Rei', 'Mist', 'Aqua', 'Pyra', 'Onyx', 'Faze', 'Blitz', 'Nova', 'Echo', 'Yuki',
 ]
+
+// Jugadoras de la escena (01-09): están también en NOMBRES_POOL de sample.ts,
+// así que desde el ranking se abre su perfil con historial, récord y mains.
+// Ocupan POSICIONES FIJAS de cada tabla (ver POS_JUGADORAS) en vez de ampliar
+// NICKS: así el resto de la tabla queda exactamente como estaba.
+const NICKS_JUGADORAS = ['Alba', 'Nerea', 'Vera', 'Iris', 'Noa', 'Marta', 'Sara', 'Luna', 'Aria']
+// Elegidas para no pisar a los miembros de crew del top de Smash·ES (Kaze 5º,
+// Sora 8º, Volt 11º) y repartirse por toda la tabla.
+const POS_JUGADORAS = new Set([1, 3, 6, 9])
 
 // Hash determinista pequeño (sin Math.random: SSR estable)
 function h(s: string): number {
@@ -115,7 +128,9 @@ function filasDe(juego: string, modalidad: 'presencial' | 'online', pais: Pais, 
   const seed = h(`${juego}:${modalidad}:${pais.id}`)
   const filas: FilaRankingTorneum[] = []
   for (let i = 0; i < n; i++) {
-    const nick = NICKS[(seed + i * 7) % NICKS.length]
+    const nick = POS_JUGADORAS.has(i)
+      ? NICKS_JUGADORAS[(seed + i * 5) % NICKS_JUGADORAS.length]
+      : NICKS[(seed + i * 7) % NICKS.length]
     const puntos = Math.max(40, 1980 - i * 150 - ((seed >> (i % 5)) % 90))
     filas.push({
       id: `${juego}-${modalidad}-${pais.id}-${i}`,
